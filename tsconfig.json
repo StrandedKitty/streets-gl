@@ -1,0 +1,17 @@
+{
+	"compilerOptions": {
+		"module": "es6",
+		"target": "es6",
+		"allowJs": true,
+		"sourceMap": true,
+		"moduleResolution": "node",
+		"alwaysStrict": true,
+		"noImplicitAny": true,
+		"noImplicitThis": true,
+		"strictBindCallApply": true,
+		"strictFunctionTypes": true
+	},
+	"include": [
+		"src"
+	]
+}
