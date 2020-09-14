@@ -107,3 +107,7 @@ export function getTilesIntersectingLine(a: Vec2, b: Vec2): Vec2[] {
 
 	return points;
 }
+
+export function mercatorScaleFactor(lat: number): number {
+	return 1 / Math.cos(toRad(lat));
+}

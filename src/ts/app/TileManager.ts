@@ -20,7 +20,7 @@ export default class TileManager {
 	}
 
 	private init() {
-		this.cameraFrustum = new Frustum(this.camera.fov, this.camera.aspect, 1, 4000);
+		this.cameraFrustum = new Frustum(this.camera.fov, this.camera.aspect, 1, 5000);
 		this.cameraFrustum.updateViewSpaceVertices();
 
 		window.addEventListener('resize', () => this.onResize());

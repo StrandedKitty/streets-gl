@@ -2,6 +2,7 @@ import Mesh from "../../renderer/Mesh";
 import GLConstants from "../../renderer/GLConstants";
 import Renderer from "../../renderer/Renderer";
 import Config from "../Config";
+import HeightProvider from "../HeightProvider";
 
 export default class Ground extends Mesh {
 	constructor(renderer: Renderer) {
@@ -25,23 +26,12 @@ export default class Ground extends Mesh {
 		this.setAttributeData('uv', uvs);
 	}
 
-	public applyHeightmap(canvas: HTMLCanvasElement) {
-		const ctx = canvas.getContext('2d');
+	public applyHeightmap(x: number, y: number) {
 		const vertices = this.attributes.get('position').buffer;
 		const uvs = this.attributes.get('uv').buffer;
 
-		const time = performance.now();
 		for(let i = 0; i < uvs.length / 2; i++) {
-			const x = uvs[i * 2];
-			const y = 1 - uvs[i * 2 + 1];
-
-			const pixelX = Math.floor(255 * x);
-			const pixelY = Math.floor(255 * y);
-
-			const pixel = ctx.getImageData(pixelX, pixelY, 1, 1).data;
-
-			const height = -10000 + ((pixel[0] * 256 * 256 + pixel[1] * 256 + pixel[2]) * 0.1);
-			vertices[i * 3 + 1] = height - 2000;
+			vertices[i * 3 + 1] = HeightProvider.getHeight(x, y, uvs[i * 2], 1 - uvs[i * 2 + 1]);
 		}
 	}
 

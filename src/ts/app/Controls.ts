@@ -1,7 +1,8 @@
 import Vec3 from "../math/Vec3";
-import {clamp, lerp, normalizeAngle, sphericalToCartesian, toRad} from "../math/Utils";
+import {clamp, lerp, meters2tile, normalizeAngle, sphericalToCartesian, toRad} from "../math/Utils";
 import Camera from "../core/Camera";
 import Vec2 from "../math/Vec2";
+import HeightProvider from "./HeightProvider";
 
 export default class Controls {
 	private element: HTMLElement;
@@ -152,7 +153,7 @@ export default class Controls {
 		vector = Vec3.sub(vector, this.camera.position);
 		vector.y *= 1;
 
-		const distanceToGround = this.camera.position.y / vector.y;
+		const distanceToGround = (this.camera.position.y - this.target.y) / vector.y;
 		const vectorToGround = Vec3.multiplyScalar(vector, distanceToGround);
 		const positionOnGround = Vec3.sub(this.camera.position, vectorToGround);
 
@@ -161,6 +162,13 @@ export default class Controls {
 
 	public update(camera: Camera) {
 		this.camera = camera;
+
+		const tile = meters2tile(this.target.x, this.target.z);
+		const tilePosition = new Vec2(Math.floor(tile.x), Math.floor(tile.y));
+
+		if(HeightProvider.getTile(tilePosition.x, tilePosition.y)) {
+			this.target.y = HeightProvider.getHeight(tilePosition.x, tilePosition.y, tile.x % 1, tile.y % 1);
+		}
 
 		this.distance = lerp(this.distance, this.distanceTarget, 0.4);
 		if(Math.abs(this.distance - this.distanceTarget) < 0.01) {
