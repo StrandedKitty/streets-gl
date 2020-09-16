@@ -1,7 +1,7 @@
 import '../../css/style.css';
 import RenderSystem from "./render/RenderSystem";
 import TileManager from "./TileManager";
-import Controls from "./Controls";
+import Controls from "./controls/Controls";
 import {degrees2meters} from "../math/Utils";
 
 class App {
@@ -21,7 +21,7 @@ class App {
 	}
 
 	private init() {
-		const cameraPosition = degrees2meters(36.180420, -111.799172);
+		const cameraPosition = degrees2meters(40.7638469, -73.9805143);
 		this.controls.target.set(cameraPosition.x, 0, cameraPosition.y);
 
 		this.update();

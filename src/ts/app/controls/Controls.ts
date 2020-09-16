@@ -1,8 +1,15 @@
-import Vec3 from "../math/Vec3";
-import {clamp, lerp, meters2tile, normalizeAngle, sphericalToCartesian, toRad} from "../math/Utils";
-import Camera from "../core/Camera";
-import Vec2 from "../math/Vec2";
-import HeightProvider from "./HeightProvider";
+import Vec3 from "../../math/Vec3";
+import {clamp, lerp, meters2tile, normalizeAngle, sphericalToCartesian, toRad} from "../../math/Utils";
+import Camera from "../../core/Camera";
+import Vec2 from "../../math/Vec2";
+import HeightProvider from "../HeightProvider";
+import DoubleTouchHandler, {DoubleTouchMoveEvent} from "./DoubleTouchHandler";
+import TouchZoomHandler from "./TouchZoomHandler";
+import TouchRotateHandler from "./TouchRotateHandler";
+import {TouchPitchHandler} from "./TouchPitchHandler";
+
+const touchYawFactor = 4;
+const touchPitchFactor = 2;
 
 export default class Controls {
 	private element: HTMLElement;
@@ -14,17 +21,28 @@ export default class Controls {
 	private pitch: number = toRad(45);
 	private yaw: number = toRad(0);
 
-	private isRotationMouseDown: boolean = false;
-	private isMovementMouseDown: boolean = false;
+	private isRotationMouseMode: boolean = false;
+	private isMovementMouseMode: boolean = false;
 	private mouseDownPosition: Vec2 = null;
 	private touches: Map<number, Vec2> = new Map();
 	private cachedMoveEvent: Vec2 = null;
+	private readonly touchHandlers: Map<string, DoubleTouchHandler>;
 
 	private readonly rotationSpeed = 0.25;
 	private readonly movementSpeed = 1;
 
 	constructor(element: HTMLElement) {
 		this.element = element;
+
+		this.touchHandlers = new Map<string, DoubleTouchHandler>([
+			['zoom', new TouchZoomHandler()],
+			['rotate', new TouchRotateHandler()],
+			['pitch', new TouchPitchHandler()]
+		]);
+
+		for (const handler of this.touchHandlers.values()) {
+			handler.onMove = (e: DoubleTouchMoveEvent) => this.onDoubleTouchMove(e);
+		}
 
 		this.element.addEventListener('contextmenu', (e: MouseEvent) => e.preventDefault());
 		this.element.addEventListener('mousedown', (e: MouseEvent) => this.mouseDownEvent(e));
@@ -38,97 +56,112 @@ export default class Controls {
 
 	private wheelEvent(e: WheelEvent) {
 		this.distanceTarget += 0.5 * e.deltaY;
-		this.distanceTarget = clamp(this.distanceTarget, 2, 3000);
+		this.distanceTarget = clamp(this.distanceTarget, 20, 2000);
 	}
 
 	private mouseDownEvent(e: MouseEvent) {
 		if (e.button && e.button == 2) {
-			this.isRotationMouseDown = true
+			this.isRotationMouseMode = true
 		} else {
-			this.isMovementMouseDown = true;
+			this.isMovementMouseMode = true;
 			this.mouseDownPosition = this.projectOnGround(e.clientX, e.clientY);
 		}
 	}
 
 	private mouseUpEvent(e: MouseEvent) {
 		if (e.button && e.button == 2)
-			this.isRotationMouseDown = false
+			this.isRotationMouseMode = false
 		else {
-			this.isMovementMouseDown = false;
+			this.isMovementMouseMode = false;
 			this.mouseDownPosition = null;
 			this.cachedMoveEvent = null;
 		}
 	}
 
 	private mouseMoveEvent(e: MouseEvent) {
-		if(this.isRotationMouseDown) {
+		if (this.isRotationMouseMode) {
 			this.yaw += toRad(e.movementX) * this.rotationSpeed;
 			this.pitch += toRad(e.movementY) * this.rotationSpeed;
 		}
 
-		if(this.isMovementMouseDown) {
+		if (this.isMovementMouseMode) {
 			this.cachedMoveEvent = new Vec2(e.clientX, e.clientY);
 		}
 	}
 
 	private touchStartEvent(e: TouchEvent) {
-		for(let i = 0; i < e.changedTouches.length; i++) {
+		for (let i = 0; i < e.changedTouches.length; i++) {
 			const touch = e.changedTouches[i];
 
 			this.touches.set(touch.identifier, new Vec2(touch.clientX, touch.clientY));
+		}
 
-			this.mouseDownPosition = this.projectOnGround(touch.clientX, touch.clientY);
+		const touchesSum = new Vec2();
+		for(const touch of this.touches.values()) {
+			touchesSum.x += touch.x;
+			touchesSum.y += touch.y;
+		}
+		this.mouseDownPosition = this.projectOnGround(touchesSum.x / this.touches.size, touchesSum.y / this.touches.size);
+		this.cachedMoveEvent = null;
+
+		for (const handler of this.touchHandlers.values()) {
+			handler.touchStart(e, this.touches);
 		}
 	}
 
 	private touchEndEvent(e: TouchEvent) {
-		for(let i = 0; i < e.changedTouches.length; i++) {
+		for (let i = 0; i < e.changedTouches.length; i++) {
 			const touch = e.changedTouches[i];
 
 			this.touches.delete(touch.identifier);
+		}
 
-			this.mouseDownPosition = null;
-			this.cachedMoveEvent = null;
+		this.mouseDownPosition = null;
+		this.cachedMoveEvent = null;
+
+		for (const handler of this.touchHandlers.values()) {
+			handler.touchEnd(e, this.touches);
 		}
 	}
 
 	private touchMoveEvent(e: TouchEvent) {
-		const deltas: Vec2[] = [];
-		const movementSum = new Vec2();
-		let touches = this.touches.size;
-
-		for(let i = 0; i < e.changedTouches.length; i++) {
+		for (let i = 0; i < e.changedTouches.length; i++) {
 			const touch = e.changedTouches[i];
-			const touchStart = this.touches.get(touch.identifier);
 
-			deltas.push(new Vec2(touch.clientX - touchStart.x, touch.clientY - touchStart.y));
-
-			movementSum.x += touch.clientX;
-			movementSum.y += touch.clientY;
+			this.touches.set(touch.identifier, new Vec2(touch.clientX, touch.clientY));
 		}
 
-		if(deltas.length >= 2) {
-			const averageDelta = new Vec2();
+		const touchesSum = new Vec2();
+		for(const touch of this.touches.values()) {
+			touchesSum.x += touch.x;
+			touchesSum.y += touch.y;
+		}
 
-			for(let i = 0; i < deltas.length; i++) {
-				averageDelta.x += deltas[i].x;
-				averageDelta.y += deltas[i].y;
+		this.cachedMoveEvent = new Vec2(touchesSum.x / this.touches.size, touchesSum.y / this.touches.size)
+
+		if(this.touches.size > 1) {
+			for (const handler of this.touchHandlers.values()) {
+				handler.touchMove(e, this.touches);
 			}
-
-			averageDelta.x /= deltas.length;
-			averageDelta.y /= deltas.length;
-
-			this.yaw += toRad(averageDelta.x) * this.rotationSpeed;
-			this.pitch += toRad(averageDelta.y) * this.rotationSpeed;
-		}
-
-		if(deltas.length == 1) {
-			this.cachedMoveEvent = new Vec2(movementSum.x / touches, movementSum.y / touches)
 		}
 	}
 
-	private move(x: number, y: number) {
-		const v = Vec2.multiplyScalar(new Vec2(x, y), this.movementSpeed);
+	private onDoubleTouchMove(e: DoubleTouchMoveEvent) {
+		if(e.zoomDelta && !this.touchHandlers.get('pitch').active) {
+			this.distanceTarget -= e.zoomDelta * this.distanceTarget;
+		}
+
+		if(e.bearingDelta && !this.touchHandlers.get('pitch').active) {
+			this.yaw += toRad(e.bearingDelta) * this.rotationSpeed * touchYawFactor;
+		}
+
+		if(e.pitchDelta) {
+			this.pitch -= toRad(e.pitchDelta) * this.rotationSpeed * touchPitchFactor;
+		}
+	}
+
+	private moveTarget(dx: number, dy: number) {
+		const v = Vec2.multiplyScalar(new Vec2(dx, dy), this.movementSpeed);
 
 		const v2 = new Vec2();
 
@@ -166,16 +199,16 @@ export default class Controls {
 		const tile = meters2tile(this.target.x, this.target.z);
 		const tilePosition = new Vec2(Math.floor(tile.x), Math.floor(tile.y));
 
-		if(HeightProvider.getTile(tilePosition.x, tilePosition.y)) {
+		if (HeightProvider.getTile(tilePosition.x, tilePosition.y)) {
 			this.target.y = HeightProvider.getHeight(tilePosition.x, tilePosition.y, tile.x % 1, tile.y % 1);
 		}
 
 		this.distance = lerp(this.distance, this.distanceTarget, 0.4);
-		if(Math.abs(this.distance - this.distanceTarget) < 0.01) {
+		if (Math.abs(this.distance - this.distanceTarget) < 0.01) {
 			this.distance = this.distanceTarget;
 		}
 
-		this.pitch = clamp(this.pitch, toRad(0.01), toRad(89.99));
+		this.pitch = clamp(this.pitch, toRad(5), toRad(89.99));
 		this.yaw = normalizeAngle(this.yaw);
 
 		this.direction = Vec3.normalize(sphericalToCartesian(this.yaw, -this.pitch));
@@ -186,13 +219,13 @@ export default class Controls {
 		camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
 		camera.lookAt(this.target, false);
 
-		if(this.cachedMoveEvent && this.mouseDownPosition) {
+		if (this.cachedMoveEvent && this.mouseDownPosition && !this.touchHandlers.get('pitch').active) {
 			this.camera.updateMatrixWorld();
 
 			const positionOnGround = this.projectOnGround(this.cachedMoveEvent.x, this.cachedMoveEvent.y);
 			const movementDelta = Vec2.sub(this.mouseDownPosition, positionOnGround);
 
-			this.move(movementDelta.x, movementDelta.y);
+			this.moveTarget(movementDelta.x, movementDelta.y);
 
 			const cameraOffset = Vec3.multiplyScalar(this.direction, this.distance);
 			const cameraPosition = Vec3.add(this.target, cameraOffset);

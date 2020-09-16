@@ -16,7 +16,7 @@ export default class GBuffer {
 	private readonly structure: GBufferTexture[];
 	private width: number;
 	private height: number;
-	private readonly textures: { [key: string]: Texture2D } = {};
+	public readonly textures: { [key: string]: Texture2D } = {};
 	private framebuffer: Framebuffer;
 	private framebufferHDR: Framebuffer;
 
@@ -42,8 +42,7 @@ export default class GBuffer {
 				wrap: GLConstants.CLAMP_TO_EDGE,
 				format: element.format,
 				internalFormat: element.internalFormat,
-				type: element.type,
-				anisotropy: 1
+				type: element.type
 			});
 		}
 	}
@@ -61,6 +60,8 @@ export default class GBuffer {
 			textures: texturesArray,
 			usesDepth: true
 		});
+
+		this.textures.depth = this.framebuffer.depthTexture;
 
 		this.framebufferHDR = new Framebuffer(this.renderer, {
 			width: this.width,

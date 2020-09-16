@@ -28,7 +28,7 @@ export default class Tile extends Object3D {
 		});
 	}
 
-	public async createGround(renderer: Renderer) {
+	public createGround(renderer: Renderer) {
 		this.colorMap = new Texture2D(renderer, {
 			url: `http://mt1.google.com/vt/lyrs=s&x=${this.x}&y=${this.y}&z=16&scale=2`,
 			anisotropy: 16,

@@ -4,12 +4,16 @@ import Object3D from "../../core/Object3D";
 import GroundMaterial from "./materials/GroundMaterial";
 import Mat4 from "../../math/Mat4";
 import {App} from "../App";
+import GBuffer from "../../renderer/GBuffer";
+import GLConstants from "../../renderer/GLConstants";
+import Vec2 from "../../math/Vec2";
 
 export default class RenderSystem {
 	public renderer: Renderer;
 	public camera: PerspectiveCamera;
 	public scene: Object3D;
 	public wrapper: Object3D;
+	private gBuffer: GBuffer;
 
 	private quadMaterial: GroundMaterial;
 
@@ -19,8 +23,42 @@ export default class RenderSystem {
 
 	private init() {
 		this.renderer = new Renderer(<HTMLCanvasElement>document.getElementById('canvas'));
-		this.renderer.setSize(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio);
+		this.renderer.setSize(this.resolution.x, this.resolution.y);
 		this.renderer.culling = true;
+
+		this.gBuffer = new GBuffer(this.renderer, this.resolution.x, this.resolution.y, [
+			{
+				name: 'color',
+				internalFormat: GLConstants.RGB8,
+				format: GLConstants.RGB,
+				type: GLConstants.UNSIGNED_BYTE,
+				mipmaps: false
+			}, {
+				name: 'normal',
+				internalFormat: GLConstants.RGB8,
+				format: GLConstants.RGB,
+				type: GLConstants.UNSIGNED_BYTE,
+				mipmaps: false
+			}, {
+				name: 'position',
+				internalFormat: GLConstants.RGBA32F,
+				format: GLConstants.RGBA,
+				type: GLConstants.FLOAT,
+				mipmaps: false
+			}, {
+				name: 'metallicRoughness',
+				internalFormat: GLConstants.RGBA8,
+				format: GLConstants.RGBA,
+				type: GLConstants.UNSIGNED_BYTE,
+				mipmaps: false
+			}, {
+				name: 'emission',
+				internalFormat: GLConstants.RGB8,
+				format: GLConstants.RGB,
+				type: GLConstants.UNSIGNED_BYTE,
+				mipmaps: false
+			}
+		]);
 
 		this.camera = new PerspectiveCamera({
 			fov: 40,
@@ -50,7 +88,8 @@ export default class RenderSystem {
 		this.camera.aspect = window.innerWidth / window.innerHeight;
 		this.camera.updateProjectionMatrix();
 
-		this.renderer.setSize(window.innerWidth, window.innerHeight);
+		this.renderer.setSize(this.resolution.x, this.resolution.y);
+		this.gBuffer.setSize(this.resolution.x, this.resolution.y);
 	}
 
 	public update(deltaTime: number) {
@@ -104,5 +143,9 @@ export default class RenderSystem {
 
 			tile.ground.draw();
 		}
+	}
+
+	public get resolution(): Vec2 {
+		return new Vec2(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio);
 	}
 }

@@ -80,6 +80,6 @@ export default new class HeightProvider {
 	}
 
 	private getTileURL(x: number, y: number, zoom: number): string {
-		return `https://api.mapbox.com/v4/mapbox.terrain-rgb/${zoom}/${x}/${y}.png?access_token=pk.eyJ1IjoiZXhhbXBsZXMiLCJhIjoiY2p0MG01MXRqMW45cjQzb2R6b2ptc3J4MSJ9.zA2W0IkI0c6KaAhJfk9bWg`;
+		return `https://api.mapbox.com/v4/mapbox.terrain-rgb/${zoom}/${x}/${y}.png?access_token=pk.eyJ1Ijoidmhhd2siLCJhIjoiY2pzYnpwdmEwMGdrcDRhbno2dm0zcjU5ciJ9.iqwsJLv8ndiVKh30zDnvCQ`;
 	}
 }
