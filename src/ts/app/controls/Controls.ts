@@ -2,7 +2,7 @@ import Vec3 from "../../math/Vec3";
 import {clamp, lerp, meters2tile, normalizeAngle, sphericalToCartesian, toRad} from "../../math/Utils";
 import Camera from "../../core/Camera";
 import Vec2 from "../../math/Vec2";
-import HeightProvider from "../HeightProvider";
+import HeightProvider from "../world/HeightProvider";
 import DoubleTouchHandler, {DoubleTouchMoveEvent} from "./DoubleTouchHandler";
 import TouchZoomHandler from "./TouchZoomHandler";
 import TouchRotateHandler from "./TouchRotateHandler";

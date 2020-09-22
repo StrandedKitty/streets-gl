@@ -4,16 +4,19 @@ import Renderer from "../../renderer/Renderer";
 import {tile2meters} from "../../math/Utils";
 import Texture2D from "../../renderer/Texture2D";
 import GLConstants from "../../renderer/GLConstants";
-import HeightProvider from "../HeightProvider";
+import HeightProvider from "../world/HeightProvider";
+import TileProvider from "../world/TileProvider";
+import Camera from "../../core/Camera";
 
 export default class Tile extends Object3D {
 	public ground: Ground;
 	public x: number;
 	public y: number;
 	public inFrustum: boolean = true;
+	public distanceToCamera: number = null;
 	public colorMap: Texture2D = null;
-	public heightmapCanvas: HTMLCanvasElement = null;
 	public readyForRendering: boolean = false;
+	public disposed = false;
 
 	constructor(x: number, y: number) {
 		super();
@@ -22,8 +25,14 @@ export default class Tile extends Object3D {
 		this.y = y;
 
 		this.ground = null;
+	}
 
-		HeightProvider.prepareDataForTile(x, y).then(() => {
+	public load(tileProvider: TileProvider) {
+		Promise.all([
+			HeightProvider.prepareDataForTile(this.x, this.y),
+			tileProvider.getTileObjects(this)
+		]).then(([_, objects]: [void[], Object3D]) => {
+			this.add(objects);
 			this.readyForRendering = true;
 		});
 	}
@@ -46,7 +55,14 @@ export default class Tile extends Object3D {
 		this.add(this.ground);
 	}
 
+	public updateDistanceToCamera(camera: Camera) {
+		const worldPosition = tile2meters(this.x + 0.5, this.y + 0.5);
+		this.distanceToCamera = Math.sqrt((worldPosition.x - camera.position.x) ** 2 + (worldPosition.y - camera.position.z) ** 2);
+	}
+
 	public dispose() {
+		this.disposed = true;
+
 		if (this.ground) {
 			this.ground.delete();
 		}

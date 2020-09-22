@@ -1,17 +1,19 @@
-import Tile from "./objects/Tile";
-import Frustum from "../core/Frustum";
-import Vec2 from "../math/Vec2";
-import {App} from "./App";
-import PerspectiveCamera from "../core/PerspectiveCamera";
-import Vec3 from "../math/Vec3";
-import ConvexHullGrahamScan from "./../math/ConvexHullGrahamScan";
-import {getTilesIntersectingLine, meters2tile, tile2meters} from "../math/Utils";
-import Config from "./Config";
+import Tile from "../objects/Tile";
+import Frustum from "../../core/Frustum";
+import Vec2 from "../../math/Vec2";
+import {App} from "../App";
+import PerspectiveCamera from "../../core/PerspectiveCamera";
+import Vec3 from "../../math/Vec3";
+import ConvexHullGrahamScan from "../../math/ConvexHullGrahamScan";
+import {getTilesIntersectingLine, meters2tile, tile2meters} from "../../math/Utils";
+import Config from "../Config";
+import TileProvider from "./TileProvider";
 
 export default class TileManager {
 	public tiles: Map<string, Tile> = new Map();
 	private camera: PerspectiveCamera;
 	private cameraFrustum: Frustum;
+	private tileProvider: TileProvider = new TileProvider();
 
 	constructor(private app: App) {
 		this.camera = app.renderSystem.camera;
@@ -32,7 +34,10 @@ export default class TileManager {
 	}
 
 	public addTile(x: number, y: number) {
-		this.tiles.set(`${x},${y}`, new Tile(x, y));
+		const tile = new Tile(x, y);
+
+		this.tiles.set(`${x},${y}`, tile);
+		tile.load(this.tileProvider);
 	}
 
 	public getTile(x: number, y: number): Tile {
@@ -46,24 +51,28 @@ export default class TileManager {
 	}
 
 	public update() {
-		for(const tile of this.tiles.values()) {
-			tile.inFrustum = false;
-		}
-
 		this.updateTiles();
-		this.removeFarthestTile();
+		this.tileProvider.update();
+		this.removeCulledTiles();
 	}
 
 	private updateTiles() {
 		const worldSpaceFrustum = this.cameraFrustum.toSpace(this.camera.matrix);
 		const frustumTiles = this.getTilesInFrustum(worldSpaceFrustum, this.camera.position);
 
+		for(const tile of this.tiles.values()) {
+			tile.inFrustum = false;
+		}
+
 		for(const tilePosition of frustumTiles) {
 			if(!this.getTile(tilePosition.x, tilePosition.y)) {
 				this.addTile(tilePosition.x, tilePosition.y);
 			}
 
-			this.getTile(tilePosition.x, tilePosition.y).inFrustum = true;
+			const tile = this.getTile(tilePosition.x, tilePosition.y);
+
+			tile.inFrustum = true;
+			tile.updateDistanceToCamera(this.camera);
 		}
 	}
 
@@ -194,28 +203,28 @@ export default class TileManager {
 		return result;
 	}
 
-	private removeFarthestTile() {
-		let maxDistance: number = 0;
-		let maxDistanceTile: Tile = null;
+	private removeCulledTiles() {
+		const tilesToRemove = this.tiles.size - Config.MaxConcurrentTiles;
+
+		if(tilesToRemove == 0) {
+			return;
+		}
+
+		type tileEntry = {tile: Tile, distance: number};
+		const tileList: tileEntry[] = [];
 
 		for(const tile of this.tiles.values()) {
 			if(!tile.inFrustum) {
-				if(this.tiles.size <= Config.MaxConcurrentTiles) {
-					break;
-				}
-
-				const worldPosition = tile2meters(tile.x + 0.5, tile.y + 0.5);
-				const distance = Math.sqrt((worldPosition.x - this.camera.position.x) ** 2 + (worldPosition.y - this.camera.position.z) ** 2);
-
-				if(distance > maxDistance) {
-					maxDistance = distance;
-					maxDistanceTile = tile;
-				}
+				tileList.push({tile, distance: tile.distanceToCamera});
 			}
 		}
 
-		if(maxDistanceTile !== null) {
-			this.removeTile(maxDistanceTile.x, maxDistanceTile.y);
+		tileList.sort((a: tileEntry, b: tileEntry): number => {
+			return b.distance - a.distance;
+		});
+
+		for(let i = 0; i < tilesToRemove; i++) {
+			this.removeTile(tileList[i].tile.x, tileList[i].tile.y);
 		}
 	}
 }

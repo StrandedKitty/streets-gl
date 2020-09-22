@@ -42,7 +42,7 @@ export default class TouchRotateHandler extends DoubleTouchHandler {
 		return Math.abs(bearingDeltaSinceStart) < threshold;
 	}
 
-	private getBearingDelta(a: Vec2, b: Vec2) {
+	private getBearingDelta(a: Vec2, b: Vec2): number {
 		const angle = Math.atan2(
 			a.x * b.y - a.y * b.x,
 			a.x * b.x + a.y * b.y

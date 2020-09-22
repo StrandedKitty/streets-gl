@@ -2,7 +2,7 @@ import Mesh from "../../renderer/Mesh";
 import GLConstants from "../../renderer/GLConstants";
 import Renderer from "../../renderer/Renderer";
 import Config from "../Config";
-import HeightProvider from "../HeightProvider";
+import HeightProvider from "../world/HeightProvider";
 
 export default class Ground extends Mesh {
 	constructor(renderer: Renderer) {

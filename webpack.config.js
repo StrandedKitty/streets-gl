@@ -47,6 +47,10 @@ module.exports = [{
 				use: [MiniCssExtractPlugin.loader, 'css-loader']
 			},
 			{
+				test: /\.worker\.ts$/,
+				use: {loader: 'worker-loader'}
+			},
+			{
 				test: /\.ts$/,
 				loader: [
 					{loader: 'ts-loader', options: {configFile: 'tsconfig.json'}}

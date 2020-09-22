@@ -1,6 +1,6 @@
 import '../../css/style.css';
 import RenderSystem from "./render/RenderSystem";
-import TileManager from "./TileManager";
+import TileManager from "./world/TileManager";
 import Controls from "./controls/Controls";
 import {degrees2meters} from "../math/Utils";
 
