@@ -35,10 +35,10 @@ export function degrees2meters(lat: number, lon: number): Vec2 {
 	return new Vec2(x, z);
 }
 
-export function meters2degrees(x: number, z: number): Vec2 {
+export function meters2degrees(x: number, z: number): {lat: number, lon: number} {
 	let lon = z * 180 / 20037508.34;
 	let lat = Math.atan(Math.exp(x * Math.PI / 20037508.34)) * 360 / Math.PI - 90;
-	return new Vec2(lat, lon);
+	return {lat, lon};
 }
 
 export function degrees2tile(lat: number, lon: number, zoom: number = 16): Vec2 {
@@ -47,20 +47,20 @@ export function degrees2tile(lat: number, lon: number, zoom: number = 16): Vec2 
 	return new Vec2(x, y);
 }
 
-export function tile2degrees(x: number, y: number, zoom: number = 16): Vec2 {
+export function tile2degrees(x: number, y: number, zoom: number = 16): {lat: number, lon: number} {
 	let n = Math.PI - 2 * Math.PI * y / (1 << zoom);
 	let lat = 180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
 	let lon = x / (1 << zoom) * 360 - 180;
-	return new Vec2(lat, lon);
+	return {lat, lon};
 }
 
-export function meters2tile(x: number, z: number, zoom = 16): Vec2 {
+export function meters2tile(x: number, z: number, zoom: number = 16): Vec2 {
 	let rx = (z + 20037508.34) / (2 * 20037508.34) * (1 << zoom);
 	let ry = (1 - (x + 20037508.34) / (2 * 20037508.34)) * (1 << zoom);
 	return new Vec2(rx, ry);
 }
 
-export function tile2meters(x: number, y: number, zoom = 16): Vec2 {
+export function tile2meters(x: number, y: number, zoom: number = 16): Vec2 {
 	let rz = (2 * 20037508.34 * x) / (1 << zoom) - 20037508.34;
 	let rx = 20037508.34 - (2 * 20037508.34 * y) / (1 << zoom);
 	return new Vec2(rx, rz);
