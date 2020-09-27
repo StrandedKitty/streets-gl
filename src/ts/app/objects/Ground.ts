@@ -47,7 +47,7 @@ export default class Ground extends Mesh {
 
 		for(let z = 0; z <= segmentsZ; z++) {
 			for(let x = 0; x <= segmentsX; x++) {
-				vertices.push((x - 1) * segmentSize.x, 0, z * segmentSize.z);
+				vertices.push(x * segmentSize.x, 0, z * segmentSize.z);
 				uvs.push(z / segmentsZ, x / segmentsX);
 			}
 		}

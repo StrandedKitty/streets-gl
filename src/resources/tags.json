@@ -1,0 +1,13 @@
+{
+	"building": {
+		"default": {
+			"type": "building"
+		}
+	},
+	"building:part": {
+		"yes": {
+			"type": "building",
+			"buildingPart": true
+		}
+	}
+}

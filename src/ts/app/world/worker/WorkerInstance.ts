@@ -1,20 +1,18 @@
 import {tile2degrees} from "../../../math/Utils";
 import TileGeometryBuilder from "../geometry/TileGeometryBuilder";
+import {WorkerMessageIncoming, WorkerMessageOutgoing} from "./MapWorker";
 
 const ctx: Worker = self as any;
 
 ctx.addEventListener('message', event => {
-	const data = event.data;
+	const data = event.data as WorkerMessageOutgoing;
 
-	switch (data.code) {
-		case 'init':
-			break;
-		case 'start':
-			load(data.position.x, data.position.y);
-
-			break;
-	}
+	load(data.tile[0], data.tile[1]);
 });
+
+function sendMessage(msg: WorkerMessageIncoming) {
+	ctx.postMessage(msg, msg.result);
+}
 
 function load(x: number, y: number) {
 	const offset = 0.05;
@@ -23,13 +21,12 @@ function load(x: number, y: number) {
 		tile2degrees(x + 1 + offset, y - offset)
 	];
 	const bbox = position[0].lat + ',' + position[0].lon + ',' + position[1].lat + ',' + position[1].lon;
-	const pivot = tile2degrees(x, y + 1);
 
 	const urls = [
-		'https://overpass.kumi.systems/api/interpreter?data=',
+		//'https://overpass.kumi.systems/api/interpreter?data=',
 		'https://overpass.nchc.org.tw/api/interpreter?data=',
-		'https://lz4.overpass-api.de/api/interpreter?data=',
-		'https://z.overpass-api.de/api/interpreter?data='
+		//'https://lz4.overpass-api.de/api/interpreter?data=',
+		//'https://z.overpass-api.de/api/interpreter?data='
 	];
 	let url = urls[Math.floor(urls.length * Math.random())];
 	url += `
@@ -57,13 +54,13 @@ function load(x: number, y: number) {
 	httpRequest.onreadystatechange = function () {
 		if (httpRequest.readyState === XMLHttpRequest.DONE) {
 			if (httpRequest.status === 200) {
-				const data = JSON.parse(httpRequest.responseText).elements;
-
-				processData(x, y, data, pivot);
+				buildGeometry(x, y, JSON.parse(httpRequest.responseText).elements);
 			} else {
-				console.error('Request error: ' + httpRequest.status);
-
-				ctx.postMessage({error: true, x, y});
+				sendMessage({
+					error: true,
+					tile: [x, y],
+					result: {errorCode: httpRequest.status}
+				});
 			}
 		}
 	};
@@ -72,10 +69,14 @@ function load(x: number, y: number) {
 	httpRequest.send();
 }
 
-function processData(x: number, y: number, data: any, pivot: {lat: number, lon: number}) {
+function buildGeometry(x: number, y: number, data: any) {
 	const builder = new TileGeometryBuilder(x, y);
-	builder.process(data);
-}
+	const result = builder.process(data);
 
-export default null;
+	sendMessage({
+		error: false,
+		tile: [x, y],
+		result: result
+	});
+}
 

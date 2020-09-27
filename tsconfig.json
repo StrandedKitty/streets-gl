@@ -9,7 +9,8 @@
 		"noImplicitAny": true,
 		"noImplicitThis": true,
 		"strictBindCallApply": true,
-		"strictFunctionTypes": true
+		"strictFunctionTypes": true,
+		"resolveJsonModule": true
 	},
 	"include": [
 		"src"

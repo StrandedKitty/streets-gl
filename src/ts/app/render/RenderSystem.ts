@@ -7,6 +7,7 @@ import {App} from "../App";
 import GBuffer from "../../renderer/GBuffer";
 import GLConstants from "../../renderer/GLConstants";
 import Vec2 from "../../math/Vec2";
+import BasicMaterial from "./materials/BasicMaterial";
 
 export default class RenderSystem {
 	public renderer: Renderer;
@@ -15,7 +16,8 @@ export default class RenderSystem {
 	public wrapper: Object3D;
 	private gBuffer: GBuffer;
 
-	private quadMaterial: GroundMaterial;
+	private groundMaterial: GroundMaterial;
+	private basicMaterial: BasicMaterial;
 
 	constructor(private app: App) {
 		this.init();
@@ -81,7 +83,8 @@ export default class RenderSystem {
 
 		this.wrapper.add(this.camera);
 
-		this.quadMaterial = new GroundMaterial(this.renderer);
+		this.groundMaterial = new GroundMaterial(this.renderer);
+		this.basicMaterial = new BasicMaterial(this.renderer);
 	}
 
 	private resize() {
@@ -115,7 +118,8 @@ export default class RenderSystem {
 		for(const tile of tiles.values()) {
 			if(!tile.ground && tile.readyForRendering) {
 				tile.createGround(this.renderer);
-				this.wrapper.add(tile.ground);
+				tile.generateMeshes(this.renderer);
+				this.wrapper.add(tile);
 			}
 		}
 	}
@@ -123,25 +127,38 @@ export default class RenderSystem {
 	private renderTiles() {
 		const tiles = this.app.tileManager.tiles;
 
-		this.quadMaterial.use();
-
-		this.quadMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
+		this.groundMaterial.use();
+		this.groundMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
 
 		for(const tile of tiles.values()) {
 			if(!tile.ground) {
 				continue;
 			}
 
-			tile.ground.updateMatrix();
-			tile.ground.updateMatrixWorld();
-			this.quadMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(this.camera.matrixWorldInverse, tile.ground.matrixWorld);
-			this.quadMaterial.uniforms.modelMatrix.value = tile.ground.matrixWorld;
-			this.quadMaterial.uniforms.map.value = tile.colorMap;
-			this.quadMaterial.updateUniform('projectionMatrix');
-			this.quadMaterial.updateUniform('modelViewMatrix');
-			this.quadMaterial.updateUniform('map');
+			this.groundMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(this.camera.matrixWorldInverse, tile.ground.matrixWorld);
+			this.groundMaterial.uniforms.modelMatrix.value = tile.ground.matrixWorld;
+			this.groundMaterial.uniforms.map.value = tile.colorMap;
+			this.groundMaterial.updateUniform('projectionMatrix');
+			this.groundMaterial.updateUniform('modelViewMatrix');
+			this.groundMaterial.updateUniform('map');
 
 			tile.ground.draw();
+		}
+
+		this.basicMaterial.use();
+		this.basicMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
+
+		for(const tile of tiles.values()) {
+			const buildings = tile.buildings;
+
+			if(!buildings) {
+				continue;
+			}
+
+			this.basicMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(this.camera.matrixWorldInverse, buildings.matrixWorld);
+			this.basicMaterial.updateUniform('modelViewMatrix');
+
+			buildings.draw();
 		}
 	}
 

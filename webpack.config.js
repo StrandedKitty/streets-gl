@@ -32,7 +32,7 @@ module.exports = [{
 	module: {
 		rules: [
 			{
-				test: /\.vert|.frag|.glsl|.json$/i,
+				test: /\.vert|.frag|.glsl$/i,
 				use: [
 					{
 						loader: 'raw-loader',

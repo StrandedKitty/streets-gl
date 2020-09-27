@@ -1,6 +1,7 @@
-import Object3D from "../../core/Object3D";
-import Tile from "../objects/Tile";
+import Tile, {StaticTileGeometry} from "../objects/Tile";
 import MapWorkerManager from "./worker/MapWorkerManager";
+import Config from "../Config";
+import Renderer from "../../renderer/Renderer";
 
 interface queueEntry {
 	tile: Tile,
@@ -8,15 +9,20 @@ interface queueEntry {
 }
 
 export default class TileProvider {
-	private mapWorkerManager: MapWorkerManager = new MapWorkerManager(6, '');
+	private mapWorkerManager: MapWorkerManager = new MapWorkerManager(Config.WebWorkersNumber);
 	private queue: queueEntry[] = [];
+	private renderer: Renderer;
 
-	public async getTileObjects(tile: Tile): Promise<Object3D> {
-		return new Promise<Object3D>((resolve) => {
+	constructor(renderer: Renderer) {
+		this.renderer = renderer;
+	}
+
+	public async getTileObjects(tile: Tile): Promise<StaticTileGeometry> {
+		return new Promise<StaticTileGeometry>((resolve) => {
 			this.queue.push({
 				tile,
 				onLoad: (e: any) => {
-					resolve(new Object3D());
+					resolve(this.getObjectFromMessage(e));
 				}
 			});
 		});
@@ -30,6 +36,7 @@ export default class TileProvider {
 			const {tile, onLoad} = this.getNearestTileInQueue();
 
 			worker.start(tile.x, tile.y).then(result => {
+				//console.log(result);
 				onLoad(result);
 			}, error => {
 				console.error(error);
@@ -50,5 +57,15 @@ export default class TileProvider {
 		});
 
 		return this.queue.pop();
+	}
+
+	private getObjectFromMessage(msg: any): StaticTileGeometry {
+		return {
+			buildings: {
+				position: new Float32Array(),
+				uv: new Float32Array(),
+				color: new Float32Array()
+			}
+		}
 	}
 }

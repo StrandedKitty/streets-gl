@@ -13,10 +13,11 @@ export default class TileManager {
 	public tiles: Map<string, Tile> = new Map();
 	private camera: PerspectiveCamera;
 	private cameraFrustum: Frustum;
-	private tileProvider: TileProvider = new TileProvider();
+	private tileProvider: TileProvider;
 
 	constructor(private app: App) {
 		this.camera = app.renderSystem.camera;
+		this.tileProvider = new TileProvider(app.renderSystem.renderer);
 
 		this.init();
 	}

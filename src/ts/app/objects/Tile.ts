@@ -7,9 +7,21 @@ import GLConstants from "../../renderer/GLConstants";
 import HeightProvider from "../world/HeightProvider";
 import TileProvider from "../world/TileProvider";
 import Camera from "../../core/Camera";
+import Mesh from "../../renderer/Mesh";
+import Config from "../Config";
+
+export interface StaticTileGeometry {
+	buildings: {
+		position: Float32Array,
+		uv: Float32Array,
+		color: Float32Array
+	}
+}
 
 export default class Tile extends Object3D {
 	public ground: Ground;
+	public buildings: Mesh;
+	public staticGeometry: StaticTileGeometry;
 	public x: number;
 	public y: number;
 	public inFrustum: boolean = true;
@@ -25,14 +37,17 @@ export default class Tile extends Object3D {
 		this.y = y;
 
 		this.ground = null;
+
+		const positionInMeters = tile2meters(this.x, this.y + 1);
+		this.position.set(positionInMeters.x, 0, positionInMeters.y);
 	}
 
 	public load(tileProvider: TileProvider) {
 		Promise.all([
 			HeightProvider.prepareDataForTile(this.x, this.y),
 			tileProvider.getTileObjects(this)
-		]).then(([_, objects]: [void[], Object3D]) => {
-			this.add(objects);
+		]).then(([_, objects]: [void[], StaticTileGeometry]) => {
+			this.staticGeometry = objects;
 			this.readyForRendering = true;
 		});
 	}
@@ -46,13 +61,32 @@ export default class Tile extends Object3D {
 		});
 
 		this.ground = new Ground(renderer);
-
 		this.ground.applyHeightmap(this.x, this.y);
 
-		const positionInMeters = tile2meters(this.x, this.y + 1);
-		this.ground.position.set(positionInMeters.x, 0, positionInMeters.y);
-
 		this.add(this.ground);
+	}
+
+	public generateMeshes(renderer: Renderer) {
+		const height = HeightProvider.getHeight(this.x, this.y, 0, 0);
+
+		const buildings = new Mesh(renderer, {
+			vertices: new Float32Array([
+				0, height, 0,
+				0, height, Config.TileSize,
+				Config.TileSize, height, 0
+			])
+		})
+
+		buildings.addAttribute({
+			name: 'uv',
+			size: 2,
+			type: GLConstants.FLOAT,
+			normalized: false
+		});
+		buildings.setAttributeData('uv', new Float32Array([0, 0, 1, 0, 0, 1]));
+
+		this.buildings = buildings;
+		this.add(buildings);
 	}
 
 	public updateDistanceToCamera(camera: Camera) {
