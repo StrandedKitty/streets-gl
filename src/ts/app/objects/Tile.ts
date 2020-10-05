@@ -8,13 +8,12 @@ import HeightProvider from "../world/HeightProvider";
 import TileProvider from "../world/TileProvider";
 import Camera from "../../core/Camera";
 import Mesh from "../../renderer/Mesh";
-import Config from "../Config";
 
 export interface StaticTileGeometry {
 	buildings: {
 		position: Float32Array,
 		uv: Float32Array,
-		color: Float32Array
+		color?: Float32Array
 	}
 }
 
@@ -67,15 +66,9 @@ export default class Tile extends Object3D {
 	}
 
 	public generateMeshes(renderer: Renderer) {
-		const height = HeightProvider.getHeight(this.x, this.y, 0, 0);
-
 		const buildings = new Mesh(renderer, {
-			vertices: new Float32Array([
-				0, height, 0,
-				0, height, Config.TileSize,
-				Config.TileSize, height, 0
-			])
-		})
+			vertices: this.staticGeometry.buildings.position
+		});
 
 		buildings.addAttribute({
 			name: 'uv',
@@ -83,7 +76,7 @@ export default class Tile extends Object3D {
 			type: GLConstants.FLOAT,
 			normalized: false
 		});
-		buildings.setAttributeData('uv', new Float32Array([0, 0, 1, 0, 0, 1]));
+		buildings.setAttributeData('uv', this.staticGeometry.buildings.uv);
 
 		this.buildings = buildings;
 		this.add(buildings);
@@ -99,6 +92,10 @@ export default class Tile extends Object3D {
 
 		if (this.ground) {
 			this.ground.delete();
+		}
+
+		if (this.buildings) {
+			this.buildings.delete();
 		}
 
 		if (this.parent) {

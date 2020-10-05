@@ -9,5 +9,10 @@
 			"type": "building",
 			"buildingPart": true
 		}
+	},
+	"height": {
+		"default": {
+			"height": "@units"
+		}
 	}
 }

@@ -21,8 +21,8 @@ export default class TileProvider {
 		return new Promise<StaticTileGeometry>((resolve) => {
 			this.queue.push({
 				tile,
-				onLoad: (e: any) => {
-					resolve(this.getObjectFromMessage(e));
+				onLoad: (data: StaticTileGeometry) => {
+					resolve(this.getObjectFromMessage(data));
 				}
 			});
 		});
@@ -36,10 +36,9 @@ export default class TileProvider {
 			const {tile, onLoad} = this.getNearestTileInQueue();
 
 			worker.start(tile.x, tile.y).then(result => {
-				//console.log(result);
 				onLoad(result);
 			}, error => {
-				console.error(error);
+				console.error(error, `${tile.x}, ${tile.y}`);
 				this.queue.unshift({tile, onLoad});
 			});
 		}
@@ -59,13 +58,7 @@ export default class TileProvider {
 		return this.queue.pop();
 	}
 
-	private getObjectFromMessage(msg: any): StaticTileGeometry {
-		return {
-			buildings: {
-				position: new Float32Array(),
-				uv: new Float32Array(),
-				color: new Float32Array()
-			}
-		}
+	private getObjectFromMessage(msg: StaticTileGeometry): StaticTileGeometry {
+		return msg;
 	}
 }

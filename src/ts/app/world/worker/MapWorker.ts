@@ -1,16 +1,14 @@
 // @ts-ignore
 import Worker from 'worker-loader!./WorkerInstance';
 import Vec2 from "../../../math/Vec2";
-
-export interface WorkerMessageOutgoing {
-	tile: [number, number];
-}
-
-export interface WorkerMessageIncoming {
-	error: boolean;
-	tile: [number, number];
-	result: any;
-}
+import HeightProvider from "../HeightProvider";
+import {
+	WorkerMessageIncoming,
+	WorkerMessageIncomingType,
+	WorkerMessageOutgoing,
+	WorkerMessageOutgoingType
+} from "./WorkerMessageTypes";
+import {StaticTileGeometry} from "../../objects/Tile";
 
 export default class MapWorker {
 	private worker: Worker;
@@ -25,14 +23,17 @@ export default class MapWorker {
 		});
 	}
 
-	async start(x: number, y: number): Promise<any> {
+	async start(x: number, y: number): Promise<StaticTileGeometry> {
 		this.queueLength++;
 
-		const promise = new Promise<any>((resolve, reject) => {
+		const promise = new Promise<StaticTileGeometry>((resolve, reject) => {
 			this.tilesInProgress.set(`${x},${y}`, {resolve, reject});
 		});
 
-		this.sendMessage({tile: [x, y]});
+		this.sendMessage({
+			type: WorkerMessageOutgoingType.Start,
+			tile: [x, y]
+		});
 
 		return promise;
 	}
@@ -41,18 +42,28 @@ export default class MapWorker {
 		this.worker.postMessage(msg);
 	}
 
-	private processMessage(e: MessageEvent) {
+	private async processMessage(e: MessageEvent) {
 		const data = e.data as WorkerMessageIncoming;
-
 		const tilePosition = new Vec2(data.tile[0], data.tile[1]);
-		const {resolve, reject} = this.tilesInProgress.get(`${tilePosition.x},${tilePosition.y}`);
+		const tileInProgress = this.tilesInProgress.get(`${tilePosition.x},${tilePosition.y}`);
 
-		if (!data.error) {
-			resolve(data.result);
-		} else {
-			reject(data.result);
+		switch (data.type) {
+			case WorkerMessageIncomingType.Success:
+				this.queueLength--;
+				tileInProgress.resolve(data.result);
+				break;
+			case WorkerMessageIncomingType.Error:
+				this.queueLength--;
+				tileInProgress.reject(data.result);
+				break;
+			case WorkerMessageIncomingType.RequestHeight:
+				const height = await HeightProvider.getTileAsync(data.tile[0], data.tile[1]);
+				this.sendMessage({
+					type: WorkerMessageOutgoingType.SendHeightData,
+					tile: data.tile,
+					heightArray: height
+				});
+				break;
 		}
-
-		this.queueLength--;
 	}
 }

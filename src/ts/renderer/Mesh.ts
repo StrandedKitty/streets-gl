@@ -188,7 +188,9 @@ export default class Mesh extends Object3D {
 	}
 
 	public delete() {
-		this.parent.remove(this);
+		if(this.parent) {
+			this.parent.remove(this);
+		}
 
 		for (const [name, vao] of this.vaos.entries()) {
 			vao.delete();

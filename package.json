@@ -2,9 +2,9 @@
 	"name": "streets-gl",
 	"version": "0.1.0",
 	"scripts": {
-		"start": "http-server ./build -p 8080",
+		"start": "http-server ./build -p 8081",
 		"build": "webpack --config webpack.config.js --mode=production",
-		"dev": "concurrently \"http-server ./build -c-1 -p 8080\" \"webpack --config webpack.config.js --watch --mode=development\""
+		"dev": "concurrently \"npm start\" \"webpack --config webpack.config.js --watch --mode=development\""
 	},
 	"author": "vHawk",
 	"license": "MIT",
@@ -23,5 +23,8 @@
 		"webpack-cli": "^3.3.12",
 		"worker-loader": "^3.0.2"
 	},
-	"dependencies": {}
+	"dependencies": {
+		"@types/earcut": "^2.1.1",
+		"earcut": "^2.2.2"
+	}
 }

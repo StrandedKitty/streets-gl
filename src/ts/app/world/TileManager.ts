@@ -63,6 +63,7 @@ export default class TileManager {
 
 		for(const tile of this.tiles.values()) {
 			tile.inFrustum = false;
+			tile.updateDistanceToCamera(this.camera);
 		}
 
 		for(const tilePosition of frustumTiles) {
@@ -73,7 +74,6 @@ export default class TileManager {
 			const tile = this.getTile(tilePosition.x, tilePosition.y);
 
 			tile.inFrustum = true;
-			tile.updateDistanceToCamera(this.camera);
 		}
 	}
 

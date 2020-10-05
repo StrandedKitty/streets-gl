@@ -1,8 +1,8 @@
 import OSMFeature, {OSMTags} from "./features/osm/OSMFeature";
+import {hexToRgb} from "../../../math/Utils";
 
 const TagsList = require("./../../../../resources/tags.json");
 const ColorsList = require("./../../../../resources/colors.json");
-import {hexToRgb} from "../../../math/Utils";
 
 export default class OSMDescriptor {
 	private readonly tags: OSMTags;

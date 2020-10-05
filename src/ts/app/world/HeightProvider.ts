@@ -1,6 +1,6 @@
 export default new class HeightProvider {
 	private tiles: Map<string, Uint8ClampedArray> = new Map();
-	private requests: Map<string, boolean> = new Map();
+	private requests: Map<string, Promise<void>> = new Map();
 	private ctx: CanvasRenderingContext2D;
 
 	constructor() {
@@ -16,10 +16,7 @@ export default new class HeightProvider {
 
 	public async getTileAsync(x: number, y: number): Promise<Uint8ClampedArray> {
 		return new Promise<Uint8ClampedArray>(async resolve => {
-			if (
-				!this.getTile(x, y) &&
-				!this.requests.get(`${x},${y}`)
-			) {
+			if (!this.getTile(x, y)) {
 				await this.fetchTile(x, y);
 			}
 
@@ -63,10 +60,7 @@ export default new class HeightProvider {
 		];
 
 		for (const position of positions) {
-			if (
-				!this.getTile(position[0], position[1]) &&
-				!this.requests.get(`${position[0]},${position[1]}`)
-			) {
+			if (!this.getTile(position[0], position[1])) {
 				promises.push(this.fetchTile(position[0], position[1]));
 			}
 		}
@@ -75,9 +69,13 @@ export default new class HeightProvider {
 	}
 
 	private async fetchTile(x: number, y: number): Promise<void> {
-		return new Promise<void>(resolve => {
-			this.requests.set(`${x},${y}`, true);
+		let promise = this.requests.get(`${x},${y}`);
 
+		if (promise) {
+			return promise;
+		}
+
+		promise = new Promise<void>(resolve => {
 			const image = new Image();
 
 			image.onload = () => {
@@ -94,6 +92,10 @@ export default new class HeightProvider {
 			image.crossOrigin = "anonymous";
 			image.src = this.getTileURL(x, y, 16);
 		});
+
+		this.requests.set(`${x},${y}`, promise);
+
+		return promise;
 	}
 
 	private getTileURL(x: number, y: number, zoom: number): string {
