@@ -150,6 +150,10 @@ export default class Mesh extends Object3D {
 
 	public updateAttribute(attributeName: string) {
 		for (const [materialName, attributeList] of this.materialsAttributes.entries()) {
+			if(!this.vaos.get(materialName)) {
+				continue;
+			}
+
 			const attribute = attributeList.get(attributeName);
 
 			this.vaos.get(materialName).bind();

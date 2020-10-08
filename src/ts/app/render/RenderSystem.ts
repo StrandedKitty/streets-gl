@@ -8,6 +8,8 @@ import GBuffer from "../../renderer/GBuffer";
 import GLConstants from "../../renderer/GLConstants";
 import Vec2 from "../../math/Vec2";
 import BasicMaterial from "./materials/BasicMaterial";
+import FullScreenQuad from "../objects/FullScreenQuad";
+import HDRComposeMaterial from "./materials/HDRComposeMaterial";
 
 export default class RenderSystem {
 	public renderer: Renderer;
@@ -18,6 +20,8 @@ export default class RenderSystem {
 
 	private groundMaterial: GroundMaterial;
 	private basicMaterial: BasicMaterial;
+	private quad: FullScreenQuad;
+	private composeMaterial: HDRComposeMaterial;
 
 	constructor(private app: App) {
 		this.init();
@@ -61,6 +65,7 @@ export default class RenderSystem {
 				mipmaps: false
 			}
 		]);
+		this.composeMaterial = new HDRComposeMaterial(this.renderer, this.gBuffer);
 
 		this.camera = new PerspectiveCamera({
 			fov: 40,
@@ -68,6 +73,8 @@ export default class RenderSystem {
 			far: 25000,
 			aspect: window.innerWidth / window.innerHeight
 		});
+
+		this.quad = new FullScreenQuad(this.renderer);
 
 		this.initScene();
 
@@ -117,7 +124,7 @@ export default class RenderSystem {
 
 		for(const tile of tiles.values()) {
 			if(!tile.ground && tile.readyForRendering) {
-				tile.createGround(this.renderer);
+				tile.createGround(this.renderer, this.app.tileManager.getTileNeighbors(tile.x, tile.y));
 				tile.generateMeshes(this.renderer);
 				this.wrapper.add(tile);
 			}
@@ -126,6 +133,15 @@ export default class RenderSystem {
 
 	private renderTiles() {
 		const tiles = this.app.tileManager.tiles;
+
+		this.renderer.bindFramebuffer(this.gBuffer.framebuffer);
+
+		this.renderer.clearFramebuffer({
+			clearColor: [0.5, 0.5, 0.5, 1],
+			depthValue: 1,
+			color: true,
+			depth: true
+		});
 
 		this.groundMaterial.use();
 		this.groundMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
@@ -160,6 +176,11 @@ export default class RenderSystem {
 
 			buildings.draw();
 		}
+
+		this.renderer.bindFramebuffer(null);
+
+		this.composeMaterial.use();
+		this.quad.draw();
 	}
 
 	public get resolution(): Vec2 {

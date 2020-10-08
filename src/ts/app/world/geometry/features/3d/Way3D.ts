@@ -66,10 +66,8 @@ export default class Way3D extends Feature3D {
             const tileX = Math.floor(node.tile.x);
             const tileY = Math.floor(node.tile.y);
 
-            //if (this.heightViewer.isTileLoaded(tileX, tileY)) {
-                minHeight = Math.min(minHeight, this.heightViewer.getHeight(tileX, tileY, node.tile.x % 1, node.tile.y % 1));
-                maxHeight = Math.max(maxHeight, this.heightViewer.getHeight(tileX, tileY, node.tile.x % 1, node.tile.y % 1));
-            //}
+            minHeight = Math.min(minHeight, this.heightViewer.getHeight(tileX, tileY, node.tile.x % 1, node.tile.y % 1));
+            maxHeight = Math.max(maxHeight, this.heightViewer.getHeight(tileX, tileY, node.tile.x % 1, node.tile.y % 1));
         }
 
         if(minHeight === Infinity) {

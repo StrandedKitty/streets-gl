@@ -2,7 +2,7 @@
 	"name": "streets-gl",
 	"version": "0.1.0",
 	"scripts": {
-		"start": "http-server ./build -p 8081",
+		"start": "http-server ./build -p 8080",
 		"build": "webpack --config webpack.config.js --mode=production",
 		"dev": "concurrently \"npm start\" \"webpack --config webpack.config.js --watch --mode=development\""
 	},

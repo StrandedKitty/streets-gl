@@ -38,6 +38,7 @@ export default class TileManager {
 		const tile = new Tile(x, y);
 
 		this.tiles.set(`${x},${y}`, tile);
+
 		tile.load(this.tileProvider);
 	}
 
@@ -49,6 +50,29 @@ export default class TileManager {
 		const tile = this.getTile(x, y);
 		tile.dispose();
 		this.tiles.delete(`${x},${y}`);
+	}
+
+	public getTileNeighbors(x: number, y: number): Tile[] {
+		const tiles: Tile[] = [];
+
+		const potentialTiles: Tile[] = [
+			this.getTile(x + 1, y),
+			this.getTile(x - 1, y),
+			this.getTile(x, y + 1),
+			this.getTile(x, y - 1),
+			this.getTile(x + 1, y + 1),
+			this.getTile(x - 1, y - 1),
+			this.getTile(x - 1, y + 1),
+			this.getTile(x + 1, y - 1)
+		];
+
+		for(const tile of potentialTiles) {
+			if(tile) {
+				tiles.push(tile);
+			}
+		}
+
+		return tiles;
 	}
 
 	public update() {

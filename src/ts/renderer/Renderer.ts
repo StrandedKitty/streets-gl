@@ -115,15 +115,22 @@ export default class Renderer {
 	public clearFramebuffer(
 		{
 			clearColor,
+			depthValue,
 			color = false,
 			depth = false
 		}: {
-			clearColor: number[],
+			clearColor?: number[],
+			depthValue?: number,
 			color?: boolean,
 			depth?: boolean
 		}
 	) {
-		this.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+		if(color)
+			this.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+
+		if(depth)
+			this.gl.clearDepth(depthValue);
+
 		const colorBit = color ? this.gl.COLOR_BUFFER_BIT : 0;
 		const depthBit = depth ? this.gl.DEPTH_BUFFER_BIT : 0;
 		this.gl.clear(colorBit | depthBit);

@@ -7,8 +7,8 @@ export default class HDRComposeMaterial extends Material {
 	constructor(renderer: Renderer, gBuffer: GBuffer) {
 		super(renderer, {
 			name: 'HDRComposeMaterial',
-			fragmentShader: Shaders.ground.fragment,
-			vertexShader: Shaders.ground.vertex,
+			fragmentShader: Shaders.hdrCompose.fragment,
+			vertexShader: Shaders.hdrCompose.vertex,
 			uniforms: {
 				tColor: {
 					type: UniformType.Texture2D,

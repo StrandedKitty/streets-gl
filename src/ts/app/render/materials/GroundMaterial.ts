@@ -16,10 +16,6 @@ export default class GroundMaterial extends Material {
 				map: {
 					type: UniformType.Texture2D,
 					value: new Texture2D(renderer, {url: '/images/favicon.png', flipY: false, anisotropy: 16})
-				},
-				heightMap: {
-					type: UniformType.Texture2D,
-					value: new Texture2D(renderer, {url: '/images/favicon.png', flipY: false, anisotropy: 16})
 				}
 			}
 		});

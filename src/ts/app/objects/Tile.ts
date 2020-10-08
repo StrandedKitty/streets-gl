@@ -51,7 +51,7 @@ export default class Tile extends Object3D {
 		});
 	}
 
-	public createGround(renderer: Renderer) {
+	public createGround(renderer: Renderer, neighbors: Tile[]) {
 		this.colorMap = new Texture2D(renderer, {
 			url: `http://mt1.google.com/vt/lyrs=s&x=${this.x}&y=${this.y}&z=16&scale=2`,
 			anisotropy: 16,
@@ -63,6 +63,8 @@ export default class Tile extends Object3D {
 		this.ground.applyHeightmap(this.x, this.y);
 
 		this.add(this.ground);
+
+		this.ground.updateBorderNormals(this.x, this.y, neighbors.filter((tile) => tile.ground));
 	}
 
 	public generateMeshes(renderer: Renderer) {

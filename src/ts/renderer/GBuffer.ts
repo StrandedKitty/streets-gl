@@ -17,8 +17,8 @@ export default class GBuffer {
 	private width: number;
 	private height: number;
 	public readonly textures: { [key: string]: Texture2D } = {};
-	private framebuffer: Framebuffer;
-	private framebufferHDR: Framebuffer;
+	public framebuffer: Framebuffer;
+	public framebufferHDR: Framebuffer;
 
 	constructor(renderer: Renderer, width: number, height: number, structure: GBufferTexture[]) {
 		this.renderer = renderer;
