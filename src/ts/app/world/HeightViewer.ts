@@ -44,7 +44,9 @@ export default class HeightViewer {
 		const promises = [];
 
 		for (const tile of tiles) {
-			promises.push(this.requestHeightTile(tile.x, tile.y));
+			if(!this.isTileLoaded(tile.x, tile.y)) {
+				promises.push(this.requestHeightTile(tile.x, tile.y));
+			}
 		}
 
 		return Promise.all<void>(promises);

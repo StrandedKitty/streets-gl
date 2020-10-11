@@ -12,7 +12,7 @@ export default class Ground extends Mesh {
 	constructor(renderer: Renderer) {
 		super(renderer);
 
-		const {vertices, uvs, indices} = Ground.createPlane(Config.TileSize, Config.TileSize, 36, 36);
+		const {vertices, uvs, indices} = Ground.createPlane(Config.TileSize, Config.TileSize, 32, 32);
 
 		this.indexed = true;
 		this.indices = indices;
@@ -130,7 +130,7 @@ export default class Ground extends Mesh {
 							neighborNormals[j + 1],
 							neighborNormals[j + 2]
 						);
-						const fixedNormal = Vec3.normalize(Vec3.multiplyScalar(Vec3.add(normal, neighborNormal), 0.5));
+						const fixedNormal = Vec3.normalize(Vec3.add(normal, neighborNormal));
 
 						neighborNormals[j] = normals[i] = fixedNormal.x;
 						neighborNormals[j + 1] = normals[i + 1] = fixedNormal.y;

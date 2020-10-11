@@ -29,4 +29,5 @@ void main() {
 	float diff = max(dot(normal, vec3(0, 0, 1)), 0.0);
 
 	FragColor = vec4(LINEARtoSRGB(baseColor.rgb) * diff, 1);
+	//FragColor = vec4(normal, 1);
 }

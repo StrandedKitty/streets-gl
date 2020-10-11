@@ -26,20 +26,20 @@ export default new class HeightProvider {
 
 	public getHeight(tileX: number, tileY: number, x: number, y: number): number {
 		const position = {
-			x: Math.floor(x * 255),
-			y: Math.floor(y * 255)
+			x: Math.floor(x * 256),
+			y: Math.floor(y * 256)
 		};
 
 		let tile = this.getTile(tileX, tileY);
 
-		if (position.x === 255 && position.y === 255) {
+		if (x === 1 && y === 1) {
 			tile = this.getTile(tileX + 1, tileY + 1);
 			position.x = 0;
 			position.y = 0;
-		} else if (position.x === 255) {
+		} else if (x === 1) {
 			tile = this.getTile(tileX + 1, tileY);
 			position.x = 0;
-		} else if (position.y === 255) {
+		} else if (y === 1) {
 			tile = this.getTile(tileX, tileY + 1);
 			position.y = 0;
 		}

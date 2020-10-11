@@ -21,7 +21,7 @@ class App {
 	}
 
 	private init() {
-		const cameraPosition = degrees2meters(36.1003796,-112.1607895);
+		const cameraPosition = degrees2meters(37.67024, -122.4301258);
 		this.controls.target.set(cameraPosition.x, 0, cameraPosition.y);
 
 		this.update();
