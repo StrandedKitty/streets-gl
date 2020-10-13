@@ -14,16 +14,13 @@ export default class HeightViewer {
 	}
 
 	public getHeight(tileX: number, tileY: number, x: number, y: number): number {
-		const position = {
-			x: Math.floor(x * 255),
-			y: Math.floor(y * 255)
-		};
+		const positionX = Math.floor(x * 255);
+		const positionY = Math.floor(y * 255);
 
 		const tile = this.tiles.get(`${tileX},${tileY}`);
-		const start = (position.x + position.y * 256) * 4;
-		const pixel = [tile[start], tile[start + 1], tile[start + 2]];
+		const start = (positionX + positionY * 256) * 4;
 
-		return -10000 + ((pixel[0] * 256 * 256 + pixel[1] * 256 + pixel[2]) * 0.1);
+		return -10000 + ((tile[start] * 256 * 256 + tile[start + 1] * 256 + tile[start + 2]) * 0.1);
 	}
 
 	public async requestHeightTile(x: number, y: number): Promise<void> {

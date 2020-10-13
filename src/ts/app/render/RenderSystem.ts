@@ -7,7 +7,7 @@ import {App} from "../App";
 import GBuffer from "../../renderer/GBuffer";
 import GLConstants from "../../renderer/GLConstants";
 import Vec2 from "../../math/Vec2";
-import BasicMaterial from "./materials/BasicMaterial";
+import BuildingMaterial from "./materials/BuildingMaterial";
 import FullScreenQuad from "../objects/FullScreenQuad";
 import HDRComposeMaterial from "./materials/HDRComposeMaterial";
 
@@ -19,7 +19,7 @@ export default class RenderSystem {
 	private gBuffer: GBuffer;
 
 	private groundMaterial: GroundMaterial;
-	private basicMaterial: BasicMaterial;
+	private buildingMaterial: BuildingMaterial;
 	private quad: FullScreenQuad;
 	private composeMaterial: HDRComposeMaterial;
 
@@ -91,7 +91,7 @@ export default class RenderSystem {
 		this.wrapper.add(this.camera);
 
 		this.groundMaterial = new GroundMaterial(this.renderer);
-		this.basicMaterial = new BasicMaterial(this.renderer);
+		this.buildingMaterial = new BuildingMaterial(this.renderer);
 	}
 
 	private resize() {
@@ -143,8 +143,8 @@ export default class RenderSystem {
 			depth: true
 		});
 
-		this.groundMaterial.use();
 		this.groundMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
+		this.groundMaterial.use();
 
 		for(const tile of tiles.values()) {
 			if(!tile.ground) {
@@ -152,17 +152,18 @@ export default class RenderSystem {
 			}
 
 			this.groundMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(this.camera.matrixWorldInverse, tile.ground.matrixWorld);
-			this.groundMaterial.uniforms.modelMatrix.value = tile.ground.matrixWorld;
+			this.groundMaterial.uniforms.viewMatrix.value = this.camera.matrixWorldInverse;
 			this.groundMaterial.uniforms.map.value = tile.colorMap;
 			this.groundMaterial.updateUniform('projectionMatrix');
 			this.groundMaterial.updateUniform('modelViewMatrix');
+			this.groundMaterial.updateUniform('viewMatrix');
 			this.groundMaterial.updateUniform('map');
 
 			tile.ground.draw();
 		}
 
-		this.basicMaterial.use();
-		this.basicMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
+		this.buildingMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
+		this.buildingMaterial.use();
 
 		for(const tile of tiles.values()) {
 			const buildings = tile.buildings;
@@ -171,14 +172,15 @@ export default class RenderSystem {
 				continue;
 			}
 
-			this.basicMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(this.camera.matrixWorldInverse, buildings.matrixWorld);
-			this.basicMaterial.updateUniform('modelViewMatrix');
+			this.buildingMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(this.camera.matrixWorldInverse, buildings.matrixWorld);
+			this.buildingMaterial.updateUniform('modelViewMatrix');
 
 			buildings.draw();
 		}
 
 		this.renderer.bindFramebuffer(null);
 
+		this.composeMaterial.uniforms.viewMatrix.value = this.camera.matrixWorld;
 		this.composeMaterial.use();
 		this.quad.draw();
 	}

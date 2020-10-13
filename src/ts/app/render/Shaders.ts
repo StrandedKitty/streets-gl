@@ -1,7 +1,7 @@
 const Shaders = {
-	basic: {
-		vertex: require('./shaders/basic.vert'),
-		fragment: require('./shaders/basic.frag')
+	building: {
+		vertex: require('./shaders/building.vert'),
+		fragment: require('./shaders/building.frag')
 	},
 	ground: {
 		vertex: require('./shaders/ground.vert'),

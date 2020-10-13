@@ -2,12 +2,12 @@ import Material, {UniformType} from "../../../renderer/Material";
 import Shaders from "../Shaders";
 import Renderer from "../../../renderer/Renderer";
 
-export default class BasicMaterial extends Material {
+export default class BuildingMaterial extends Material {
 	constructor(renderer: Renderer) {
 		super(renderer, {
-			name: 'BasicMaterial',
-			fragmentShader: Shaders.basic.fragment,
-			vertexShader: Shaders.basic.vertex,
+			name: 'BuildingMaterial',
+			fragmentShader: Shaders.building.fragment,
+			vertexShader: Shaders.building.vertex,
 			uniforms: {
 				projectionMatrix: {type: UniformType.Matrix4, value: null},
 				modelViewMatrix: {type: UniformType.Matrix4, value: null}

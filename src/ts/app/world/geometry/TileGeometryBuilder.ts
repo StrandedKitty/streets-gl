@@ -51,10 +51,6 @@ export default class TileGeometryBuilder {
 	public async getTileGeometry(): Promise<StaticTileGeometry> {
 		const {nodes, ways} = this.features;
 
-		if (!this.heightViewer.isTileLoaded(this.x, this.y)) {
-			await this.heightViewer.requestHeightTile(this.x, this.y);
-		}
-
 		const arrays = [];
 		for (const way of ways.values()) {
 			arrays.push(way.getVertices());

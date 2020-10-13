@@ -9,14 +9,14 @@ layout(location = 4) out vec4 outEmission;
 
 in vec2 vUv;
 in vec3 vNormal;
+in vec3 vPosition;
 
 uniform sampler2D map;
 
 void main() {
-    //outColor = texture(map, vUv);
-    outColor = vec4(1, 1, 1, 1);
+    outColor = texture(map, vUv);
     outNormal = vNormal * 0.5 + 0.5;
-    outPosition = vec3(0);
+    outPosition = vPosition;
     outMetallicRoughness = vec4(0);
     outEmission = vec4(0);
 }
