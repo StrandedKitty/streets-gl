@@ -10,9 +10,27 @@
 			"buildingPart": true
 		}
 	},
+	"building:levels": {
+		"default": {
+			"levels": "@int"
+		}
+	},
 	"height": {
 		"default": {
 			"height": "@units"
+		}
+	},
+	"min_height": {
+		"default": {
+			"minHeight": "@units"
+		}
+	},
+	"type": {
+		"building": {
+			"relationType": "building"
+		},
+		"multipolygon": {
+			"relationType": "multipolygon"
 		}
 	}
 }

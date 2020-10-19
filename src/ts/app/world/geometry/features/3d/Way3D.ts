@@ -2,132 +2,173 @@ import Feature3D, {Tags} from "./Feature3D";
 import Node3D from "./Node3D";
 import earcut from 'earcut';
 import HeightViewer from "../../../HeightViewer";
-import {toRad} from "../../../../../math/Utils";
-import Vec2 from "../../../../../math/Vec2";
+import Ring3D, {RingType} from "./Ring3D";
+import {mercatorScaleFactor} from "../../../../../math/Utils";
+import {GeoJSON} from "geojson";
+import WayAABB from "../WayAABB";
+import Config from "../../../../Config";
+
+interface EarcutInput {
+	vertices: number[];
+	holes: number[]
+}
 
 export default class Way3D extends Feature3D {
-    public nodes: Node3D[];
-    public vertices: [number, number][];
-    private maxGroundHeight: number;
-    private minGroundHeight: number;
-    private heightViewer: HeightViewer;
+	public vertices: [number, number][];
+	public maxGroundHeight: number;
+	public minGroundHeight: number;
+	public heightViewer: HeightViewer;
+	public heightFactor: number;
+	private rings: Ring3D[] = [];
+	private holesArrays: EarcutInput;
+	public geoJSON: GeoJSON.MultiPolygon = null;
+	public aabb: WayAABB = new WayAABB();
 
-    constructor(id: number, nodes: Node3D[], tags: Tags, heightViewer: HeightViewer) {
-        super(id, tags);
+	constructor(id: number, tags: Tags, heightViewer: HeightViewer) {
+		super(id, tags);
 
-        this.nodes = nodes;
-        this.heightViewer = heightViewer;
-        this.vertices = [];
+		this.heightViewer = heightViewer;
+	}
 
-        for(const node of this.nodes) {
-            this.vertices.push([node.position.x, node.position.y]);
-        }
+	public addRing(type: RingType, id: number, nodes: Node3D[], tags: Tags) {
+		const ring = new Ring3D(id, type, nodes, this, tags);
 
-        this.fixDirection();
-    }
+		this.rings.push(ring);
+		this.addRingToAABB(ring);
+	}
 
-    public getVertices(): Float32Array {
-        if(this.tags.type !== 'building') {
-            return new Float32Array();
-        }
+	private updateHeightFactor() {
+		let lat: number = null;
 
-        this.updateFootprintHeight();
+		for(const ring of this.rings) {
+			if(ring.nodes.length > 0) {
+				lat = ring.nodes[0].lat;
+				break;
+			}
+		}
 
-        const footprint = this.triangulateFootprint();
-        const walls = this.triangulateWalls();
+		this.heightFactor = lat === null ? 1 : mercatorScaleFactor(lat);
+	}
 
-        return new Float32Array(footprint.concat(walls));
-    }
+	public getVertices(): Float32Array {
+		if (!this.visible || this.tags.type !== 'building') {
+			return new Float32Array();
+		}
 
-    private isClockwise(): boolean {
-        let sum = 0;
+		this.updateHeightFactor();
 
-        for(let i = 0; i < this.nodes.length; i++) {
-            const point1 = this.vertices[i];
-            const point2 = this.vertices[i + 1] || this.vertices[0];
-            sum += (point2[0] - point1[0]) * (point2[1] + point1[1]);
-        }
+		for(const ring of this.rings) {
+			ring.updateFootprintHeight();
+		}
+		this.updateFootprintHeight();
 
-        return sum > 0;
-    }
+		if(!this.tags.height) {
+			this.tags.height = (+this.tags.levels || 1) * 3.5 + this.maxGroundHeight - this.minGroundHeight;
+		}
 
-    private fixDirection() {
-        if(!this.isClockwise()) {
-            this.nodes.reverse();
-            this.vertices.reverse();
-        }
-    }
+		const footprint = this.triangulateFootprint();
+		let walls: number[] = [];
 
-    private updateFootprintHeight() {
-        let maxHeight = -Infinity;
-        let minHeight = Infinity;
+		for(const ring of this.rings) {
+			walls = walls.concat(ring.triangulateWalls());
+		}
 
-        for (const node of this.nodes) {
-            const tileX = Math.floor(node.tile.x);
-            const tileY = Math.floor(node.tile.y);
+		return new Float32Array(footprint.concat(walls));
+	}
 
-            minHeight = Math.min(minHeight, this.heightViewer.getHeight(tileX, tileY, node.tile.x % 1, node.tile.y % 1));
-            maxHeight = Math.max(maxHeight, this.heightViewer.getHeight(tileX, tileY, node.tile.x % 1, node.tile.y % 1));
-        }
+	private updateFootprintHeight() {
+		let maxHeight = -Infinity;
+		let minHeight = Infinity;
 
-        if(minHeight === Infinity) {
-            minHeight = 0;
-        }
+		for (const ring of this.rings) {
+			minHeight = Math.min(minHeight, ring.minGroundHeight);
+			maxHeight = Math.max(maxHeight, ring.maxGroundHeight);
+		}
 
-        if(maxHeight === -Infinity) {
-            minHeight = 0;
-        }
+		this.minGroundHeight = minHeight;
+		this.maxGroundHeight = maxHeight;
+	}
 
-        this.minGroundHeight = minHeight;
-        this.maxGroundHeight = maxHeight;
-    }
+	private getFlattenVerticesForRing(ring: Ring3D): EarcutInput {
+		const vertices: number[] = ring.getFlattenVertices().concat(this.holesArrays.vertices);
+		const holes: number[] = [];
 
-    private getFlattenVertices(): number[] {
-        return this.vertices.flat();
-    }
+		for(let i = 0; i < this.holesArrays.holes.length; i++) {
+			holes.push(this.holesArrays.holes[i] + ring.vertices.length);
+		}
 
-    private calculateLength() {
-        let length = 0;
+		return {vertices, holes};
+	}
 
-        for(let i = 0; i < this.vertices.length - 1; i++) {
-            const point1 = this.vertices[i];
-            const point2 = this.vertices[i + 1];
-            length += Math.sqrt((point2[0] - point1[0]) ** 2 + (point2[1] - point1[1]) ** 2);
-        }
+	private updateHoles() {
+		const data: EarcutInput = {vertices: [], holes: []};
 
-        return length;
-    }
+		for(const ring of this.rings) {
+			if(ring.type === RingType.Inner) {
+				data.holes.push(data.vertices.length / 2);
 
-    private triangulateFootprint(): number[] {
-        const vertices = this.getFlattenVertices();
-        const triangles = earcut(vertices, []).reverse();
-        const result = [];
+				data.vertices = data.vertices.concat(ring.getFlattenVertices());
+			}
+		}
 
-        for(let i = 0; i < triangles.length; i++) {
-            result.push(vertices[triangles[i] * 2], this.minGroundHeight + (+this.tags.height || 6), vertices[triangles[i] * 2 + 1]);
-        }
+		this.holesArrays = data;
+	}
 
-        return result;
-    }
+	private triangulateFootprint(): number[] {
+		const result = [];
 
-    private triangulateWalls(): number[] {
-        const height = (+this.tags.height || 6) + this.minGroundHeight;
-        const minHeight = (+this.tags.minHeight || 0) + this.minGroundHeight;
-        const vertices: number[] = [];
+		this.updateHoles();
 
-        for (let i = 0; i < this.vertices.length - 1; i++) {
-            const vertex = {x: this.vertices[i][0], z: this.vertices[i][1]};
-            const nextVertex = {x: this.vertices[i + 1][0], z: this.vertices[i + 1][1]};
+		for(const ring of this.rings) {
+			if(ring.type === RingType.Outer) {
+				const {vertices, holes} = this.getFlattenVerticesForRing(ring);
+				const triangles = earcut(vertices, holes).reverse();
 
-            vertices.push(nextVertex.x, minHeight, nextVertex.z);
-            vertices.push(vertex.x, height, vertex.z);
-            vertices.push(vertex.x, minHeight, vertex.z);
+				for (let i = 0; i < triangles.length; i++) {
+					result.push(
+						vertices[triangles[i] * 2],
+						this.minGroundHeight + (+this.tags.height || 6) * this.heightFactor,
+						vertices[triangles[i] * 2 + 1]
+					);
+				}
+			}
+		}
 
-            vertices.push(nextVertex.x, minHeight, nextVertex.z);
-            vertices.push(nextVertex.x, height, nextVertex.z);
-            vertices.push(vertex.x, height, vertex.z);
-        }
+		return result;
+	}
 
-        return vertices;
-    }
+	public updateGeoJSON() {
+		const json: GeoJSON.MultiPolygon = {
+			type: "MultiPolygon",
+			coordinates: []
+		};
+
+		const inners: Ring3D[] = [];
+
+		for(const ring of this.rings) {
+			if(ring.type === RingType.Inner && ring.closed) {
+				inners.push(ring);
+			}
+		}
+
+		for(const ring of this.rings) {
+			if(ring.type === RingType.Outer && ring.closed) {
+				const item: [number, number][][] = [ring.vertices];
+
+				for(let j = 0; j < inners.length; j++) {
+					item.push(inners[j].vertices);
+				}
+
+				json.coordinates.push(item);
+			}
+		}
+
+		this.geoJSON = json;
+	}
+
+	public addRingToAABB(ring: Ring3D) {
+		for(let i = 0; i < ring.vertices.length; i++) {
+			this.aabb.addPoint(ring.vertices[i][0], ring.vertices[i][1]);
+		}
+	}
 }

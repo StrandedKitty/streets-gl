@@ -25,6 +25,8 @@
 	},
 	"dependencies": {
 		"@types/earcut": "^2.1.1",
-		"earcut": "^2.2.2"
+		"@types/geojson": "^7946.0.7",
+		"earcut": "^2.2.2",
+		"martinez-polygon-clipping": "^0.7.0"
 	}
 }
