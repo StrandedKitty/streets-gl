@@ -30,6 +30,7 @@ export default class Mesh extends Object3D {
 	private materialsAttributes: Map<string, Map<string, Attribute>> = new Map();
 	private vaos: Map<string, VAO> = new Map();
 	public bbox: AABB;
+	public bboxCulled: boolean;
 	public vertices: TypedArray;
 	public indices: TypedArray;
 	public indexed: boolean;
@@ -37,10 +38,12 @@ export default class Mesh extends Object3D {
 
 	constructor(renderer: Renderer, {
 		vertices,
-		indices = null
+		indices = null,
+		bboxCulled = false
 	}: {
 		vertices?: TypedArray,
-		indices?: TypedArray
+		indices?: TypedArray,
+		bboxCulled?: boolean
 	} = {}) {
 		super();
 
@@ -50,6 +53,7 @@ export default class Mesh extends Object3D {
 		this.vertices = vertices;
 		this.indices = indices;
 		this.indexed = this.indices !== null;
+		this.bboxCulled = bboxCulled;
 
 		if (this.indexed) {
 			this.updateIndexBuffer();
@@ -166,6 +170,10 @@ export default class Mesh extends Object3D {
 	}
 
 	public inCameraFrustum(camera: Camera): boolean {
+		if(!this.bboxCulled) {
+			return true;
+		}
+
 		if (this.bbox) {
 			const planes = camera.frustumPlanes;
 

@@ -9,6 +9,7 @@ import {StaticTileGeometry} from "../../objects/Tile";
 import {RingType} from "./features/3d/Ring3D";
 import OSMRelation, {OSMRelationMember} from "./features/osm/OSMRelation";
 import * as martinez from 'martinez-polygon-clipping';
+import AABB from "../../../core/AABB";
 
 interface OSMSource {
 	nodes: Map<number, OSMNode>,
@@ -60,12 +61,14 @@ export default class TileGeometryBuilder {
 		}
 
 		const vertices = TileGeometryBuilder.mergeTypedArrays(Float32Array, arrays);
+		const bbox = this.getBoundingBoxFromVertices(vertices);
 
 		return {
 			buildings: {
 				position: vertices,
 				uv: new Float32Array(vertices.length / 3 * 2)
-			}
+			},
+			bbox
 		};
 	}
 
@@ -219,6 +222,23 @@ export default class TileGeometryBuilder {
 				}
 			}
 		}
+	}
+
+	private getBoundingBoxFromVertices(vertices: TypedArray): {min: number[], max: number[]} {
+		const min = [Infinity, Infinity, Infinity];
+		const max = [-Infinity, -Infinity, -Infinity];
+
+		for(let i = 0; i < vertices.length; i += 3) {
+			min[0] = Math.min(min[0], vertices[i]);
+			min[1] = Math.min(min[1], vertices[i + 1]);
+			min[2] = Math.min(min[2], vertices[i + 2]);
+
+			max[0] = Math.max(max[0], vertices[i]);
+			max[1] = Math.max(max[1], vertices[i + 1]);
+			max[2] = Math.max(max[2], vertices[i + 2]);
+		}
+
+		return {min, max};
 	}
 
 	static mergeTypedArrays<T extends TypedArray>(type: { new(l: number): T }, typedArrays: T[]): T {

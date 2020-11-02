@@ -39,6 +39,7 @@ export default class TileManager {
 
 		this.tiles.set(`${x},${y}`, tile);
 
+		tile.updateDistanceToCamera(this.camera);
 		tile.load(this.tileProvider);
 	}
 

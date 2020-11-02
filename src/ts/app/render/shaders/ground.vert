@@ -12,11 +12,10 @@ out vec3 vPosition;
 
 uniform mat4 projectionMatrix;
 uniform mat4 modelViewMatrix;
-uniform mat4 viewMatrix;
 
 void main() {
 	vUv = uv;
-	vNormal = (viewMatrix * vec4(normal, 0)).xyz;
+	vNormal = (modelViewMatrix * vec4(normal, 0)).xyz;
 
 	vec3 transformedPosition = position;
 	vec4 cameraSpacePosition = modelViewMatrix * vec4(transformedPosition, 1.0);

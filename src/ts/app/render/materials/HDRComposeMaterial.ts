@@ -2,6 +2,8 @@ import Material, {UniformType} from "../../../renderer/Material";
 import Renderer from "../../../renderer/Renderer";
 import Shaders from "../Shaders";
 import GBuffer from "../../../renderer/GBuffer";
+import TextureCube from "../../../renderer/TextureCube";
+import GLConstants from "../../../renderer/GLConstants";
 
 const light = {
 	direction: new Float32Array([-1, -1, -1]),
@@ -41,6 +43,21 @@ export default class HDRComposeMaterial extends Material {
 				viewMatrix: {
 					type: UniformType.Matrix4,
 					value: null
+				},
+				tSky: {
+					type: UniformType.TextureCube,
+					value: new TextureCube(renderer, {
+						urls: [
+							'/textures/sky/px.jpg',
+							'/textures/sky/nx.jpg',
+							'/textures/sky/py.jpg',
+							'/textures/sky/ny.jpg',
+							'/textures/sky/pz.jpg',
+							'/textures/sky/nz.jpg'
+						],
+						minFilter: GLConstants.LINEAR_MIPMAP_LINEAR,
+						magFilter: GLConstants.LINEAR
+					})
 				},
 				'uLight.direction': {type: UniformType.Float3, value: [-1, -1, -1]},
 				'uLight.range': {type: UniformType.Float1, value: light.range},

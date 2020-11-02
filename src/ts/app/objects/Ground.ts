@@ -10,7 +10,9 @@ export default class Ground extends Mesh {
 	public borderVertices: number[];
 
 	constructor(renderer: Renderer) {
-		super(renderer);
+		super(renderer, {
+			bboxCulled: true
+		});
 
 		const {vertices, uvs, indices} = Ground.createPlane(Config.TileSize, Config.TileSize, 32, 32);
 
@@ -42,9 +44,19 @@ export default class Ground extends Mesh {
 		const vertices = this.attributes.get('position').buffer;
 		const uvs = this.attributes.get('uv').buffer;
 
+		let maxHeight = -Infinity, minHeight = Infinity;
+
 		for(let i = 0; i < uvs.length / 2; i++) {
-			vertices[i * 3 + 1] = HeightProvider.getHeight(x, y, uvs[i * 2], 1 - uvs[i * 2 + 1]);
+			const height = HeightProvider.getHeight(x, y, uvs[i * 2], 1 - uvs[i * 2 + 1]);
+			vertices[i * 3 + 1] = height;
+			maxHeight = Math.max(maxHeight, height);
+			minHeight = Math.min(minHeight, height);
 		}
+
+		this.setBoundingBox(
+			new Vec3(0, minHeight, 0),
+			new Vec3(Config.TileSize, maxHeight, Config.TileSize)
+		);
 
 		this.calculateNormals();
 		this.updateBorderVertices();

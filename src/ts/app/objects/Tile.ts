@@ -8,12 +8,18 @@ import HeightProvider from "../world/HeightProvider";
 import TileProvider from "../world/TileProvider";
 import Camera from "../../core/Camera";
 import Mesh from "../../renderer/Mesh";
+import Vec3 from "../../math/Vec3";
+import Config from "../Config";
 
 export interface StaticTileGeometry {
 	buildings: {
 		position: Float32Array,
 		uv: Float32Array,
 		color?: Float32Array
+	},
+	bbox: {
+		min: number[],
+		max: number[]
 	}
 }
 
@@ -69,7 +75,8 @@ export default class Tile extends Object3D {
 
 	public generateMeshes(renderer: Renderer) {
 		const buildings = new Mesh(renderer, {
-			vertices: this.staticGeometry.buildings.position
+			vertices: this.staticGeometry.buildings.position,
+			bboxCulled: true
 		});
 
 		buildings.addAttribute({
@@ -80,7 +87,13 @@ export default class Tile extends Object3D {
 		});
 		buildings.setAttributeData('uv', this.staticGeometry.buildings.uv);
 
+		buildings.setBoundingBox(
+			new Vec3(...this.staticGeometry.bbox.min),
+			new Vec3(...this.staticGeometry.bbox.max)
+		);
+
 		this.buildings = buildings;
+
 		this.add(buildings);
 	}
 

@@ -116,6 +116,8 @@ export default class RenderSystem {
 		this.camera.updateMatrixWorld();
 		this.camera.updateMatrixWorldInverse();
 
+		this.camera.updateFrustum();
+
 		this.renderTiles();
 	}
 
@@ -147,16 +149,13 @@ export default class RenderSystem {
 		this.groundMaterial.use();
 
 		for(const tile of tiles.values()) {
-			if(!tile.ground) {
+			if(!tile.ground || !tile.ground.inCameraFrustum(this.camera)) {
 				continue;
 			}
 
 			this.groundMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(this.camera.matrixWorldInverse, tile.ground.matrixWorld);
-			this.groundMaterial.uniforms.viewMatrix.value = this.camera.matrixWorldInverse;
 			this.groundMaterial.uniforms.map.value = tile.colorMap;
-			this.groundMaterial.updateUniform('projectionMatrix');
 			this.groundMaterial.updateUniform('modelViewMatrix');
-			this.groundMaterial.updateUniform('viewMatrix');
 			this.groundMaterial.updateUniform('map');
 
 			tile.ground.draw();
@@ -168,7 +167,7 @@ export default class RenderSystem {
 		for(const tile of tiles.values()) {
 			const buildings = tile.buildings;
 
-			if(!buildings) {
+			if(!buildings || !buildings.inCameraFrustum(this.camera)) {
 				continue;
 			}
 

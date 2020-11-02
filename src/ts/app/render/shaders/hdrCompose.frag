@@ -15,6 +15,7 @@ uniform sampler2D tColor;
 uniform sampler2D tDepth;
 uniform sampler2D tNormal;
 uniform sampler2D tPosition;
+uniform samplerCube tSky;
 uniform mat4 viewMatrix;
 
 struct Light {
@@ -73,12 +74,12 @@ AngularInfo getAngularInfo(vec3 pointToLight, vec3 normal, vec3 view) {
 	float VdotH = clamp(dot(v, h), 0.0, 1.0);
 
 	return AngularInfo(
-	NdotL,
-	NdotV,
-	NdotH,
-	LdotH,
-	VdotH,
-	vec3(0, 0, 0)
+		NdotL,
+		NdotV,
+		NdotH,
+		LdotH,
+		VdotH,
+		vec3(0, 0, 0)
 	);
 }
 
@@ -140,21 +141,37 @@ vec3 applyDirectionalLight(Light light, MaterialInfo materialInfo, vec3 normal, 
 	return light.intensity * light.color * shade;
 }
 
-/*vec3 getIBLContribution(MaterialInfo materialInfo, vec3 n, vec3 v) {
+// Trowbridge-Reitz distribution to Mip level, following the logic of http://casual-effects.blogspot.ca/2011/08/plausible-environment-lighting-in-two.html
+float getSpecularMIPLevel(float roughness, int maxMIPLevel) {
+	float maxMIPLevelScalar = float(maxMIPLevel);
+	float sigma = PI * roughness * roughness / (1.0 + roughness);
+	float desiredMIPLevel = maxMIPLevelScalar + log2(sigma);
+
+	return clamp(desiredMIPLevel, 0.0, maxMIPLevelScalar);
+}
+
+// https://www.unrealengine.com/blog/physically-based-shading-on-mobile - environmentBRDF for GGX on mobile
+vec2 integrateSpecularBRDF(float dotNV, float roughness) {
+	const vec4 c0 = vec4(-1, -0.0275, -0.572, 0.022);
+	const vec4 c1 = vec4(1, 0.0425, 1.04, -0.04);
+	vec4 r = roughness * c0 + c1;
+	float a004 = min(r.x * r.x, exp2(-9.28 * dotNV)) * r.x + r.y;
+	return vec2(-1.04, 1.04) * a004 + r.zw;
+}
+
+vec3 getIBLContribution(MaterialInfo materialInfo, vec3 n, vec3 v) {
 	float NdotV = clamp(dot(n, v), 0.0, 1.0);
 
-	float mipCount = 11.;
-	float lod = clamp(materialInfo.perceptualRoughness * mipCount, 0.0, mipCount);
+	float lod = getSpecularMIPLevel(materialInfo.perceptualRoughness, 11);
 	vec3 reflection = normalize(reflect(-v, n));
 	reflection.y = abs(reflection.y);
 
-	vec2 brdfSamplePoint = clamp(vec2(NdotV, materialInfo.perceptualRoughness), vec2(0.0, 0.0), vec2(1.0, 1.0));
+	vec2 brdfSamplePoint = clamp(vec2(NdotV, materialInfo.perceptualRoughness), vec2(0, 0), vec2(1, 1));
 	//vec2 brdf = texture(tBRDF, brdfSamplePoint).rg;
-	vec2 brdf = vec2(1);
+	vec2 brdf = integrateSpecularBRDF(NdotV, materialInfo.perceptualRoughness);
 
-	vec4 diffuseSample = texture(sky, n);
-
-	vec4 specularSample = textureLod(sky, reflection, lod);
+	vec4 diffuseSample = textureLod(tSky, n, 0.);
+	vec4 specularSample = textureLod(tSky, reflection, lod);
 
 	vec3 diffuseLight = SRGBtoLINEAR(diffuseSample).rgb;
 	vec3 specularLight = SRGBtoLINEAR(specularSample).rgb;
@@ -163,7 +180,7 @@ vec3 applyDirectionalLight(Light light, MaterialInfo materialInfo, vec3 normal, 
 	vec3 specular = specularLight * (materialInfo.specularColor * brdf.x + brdf.y);
 
 	return diffuse * 0. + specular;
-}*/
+}
 
 void main() {
 	vec4 baseColor = SRGBtoLINEAR(texture(tColor, vUv));
@@ -198,6 +215,7 @@ void main() {
 
 	Light light = uLight;
 
+	color += getIBLContribution(materialInfo, worldNormal, worldView);
 	color += applyDirectionalLight(light, materialInfo, worldNormal, worldView) * 0.75;
 	color += materialInfo.diffuseColor * 0.25;
 
