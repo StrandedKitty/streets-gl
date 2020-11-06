@@ -184,6 +184,12 @@ vec3 getIBLContribution(MaterialInfo materialInfo, vec3 n, vec3 v) {
 
 void main() {
 	vec4 baseColor = SRGBtoLINEAR(texture(tColor, vUv));
+
+	if(baseColor.a == 0.) {
+		FragColor = vec4(LINEARtoSRGB(baseColor.rgb), 1);
+		return;
+	}
+
 	vec3 normal = texture(tNormal, vUv).rgb * 2. - 1.;
 	vec3 position = texture(tPosition, vUv).xyz;
 

@@ -12,7 +12,6 @@ export default class GroundMaterial extends Material {
 			uniforms: {
 				projectionMatrix: {type: UniformType.Matrix4, value: null},
 				modelViewMatrix: {type: UniformType.Matrix4, value: null},
-				viewMatrix: {type: UniformType.Matrix4, value: null},
 				map: {
 					type: UniformType.Texture2D,
 					value: new Texture2D(renderer, {url: '/images/favicon.png', flipY: false, anisotropy: 16})

@@ -7,6 +7,7 @@ export default class TextureCube extends Texture {
 
 	private sidesLoaded: number = 0;
 	public urls: string[];
+	public loaded: boolean = false;
 
 	constructor(renderer: Renderer, {
 		urls,
@@ -67,6 +68,7 @@ export default class TextureCube extends Texture {
 
 		if(++this.sidesLoaded === 6) {
 			this.generateMipmaps();
+			this.loaded = true;
 		}
 	}
 

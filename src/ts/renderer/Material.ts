@@ -95,7 +95,9 @@ export default class Material {
 					++texturesUsed;
 				} else if (uniform.type === UniformType.TextureCube) {
 					this.gl.activeTexture(GLConstants.TEXTURE0 + texturesUsed);
-					if (uniform.value.loaded) this.gl.bindTexture(GLConstants.TEXTURE_CUBE_MAP, uniform.value.WebGLTexture);
+					if (uniform.value.loaded) {
+						this.gl.bindTexture(GLConstants.TEXTURE_CUBE_MAP, uniform.value.WebGLTexture);
+					}
 					this.gl.uniform1i(this.uniformsLocations[name], texturesUsed);
 
 					this.textureUnits.set(this.uniformsLocations[name], GLConstants.TEXTURE0 + texturesUsed);
