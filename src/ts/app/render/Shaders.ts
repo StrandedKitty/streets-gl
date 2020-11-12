@@ -1,19 +1,19 @@
 const Shaders = {
 	building: {
-		vertex: require('./shaders/building.vert'),
-		fragment: require('./shaders/building.frag')
+		vertex: require('../../../resources/shaders/building.vert'),
+		fragment: require('../../../resources/shaders/building.frag')
 	},
 	ground: {
-		vertex: require('./shaders/ground.vert'),
-		fragment: require('./shaders/ground.frag')
+		vertex: require('../../../resources/shaders/ground.vert'),
+		fragment: require('../../../resources/shaders/ground.frag')
 	},
 	skybox: {
-		vertex: require('./shaders/skybox.vert'),
-		fragment: require('./shaders/skybox.frag')
+		vertex: require('../../../resources/shaders/skybox.vert'),
+		fragment: require('../../../resources/shaders/skybox.frag')
 	},
 	hdrCompose: {
-		vertex: require('./shaders/hdrCompose.vert'),
-		fragment: require('./shaders/hdrCompose.frag')
+		vertex: require('../../../resources/shaders/hdrCompose.vert'),
+		fragment: require('../../../resources/shaders/hdrCompose.frag')
 	}
 }
 

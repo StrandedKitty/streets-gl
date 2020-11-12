@@ -1,4 +1,4 @@
-import {toRad} from '../math/Utils';
+import MathUtils from '../math/MathUtils';
 import Plane from './Plane';
 import Vec3 from "../math/Vec3";
 import Mat4 from "../math/Mat4";
@@ -28,10 +28,10 @@ export default class Frustum {
 	}
 
 	public updateViewSpaceVertices() {
-		const nearPlaneY = this.near * Math.tan(toRad(this.fov / 2));
+		const nearPlaneY = this.near * Math.tan(MathUtils.toRad(this.fov / 2));
 		const nearPlaneX = this.aspect * nearPlaneY;
 
-		const farPlaneY = this.far * Math.tan(toRad(this.fov / 2));
+		const farPlaneY = this.far * Math.tan(MathUtils.toRad(this.fov / 2));
 		const farPlaneX = this.aspect * farPlaneY;
 
 		// 3 --- 0  vertices order

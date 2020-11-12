@@ -1,6 +1,6 @@
 import OSMNode from "./features/osm/OSMNode";
 import OSMWay from "./features/osm/OSMWay";
-import {tile2meters} from "../../../math/Utils";
+import MathUtils from "../../../math/MathUtils";
 import Vec2 from "../../../math/Vec2";
 import Node3D from "./features/3d/Node3D";
 import Way3D from "./features/3d/Way3D";
@@ -9,7 +9,6 @@ import {StaticTileGeometry} from "../../objects/Tile";
 import {RingType} from "./features/3d/Ring3D";
 import OSMRelation, {OSMRelationMember} from "./features/osm/OSMRelation";
 import * as martinez from 'martinez-polygon-clipping';
-import AABB from "../../../core/AABB";
 
 interface OSMSource {
 	nodes: Map<number, OSMNode>,
@@ -33,7 +32,7 @@ export default class TileGeometryBuilder {
 	constructor(x: number, y: number, heightViewer: HeightViewer) {
 		this.x = x;
 		this.y = y;
-		this.pivot = tile2meters(this.x, this.y + 1);
+		this.pivot = MathUtils.tile2meters(this.x, this.y + 1);
 		this.heightViewer = heightViewer;
 	}
 
@@ -56,8 +55,32 @@ export default class TileGeometryBuilder {
 		const {nodes, ways} = this.features;
 
 		const arrays: Float32Array[] = [];
+		const visibleWays: Way3D[] = [];
+
 		for (const way of ways.values()) {
-			arrays.push(way.getVertices());
+			const vertices = way.getVertices();
+
+			if (vertices.length === 0) {
+				continue;
+			}
+
+			arrays.push(vertices);
+			visibleWays.push(way);
+		}
+
+		const offsets: Uint32Array = new Uint32Array(visibleWays.length);
+		const ids: Uint32Array = new Uint32Array(visibleWays.length * 2);
+		let lastOffset = 0;
+
+		for (let i = 0; i < visibleWays.length; i++) {
+			const vertices = arrays[i];
+			const way = visibleWays[i];
+
+			ids[i * 2] = way.id;
+			ids[i * 2 + 1] = 0;
+
+			offsets[i] = lastOffset;
+			lastOffset += vertices.length / 3;
 		}
 
 		const vertices = TileGeometryBuilder.mergeTypedArrays(Float32Array, arrays);
@@ -66,7 +89,9 @@ export default class TileGeometryBuilder {
 		return {
 			buildings: {
 				position: vertices,
-				uv: new Float32Array(vertices.length / 3 * 2)
+				uv: new Float32Array(vertices.length / 3 * 2),
+				id: ids,
+				offset: offsets
 			},
 			bbox
 		};

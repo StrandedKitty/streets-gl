@@ -1,5 +1,5 @@
 import OSMFeature, {OSMTags} from "./features/osm/OSMFeature";
-import {hexToRgb} from "../../../math/Utils";
+import Utils from "../../Utils";
 
 const TagsList = require("./../../../../resources/tags.json");
 const ColorsList = require("./../../../../resources/colors.json");
@@ -27,7 +27,7 @@ export default class OSMDescriptor {
 							newValue = this.parseUnits(value);
 							break;
 						case '@color':
-							newValue = ColorsList[value.toLowerCase()] || hexToRgb(value);
+							newValue = ColorsList[value.toLowerCase()] || Utils.hexToRgb(value);
 							break;
 						case '@int':
 							newValue = parseInt(value);

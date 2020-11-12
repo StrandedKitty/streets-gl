@@ -1,5 +1,5 @@
 import Vec2 from "../../math/Vec2";
-import {toDeg} from "../../math/Utils";
+import MathUtils from "../../math/MathUtils";
 import DoubleTouchHandler, {DoubleTouchMoveEvent} from "./DoubleTouchHandler";
 
 const rotationThreshold = 10;
@@ -48,6 +48,6 @@ export default class TouchRotateHandler extends DoubleTouchHandler {
 			a.x * b.x + a.y * b.y
 		);
 
-		return toDeg(angle);
+		return MathUtils.toDeg(angle);
 	}
 }

@@ -1,5 +1,5 @@
 import Vec3 from "../../math/Vec3";
-import {clamp, lerp, meters2tile, normalizeAngle, sphericalToCartesian, toRad} from "../../math/Utils";
+import MathUtils from "../../math/MathUtils";
 import Camera from "../../core/Camera";
 import Vec2 from "../../math/Vec2";
 import HeightProvider from "../world/HeightProvider";
@@ -18,8 +18,8 @@ export default class Controls {
 	private direction: Vec3 = new Vec3();
 	private distance: number = 1000;
 	private distanceTarget: number = 1000;
-	private pitch: number = toRad(45);
-	private yaw: number = toRad(0);
+	private pitch: number = MathUtils.toRad(45);
+	private yaw: number = MathUtils.toRad(0);
 
 	private isRotationMouseMode: boolean = false;
 	private isMovementMouseMode: boolean = false;
@@ -56,7 +56,7 @@ export default class Controls {
 
 	private wheelEvent(e: WheelEvent) {
 		this.distanceTarget += 0.5 * e.deltaY;
-		this.distanceTarget = clamp(this.distanceTarget, 20, 2000);
+		this.distanceTarget = MathUtils.clamp(this.distanceTarget, 20, 2000);
 	}
 
 	private mouseDownEvent(e: MouseEvent) {
@@ -80,8 +80,8 @@ export default class Controls {
 
 	private mouseMoveEvent(e: MouseEvent) {
 		if (this.isRotationMouseMode) {
-			this.yaw += toRad(e.movementX) * this.rotationSpeed;
-			this.pitch += toRad(e.movementY) * this.rotationSpeed;
+			this.yaw += MathUtils.toRad(e.movementX) * this.rotationSpeed;
+			this.pitch += MathUtils.toRad(e.movementY) * this.rotationSpeed;
 		}
 
 		if (this.isMovementMouseMode) {
@@ -152,11 +152,11 @@ export default class Controls {
 		}
 
 		if(e.bearingDelta && !this.touchHandlers.get('pitch').active) {
-			this.yaw += toRad(e.bearingDelta) * this.rotationSpeed * touchYawFactor;
+			this.yaw += MathUtils.toRad(e.bearingDelta) * this.rotationSpeed * touchYawFactor;
 		}
 
 		if(e.pitchDelta) {
-			this.pitch -= toRad(e.pitchDelta) * this.rotationSpeed * touchPitchFactor;
+			this.pitch -= MathUtils.toRad(e.pitchDelta) * this.rotationSpeed * touchPitchFactor;
 		}
 	}
 
@@ -196,22 +196,22 @@ export default class Controls {
 	public update(camera: Camera) {
 		this.camera = camera;
 
-		const tile = meters2tile(this.target.x, this.target.z);
+		const tile = MathUtils.meters2tile(this.target.x, this.target.z);
 		const tilePosition = new Vec2(Math.floor(tile.x), Math.floor(tile.y));
 
 		if (HeightProvider.getTile(tilePosition.x, tilePosition.y)) {
 			this.target.y = HeightProvider.getHeight(tilePosition.x, tilePosition.y, tile.x % 1, tile.y % 1);
 		}
 
-		this.distance = lerp(this.distance, this.distanceTarget, 0.4);
+		this.distance = MathUtils.lerp(this.distance, this.distanceTarget, 0.4);
 		if (Math.abs(this.distance - this.distanceTarget) < 0.01) {
 			this.distance = this.distanceTarget;
 		}
 
-		this.pitch = clamp(this.pitch, toRad(5), toRad(89.99));
-		this.yaw = normalizeAngle(this.yaw);
+		this.pitch = MathUtils.clamp(this.pitch, MathUtils.toRad(5), MathUtils.toRad(89.99));
+		this.yaw = MathUtils.normalizeAngle(this.yaw);
 
-		this.direction = Vec3.normalize(sphericalToCartesian(this.yaw, -this.pitch));
+		this.direction = Vec3.normalize(MathUtils.sphericalToCartesian(this.yaw, -this.pitch));
 
 		const cameraOffset = Vec3.multiplyScalar(this.direction, this.distance);
 		const cameraPosition = Vec3.add(this.target, cameraOffset);

@@ -1,5 +1,5 @@
 import Mat4 from "../math/Mat4";
-import {toRad} from "../math/Utils";
+import MathUtils from "../math/MathUtils";
 import Camera from "./Camera";
 
 export default class PerspectiveCamera extends Camera {
@@ -20,7 +20,7 @@ export default class PerspectiveCamera extends Camera {
 	}
 
 	public updateProjectionMatrix() {
-		this.projectionMatrix = Mat4.perspective(toRad(this.fov), this.aspect, this.near, this.far);
+		this.projectionMatrix = Mat4.perspective(MathUtils.toRad(this.fov), this.aspect, this.near, this.far);
 		this.updateProjectionMatrixInverse();
 	}
 }

@@ -1,5 +1,5 @@
 import Feature3D, {Tags} from "./Feature3D";
-import {degrees2meters, degrees2tile, tile2meters} from "../../../../../math/Utils";
+import MathUtils from "../../../../../math/MathUtils";
 import Vec2 from "../../../../../math/Vec2";
 
 export default class Node3D extends Feature3D {
@@ -14,9 +14,9 @@ export default class Node3D extends Feature3D {
 		this.lat = lat;
 		this.lon = lon;
 
-		const pivot = tile2meters(tileX, tileY + 1);
+		const pivot = MathUtils.tile2meters(tileX, tileY + 1);
 
-		this.position = Vec2.sub(degrees2meters(this.lat, this.lon), pivot);
-		this.tile = degrees2tile(this.lat, this.lon);
+		this.position = Vec2.sub(MathUtils.degrees2meters(this.lat, this.lon), pivot);
+		this.tile = MathUtils.degrees2tile(this.lat, this.lon);
 	}
 }

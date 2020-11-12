@@ -1,7 +1,7 @@
 import Object3D from "../../core/Object3D";
 import Ground from "./Ground";
 import Renderer from "../../renderer/Renderer";
-import {tile2meters} from "../../math/Utils";
+import MathUtils from "../../math/MathUtils";
 import Texture2D from "../../renderer/Texture2D";
 import GLConstants from "../../renderer/GLConstants";
 import HeightProvider from "../world/HeightProvider";
@@ -9,13 +9,16 @@ import TileProvider from "../world/TileProvider";
 import Camera from "../../core/Camera";
 import Mesh from "../../renderer/Mesh";
 import Vec3 from "../../math/Vec3";
-import Config from "../Config";
+import Vec2 from "../../math/Vec2";
+import {AttributeFormat} from "../../renderer/Attribute";
 
 export interface StaticTileGeometry {
 	buildings: {
 		position: Float32Array,
 		uv: Float32Array,
-		color?: Float32Array
+		color?: Float32Array,
+		id: Uint32Array,
+		offset: Uint32Array
 	},
 	bbox: {
 		min: number[],
@@ -27,13 +30,17 @@ export default class Tile extends Object3D {
 	public ground: Ground;
 	public buildings: Mesh;
 	public staticGeometry: StaticTileGeometry;
+	public buildingOffsetMap: Map<number, [number, number]>;
+	public buildingVisibilityMap: Map<number, boolean>;
+	public displayBufferNeedsUpdate: boolean = false;
 	public x: number;
 	public y: number;
 	public inFrustum: boolean = true;
 	public distanceToCamera: number = null;
 	public colorMap: Texture2D = null;
 	public readyForRendering: boolean = false;
-	public disposed = false;
+	public buildingsUpdated: boolean = false;
+	public disposed: boolean = false;
 
 	constructor(x: number, y: number) {
 		super();
@@ -43,16 +50,17 @@ export default class Tile extends Object3D {
 
 		this.ground = null;
 
-		const positionInMeters = tile2meters(this.x, this.y + 1);
+		const positionInMeters = MathUtils.tile2meters(this.x, this.y + 1);
 		this.position.set(positionInMeters.x, 0, positionInMeters.y);
 	}
 
-	public load(tileProvider: TileProvider) {
-		Promise.all([
+	public async load(tileProvider: TileProvider) {
+		return Promise.all([
 			HeightProvider.prepareDataForTile(this.x, this.y),
 			tileProvider.getTileObjects(this)
 		]).then(([_, objects]: [void[], StaticTileGeometry]) => {
 			this.staticGeometry = objects;
+			this.updateStaticGeometryOffsets();
 			this.readyForRendering = true;
 		});
 	}
@@ -79,6 +87,8 @@ export default class Tile extends Object3D {
 			bboxCulled: true
 		});
 
+		const vertexCount = buildings.vertices.length / 3;
+
 		buildings.addAttribute({
 			name: 'uv',
 			size: 2,
@@ -86,6 +96,15 @@ export default class Tile extends Object3D {
 			normalized: false
 		});
 		buildings.setAttributeData('uv', this.staticGeometry.buildings.uv);
+
+		buildings.addAttribute({
+			name: 'display',
+			size: 1,
+			dataFormat: AttributeFormat.Integer,
+			type: GLConstants.UNSIGNED_BYTE,
+			normalized: false
+		});
+		buildings.setAttributeData('display', new Uint8Array(vertexCount));
 
 		buildings.setBoundingBox(
 			new Vec3(...this.staticGeometry.bbox.min),
@@ -98,8 +117,63 @@ export default class Tile extends Object3D {
 	}
 
 	public updateDistanceToCamera(camera: Camera) {
-		const worldPosition = tile2meters(this.x + 0.5, this.y + 0.5);
+		const worldPosition = MathUtils.tile2meters(this.x + 0.5, this.y + 0.5);
 		this.distanceToCamera = Math.sqrt((worldPosition.x - camera.position.x) ** 2 + (worldPosition.y - camera.position.z) ** 2);
+	}
+
+	private updateStaticGeometryOffsets() {
+		const offsetMap: Map<number, [number, number]> = new Map();
+		const visibilityMap: Map<number, boolean> = new Map();
+		const ids = this.staticGeometry.buildings.id;
+		const offsets = this.staticGeometry.buildings.offset;
+		const vertexCount = this.staticGeometry.buildings.position.length / 3;
+
+		for(let i = 0; i < ids.length; i += 2) {
+			const id = MathUtils.shiftLeft(ids[i + 1], 32) + ids[i];
+			const type = ids[i + 1] & 0xC000;
+
+			const packedId = MathUtils.shiftLeft(type, 51) + id;
+
+			const offset = offsets[i / 2];
+			const nextOffset = offsets[i / 2 + 1] || vertexCount;
+			offsetMap.set(packedId, [offset, nextOffset - offset]);
+			visibilityMap.set(packedId, true);
+		}
+
+		this.buildingOffsetMap = offsetMap;
+		this.buildingVisibilityMap = visibilityMap;
+	}
+
+	public hideBuilding(id: number) {
+		const [start, size] = this.buildingOffsetMap.get(id);
+		const displayBuffer = this.buildings.attributes.get('display').buffer;
+
+		for(let i = start; i < start + size; i++) {
+			displayBuffer[i] = 255;
+		}
+
+		this.buildingVisibilityMap.set(id, false);
+		this.displayBufferNeedsUpdate = true;
+	}
+
+	public showBuilding(id: number) {
+		const [start, size] = this.buildingOffsetMap.get(id);
+		const displayBuffer = this.buildings.attributes.get('display').buffer;
+
+		for(let i = start; i < start + size; i++) {
+			displayBuffer[i] = 0;
+		}
+
+		this.buildingVisibilityMap.set(id, true);
+		this.displayBufferNeedsUpdate = true;
+	}
+
+	public isBuildingVisible(id: number): boolean {
+		return this.buildingVisibilityMap.get(id);
+	}
+
+	public updateDisplayBuffer() {
+		this.buildings.updateAttribute('display');
 	}
 
 	public dispose() {
@@ -116,5 +190,17 @@ export default class Tile extends Object3D {
 		if (this.parent) {
 			this.parent.remove(this);
 		}
+	}
+
+	public getEncodedPosition(): number {
+		return Tile.encodePosition(this.x, this.y);
+	}
+
+	public static encodePosition(x: number, y: number): number {
+		return x << 16 + y;
+	}
+
+	public static decodePosition(encoded: number): Vec2 {
+		return new Vec2(encoded >> 16, encoded & 0xffff);
 	}
 }

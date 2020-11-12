@@ -3,10 +3,9 @@ import Node3D from "./Node3D";
 import earcut from 'earcut';
 import HeightViewer from "../../../HeightViewer";
 import Ring3D, {RingType} from "./Ring3D";
-import {mercatorScaleFactor} from "../../../../../math/Utils";
+import MathUtils from "../../../../../math/MathUtils";
 import {GeoJSON} from "geojson";
-import WayAABB from "../WayAABB";
-import Config from "../../../../Config";
+import WayAABB from "./WayAABB";
 
 interface EarcutInput {
 	vertices: number[];
@@ -47,7 +46,7 @@ export default class Way3D extends Feature3D {
 			}
 		}
 
-		this.heightFactor = lat === null ? 1 : mercatorScaleFactor(lat);
+		this.heightFactor = lat === null ? 1 : MathUtils.mercatorScaleFactor(lat);
 	}
 
 	public getVertices(): Float32Array {

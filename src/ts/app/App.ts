@@ -2,7 +2,7 @@ import '../../css/style.css';
 import RenderSystem from "./render/RenderSystem";
 import TileManager from "./world/TileManager";
 import Controls from "./controls/Controls";
-import {degrees2meters} from "../math/Utils";
+import MathUtils from "../math/MathUtils";
 
 class App {
 	private loop = (deltaTime: number) => this.update(deltaTime);
@@ -21,7 +21,7 @@ class App {
 	}
 
 	private init() {
-		const cameraPosition = degrees2meters(37.67024, -122.4301258);
+		const cameraPosition = MathUtils.degrees2meters(37.663539, -122.418106);
 		this.controls.target.set(cameraPosition.x, 0, cameraPosition.y);
 
 		this.update();

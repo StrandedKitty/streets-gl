@@ -5,19 +5,22 @@ import {App} from "../App";
 import PerspectiveCamera from "../../core/PerspectiveCamera";
 import Vec3 from "../../math/Vec3";
 import ConvexHullGrahamScan from "../../math/ConvexHullGrahamScan";
-import {getTilesIntersectingLine, meters2tile, tile2meters} from "../../math/Utils";
+import MathUtils from "../../math/MathUtils";
 import Config from "../Config";
 import TileProvider from "./TileProvider";
+import TileObjectsManager from "./TileObjectsManager";
 
 export default class TileManager {
 	public tiles: Map<string, Tile> = new Map();
 	private camera: PerspectiveCamera;
 	private cameraFrustum: Frustum;
 	private tileProvider: TileProvider;
+	private objectsManager: TileObjectsManager;
 
 	constructor(private app: App) {
 		this.camera = app.renderSystem.camera;
 		this.tileProvider = new TileProvider(app.renderSystem.renderer);
+		this.objectsManager = new TileObjectsManager(this);
 
 		this.init();
 	}
@@ -40,7 +43,10 @@ export default class TileManager {
 		this.tiles.set(`${x},${y}`, tile);
 
 		tile.updateDistanceToCamera(this.camera);
-		tile.load(this.tileProvider);
+
+		tile.load(this.tileProvider).then(() => {
+			//this.objectsManager.addTile(tile);
+		});
 	}
 
 	public getTile(x: number, y: number): Tile {
@@ -49,6 +55,9 @@ export default class TileManager {
 
 	public removeTile(x: number, y: number) {
 		const tile = this.getTile(x, y);
+
+		this.objectsManager.removeTile(tile);
+
 		tile.dispose();
 		this.tiles.delete(`${x},${y}`);
 	}
@@ -80,6 +89,8 @@ export default class TileManager {
 		this.updateTiles();
 		this.tileProvider.update();
 		this.removeCulledTiles();
+
+		this.objectsManager.update();
 	}
 
 	private updateTiles() {
@@ -137,7 +148,7 @@ export default class TileManager {
 		const tilePoints: Vec2[] = [];
 
 		for (let i = 0; i < points.length; i++) {
-			const pos = meters2tile(points[i].x, points[i].y);
+			const pos = MathUtils.meters2tile(points[i].x, points[i].y);
 			tilePoints.push(pos);
 		}
 
@@ -145,7 +156,7 @@ export default class TileManager {
 
 		for (let i = 0; i < points.length; i++) {
 			const next = (i + 1) % points.length;
-			const data = getTilesIntersectingLine(tilePoints[i], tilePoints[next]);
+			const data = MathUtils.getTilesIntersectingLine(tilePoints[i], tilePoints[next]);
 
 			for (let j = 0; j < data.length; j++) {
 				tilesOnEdges.push(data[j]);
@@ -210,7 +221,7 @@ export default class TileManager {
 		const tilesList: { distance: number, tile: Vec2 }[] = [];
 
 		for (let i = 0; i < tiles.length; i++) {
-			const worldPosition = tile2meters(tiles[i].x + 0.5, tiles[i].y + 0.5);
+			const worldPosition = MathUtils.tile2meters(tiles[i].x + 0.5, tiles[i].y + 0.5);
 
 			tilesList.push({
 				distance: Math.sqrt((worldPosition.x - cameraPosition.x) ** 2 + (worldPosition.y - cameraPosition.z) ** 2),

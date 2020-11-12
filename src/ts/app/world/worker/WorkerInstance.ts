@@ -1,4 +1,4 @@
-import {tile2degrees} from "../../../math/Utils";
+import MathUtils from "../../../math/MathUtils";
 import TileGeometryBuilder from "../geometry/TileGeometryBuilder";
 import HeightViewer from "../HeightViewer";
 import {
@@ -38,8 +38,8 @@ function sendMessage(msg: WorkerMessageIncoming) {
 function load(x: number, y: number) {
 	const offset = 0.05;
 	const position = [
-		tile2degrees(x - offset, y + 1 + offset),
-		tile2degrees(x + 1 + offset, y - offset)
+		MathUtils.tile2degrees(x - offset, y + 1 + offset),
+		MathUtils.tile2degrees(x + 1 + offset, y - offset)
 	];
 	const bbox = position[0].lat + ',' + position[0].lon + ',' + position[1].lat + ',' + position[1].lon;
 

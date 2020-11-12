@@ -172,6 +172,10 @@ export default class RenderSystem {
 		this.groundMaterial.use();
 
 		for(const tile of tiles.values()) {
+			if(tile.displayBufferNeedsUpdate) {
+				tile.updateDisplayBuffer();
+			}
+
 			if(!tile.ground || !tile.ground.inCameraFrustum(this.camera)) {
 				continue;
 			}

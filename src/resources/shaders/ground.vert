@@ -4,7 +4,6 @@ precision highp float;
 in vec3 position;
 in vec2 uv;
 in vec3 normal;
-in float weight;
 
 out vec2 vUv;
 out vec3 vNormal;
