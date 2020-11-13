@@ -9,13 +9,14 @@ layout(location = 4) out vec4 outEmission;
 
 in vec2 vUv;
 in vec3 vPosition;
+in vec3 vColor;
 
 vec3 getFlatNormal(vec3 position) {
 	return normalize(cross(dFdx(position), dFdy(position)));
 }
 
 void main() {
-	outColor = vec4(1, 1, 1, 1);
+	outColor = vec4(vColor, 1);
 	outNormal = getFlatNormal(vPosition) * 0.5 + 0.5;
 	outPosition = vPosition;
 	outMetallicRoughness = vec4(0);

@@ -7,4 +7,24 @@ export default class Utils {
 			parseInt(result[3], 16)
 		] : null;
 	}
+
+	public static fillTypedArraySequence<T extends TypedArray>(type: { new(l: number): T }, typedArray: T, sequence: T): T {
+		const length = typedArray.length;
+		let sequenceLength = sequence.length;
+		let position = sequenceLength;
+
+		typedArray.set(sequence);
+
+		while (position < length) {
+			if (position + sequenceLength > length) {
+				sequenceLength = length - position;
+			}
+
+			typedArray.copyWithin(position, 0, sequenceLength);
+			position += sequenceLength;
+			sequenceLength <<= 1;
+		}
+
+		return typedArray;
+	}
 }

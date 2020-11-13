@@ -25,6 +25,11 @@
 			"minHeight": "@units"
 		}
 	},
+	"building:colour": {
+		"default": {
+			"facadeColor": "@color"
+		}
+	},
 	"type": {
 		"building": {
 			"relationType": "building"

@@ -1,4 +1,4 @@
-export type Tags = { [key: string]: string | number };
+export type Tags = { [key: string]: string | number | number[] };
 
 export default class Feature3D {
 	public id: number;

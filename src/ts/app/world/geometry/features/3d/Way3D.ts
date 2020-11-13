@@ -6,6 +6,7 @@ import Ring3D, {RingType} from "./Ring3D";
 import MathUtils from "../../../../../math/MathUtils";
 import {GeoJSON} from "geojson";
 import WayAABB from "./WayAABB";
+import Utils from "../../../../Utils";
 
 interface EarcutInput {
 	vertices: number[];
@@ -49,9 +50,9 @@ export default class Way3D extends Feature3D {
 		this.heightFactor = lat === null ? 1 : MathUtils.mercatorScaleFactor(lat);
 	}
 
-	public getVertices(): Float32Array {
+	public getAttributeBuffers(): {position: Float32Array, color: Uint8Array} {
 		if (!this.visible || this.tags.type !== 'building') {
-			return new Float32Array();
+			return {position: new Float32Array(), color: new Uint8Array};
 		}
 
 		this.updateHeightFactor();
@@ -72,7 +73,18 @@ export default class Way3D extends Feature3D {
 			walls = walls.concat(ring.triangulateWalls());
 		}
 
-		return new Float32Array(footprint.concat(walls));
+		const positionBuffer = new Float32Array(footprint.concat(walls));
+		const color = new Uint8Array(<number[]>this.tags.facadeColor || [255, 255, 255]);
+		const colorBuffer = Utils.fillTypedArraySequence(
+			Uint8Array,
+			new Uint8Array(positionBuffer.length),
+			color
+		);
+
+		return {
+			position: positionBuffer,
+			color: colorBuffer
+		};
 	}
 
 	private updateFootprintHeight() {

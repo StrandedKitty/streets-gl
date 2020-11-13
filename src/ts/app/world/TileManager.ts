@@ -241,12 +241,6 @@ export default class TileManager {
 	}
 
 	private removeCulledTiles() {
-		const tilesToRemove = this.tiles.size - Config.MaxConcurrentTiles;
-
-		if(tilesToRemove == 0) {
-			return;
-		}
-
 		type tileEntry = {tile: Tile, distance: number};
 		const tileList: tileEntry[] = [];
 
@@ -259,6 +253,8 @@ export default class TileManager {
 		tileList.sort((a: tileEntry, b: tileEntry): number => {
 			return b.distance - a.distance;
 		});
+
+		const tilesToRemove = Math.max(tileList.length, this.tiles.size - Config.MaxConcurrentTiles);
 
 		for(let i = 0; i < tilesToRemove; i++) {
 			this.removeTile(tileList[i].tile.x, tileList[i].tile.y);

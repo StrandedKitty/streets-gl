@@ -16,7 +16,7 @@ export interface StaticTileGeometry {
 	buildings: {
 		position: Float32Array,
 		uv: Float32Array,
-		color?: Float32Array,
+		color?: Uint8Array,
 		id: Uint32Array,
 		offset: Uint32Array
 	},
@@ -96,6 +96,14 @@ export default class Tile extends Object3D {
 			normalized: false
 		});
 		buildings.setAttributeData('uv', this.staticGeometry.buildings.uv);
+
+		buildings.addAttribute({
+			name: 'color',
+			size: 3,
+			type: GLConstants.UNSIGNED_BYTE,
+			normalized: true
+		});
+		buildings.setAttributeData('color', this.staticGeometry.buildings.color);
 
 		buildings.addAttribute({
 			name: 'display',

@@ -54,17 +54,19 @@ export default class TileGeometryBuilder {
 	public async getTileGeometry(): Promise<StaticTileGeometry> {
 		const {nodes, ways} = this.features;
 
-		const arrays: Float32Array[] = [];
+		const positionArrays: Float32Array[] = [];
+		const colorArrays: Uint8Array[] = [];
 		const visibleWays: Way3D[] = [];
 
 		for (const way of ways.values()) {
-			const vertices = way.getVertices();
+			const {position, color} = way.getAttributeBuffers();
 
-			if (vertices.length === 0) {
+			if (position.length === 0) {
 				continue;
 			}
 
-			arrays.push(vertices);
+			positionArrays.push(position);
+			colorArrays.push(color);
 			visibleWays.push(way);
 		}
 
@@ -73,7 +75,7 @@ export default class TileGeometryBuilder {
 		let lastOffset = 0;
 
 		for (let i = 0; i < visibleWays.length; i++) {
-			const vertices = arrays[i];
+			const vertices = positionArrays[i];
 			const way = visibleWays[i];
 
 			ids[i * 2] = way.id;
@@ -83,13 +85,15 @@ export default class TileGeometryBuilder {
 			lastOffset += vertices.length / 3;
 		}
 
-		const vertices = TileGeometryBuilder.mergeTypedArrays(Float32Array, arrays);
-		const bbox = this.getBoundingBoxFromVertices(vertices);
+		const positionBuffer = TileGeometryBuilder.mergeTypedArrays(Float32Array, positionArrays);
+		const colorBuffer = TileGeometryBuilder.mergeTypedArrays(Uint8Array, colorArrays);
+		const bbox = this.getBoundingBoxFromVertices(positionBuffer);
 
 		return {
 			buildings: {
-				position: vertices,
-				uv: new Float32Array(vertices.length / 3 * 2),
+				position: positionBuffer,
+				uv: new Float32Array(positionBuffer.length / 3 * 2),
+				color: colorBuffer,
 				id: ids,
 				offset: offsets
 			},
