@@ -225,5 +225,5 @@ void main() {
 	color += applyDirectionalLight(light, materialInfo, worldNormal, worldView) * 0.75;
 	color += materialInfo.diffuseColor * 0.25;
 
-	FragColor = vec4(LINEARtoSRGB(color), 1);
+	FragColor = vec4(color, 1);
 }

@@ -14,6 +14,10 @@ const Shaders = {
 	hdrCompose: {
 		vertex: require('../../../resources/shaders/hdrCompose.vert'),
 		fragment: require('../../../resources/shaders/hdrCompose.frag')
+	},
+	ldrCompose: {
+		vertex: require('../../../resources/shaders/ldrCompose.vert'),
+		fragment: require('../../../resources/shaders/ldrCompose.frag')
 	}
 }
 

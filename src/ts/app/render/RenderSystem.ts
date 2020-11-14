@@ -12,6 +12,7 @@ import FullScreenQuad from "../objects/FullScreenQuad";
 import HDRComposeMaterial from "./materials/HDRComposeMaterial";
 import SkyboxMaterial from "./materials/SkyboxMaterial";
 import Skybox from "../objects/Skybox";
+import LDRComposeMaterial from "./materials/LDRComposeMaterial";
 
 export default class RenderSystem {
 	public renderer: Renderer;
@@ -25,7 +26,8 @@ export default class RenderSystem {
 	private buildingMaterial: BuildingMaterial;
 	private skyboxMaterial: SkyboxMaterial;
 	private quad: FullScreenQuad;
-	private composeMaterial: HDRComposeMaterial;
+	private hdrComposeMaterial: HDRComposeMaterial;
+	private ldrComposeMaterial: LDRComposeMaterial;
 
 	constructor(private app: App) {
 		this.init();
@@ -69,7 +71,8 @@ export default class RenderSystem {
 				mipmaps: false
 			}
 		]);
-		this.composeMaterial = new HDRComposeMaterial(this.renderer, this.gBuffer);
+		this.hdrComposeMaterial = new HDRComposeMaterial(this.renderer, this.gBuffer);
+		this.ldrComposeMaterial = new LDRComposeMaterial(this.renderer, this.gBuffer);
 
 		this.camera = new PerspectiveCamera({
 			fov: 40,
@@ -204,10 +207,16 @@ export default class RenderSystem {
 			buildings.draw();
 		}
 
+		this.renderer.bindFramebuffer(this.gBuffer.framebufferHDR);
+
+		this.hdrComposeMaterial.uniforms.viewMatrix.value = this.camera.matrixWorld;
+		this.hdrComposeMaterial.use();
+		this.quad.draw();
+
 		this.renderer.bindFramebuffer(null);
 
-		this.composeMaterial.uniforms.viewMatrix.value = this.camera.matrixWorld;
-		this.composeMaterial.use();
+		this.ldrComposeMaterial.use();
+		this.ldrComposeMaterial.uniforms.tHDR.value = this.gBuffer.framebufferHDR.textures[0];
 		this.quad.draw();
 	}
 

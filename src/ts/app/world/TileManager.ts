@@ -254,7 +254,7 @@ export default class TileManager {
 			return b.distance - a.distance;
 		});
 
-		const tilesToRemove = Math.max(tileList.length, this.tiles.size - Config.MaxConcurrentTiles);
+		const tilesToRemove = Math.min(tileList.length, this.tiles.size - Config.MaxConcurrentTiles);
 
 		for(let i = 0; i < tilesToRemove; i++) {
 			this.removeTile(tileList[i].tile.x, tileList[i].tile.y);

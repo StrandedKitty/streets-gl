@@ -70,8 +70,8 @@ export default class GBuffer {
 				new Texture2D(this.renderer, {
 					width: this.width,
 					height: this.height,
-					minFilter: GLConstants.NEAREST,
-					magFilter: GLConstants.NEAREST,
+					minFilter: GLConstants.LINEAR,
+					magFilter: GLConstants.LINEAR,
 					wrap: GLConstants.CLAMP_TO_EDGE,
 					format: GLConstants.RGBA,
 					internalFormat: GLConstants.RGBA16F,
