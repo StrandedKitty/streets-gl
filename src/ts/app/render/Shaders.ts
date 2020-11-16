@@ -3,9 +3,17 @@ const Shaders = {
 		vertex: require('../../../resources/shaders/building.vert'),
 		fragment: require('../../../resources/shaders/building.frag')
 	},
+	buildingDepth: {
+		vertex: require('../../../resources/shaders/buildingDepth.vert'),
+		fragment: require('../../../resources/shaders/buildingDepth.frag')
+	},
 	ground: {
 		vertex: require('../../../resources/shaders/ground.vert'),
 		fragment: require('../../../resources/shaders/ground.frag')
+	},
+	groundDepth: {
+		vertex: require('../../../resources/shaders/groundDepth.vert'),
+		fragment: require('../../../resources/shaders/groundDepth.frag')
 	},
 	skybox: {
 		vertex: require('../../../resources/shaders/skybox.vert'),

@@ -67,7 +67,8 @@ export default class Tile extends Object3D {
 
 	public createGround(renderer: Renderer, neighbors: Tile[]) {
 		this.colorMap = new Texture2D(renderer, {
-			url: `http://mt1.google.com/vt/lyrs=s&x=${this.x}&y=${this.y}&z=16&scale=2`,
+			//url: `http://mt1.google.com/vt/lyrs=s&x=${this.x}&y=${this.y}&z=16&scale=2`,
+			url: `https://a.tile.openstreetmap.org/16/${this.x}/${this.y}.png`,
 			anisotropy: 16,
 			flipY: true,
 			wrap: GLConstants.CLAMP_TO_EDGE

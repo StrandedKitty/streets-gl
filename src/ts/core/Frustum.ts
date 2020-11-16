@@ -15,7 +15,7 @@ export default class Frustum {
 	public far: number;
 	public vertices: FrustumVertices;
 
-	constructor(fov: number, aspect: number, near: number, far: number) {
+	constructor(fov?: number, aspect?: number, near?: number, far?: number) {
 		this.fov = fov;
 		this.aspect = aspect;
 		this.near = near;
@@ -25,6 +25,10 @@ export default class Frustum {
 			near: [],
 			far: []
 		};
+	}
+
+	public setVertices(vertices: FrustumVertices) {
+		this.vertices = vertices;
 	}
 
 	public updateViewSpaceVertices() {

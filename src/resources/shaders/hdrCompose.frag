@@ -7,6 +7,10 @@ precision highp sampler3D;
 #define PI2 6.28318530718
 #define Eu 2.71828182846
 
+#define SHADOW_CASCADES 3
+#define SHADOWMAP_SIZE 1000.
+#define SHADOWMAP_SOFT_RADIUS 1.
+
 out vec4 FragColor;
 
 in vec2 vUv;
@@ -17,6 +21,17 @@ uniform sampler2D tNormal;
 uniform sampler2D tPosition;
 uniform samplerCube tSky;
 uniform mat4 viewMatrix;
+
+struct Cascade {
+	sampler2D shadowMap;
+	float resolution;
+	float size;
+	float bias;
+	mat4 matrixWorldInverse;
+};
+
+uniform Cascade[SHADOW_CASCADES] cascades;
+uniform float[SHADOW_CASCADES + 1] shadowSplits;
 
 struct Light {
 	vec3 direction;
@@ -182,6 +197,99 @@ vec3 getIBLContribution(MaterialInfo materialInfo, vec3 n, vec3 v) {
 	return diffuse * 0. + specular;
 }
 
+float perspectiveDepthToViewZ(const in float invClipZ, const in float near, const in float far) {
+    return ( near * far ) / ( ( far - near ) * invClipZ - far );
+}
+
+float orthographicDepthToViewZ( const in float linearClipZ, const in float near, const in float far ) {
+    return linearClipZ * ( near - far ) - near;
+}
+
+float textureShadow(sampler2D depth, vec2 uv) {
+    return -orthographicDepthToViewZ(texture(depth, uv).r, 1., 10000.);
+}
+
+float textureCompare(sampler2D depth, vec2 uv, float compare) {
+    return float(step(compare, textureShadow(depth, uv)));
+}
+
+float textureShadowLerp(sampler2D depths, vec2 size, vec2 uv, float compare) {
+    const vec2 offset = vec2(0.0, 1.0);
+    vec2 texelSize = vec2(1.0) / size;
+    vec2 centroidUV = (floor(uv * size - 0.5) + 0.5) * texelSize;
+    float lb = textureCompare(depths, centroidUV + texelSize * offset.xx, compare);
+    float lt = textureCompare(depths, centroidUV + texelSize * offset.xy, compare);
+    float rb = textureCompare(depths, centroidUV + texelSize * offset.yx, compare);
+    float rt = textureCompare(depths, centroidUV + texelSize * offset.yy, compare);
+    vec2 f = fract(uv * size + 0.5);
+    float a = mix(lb, lt, f.y);
+    float b = mix(rb, rt, f.y);
+    float c = mix(a, b, f.x);
+    return c;
+}
+
+float getShadow(sampler2D shadowMap, float shadowBias, vec4 shadowPosition, float shadowFrustumSize) {
+    float shadow = 1.0;
+    vec2 shadowUV = shadowPosition.xy / shadowFrustumSize * 0.5 + 0.5;
+
+    bvec4 inFrustumVec = bvec4(shadowUV.x >= 0.0, shadowUV.x <= 1.0, shadowUV.y >= 0.0, shadowUV.y <= 1.0);
+    bool inFrustum = all(inFrustumVec);
+
+    if(inFrustum && shadowPosition.z / shadowPosition.w < 1.) {
+        float shadowSpaceDepth = -shadowPosition.z + shadowBias;
+
+        shadow = textureCompare(shadowMap, shadowUV.xy, shadowSpaceDepth);
+    }
+
+    return shadow;
+}
+
+float getShadowSoft(sampler2D shadowMap, float shadowBias, vec4 shadowPosition, float shadowFrustumSize, vec2 shadowMapSize, float shadowRadius) {
+    float shadow = 1.0;
+    vec2 shadowUV = (shadowPosition.xy / shadowFrustumSize + 1.) / 2.;
+    bvec4 inFrustumVec = bvec4(shadowUV.x >= 0.0, shadowUV.x <= 1.0, shadowUV.y >= 0.0, shadowUV.y <= 1.0);
+    bool inFrustum = all(inFrustumVec);
+
+    if(inFrustum && shadowPosition.z / shadowPosition.w < 1.) {
+        float shadowSpaceDepth = -shadowPosition.z + shadowBias;
+        vec2 texelSize = vec2(1) / shadowMapSize;
+
+        float dx0 = -texelSize.x * shadowRadius;
+        float dy0 = -texelSize.y * shadowRadius;
+        float dx1 = +texelSize.x * shadowRadius;
+        float dy1 = +texelSize.y * shadowRadius;
+
+        shadow = (
+            textureShadowLerp(shadowMap, shadowMapSize, shadowUV.xy + vec2(dx0, dy0), shadowSpaceDepth) +
+            textureShadowLerp(shadowMap, shadowMapSize, shadowUV.xy + vec2(0.0, dy0), shadowSpaceDepth) +
+            textureShadowLerp(shadowMap, shadowMapSize, shadowUV.xy + vec2(dx1, dy0), shadowSpaceDepth) +
+            textureShadowLerp(shadowMap, shadowMapSize, shadowUV.xy + vec2(dx0, 0.0), shadowSpaceDepth) +
+            textureShadowLerp(shadowMap, shadowMapSize, shadowUV.xy + vec2(0.0, 0.0), shadowSpaceDepth) +
+            textureShadowLerp(shadowMap, shadowMapSize, shadowUV.xy + vec2(dx1, 0.0), shadowSpaceDepth) +
+            textureShadowLerp(shadowMap, shadowMapSize, shadowUV.xy + vec2(dx0, dy1), shadowSpaceDepth) +
+            textureShadowLerp(shadowMap, shadowMapSize, shadowUV.xy + vec2(0.0, dy1), shadowSpaceDepth) +
+            textureShadowLerp(shadowMap, shadowMapSize, shadowUV.xy + vec2(dx1, dy1), shadowSpaceDepth)
+        ) * (1. / 9.);
+    }
+
+    return shadow;
+}
+
+float getShadowFactorForCascade(int cascadeId, vec3 worldPosition) {
+	mat4 shadowMatrixWorldInverse = cascades[cascadeId].matrixWorldInverse;
+	float shadowResolution = cascades[cascadeId].resolution;
+	float shadowSize = cascades[cascadeId].size;
+	float shadowBias = cascades[cascadeId].bias;
+
+	vec4 shadowPosition = shadowMatrixWorldInverse * vec4(worldPosition, 1.);
+
+	if(cascadeId == 0) return getShadowSoft(cascades[0].shadowMap, shadowBias, shadowPosition, shadowSize, vec2(shadowResolution), SHADOWMAP_SOFT_RADIUS);
+	if(cascadeId == 1) return getShadowSoft(cascades[1].shadowMap, shadowBias, shadowPosition, shadowSize, vec2(shadowResolution), SHADOWMAP_SOFT_RADIUS);
+	if(cascadeId == 2) return getShadowSoft(cascades[2].shadowMap, shadowBias, shadowPosition, shadowSize, vec2(shadowResolution), SHADOWMAP_SOFT_RADIUS);
+
+	return 1.;
+}
+
 void main() {
 	vec4 baseColor = SRGBtoLINEAR(texture(tColor, vUv));
 
@@ -192,6 +300,8 @@ void main() {
 
 	vec3 normal = texture(tNormal, vUv).rgb * 2. - 1.;
 	vec3 position = texture(tPosition, vUv).xyz;
+
+	vec3 worldPosition = vec3(viewMatrix * vec4(position, 1.));
 
 	vec3 view = normalize(vec3(0) - position);
 	vec3 worldView = normalize((viewMatrix * vec4(view, 0)).xyz);
@@ -217,13 +327,21 @@ void main() {
 		specularColor
 	);
 
+	float shadowFactor = 1.;
+
+	for(int i = 0; i < SHADOW_CASCADES; i++) {
+		if(-position.z > shadowSplits[i] && -position.z <= shadowSplits[i + 1]) {
+			shadowFactor = getShadowFactorForCascade(i, worldPosition);
+		}
+	}
+
 	vec3 color = vec3(0);
 
 	Light light = uLight;
 
 	color += getIBLContribution(materialInfo, worldNormal, worldView);
-	color += applyDirectionalLight(light, materialInfo, worldNormal, worldView) * 0.75;
-	color += materialInfo.diffuseColor * 0.25;
+	color += applyDirectionalLight(light, materialInfo, worldNormal, worldView) * 0.75 * shadowFactor;
+	color += materialInfo.diffuseColor * 0.1;
 
 	FragColor = vec4(color, 1);
 }

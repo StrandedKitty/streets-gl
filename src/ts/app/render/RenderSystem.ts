@@ -13,6 +13,10 @@ import HDRComposeMaterial from "./materials/HDRComposeMaterial";
 import SkyboxMaterial from "./materials/SkyboxMaterial";
 import Skybox from "../objects/Skybox";
 import LDRComposeMaterial from "./materials/LDRComposeMaterial";
+import CSM from "./CSM";
+import Config from "../Config";
+import GroundDepthMaterial from "./materials/GroundDepthMaterial";
+import BuildingDepthMaterial from "./materials/BuildingDepthMaterial";
 
 export default class RenderSystem {
 	public renderer: Renderer;
@@ -21,9 +25,12 @@ export default class RenderSystem {
 	public wrapper: Object3D;
 	private gBuffer: GBuffer;
 	private skybox: Skybox;
+	private csm: CSM;
 
 	private groundMaterial: GroundMaterial;
+	private groundDepthMaterial: GroundDepthMaterial;
 	private buildingMaterial: BuildingMaterial;
+	private buildingDepthMaterial: BuildingDepthMaterial;
 	private skyboxMaterial: SkyboxMaterial;
 	private quad: FullScreenQuad;
 	private hdrComposeMaterial: HDRComposeMaterial;
@@ -100,8 +107,20 @@ export default class RenderSystem {
 		this.skybox = new Skybox(this.renderer);
 		this.wrapper.add(this.skybox);
 
+		this.csm = new CSM(this.renderer, {
+			camera: this.camera,
+			parent: this.wrapper,
+			near: this.camera.near,
+			far: 4000,
+			resolution: 2048,
+			cascades: Config.ShadowCascades,
+			shadowBias: -0.003
+		});
+
 		this.groundMaterial = new GroundMaterial(this.renderer);
+		this.groundDepthMaterial = new GroundDepthMaterial(this.renderer);
 		this.buildingMaterial = new BuildingMaterial(this.renderer);
+		this.buildingDepthMaterial = new BuildingDepthMaterial(this.renderer);
 		this.skyboxMaterial = new SkyboxMaterial(this.renderer);
 	}
 
@@ -111,6 +130,7 @@ export default class RenderSystem {
 
 		this.renderer.setSize(this.resolution.x, this.resolution.y);
 		this.gBuffer.setSize(this.resolution.x, this.resolution.y);
+		this.csm.updateFrustums();
 	}
 
 	public update(deltaTime: number) {
@@ -129,6 +149,7 @@ export default class RenderSystem {
 
 		this.camera.updateFrustum();
 
+		this.renderShadowMaps();
 		this.renderTiles();
 	}
 
@@ -195,21 +216,20 @@ export default class RenderSystem {
 		this.buildingMaterial.use();
 
 		for(const tile of tiles.values()) {
-			const buildings = tile.buildings;
-
-			if(!buildings || !buildings.inCameraFrustum(this.camera)) {
+			if(!tile.buildings || !tile.buildings.inCameraFrustum(this.camera)) {
 				continue;
 			}
 
-			this.buildingMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(this.camera.matrixWorldInverse, buildings.matrixWorld);
+			this.buildingMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(this.camera.matrixWorldInverse, tile.buildings.matrixWorld);
 			this.buildingMaterial.updateUniform('modelViewMatrix');
 
-			buildings.draw();
+			tile.buildings.draw();
 		}
 
 		this.renderer.bindFramebuffer(this.gBuffer.framebufferHDR);
 
 		this.hdrComposeMaterial.uniforms.viewMatrix.value = this.camera.matrixWorld;
+		this.csm.applyUniformsToMaterial(this.hdrComposeMaterial);
 		this.hdrComposeMaterial.use();
 		this.quad.draw();
 
@@ -220,7 +240,61 @@ export default class RenderSystem {
 		this.quad.draw();
 	}
 
+	private renderShadowMaps() {
+		this.csm.update();
+
+		for(let i = 0; i < this.csm.lights.length; i++) {
+			const directionalShadow = this.csm.lights[i];
+			const camera = directionalShadow.camera;
+
+			camera.updateFrustum();
+
+			this.renderer.bindFramebuffer(directionalShadow.framebuffer);
+
+			this.renderer.depthTest = true;
+			this.renderer.depthWrite = true;
+
+			this.renderer.clearFramebuffer({
+				clearColor: [100000, 1, 1, 1],
+				depthValue: 1,
+				color: true,
+				depth: true
+			});
+
+			this.groundDepthMaterial.uniforms.projectionMatrix.value = camera.projectionMatrix;
+			this.groundDepthMaterial.use();
+
+			const tiles = this.app.tileManager.tiles;
+
+			for(const tile of tiles.values()) {
+				if(!tile.ground || !tile.ground.inCameraFrustum(camera)) {
+					continue;
+				}
+
+				this.groundDepthMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(camera.matrixWorldInverse, tile.ground.matrixWorld);
+				this.groundDepthMaterial.updateUniform('modelViewMatrix');
+
+				tile.ground.draw();
+			}
+
+			this.buildingDepthMaterial.uniforms.projectionMatrix.value = camera.projectionMatrix;
+			this.buildingDepthMaterial.use();
+
+			for(const tile of tiles.values()) {
+				if(!tile.buildings || !tile.buildings.inCameraFrustum(camera)) {
+					continue;
+				}
+
+				this.buildingDepthMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(camera.matrixWorldInverse, tile.buildings.matrixWorld);
+				this.buildingDepthMaterial.updateUniform('modelViewMatrix');
+
+				tile.buildings.draw();
+			}
+		}
+	}
+
 	public get resolution(): Vec2 {
-		return new Vec2(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio);
+		const pixelRatio = Math.min(window.devicePixelRatio, 1.5);
+		return new Vec2(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio);
 	}
 }

@@ -7,8 +7,8 @@ import Texture2D from "./Texture2D";
 
 export default class DirectionalLightShadow extends Object3D {
 	private readonly renderer: Renderer;
-	private readonly camera: OrthographicCamera;
-	private readonly framebuffer: Framebuffer;
+	public readonly camera: OrthographicCamera;
+	public readonly framebuffer: Framebuffer;
 	public color: number[];
 	public resolution: number;
 	public size: number;
@@ -20,10 +20,10 @@ export default class DirectionalLightShadow extends Object3D {
 	public top: number;
 
 	constructor(renderer: Renderer, {
-		resolution = 1024,
+		resolution,
 		size,
-		near = 0.1,
-		far = 1000
+		near,
+		far
 	}: {
 		resolution: number,
 		size: number,
@@ -60,23 +60,14 @@ export default class DirectionalLightShadow extends Object3D {
 			width: this.resolution,
 			height: this.resolution,
 			usesDepth: true,
-			textures: [new Texture2D(this.renderer, {
-				width: this.resolution,
-				height: this.resolution,
-				internalFormat: GLConstants.R32F,
-				format: GLConstants.RED,
-				type: GLConstants.FLOAT,
-				minFilter: GLConstants.NEAREST,
-				magFilter: GLConstants.NEAREST,
-				wrap: GLConstants.CLAMP_TO_EDGE
-			})]
+			textures: []
 		});
 
 		this.matrixOverwrite = false;
 	}
 
 	public get texture(): Texture2D {
-		return this.framebuffer.textures[0];
+		return this.framebuffer.depthTexture;
 	}
 
 	public setSize(resolution: number) {
