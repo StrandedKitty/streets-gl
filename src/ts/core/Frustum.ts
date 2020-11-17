@@ -73,26 +73,18 @@ export default class Frustum {
 		return result;
 	}
 
-	public split(breaks: number[]): FrustumVertices[] {
+	public split(breaks: number[][]): FrustumVertices[] {
 		const result = Array<FrustumVertices>();
 
 		for(let i = 0; i < breaks.length; i++) {
 			const cascade: FrustumVertices = {near: [], far: []};
 
-			if(i === 0) {
-				cascade.near = this.vertices.near;
-			} else {
-				for(let j = 0; j < 4; j++) {
-					cascade.near.push(Vec3.lerp(this.vertices.near[j], this.vertices.far[j], breaks[i - 1]));
-				}
+			for(let j = 0; j < 4; j++) {
+				cascade.near.push(Vec3.lerp(this.vertices.near[j], this.vertices.far[j], breaks[i][0]));
 			}
 
-			if(i === breaks.length - 1) {
-				cascade.far = this.vertices.far;
-			} else {
-				for(let j = 0; j < 4; j++) {
-					cascade.far.push(Vec3.lerp(this.vertices.near[j], this.vertices.far[j], breaks[i]))
-				}
+			for(let j = 0; j < 4; j++) {
+				cascade.far.push(Vec3.lerp(this.vertices.near[j], this.vertices.far[j], breaks[i][1]))
 			}
 
 			result.push(cascade);

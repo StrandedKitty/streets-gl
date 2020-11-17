@@ -8,6 +8,7 @@ import AABB from "../../core/AABB";
 import Material, {UniformType} from "../../renderer/Material";
 
 const ShadowCameraTopOffset: number = 2000;
+const FadeOffsetFactor: number = 250;
 
 export default class CSM extends Object3D {
 	private readonly renderer: Renderer;
@@ -22,7 +23,8 @@ export default class CSM extends Object3D {
 	public lights: DirectionalLightShadow[] = [];
 	private mainFrustum: Frustum;
 	private frustums: Frustum[];
-	private breaks: number[];
+	private breaks: number[][];
+	private fadeOffsets: number[];
 
 	constructor(renderer: Renderer, {
 		camera,
@@ -93,7 +95,17 @@ export default class CSM extends Object3D {
 	}
 
 	private updateBreaks() {
-		this.breaks = CSM.practicalSplit(this.cascades, this.near, this.far, 0.5);
+		const breaks = CSM.practicalSplit(this.cascades, this.near, this.far, 0.5);
+
+		this.breaks = [];
+		this.fadeOffsets = [];
+
+		for(let i = 0; i < breaks.length; i++) {
+			const prevBreak = i === 0 ? 0 : breaks[i - 1];
+
+			this.fadeOffsets.push(breaks[i] * FadeOffsetFactor);
+			this.breaks.push([prevBreak, breaks[i] + this.fadeOffsets[i] / (this.far - this.near)])
+		}
 	}
 
 	public update() {
@@ -137,14 +149,15 @@ export default class CSM extends Object3D {
 		this.createFrustums();
 	}
 
-	private getBreaksForUniform(): number[] {
-		const breaks = [this.near];
+	private getBreaksForUniform(): Float32Array {
+		const worldSpaceBreaks = [];
 
 		for(let i = 0; i < this.breaks.length; i++) {
-			breaks.push(this.breaks[i] * this.far);
+			worldSpaceBreaks.push(this.breaks[i][0] * (this.far - this.near));
+			worldSpaceBreaks.push(this.breaks[i][1] * (this.far - this.near));
 		}
 
-		return breaks;
+		return new Float32Array(worldSpaceBreaks);
 	}
 
 	public applyUniformsToMaterial(material: Material) {
@@ -169,9 +182,13 @@ export default class CSM extends Object3D {
 				type: UniformType.Float1,
 				value: this.shadowBias * this.lights[i].camera.top
 			};
+			material.uniforms[`cascades[${i}].fadeOffset`] = {
+				type: UniformType.Float1,
+				value: this.fadeOffsets[i]
+			};
 			material.uniforms[`shadowSplits`] = {
-				type: UniformType.Float1Array,
-				value: new Float32Array(this.getBreaksForUniform())
+				type: UniformType.Float2,
+				value: this.getBreaksForUniform()
 			};
 		}
 	}

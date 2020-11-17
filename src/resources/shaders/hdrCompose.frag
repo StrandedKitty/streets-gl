@@ -28,10 +28,11 @@ struct Cascade {
 	float size;
 	float bias;
 	mat4 matrixWorldInverse;
+	float fadeOffset;
 };
 
 uniform Cascade[SHADOW_CASCADES] cascades;
-uniform float[SHADOW_CASCADES + 1] shadowSplits;
+uniform vec2[SHADOW_CASCADES] shadowSplits;
 
 struct Light {
 	vec3 direction;
@@ -330,8 +331,19 @@ void main() {
 	float shadowFactor = 1.;
 
 	for(int i = 0; i < SHADOW_CASCADES; i++) {
-		if(-position.z > shadowSplits[i] && -position.z <= shadowSplits[i + 1]) {
-			shadowFactor = getShadowFactorForCascade(i, worldPosition);
+		if(-position.z > shadowSplits[i].x && -position.z <= shadowSplits[i].y) {
+			float shadowValue = getShadowFactorForCascade(i, worldPosition);
+			float fadeOffset = cascades[i].fadeOffset;
+
+			if(-position.z > shadowSplits[i].y - fadeOffset) {
+				float f = (-position.z - (shadowSplits[i].y - fadeOffset)) / fadeOffset;
+				shadowValue = mix(shadowValue, 1., smoothstep(0., 1., f));
+			} else if(i > 0 && -position.z < shadowSplits[i - 1].y) {
+				float f = -(-position.z - shadowSplits[i - 1].y) / cascades[i - 1].fadeOffset;
+				shadowValue = mix(shadowValue, 1., smoothstep(0., 1., f));
+			}
+
+			shadowFactor -= 1. - shadowValue;
 		}
 	}
 
