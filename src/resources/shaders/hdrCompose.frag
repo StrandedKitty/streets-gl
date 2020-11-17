@@ -332,18 +332,18 @@ void main() {
 
 	for(int i = 0; i < SHADOW_CASCADES; i++) {
 		if(-position.z > shadowSplits[i].x && -position.z <= shadowSplits[i].y) {
-			float shadowValue = getShadowFactorForCascade(i, worldPosition);
+			float shadowValue = 1. - getShadowFactorForCascade(i, worldPosition);
 			float fadeOffset = cascades[i].fadeOffset;
 
 			if(-position.z > shadowSplits[i].y - fadeOffset) {
-				float f = (-position.z - (shadowSplits[i].y - fadeOffset)) / fadeOffset;
-				shadowValue = mix(shadowValue, 1., smoothstep(0., 1., f));
+				float f = (position.z + shadowSplits[i].y) / fadeOffset;
+				shadowValue *= smoothstep(0., 1., f);
 			} else if(i > 0 && -position.z < shadowSplits[i - 1].y) {
-				float f = -(-position.z - shadowSplits[i - 1].y) / cascades[i - 1].fadeOffset;
-				shadowValue = mix(shadowValue, 1., smoothstep(0., 1., f));
+				float f = 1. - (position.z + shadowSplits[i - 1].y) / cascades[i - 1].fadeOffset;
+				shadowValue *= smoothstep(0., 1., f);
 			}
 
-			shadowFactor -= 1. - shadowValue;
+			shadowFactor -= shadowValue;
 		}
 	}
 
