@@ -26,6 +26,10 @@ const Shaders = {
 	ldrCompose: {
 		vertex: require('../../../resources/shaders/ldrCompose.vert'),
 		fragment: require('../../../resources/shaders/ldrCompose.frag')
+	},
+	taa: {
+		vertex: require('../../../resources/shaders/taa.vert'),
+		fragment: require('../../../resources/shaders/taa.frag')
 	}
 }
 

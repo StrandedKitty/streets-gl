@@ -26,7 +26,7 @@ struct Cascade {
 	sampler2D shadowMap;
 	float resolution;
 	float size;
-	float bias;
+	vec2 bias;
 	mat4 matrixWorldInverse;
 	float fadeOffset;
 };
@@ -280,7 +280,7 @@ float getShadowFactorForCascade(int cascadeId, vec3 worldPosition) {
 	mat4 shadowMatrixWorldInverse = cascades[cascadeId].matrixWorldInverse;
 	float shadowResolution = cascades[cascadeId].resolution;
 	float shadowSize = cascades[cascadeId].size;
-	float shadowBias = cascades[cascadeId].bias;
+	float shadowBias = cascades[cascadeId].bias.x;
 
 	vec4 shadowPosition = shadowMatrixWorldInverse * vec4(worldPosition, 1.);
 
@@ -332,7 +332,7 @@ void main() {
 
 	for(int i = 0; i < SHADOW_CASCADES; i++) {
 		if(-position.z > shadowSplits[i].x && -position.z <= shadowSplits[i].y) {
-			float shadowValue = 1. - getShadowFactorForCascade(i, worldPosition);
+			float shadowValue = 1. - getShadowFactorForCascade(i, worldPosition + worldNormal * cascades[i].bias.y);
 			float fadeOffset = cascades[i].fadeOffset;
 
 			if(-position.z > shadowSplits[i].y - fadeOffset) {

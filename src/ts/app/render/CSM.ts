@@ -18,6 +18,7 @@ export default class CSM extends Object3D {
 	private cascades: number;
 	private resolution: number;
 	private shadowBias: number;
+	private shadowNormalBias: number;
 	public direction: Vec3;
 
 	public lights: DirectionalLightShadow[] = [];
@@ -34,6 +35,7 @@ export default class CSM extends Object3D {
 		cascades,
 		resolution,
 		shadowBias,
+		shadowNormalBias,
 		direction = new Vec3(-1, -2, -1)
 	}: {
 		camera: PerspectiveCamera,
@@ -42,7 +44,8 @@ export default class CSM extends Object3D {
 		far: number,
 		cascades: number,
 		resolution: number,
-		shadowBias?: number,
+		shadowBias: number,
+		shadowNormalBias: number,
 		direction?: Vec3
 	}) {
 		super();
@@ -54,6 +57,7 @@ export default class CSM extends Object3D {
 		this.cascades = cascades;
 		this.resolution = resolution;
 		this.shadowBias = shadowBias;
+		this.shadowNormalBias = shadowNormalBias;
 		this.direction = direction;
 
 		parent.add(this);
@@ -179,8 +183,11 @@ export default class CSM extends Object3D {
 				value: this.lights[i].camera.top
 			};
 			material.uniforms[`cascades[${i}].bias`] = {
-				type: UniformType.Float1,
-				value: this.shadowBias * this.lights[i].camera.top
+				type: UniformType.Float2,
+				value: new Float32Array([
+					this.shadowBias * this.lights[i].camera.top,
+					this.shadowNormalBias * this.lights[i].camera.top
+				])
 			};
 			material.uniforms[`cascades[${i}].fadeOffset`] = {
 				type: UniformType.Float1,

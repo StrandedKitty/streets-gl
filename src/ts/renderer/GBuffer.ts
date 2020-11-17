@@ -75,7 +75,7 @@ export default class GBuffer {
 					wrap: GLConstants.CLAMP_TO_EDGE,
 					format: GLConstants.RGBA,
 					internalFormat: GLConstants.RGBA16F,
-					type: GLConstants.FLOAT
+					type: GLConstants.HALF_FLOAT
 				})
 			]
 		});

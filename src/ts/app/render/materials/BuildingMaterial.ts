@@ -10,7 +10,8 @@ export default class BuildingMaterial extends Material {
 			vertexShader: Shaders.building.vertex,
 			uniforms: {
 				projectionMatrix: {type: UniformType.Matrix4, value: null},
-				modelViewMatrix: {type: UniformType.Matrix4, value: null}
+				modelViewMatrix: {type: UniformType.Matrix4, value: null},
+				modelViewMatrixPrev: {type: UniformType.Matrix4, value: null}
 			}
 		});
 	}

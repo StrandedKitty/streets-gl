@@ -17,6 +17,7 @@ import CSM from "./CSM";
 import Config from "../Config";
 import GroundDepthMaterial from "./materials/GroundDepthMaterial";
 import BuildingDepthMaterial from "./materials/BuildingDepthMaterial";
+import TAAPass from "./passes/TAAPass";
 
 export default class RenderSystem {
 	public renderer: Renderer;
@@ -26,6 +27,8 @@ export default class RenderSystem {
 	private gBuffer: GBuffer;
 	private skybox: Skybox;
 	private csm: CSM;
+	private taaPass: TAAPass;
+	private frameCount: number = 0;
 
 	private groundMaterial: GroundMaterial;
 	private groundDepthMaterial: GroundDepthMaterial;
@@ -76,10 +79,18 @@ export default class RenderSystem {
 				format: GLConstants.RGB,
 				type: GLConstants.UNSIGNED_BYTE,
 				mipmaps: false
+			}, {
+				name: 'motion',
+				internalFormat: GLConstants.RGBA32F,
+				format: GLConstants.RGBA,
+				type: GLConstants.FLOAT,
+				mipmaps: false
 			}
 		]);
 		this.hdrComposeMaterial = new HDRComposeMaterial(this.renderer, this.gBuffer);
 		this.ldrComposeMaterial = new LDRComposeMaterial(this.renderer, this.gBuffer);
+
+		this.taaPass = new TAAPass(this.renderer, this.resolution.x, this.resolution.y);
 
 		this.camera = new PerspectiveCamera({
 			fov: 40,
@@ -114,7 +125,8 @@ export default class RenderSystem {
 			far: 4000,
 			resolution: 2048,
 			cascades: Config.ShadowCascades,
-			shadowBias: -0.003
+			shadowBias: -0.003,
+			shadowNormalBias: 0.002,
 		});
 
 		this.groundMaterial = new GroundMaterial(this.renderer);
@@ -130,11 +142,17 @@ export default class RenderSystem {
 
 		this.renderer.setSize(this.resolution.x, this.resolution.y);
 		this.gBuffer.setSize(this.resolution.x, this.resolution.y);
+		this.taaPass.setSize(this.resolution.x, this.resolution.y);
 		this.csm.updateFrustums();
 	}
 
 	public update(deltaTime: number) {
 		this.renderer.bindFramebuffer(null);
+
+		const pivotDelta = new Vec2(
+			this.wrapper.position.x + this.camera.position.x,
+			this.wrapper.position.z + this.camera.position.z
+		);
 
 		this.wrapper.position.x = -this.camera.position.x;
 		this.wrapper.position.z = -this.camera.position.z;
@@ -149,15 +167,29 @@ export default class RenderSystem {
 
 		this.camera.updateFrustum();
 
+		this.taaPass.jitterProjectionMatrix(this.camera.projectionMatrix, this.frameCount);
+		this.taaPass.matrixWorldInverse = this.camera.matrixWorldInverse;
+
+		if (this.taaPass.matrixWorldInversePrev) {
+			this.taaPass.matrixWorldInversePrev = Mat4.translate(
+				this.taaPass.matrixWorldInversePrev,
+				pivotDelta.x,
+				0,
+				pivotDelta.y
+			);
+		}
+
 		this.renderShadowMaps();
 		this.renderTiles();
+
+		++this.frameCount;
 	}
 
 	private updateTiles() {
 		const tiles = this.app.tileManager.tiles;
 
-		for(const tile of tiles.values()) {
-			if(!tile.ground && tile.readyForRendering) {
+		for (const tile of tiles.values()) {
+			if (!tile.ground && tile.readyForRendering) {
 				tile.createGround(this.renderer, this.app.tileManager.getTileNeighbors(tile.x, tile.y));
 				tile.generateMeshes(this.renderer);
 				this.wrapper.add(tile);
@@ -195,18 +227,23 @@ export default class RenderSystem {
 		this.groundMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
 		this.groundMaterial.use();
 
-		for(const tile of tiles.values()) {
-			if(tile.displayBufferNeedsUpdate) {
+		for (const tile of tiles.values()) {
+			if (tile.displayBufferNeedsUpdate) {
 				tile.updateDisplayBuffer();
 			}
 
-			if(!tile.ground || !tile.ground.inCameraFrustum(this.camera)) {
+			if (!tile.ground || !tile.ground.inCameraFrustum(this.camera)) {
 				continue;
 			}
 
 			this.groundMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(this.camera.matrixWorldInverse, tile.ground.matrixWorld);
+			this.groundMaterial.uniforms.modelViewMatrixPrev.value = Mat4.multiply(
+				this.taaPass.matrixWorldInversePrev || this.camera.matrixWorldInverse,
+				tile.ground.matrixWorld
+			);
 			this.groundMaterial.uniforms.map.value = tile.colorMap;
 			this.groundMaterial.updateUniform('modelViewMatrix');
+			this.groundMaterial.updateUniform('modelViewMatrixPrev');
 			this.groundMaterial.updateUniform('map');
 
 			tile.ground.draw();
@@ -215,13 +252,18 @@ export default class RenderSystem {
 		this.buildingMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
 		this.buildingMaterial.use();
 
-		for(const tile of tiles.values()) {
-			if(!tile.buildings || !tile.buildings.inCameraFrustum(this.camera)) {
+		for (const tile of tiles.values()) {
+			if (!tile.buildings || !tile.buildings.inCameraFrustum(this.camera)) {
 				continue;
 			}
 
 			this.buildingMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(this.camera.matrixWorldInverse, tile.buildings.matrixWorld);
+			this.buildingMaterial.uniforms.modelViewMatrixPrev.value = Mat4.multiply(
+				this.taaPass.matrixWorldInversePrev || this.camera.matrixWorldInverse,
+				tile.buildings.matrixWorld
+			);
 			this.buildingMaterial.updateUniform('modelViewMatrix');
+			this.buildingMaterial.updateUniform('modelViewMatrixPrev');
 
 			tile.buildings.draw();
 		}
@@ -233,17 +275,29 @@ export default class RenderSystem {
 		this.hdrComposeMaterial.use();
 		this.quad.draw();
 
+		this.renderer.bindFramebuffer(this.taaPass.framebufferOutput);
+		this.taaPass.material.uniforms.tAccum.value = this.taaPass.framebufferAccum.textures[0];
+		this.taaPass.material.uniforms.tNew.value = this.gBuffer.framebufferHDR.textures[0];
+		this.taaPass.material.uniforms.tMotion.value = this.gBuffer.textures.motion;
+		this.taaPass.material.uniforms.ignoreHistory.value = this.frameCount === 0 ? 1 : 0;
+		this.taaPass.material.use();
+		this.quad.draw();
+
+		this.taaPass.copyOutputToAccum();
+		this.taaPass.matrixWorldInversePrev = Mat4.copy(this.camera.matrixWorldInverse);
+
 		this.renderer.bindFramebuffer(null);
 
 		this.ldrComposeMaterial.use();
-		this.ldrComposeMaterial.uniforms.tHDR.value = this.gBuffer.framebufferHDR.textures[0];
+		//this.ldrComposeMaterial.uniforms.tHDR.value = this.gBuffer.framebufferHDR.textures[0];
+		this.ldrComposeMaterial.uniforms.tHDR.value = this.taaPass.framebufferOutput.textures[0];
 		this.quad.draw();
 	}
 
 	private renderShadowMaps() {
 		this.csm.update();
 
-		for(let i = 0; i < this.csm.lights.length; i++) {
+		for (let i = 0; i < this.csm.lights.length; i++) {
 			const directionalShadow = this.csm.lights[i];
 			const camera = directionalShadow.camera;
 
@@ -266,8 +320,8 @@ export default class RenderSystem {
 
 			const tiles = this.app.tileManager.tiles;
 
-			for(const tile of tiles.values()) {
-				if(!tile.ground || !tile.ground.inCameraFrustum(camera)) {
+			for (const tile of tiles.values()) {
+				if (!tile.ground || !tile.ground.inCameraFrustum(camera)) {
 					continue;
 				}
 
@@ -280,8 +334,8 @@ export default class RenderSystem {
 			this.buildingDepthMaterial.uniforms.projectionMatrix.value = camera.projectionMatrix;
 			this.buildingDepthMaterial.use();
 
-			for(const tile of tiles.values()) {
-				if(!tile.buildings || !tile.buildings.inCameraFrustum(camera)) {
+			for (const tile of tiles.values()) {
+				if (!tile.buildings || !tile.buildings.inCameraFrustum(camera)) {
 					continue;
 				}
 
