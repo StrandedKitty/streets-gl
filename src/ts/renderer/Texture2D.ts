@@ -36,17 +36,16 @@ export default class Texture2D extends Texture {
 
 		this.gl.bindTexture(GLConstants.TEXTURE_2D, this.WebGLTexture);
 
-		this.updateFlipY();
 		this.updateWrapping();
 		this.updateFilters();
 		this.updateAnisotropy();
 
 		if(this.url) {
 			this.gl.texImage2D(GLConstants.TEXTURE_2D, 0, GLConstants.RGBA, 1, 1, 0, GLConstants.RGBA, GLConstants.UNSIGNED_BYTE, null);
-			this.generateMipmaps();
 
 			this.load();
 		} else {
+			this.updateFlipY();
 			this.gl.texImage2D(GLConstants.TEXTURE_2D, 0, this.internalFormat, this.width, this.height, 0, this.format, this.type, this.data);
 		}
 
@@ -59,9 +58,12 @@ export default class Texture2D extends Texture {
 		this.width = image.width;
 		this.height = image.height;
 
+		this.updateFlipY();
 		this.gl.texImage2D(GLConstants.TEXTURE_2D, 0, GLConstants.RGBA, image.width, image.height, 0, GLConstants.RGBA, GLConstants.UNSIGNED_BYTE, image);
 
 		this.generateMipmaps();
+
+		this.gl.bindTexture(GLConstants.TEXTURE_2D, null);
 	}
 
 	public setSize(width: number, height: number) {

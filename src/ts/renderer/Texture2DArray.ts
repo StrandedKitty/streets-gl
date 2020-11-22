@@ -4,7 +4,6 @@ import Texture from "./Texture";
 
 export default class Texture2DArray extends Texture {
 	private depth: number;
-	private imageHeight: number;
 
 	protected textureTypeConstant = GLConstants.TEXTURE_2D_ARRAY;
 
@@ -21,8 +20,7 @@ export default class Texture2DArray extends Texture {
 		type = GLConstants.UNSIGNED_BYTE,
 		data = null,
 		flipY = false,
-		depth,
-		imageHeight
+		depth
 	}: {
 		url?: string,
 		anisotropy?: number,
@@ -36,13 +34,11 @@ export default class Texture2DArray extends Texture {
 		type?: number,
 		data?: TypedArray,
 		flipY?: boolean,
-		depth: number,
-		imageHeight: number
+		depth: number
 	}) {
 		super(renderer, {url, anisotropy, minFilter, magFilter, wrap, width, height, format, internalFormat, type, data, flipY});
 
 		this.depth = depth;
-		this.imageHeight = imageHeight;
 
 		this.gl.bindTexture(this.gl.TEXTURE_2D_ARRAY, this.WebGLTexture);
 
@@ -63,6 +59,7 @@ export default class Texture2DArray extends Texture {
 	protected writeImage(image: HTMLImageElement) {
 		this.gl.bindTexture(GLConstants.TEXTURE_2D_ARRAY, this.WebGLTexture);
 
+		this.updateFlipY();
 		this.gl.texImage3D(GLConstants.TEXTURE_2D_ARRAY, 0, GLConstants.RGBA, image.width, image.height / this.depth, this.depth, 0, GLConstants.RGBA, GLConstants.UNSIGNED_BYTE, image);
 
 		this.generateMipmaps();

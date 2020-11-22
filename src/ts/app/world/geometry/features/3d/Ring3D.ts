@@ -97,27 +97,32 @@ export default class Ring3D extends Feature3D {
 		return length;
 	}
 
-	public triangulateWalls(): number[] {
+	public triangulateWalls(): {positions: Float32Array, uvs: Float32Array} {
 		const tags = this.parent.tags;
 		const heightFactor = this.parent.heightFactor;
 
 		const height = (+tags.height || 6) * heightFactor + this.parent.minGroundHeight;
 		const minHeight = (+tags.minHeight || 0) * heightFactor + this.parent.minGroundHeight;
-		const vertices: number[] = [];
+
+		const positions: number[] = [];
+		const uvs: number[] = [];
 
 		for (let i = 0; i < this.vertices.length - 1; i++) {
 			const vertex = {x: this.vertices[i][0], z: this.vertices[i][1]};
 			const nextVertex = {x: this.vertices[i + 1][0], z: this.vertices[i + 1][1]};
 
-			vertices.push(nextVertex.x, minHeight, nextVertex.z);
-			vertices.push(vertex.x, height, vertex.z);
-			vertices.push(vertex.x, minHeight, vertex.z);
+			positions.push(nextVertex.x, minHeight, nextVertex.z);
+			positions.push(vertex.x, height, vertex.z);
+			positions.push(vertex.x, minHeight, vertex.z);
 
-			vertices.push(nextVertex.x, minHeight, nextVertex.z);
-			vertices.push(nextVertex.x, height, nextVertex.z);
-			vertices.push(vertex.x, height, vertex.z);
+			positions.push(nextVertex.x, minHeight, nextVertex.z);
+			positions.push(nextVertex.x, height, nextVertex.z);
+			positions.push(vertex.x, height, vertex.z);
+
+			uvs.push(0, 0, 0, 0, 0, 0);
+			uvs.push(0, 0, 0, 0, 0, 0);
 		}
 
-		return vertices;
+		return {positions: new Float32Array(positions), uvs: new Float32Array(uvs)};
 	}
 }

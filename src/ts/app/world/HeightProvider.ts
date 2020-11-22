@@ -89,6 +89,13 @@ export default new class HeightProvider {
 				resolve();
 			}
 
+			image.onerror = () => {
+				this.tiles.set(`${x},${y}`, new Uint8ClampedArray(256 * 256 * 4));
+				this.requests.delete(`${x},${y}`);
+
+				resolve();
+			}
+
 			image.crossOrigin = "anonymous";
 			image.src = this.getTileURL(x, y, 16);
 		});

@@ -97,7 +97,9 @@ void main() {
 		mixFactor = 1.;
 	}
 
-	FragColor = mix(clamp(accumSample, minNeighbor, maxNeighbor), newSample, mixFactor);
+	accumSample = clamp(accumSample, minNeighbor, maxNeighbor);
+
+	FragColor = mix(accumSample, newSample, mixFactor);
 
     #ifdef USE_YCOCG
         FragColor.rgb = YCoCg_RGB(FragColor.rgb);

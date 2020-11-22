@@ -56,7 +56,6 @@ export default class Controls {
 
 	private wheelEvent(e: WheelEvent) {
 		this.distanceTarget += 0.5 * e.deltaY;
-		this.distanceTarget = MathUtils.clamp(this.distanceTarget, 20, 2000);
 	}
 
 	private mouseDownEvent(e: MouseEvent) {
@@ -203,6 +202,7 @@ export default class Controls {
 			this.target.y = HeightProvider.getHeight(tilePosition.x, tilePosition.y, tile.x % 1, tile.y % 1);
 		}
 
+		this.distanceTarget = MathUtils.clamp(this.distanceTarget, 20, 2000);
 		this.distance = MathUtils.lerp(this.distance, this.distanceTarget, 0.4);
 		if (Math.abs(this.distance - this.distanceTarget) < 0.01) {
 			this.distance = this.distanceTarget;

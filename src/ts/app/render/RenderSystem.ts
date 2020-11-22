@@ -218,6 +218,15 @@ export default class RenderSystem {
 
 		this.skyboxMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
 		this.skyboxMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(this.camera.matrixWorldInverse, this.skybox.matrixWorld);
+		this.skyboxMaterial.uniforms.modelViewMatrixPrev.value = Mat4.multiply(
+			this.taaPass.matrixWorldInversePrev || this.camera.matrixWorldInverse,
+			this.skybox.matrixWorld
+		);
+
+		this.skyboxMaterial.uniforms.modelViewMatrixPrev.value.values[12] = this.skyboxMaterial.uniforms.modelViewMatrix.value.values[12];
+		this.skyboxMaterial.uniforms.modelViewMatrixPrev.value.values[13] = this.skyboxMaterial.uniforms.modelViewMatrix.value.values[13];
+		this.skyboxMaterial.uniforms.modelViewMatrixPrev.value.values[14] = this.skyboxMaterial.uniforms.modelViewMatrix.value.values[14];
+
 		this.skyboxMaterial.use();
 		this.skybox.draw();
 

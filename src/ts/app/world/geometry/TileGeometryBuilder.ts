@@ -9,6 +9,7 @@ import {StaticTileGeometry} from "../../objects/Tile";
 import {RingType} from "./features/3d/Ring3D";
 import OSMRelation, {OSMRelationMember} from "./features/osm/OSMRelation";
 import * as martinez from 'martinez-polygon-clipping';
+import Utils from "../../Utils";
 
 interface OSMSource {
 	nodes: Map<number, OSMNode>,
@@ -56,10 +57,12 @@ export default class TileGeometryBuilder {
 
 		const positionArrays: Float32Array[] = [];
 		const colorArrays: Uint8Array[] = [];
+		const uvArrays: Float32Array[] = [];
+		const textureIdArrays: Uint8Array[] = [];
 		const visibleWays: Way3D[] = [];
 
 		for (const way of ways.values()) {
-			const {position, color} = way.getAttributeBuffers();
+			const {position, color, uv, textureId} = way.getAttributeBuffers();
 
 			if (position.length === 0) {
 				continue;
@@ -67,6 +70,8 @@ export default class TileGeometryBuilder {
 
 			positionArrays.push(position);
 			colorArrays.push(color);
+			uvArrays.push(uv);
+			textureIdArrays.push(textureId);
 			visibleWays.push(way);
 		}
 
@@ -87,12 +92,15 @@ export default class TileGeometryBuilder {
 
 		const positionBuffer = TileGeometryBuilder.mergeTypedArrays(Float32Array, positionArrays);
 		const colorBuffer = TileGeometryBuilder.mergeTypedArrays(Uint8Array, colorArrays);
+		const uvBuffer = TileGeometryBuilder.mergeTypedArrays(Float32Array, uvArrays);
+		const textureIdBuffer = TileGeometryBuilder.mergeTypedArrays(Uint8Array, textureIdArrays);
 		const bbox = this.getBoundingBoxFromVertices(positionBuffer);
 
 		return {
 			buildings: {
 				position: positionBuffer,
-				uv: new Float32Array(positionBuffer.length / 3 * 2),
+				uv: uvBuffer,
+				textureId: textureIdBuffer,
 				color: colorBuffer,
 				id: ids,
 				offset: offsets

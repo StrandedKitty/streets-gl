@@ -18,6 +18,8 @@ export default abstract class Texture {
 	public data: TypedArray;
 	public flipY: boolean;
 	public readonly WebGLTexture: WebGLTexture;
+	public loadingPromise: Promise<void>;
+	private loadingPromiseResolve: () => void;
 
 	protected abstract textureTypeConstant: number;
 
@@ -65,13 +67,19 @@ export default abstract class Texture {
 		this.flipY = flipY;
 
 		this.WebGLTexture = this.gl.createTexture();
+		this.loadingPromise = new Promise<void>((resolve) => {
+			this.loadingPromiseResolve = resolve;
+		});
 	}
 
 	protected load() {
 		const image = new Image();
 
 		image.crossOrigin = "anonymous";
-		image.onload = () => this.writeImage(image);
+		image.onload = () => {
+			this.writeImage(image);
+			this.loadingPromiseResolve();
+		}
 		image.src = this.url;
 	}
 

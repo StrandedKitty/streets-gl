@@ -1,3 +1,5 @@
+import Mat3 from "./Mat3";
+
 export default class Vec2 {
 	public x: number;
 	public y: number;
@@ -61,6 +63,25 @@ export default class Vec2 {
 		const dot = a.x * b.x + a.y * b.y;
 		const det = a.x * b.y - a.y * b.x;
 		return Math.atan2(det, dot);
+	}
+
+	public static rotate(v: Vec2, angle: number): Vec2 {
+		return new Vec2(
+			v.x * Math.cos(angle) - v.y * Math.sin(angle),
+			v.x * Math.sin(angle) + v.y * Math.cos(angle)
+		);
+	}
+
+	public static applyMatrix3(v: Vec2, mat: Mat3): Vec2 {
+		const dst = new Vec2();
+		const m = mat.values;
+
+		const x = v.x, y = v.y;
+
+		dst.x = m[0] * x + m[3] * y + m[6];
+		dst.y = m[1] * x + m[4] * y + m[7];
+
+		return dst;
 	}
 
 	public static copy(v: Vec2): Vec2 {

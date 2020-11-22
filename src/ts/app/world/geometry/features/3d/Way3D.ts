@@ -7,6 +7,10 @@ import MathUtils from "../../../../../math/MathUtils";
 import {GeoJSON} from "geojson";
 import WayAABB from "./WayAABB";
 import Utils from "../../../../Utils";
+import TileGeometryBuilder from "../../TileGeometryBuilder";
+import Vec2 from "../../../../../math/Vec2";
+import {CalcConvexHull, ComputeOMBB, Vector} from "../../../../../math/OMBB";
+import SeededRandom from "../../../../../math/SeededRandom";
 
 interface EarcutInput {
 	vertices: number[];
@@ -50,9 +54,14 @@ export default class Way3D extends Feature3D {
 		this.heightFactor = lat === null ? 1 : MathUtils.mercatorScaleFactor(lat);
 	}
 
-	public getAttributeBuffers(): {position: Float32Array, color: Uint8Array} {
+	public getAttributeBuffers(): {position: Float32Array, color: Uint8Array, uv: Float32Array, textureId: Uint8Array} {
 		if (!this.visible || this.tags.type !== 'building') {
-			return {position: new Float32Array(), color: new Uint8Array};
+			return {
+				position: new Float32Array(),
+				color: new Uint8Array(),
+				uv: new Float32Array(),
+				textureId: new Uint8Array()
+			};
 		}
 
 		this.updateHeightFactor();
@@ -66,14 +75,33 @@ export default class Way3D extends Feature3D {
 			this.tags.height = (+this.tags.levels || 1) * 3.5 + this.maxGroundHeight - this.minGroundHeight;
 		}
 
+		const positionArrays: Float32Array[] = [];
+		const uvArrays: Float32Array[] = [];
+		const textureIdArrays: Uint8Array[] = [];
+
 		const footprint = this.triangulateFootprint();
-		let walls: number[] = [];
+		positionArrays.push(footprint.positions);
+		uvArrays.push(footprint.uvs);
+		textureIdArrays.push(Utils.fillTypedArraySequence(
+			Uint8Array,
+			new Uint8Array(footprint.uvs.length / 2),
+			new Uint8Array([this.id % 4 + 1])
+		));
 
 		for(const ring of this.rings) {
-			walls = walls.concat(ring.triangulateWalls());
+			const ringData = ring.triangulateWalls();
+			positionArrays.push(ringData.positions);
+			uvArrays.push(ringData.uvs);
+			textureIdArrays.push(Utils.fillTypedArraySequence(
+				Uint8Array,
+				new Uint8Array(ringData.uvs.length / 2),
+				new Uint8Array([0])
+			));
 		}
 
-		const positionBuffer = new Float32Array(footprint.concat(walls));
+		const positionBuffer = TileGeometryBuilder.mergeTypedArrays(Float32Array, positionArrays);
+		const uvBuffer = TileGeometryBuilder.mergeTypedArrays(Float32Array, uvArrays);
+		const textureIdBuffer = TileGeometryBuilder.mergeTypedArrays(Uint8Array, textureIdArrays);
 		const color = new Uint8Array(<number[]>this.tags.facadeColor || [255, 255, 255]);
 		const colorBuffer = Utils.fillTypedArraySequence(
 			Uint8Array,
@@ -83,7 +111,9 @@ export default class Way3D extends Feature3D {
 
 		return {
 			position: positionBuffer,
-			color: colorBuffer
+			color: colorBuffer,
+			uv: uvBuffer,
+			textureId: textureIdBuffer
 		};
 	}
 
@@ -125,8 +155,11 @@ export default class Way3D extends Feature3D {
 		this.holesArrays = data;
 	}
 
-	private triangulateFootprint(): number[] {
-		const result = [];
+	private triangulateFootprint(): {positions: Float32Array, uvs: Float32Array} {
+		const positions: number[] = [];
+		const uvs: number[] = [];
+
+		const ombbPoints: number[][] = [];
 
 		this.updateHoles();
 
@@ -136,16 +169,85 @@ export default class Way3D extends Feature3D {
 				const triangles = earcut(vertices, holes).reverse();
 
 				for (let i = 0; i < triangles.length; i++) {
-					result.push(
+					positions.push(
 						vertices[triangles[i] * 2],
 						this.minGroundHeight + (+this.tags.height || 6) * this.heightFactor,
 						vertices[triangles[i] * 2 + 1]
 					);
+					uvs.push(vertices[triangles[i] * 2], vertices[triangles[i] * 2 + 1]);
+				}
+
+				for(const vertex of ring.vertices) {
+					ombbPoints.push(vertex);
 				}
 			}
 		}
 
-		return result;
+		const ombb = this.getOMBBFromPoints(ombbPoints);
+
+		const rotVector0 = Vec2.sub(ombb[1], ombb[0]);
+		const rotVector1 = Vec2.sub(ombb[2], ombb[1]);
+		const magRot0 = Vec2.getLength(rotVector0);
+		const magRot1 = Vec2.getLength(rotVector1);
+
+		let rotVector: Vec2, origin: Vec2, sizeX: number, sizeY: number;
+
+		if(magRot0 > magRot1) {
+			rotVector = rotVector0;
+			origin = ombb[1];
+			sizeX = magRot0;
+			sizeY = magRot1;
+		} else {
+			rotVector = rotVector1;
+			origin = ombb[2];
+			sizeX = magRot1;
+			sizeY = magRot0;
+		}
+
+		const rotVectorNormalized = Vec2.normalize(rotVector);
+		const angle = -Math.atan2(rotVectorNormalized.y, rotVectorNormalized.x);
+
+		const rand = new SeededRandom(this.id);
+		const flipX = rand.generate() > 0.5;
+		const flipY = rand.generate() > 0.5;
+
+		for(let i = 0; i < uvs.length; i += 2) {
+			uvs[i] -= origin.x;
+			uvs[i + 1] -= origin.y;
+
+			const v = Vec2.rotate(new Vec2(uvs[i], uvs[i + 1]), angle);
+
+			uvs[i] = v.x / sizeX + 1;
+			uvs[i + 1] = v.y / sizeY;
+
+			if(flipX) {
+				uvs[i] = 1 - uvs[i];
+			}
+
+			if(flipY) {
+				uvs[i + 1] = 1 - uvs[i + 1];
+			}
+		}
+
+		return {positions: new Float32Array(positions), uvs: new Float32Array(uvs)};
+	}
+
+	private getOMBBFromPoints(points: number[][]): Vec2[] {
+		const hullVectors: any[] = [];
+
+		for(const point of points) {
+			hullVectors.push(new Vector(point[0], point[1]));
+		}
+
+		const hull = CalcConvexHull(hullVectors);
+		const ombb = ComputeOMBB(hull);
+		const vectors: Vec2[] = [];
+
+		for(const v of ombb) {
+			vectors.push(new Vec2(v.x, v.y));
+		}
+
+		return vectors;
 	}
 
 	public updateGeoJSON() {

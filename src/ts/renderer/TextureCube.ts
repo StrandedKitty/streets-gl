@@ -46,7 +46,6 @@ export default class TextureCube extends Texture {
 			for (let i = 0; i < 6; i++) {
 				this.gl.texImage2D(GLConstants.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GLConstants.RGBA, 1, 1, 0, GLConstants.RGBA, GLConstants.UNSIGNED_BYTE, null);
 
-				this.updateFlipY();
 				this.updateWrapping();
 				this.updateFilters();
 				this.updateAnisotropy();
@@ -64,12 +63,16 @@ export default class TextureCube extends Texture {
 
 	private writeSideImage(image: HTMLImageElement, sideId: number) {
 		this.gl.bindTexture(GLConstants.TEXTURE_CUBE_MAP, this.WebGLTexture);
+
+		this.updateFlipY();
 		this.gl.texImage2D(GLConstants.TEXTURE_CUBE_MAP_POSITIVE_X + sideId, 0, GLConstants.RGBA, image.width, image.height, 0, GLConstants.RGBA, GLConstants.UNSIGNED_BYTE, image);
 
 		if(++this.sidesLoaded === 6) {
 			this.generateMipmaps();
 			this.loaded = true;
 		}
+
+		this.gl.bindTexture(GLConstants.TEXTURE_CUBE_MAP, null);
 	}
 
 	protected writeImage(image: HTMLImageElement): void {

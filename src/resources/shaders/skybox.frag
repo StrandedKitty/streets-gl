@@ -9,6 +9,8 @@ layout(location = 4) out vec4 outEmission;
 layout(location = 5) out vec3 outMotion;
 
 in vec3 vNormal;
+in vec4 vClipPos;
+in vec4 vClipPosPrev;
 
 uniform samplerCube tSky;
 
@@ -18,5 +20,5 @@ void main() {
 	outPosition = vec3(0);
 	outMetallicRoughness = vec4(0);
 	outEmission = vec4(0);
-	outMotion = vec3(0);
+	outMotion = 0.5 * vec3(vClipPos / vClipPos.w - vClipPosPrev / vClipPosPrev.w);
 }

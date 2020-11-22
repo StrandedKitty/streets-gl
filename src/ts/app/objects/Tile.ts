@@ -16,7 +16,8 @@ export interface StaticTileGeometry {
 	buildings: {
 		position: Float32Array,
 		uv: Float32Array,
-		color?: Uint8Array,
+		textureId: Uint8Array,
+		color: Uint8Array,
 		id: Uint32Array,
 		offset: Uint32Array
 	},
@@ -54,18 +55,19 @@ export default class Tile extends Object3D {
 		this.position.set(positionInMeters.x, 0, positionInMeters.y);
 	}
 
-	public async load(tileProvider: TileProvider) {
+	public async load(tileProvider: TileProvider, renderer: Renderer): Promise<void> {
 		return Promise.all([
+			this.loadTextures(renderer),
 			HeightProvider.prepareDataForTile(this.x, this.y),
-			tileProvider.getTileObjects(this)
-		]).then(([_, objects]: [void[], StaticTileGeometry]) => {
+			tileProvider.getTileObjects(this),
+		]).then(([a, b, objects]: [void, void[], StaticTileGeometry]) => {
 			this.staticGeometry = objects;
 			this.updateStaticGeometryOffsets();
 			this.readyForRendering = true;
 		});
 	}
 
-	public createGround(renderer: Renderer, neighbors: Tile[]) {
+	private async loadTextures(renderer: Renderer): Promise<void> {
 		this.colorMap = new Texture2D(renderer, {
 			//url: `http://mt1.google.com/vt/lyrs=s&x=${this.x}&y=${this.y}&z=16&scale=2`,
 			url: `https://a.tile.openstreetmap.org/16/${this.x}/${this.y}.png`,
@@ -74,6 +76,10 @@ export default class Tile extends Object3D {
 			wrap: GLConstants.CLAMP_TO_EDGE
 		});
 
+		return this.colorMap.loadingPromise;
+	}
+
+	public createGround(renderer: Renderer, neighbors: Tile[]) {
 		this.ground = new Ground(renderer);
 		this.ground.applyHeightmap(this.x, this.y);
 
@@ -97,6 +103,15 @@ export default class Tile extends Object3D {
 			normalized: false
 		});
 		buildings.setAttributeData('uv', this.staticGeometry.buildings.uv);
+
+		buildings.addAttribute({
+			name: 'textureId',
+			size: 1,
+			dataFormat: AttributeFormat.Integer,
+			type: GLConstants.UNSIGNED_BYTE,
+			normalized: false
+		});
+		buildings.setAttributeData('textureId', this.staticGeometry.buildings.textureId);
 
 		buildings.addAttribute({
 			name: 'color',
