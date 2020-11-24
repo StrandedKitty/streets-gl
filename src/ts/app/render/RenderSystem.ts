@@ -357,7 +357,7 @@ export default class RenderSystem {
 	}
 
 	public get resolution(): Vec2 {
-		const pixelRatio = Math.min(window.devicePixelRatio, 1.5);
+		const pixelRatio = Config.IsMobileBrowser ? Math.min(window.devicePixelRatio, 1.5) : window.devicePixelRatio;
 		return new Vec2(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio);
 	}
 }

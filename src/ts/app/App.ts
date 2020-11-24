@@ -4,7 +4,7 @@ import TileManager from "./world/TileManager";
 import Controls from "./controls/Controls";
 import MathUtils from "../math/MathUtils";
 
-class App {
+export class App {
 	private loop = (deltaTime: number) => this.update(deltaTime);
 	private time: number = 0;
 
@@ -21,9 +21,6 @@ class App {
 	}
 
 	private init() {
-		const cameraPosition = MathUtils.degrees2meters(37.663539, -122.418106);
-		this.controls.target.set(cameraPosition.x, 0, cameraPosition.y);
-
 		this.update();
 	}
 
@@ -39,5 +36,4 @@ class App {
 	}
 }
 
-export {App};
 export default new App;

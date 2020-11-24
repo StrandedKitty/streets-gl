@@ -7,19 +7,32 @@ import DoubleTouchHandler, {DoubleTouchMoveEvent} from "./DoubleTouchHandler";
 import TouchZoomHandler from "./TouchZoomHandler";
 import TouchRotateHandler from "./TouchRotateHandler";
 import {TouchPitchHandler} from "./TouchPitchHandler";
+import URLControlsStateHandler from "./URLControlsStateHandler";
+import Config from "../Config";
 
 const touchYawFactor = 4;
 const touchPitchFactor = 2;
 
+export interface ControlsState {
+	x: number;
+	z: number;
+	pitch: number;
+	yaw: number;
+	distance: number;
+}
+
 export default class Controls {
 	private element: HTMLElement;
 	private camera: Camera;
+	private tick: number = 0;
 	public target: Vec3 = new Vec3();
 	private direction: Vec3 = new Vec3();
 	private distance: number = 1000;
 	private distanceTarget: number = 1000;
 	private pitch: number = MathUtils.toRad(45);
 	private yaw: number = MathUtils.toRad(0);
+	private state: ControlsState;
+	private urlHandler: URLControlsStateHandler = new URLControlsStateHandler();
 
 	private isRotationMouseMode: boolean = false;
 	private isMovementMouseMode: boolean = false;
@@ -44,6 +57,25 @@ export default class Controls {
 			handler.onMove = (e: DoubleTouchMoveEvent) => this.onDoubleTouchMove(e);
 		}
 
+		const [newState] = this.urlHandler.getStateFromHash();
+
+		if (newState) {
+			this.state = newState;
+			this.updatePositionFromState(this.state);
+		} else {
+			const startPosition = MathUtils.degrees2meters(Config.StartPosition[0], Config.StartPosition[1]);
+
+			this.state = {
+				x: startPosition.x,
+				z: startPosition.y,
+				pitch: this.pitch,
+				yaw: this.yaw,
+				distance: this.distance
+			}
+
+			this.updatePositionFromState(this.state);
+		}
+
 		this.element.addEventListener('contextmenu', (e: MouseEvent) => e.preventDefault());
 		this.element.addEventListener('mousedown', (e: MouseEvent) => this.mouseDownEvent(e));
 		this.element.addEventListener('mouseup', (e: MouseEvent) => this.mouseUpEvent(e));
@@ -52,6 +84,23 @@ export default class Controls {
 		this.element.addEventListener('touchstart', (e: TouchEvent) => this.touchStartEvent(e));
 		this.element.addEventListener('touchend', (e: TouchEvent) => this.touchEndEvent(e));
 		this.element.addEventListener('touchmove', (e: TouchEvent) => this.touchMoveEvent(e));
+	}
+
+	private updateStateFromPosition() {
+		this.state.x = this.target.x;
+		this.state.z = this.target.z;
+		this.state.pitch = this.pitch;
+		this.state.yaw = this.yaw;
+		this.state.distance = this.distance;
+	}
+
+	private updatePositionFromState(state: ControlsState) {
+		this.target.x = state.x;
+		this.target.z = state.z;
+		this.pitch = state.pitch;
+		this.yaw = state.yaw;
+		this.distance = state.distance;
+		this.distanceTarget = state.distance;
 	}
 
 	private wheelEvent(e: WheelEvent) {
@@ -96,7 +145,7 @@ export default class Controls {
 		}
 
 		const touchesSum = new Vec2();
-		for(const touch of this.touches.values()) {
+		for (const touch of this.touches.values()) {
 			touchesSum.x += touch.x;
 			touchesSum.y += touch.y;
 		}
@@ -131,14 +180,14 @@ export default class Controls {
 		}
 
 		const touchesSum = new Vec2();
-		for(const touch of this.touches.values()) {
+		for (const touch of this.touches.values()) {
 			touchesSum.x += touch.x;
 			touchesSum.y += touch.y;
 		}
 
 		this.cachedMoveEvent = new Vec2(touchesSum.x / this.touches.size, touchesSum.y / this.touches.size)
 
-		if(this.touches.size > 1) {
+		if (this.touches.size > 1) {
 			for (const handler of this.touchHandlers.values()) {
 				handler.touchMove(e, this.touches);
 			}
@@ -146,15 +195,15 @@ export default class Controls {
 	}
 
 	private onDoubleTouchMove(e: DoubleTouchMoveEvent) {
-		if(e.zoomDelta && !this.touchHandlers.get('pitch').active) {
+		if (e.zoomDelta && !this.touchHandlers.get('pitch').active) {
 			this.distanceTarget -= e.zoomDelta * this.distanceTarget;
 		}
 
-		if(e.bearingDelta && !this.touchHandlers.get('pitch').active) {
+		if (e.bearingDelta && !this.touchHandlers.get('pitch').active) {
 			this.yaw += MathUtils.toRad(e.bearingDelta) * this.rotationSpeed * touchYawFactor;
 		}
 
-		if(e.pitchDelta) {
+		if (e.pitchDelta) {
 			this.pitch -= MathUtils.toRad(e.pitchDelta) * this.rotationSpeed * touchPitchFactor;
 		}
 	}
@@ -202,13 +251,23 @@ export default class Controls {
 			this.target.y = HeightProvider.getHeight(tilePosition.x, tilePosition.y, tile.x % 1, tile.y % 1);
 		}
 
-		this.distanceTarget = MathUtils.clamp(this.distanceTarget, 20, 2000);
-		this.distance = MathUtils.lerp(this.distance, this.distanceTarget, 0.4);
+		this.distanceTarget = MathUtils.clamp(
+			this.distanceTarget,
+			Config.MinCameraDistance,
+			Config.MaxCameraDistance
+		);
+
 		if (Math.abs(this.distance - this.distanceTarget) < 0.01) {
 			this.distance = this.distanceTarget;
+		} else {
+			this.distance = MathUtils.lerp(this.distance, this.distanceTarget, 0.4);
 		}
 
-		this.pitch = MathUtils.clamp(this.pitch, MathUtils.toRad(5), MathUtils.toRad(89.99));
+		this.pitch = MathUtils.clamp(
+			this.pitch,
+			MathUtils.toRad(Config.MinCameraPitch),
+			MathUtils.toRad(Config.MaxCameraPitch)
+		);
 		this.yaw = MathUtils.normalizeAngle(this.yaw);
 
 		this.direction = Vec3.normalize(MathUtils.sphericalToCartesian(this.yaw, -this.pitch));
@@ -234,7 +293,22 @@ export default class Controls {
 			camera.lookAt(this.target, false);
 		}
 
+		const [newState, changedByUser] = this.urlHandler.getStateFromHash();
+
+		if (newState && changedByUser) {
+			this.updatePositionFromState(newState);
+			this.state = newState;
+		} else {
+			this.updateStateFromPosition();
+		}
+
+		if (this.tick % 30 === 0) {
+			this.urlHandler.setHashFromState(this.state);
+		}
+
 		camera.updateMatrixWorld();
 		camera.updateMatrixWorldInverse();
+
+		++this.tick;
 	}
 }
