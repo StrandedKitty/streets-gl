@@ -147,8 +147,6 @@ export default class RenderSystem {
 	}
 
 	public update(deltaTime: number) {
-		this.renderer.bindFramebuffer(null);
-
 		const pivotDelta = new Vec2(
 			this.wrapper.position.x + this.camera.position.x,
 			this.wrapper.position.z + this.camera.position.z
@@ -357,7 +355,7 @@ export default class RenderSystem {
 	}
 
 	public get resolution(): Vec2 {
-		const pixelRatio = Config.IsMobileBrowser ? Math.min(window.devicePixelRatio, 1.5) : window.devicePixelRatio;
+		const pixelRatio = Config.IsMobileBrowser ? Math.min(window.devicePixelRatio, 1) : window.devicePixelRatio;
 		return new Vec2(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio);
 	}
 }

@@ -48,6 +48,7 @@ const vec2 offsets[] = vec2[](
 );
 
 void main() {
+	vec2 size = vec2(textureSize(tNew, 0));
 	vec4 velocity = texture(tMotion, vUv);
     vec2 oldUV = vUv - velocity.xy;
 
@@ -63,8 +64,6 @@ void main() {
 		FragColor = newSample;
 		return;
 	}
-
-	vec2 size = vec2(textureSize(tNew, 0));
 
 	vec4 maxNeighbor = newSample;
 	vec4 minNeighbor = newSample;
@@ -84,6 +83,8 @@ void main() {
 		avg += neighborTexel;
 	}
 
+	accumSample = clamp(accumSample, minNeighbor, maxNeighbor);
+
 	float mixFactor = 0.1;
 
 	if(length(velocity) < 0.00001) {
@@ -96,8 +97,6 @@ void main() {
 	if(a || b) {
 		mixFactor = 1.;
 	}
-
-	accumSample = clamp(accumSample, minNeighbor, maxNeighbor);
 
 	FragColor = mix(accumSample, newSample, mixFactor);
 

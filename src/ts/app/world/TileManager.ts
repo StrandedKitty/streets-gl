@@ -100,14 +100,19 @@ export default class TileManager {
 			tile.updateDistanceToCamera(this.camera);
 		}
 
+		let tilesToAdd = 1;
+
 		for(const tilePosition of frustumTiles) {
-			if(!this.getTile(tilePosition.x, tilePosition.y)) {
+			if(!this.getTile(tilePosition.x, tilePosition.y) && tilesToAdd > 0) {
 				this.addTile(tilePosition.x, tilePosition.y);
+				--tilesToAdd;
 			}
 
 			const tile = this.getTile(tilePosition.x, tilePosition.y);
 
-			tile.inFrustum = true;
+			if(tile) {
+				tile.inFrustum = true;
+			}
 		}
 	}
 

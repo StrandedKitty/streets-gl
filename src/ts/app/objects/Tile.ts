@@ -11,6 +11,7 @@ import Mesh from "../../renderer/Mesh";
 import Vec3 from "../../math/Vec3";
 import Vec2 from "../../math/Vec2";
 import {AttributeFormat} from "../../renderer/Attribute";
+import Utils from "../Utils";
 
 export interface StaticTileGeometry {
 	buildings: {
@@ -69,12 +70,22 @@ export default class Tile extends Object3D {
 
 	private async loadTextures(renderer: Renderer): Promise<void> {
 		this.colorMap = new Texture2D(renderer, {
-			//url: `http://mt1.google.com/vt/lyrs=s&x=${this.x}&y=${this.y}&z=16&scale=2`,
-			url: `https://a.tile.openstreetmap.org/16/${this.x}/${this.y}.png`,
 			anisotropy: 16,
 			flipY: true,
-			wrap: GLConstants.CLAMP_TO_EDGE
+			wrap: GLConstants.CLAMP_TO_EDGE,
+			width: 512,
+			height: 512
 		});
+
+		const hdTileX = this.x * 2;
+		const hdTileY = this.y * 2;
+
+		this.colorMap.loadFromTiles([
+			`https://a.tile.openstreetmap.org/17/${hdTileX}/${hdTileY + 1}.png`,
+			`https://a.tile.openstreetmap.org/17/${hdTileX + 1}/${hdTileY + 1}.png`,
+			`https://a.tile.openstreetmap.org/17/${hdTileX}/${hdTileY}.png`,
+			`https://a.tile.openstreetmap.org/17/${hdTileX + 1}/${hdTileY }.png`
+		], 2, 2);
 
 		return this.colorMap.loadingPromise;
 	}

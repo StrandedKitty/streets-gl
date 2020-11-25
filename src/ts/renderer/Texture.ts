@@ -19,7 +19,7 @@ export default abstract class Texture {
 	public flipY: boolean;
 	public readonly WebGLTexture: WebGLTexture;
 	public loadingPromise: Promise<void>;
-	private loadingPromiseResolve: () => void;
+	protected loadingPromiseResolve: () => void;
 
 	protected abstract textureTypeConstant: number;
 

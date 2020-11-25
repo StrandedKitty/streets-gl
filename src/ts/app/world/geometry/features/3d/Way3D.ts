@@ -243,8 +243,10 @@ export default class Way3D extends Feature3D {
 		const ombb = ComputeOMBB(hull);
 		const vectors: Vec2[] = [];
 
-		for(const v of ombb) {
-			vectors.push(new Vec2(v.x, v.y));
+		for(let i = 0; i < 4; i++) {
+			const vertex = ombb[i] || {x: 0, y: 0};
+
+			vectors.push(new Vec2(vertex.x, vertex.y));
 		}
 
 		return vectors;
