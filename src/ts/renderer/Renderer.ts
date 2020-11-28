@@ -136,6 +136,27 @@ export default class Renderer {
 		this.gl.clear(colorBit | depthBit);
 	}
 
+	public async fence(): Promise<void> {
+		return new Promise((resolve) => {
+			const sync = this.gl.fenceSync(GLConstants.SYNC_GPU_COMMANDS_COMPLETE, 0);
+
+			this.gl.flush();
+
+			const check = () => {
+				const status = this.gl.getSyncParameter(sync, GLConstants.SYNC_STATUS);
+
+				if (status == this.gl.SIGNALED) {
+					this.gl.deleteSync(sync);
+					resolve();
+				} else {
+					setTimeout(check, 0);
+				}
+			}
+
+			setTimeout(check, 0);
+		});
+	}
+
 	public set culling(state: boolean) {
 		if (state)
 			this.gl.enable(GLConstants.CULL_FACE);

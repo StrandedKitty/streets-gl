@@ -53,12 +53,15 @@ export default class TileGeometryBuilder {
 	}
 
 	public async getTileGeometry(): Promise<StaticTileGeometry> {
-		const {nodes, ways} = this.features;
+		const {ways} = this.features;
 
 		const positionArrays: Float32Array[] = [];
 		const colorArrays: Uint8Array[] = [];
 		const uvArrays: Float32Array[] = [];
 		const textureIdArrays: Uint8Array[] = [];
+		const localIdArrays: Uint32Array[] = [];
+
+		let wayLocalId = 0;
 		const visibleWays: Way3D[] = [];
 
 		for (const way of ways.values()) {
@@ -72,6 +75,12 @@ export default class TileGeometryBuilder {
 			colorArrays.push(color);
 			uvArrays.push(uv);
 			textureIdArrays.push(textureId);
+			localIdArrays.push(Utils.fillTypedArraySequence(
+				Uint32Array,
+				new Uint32Array(position.length / 3),
+				new Uint32Array([wayLocalId++])
+			));
+
 			visibleWays.push(way);
 		}
 
@@ -94,6 +103,7 @@ export default class TileGeometryBuilder {
 		const colorBuffer = TileGeometryBuilder.mergeTypedArrays(Uint8Array, colorArrays);
 		const uvBuffer = TileGeometryBuilder.mergeTypedArrays(Float32Array, uvArrays);
 		const textureIdBuffer = TileGeometryBuilder.mergeTypedArrays(Uint8Array, textureIdArrays);
+		const localIdBuffer = TileGeometryBuilder.mergeTypedArrays(Uint32Array, localIdArrays);
 		const bbox = this.getBoundingBoxFromVertices(positionBuffer);
 
 		return {
@@ -103,7 +113,8 @@ export default class TileGeometryBuilder {
 				textureId: textureIdBuffer,
 				color: colorBuffer,
 				id: ids,
-				offset: offsets
+				offset: offsets,
+				localId: localIdBuffer
 			},
 			bbox
 		};

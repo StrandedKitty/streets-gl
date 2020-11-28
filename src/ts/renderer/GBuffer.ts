@@ -14,11 +14,11 @@ interface GBufferTexture {
 export default class GBuffer {
 	private readonly renderer: Renderer;
 	private readonly structure: GBufferTexture[];
-	private width: number;
-	private height: number;
-	public readonly textures: { [key: string]: Texture2D } = {};
+	public textures: { [key: string]: Texture2D } = {};
 	public framebuffer: Framebuffer;
 	public framebufferHDR: Framebuffer;
+	public width: number;
+	public height: number;
 
 	constructor(renderer: Renderer, width: number, height: number, structure: GBufferTexture[]) {
 		this.renderer = renderer;
@@ -79,6 +79,10 @@ export default class GBuffer {
 				})
 			]
 		});
+	}
+
+	public clearDepth() {
+		this.renderer.gl.clearBufferfi(GLConstants.DEPTH_STENCIL, 0, 1, 0);
 	}
 
 	public setSize(width: number, height: number) {

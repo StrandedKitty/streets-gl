@@ -1,5 +1,6 @@
 #version 300 es
 precision highp float;
+precision highp int;
 precision highp sampler2D;
 precision highp sampler2DArray;
 
@@ -9,6 +10,7 @@ layout(location = 2) out vec3 outPosition;
 layout(location = 3) out vec4 outMetallicRoughness;
 layout(location = 4) out vec4 outEmission;
 layout(location = 5) out vec3 outMotion;
+layout(location = 6) out uint outObjectId;
 
 in vec2 vUv;
 in vec3 vPosition;
@@ -16,6 +18,7 @@ in vec3 vColor;
 in vec4 vClipPos;
 in vec4 vClipPosPrev;
 flat in int vTextureId;
+flat in uint vObjectId;
 
 uniform sampler2DArray tRoof;
 
@@ -35,4 +38,5 @@ void main() {
 	outMetallicRoughness = vec4(0);
 	outEmission = vec4(0);
 	outMotion = 0.5 * vec3(vClipPos / vClipPos.w - vClipPosPrev / vClipPosPrev.w);
+	outObjectId = vObjectId;
 }

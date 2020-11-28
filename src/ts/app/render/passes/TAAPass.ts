@@ -9,7 +9,7 @@ export default class TAAPass {
 	private readonly renderer: Renderer;
 	private width: number;
 	private height: number;
-	public material: TAAMaterial
+	public material: TAAMaterial;
 	public framebufferAccum: Framebuffer;
 	public framebufferOutput: Framebuffer;
 	public matrixWorldInverse: Mat4;

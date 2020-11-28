@@ -14,6 +14,7 @@ export default class BuildingMaterial extends Material {
 				projectionMatrix: {type: UniformType.Matrix4, value: null},
 				modelViewMatrix: {type: UniformType.Matrix4, value: null},
 				modelViewMatrixPrev: {type: UniformType.Matrix4, value: null},
+				tileId: {type: UniformType.Int1, value: 0},
 				tRoof: {
 					type: UniformType.Texture2DArray, value: new Texture2DArray(renderer, {
 						depth: 4,

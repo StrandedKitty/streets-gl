@@ -87,10 +87,6 @@ void main() {
 
 	float mixFactor = 0.1;
 
-	if(length(velocity) < 0.00001) {
-		mixFactor *= 0.5;
-	}
-
 	bool a = any(greaterThan(oldUV, vec2(1)));
 	bool b = any(lessThan(oldUV, vec2(0)));
 

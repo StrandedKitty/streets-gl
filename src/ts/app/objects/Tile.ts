@@ -11,7 +11,6 @@ import Mesh from "../../renderer/Mesh";
 import Vec3 from "../../math/Vec3";
 import Vec2 from "../../math/Vec2";
 import {AttributeFormat} from "../../renderer/Attribute";
-import Utils from "../Utils";
 
 export interface StaticTileGeometry {
 	buildings: {
@@ -20,13 +19,16 @@ export interface StaticTileGeometry {
 		textureId: Uint8Array,
 		color: Uint8Array,
 		id: Uint32Array,
-		offset: Uint32Array
+		offset: Uint32Array,
+		localId: Uint32Array
 	},
 	bbox: {
 		min: number[],
 		max: number[]
 	}
 }
+
+let tileCounter = 0;
 
 export default class Tile extends Object3D {
 	public ground: Ground;
@@ -37,6 +39,7 @@ export default class Tile extends Object3D {
 	public displayBufferNeedsUpdate: boolean = false;
 	public x: number;
 	public y: number;
+	public localId: number;
 	public inFrustum: boolean = true;
 	public distanceToCamera: number = null;
 	public colorMap: Texture2D = null;
@@ -49,6 +52,12 @@ export default class Tile extends Object3D {
 
 		this.x = x;
 		this.y = y;
+
+		this.localId = tileCounter++;
+
+		if(tileCounter > 65535) {
+			tileCounter = 0;
+		}
 
 		this.ground = null;
 
@@ -82,8 +91,8 @@ export default class Tile extends Object3D {
 
 		this.colorMap.loadFromTiles([
 			`https://a.tile.openstreetmap.org/17/${hdTileX}/${hdTileY + 1}.png`,
-			`https://a.tile.openstreetmap.org/17/${hdTileX + 1}/${hdTileY + 1}.png`,
-			`https://a.tile.openstreetmap.org/17/${hdTileX}/${hdTileY}.png`,
+			`https://b.tile.openstreetmap.org/17/${hdTileX + 1}/${hdTileY + 1}.png`,
+			`https://c.tile.openstreetmap.org/17/${hdTileX}/${hdTileY}.png`,
 			`https://a.tile.openstreetmap.org/17/${hdTileX + 1}/${hdTileY }.png`
 		], 2, 2);
 
@@ -140,6 +149,15 @@ export default class Tile extends Object3D {
 			normalized: false
 		});
 		buildings.setAttributeData('display', new Uint8Array(vertexCount));
+
+		buildings.addAttribute({
+			name: 'localId',
+			size: 1,
+			dataFormat: AttributeFormat.Integer,
+			type: GLConstants.UNSIGNED_INT,
+			normalized: false
+		});
+		buildings.setAttributeData('localId', this.staticGeometry.buildings.localId);
 
 		buildings.setBoundingBox(
 			new Vec3(...this.staticGeometry.bbox.min),

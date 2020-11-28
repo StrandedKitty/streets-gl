@@ -14,6 +14,10 @@ enum UniformType {
 	Int2,
 	Int3,
 	Int4,
+	Uint1,
+	Uint2,
+	Uint3,
+	Uint4,
 	Float1,
 	Float1Array,
 	Float2,
@@ -164,6 +168,18 @@ export default class Material {
 				break;
 			case UniformType.Int4:
 				this.gl.uniform4iv(location, uniform.value);
+				break;
+			case UniformType.Uint1:
+				this.gl.uniform1ui(location, uniform.value);
+				break;
+			case UniformType.Uint2:
+				this.gl.uniform2uiv(location, uniform.value);
+				break;
+			case UniformType.Uint3:
+				this.gl.uniform3uiv(location, uniform.value);
+				break;
+			case UniformType.Uint4:
+				this.gl.uniform4uiv(location, uniform.value);
 				break;
 			case UniformType.Matrix3:
 				this.gl.uniformMatrix3fv(location, false, new Float32Array(uniform.value.values));

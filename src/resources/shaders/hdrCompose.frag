@@ -1,7 +1,9 @@
 #version 300 es
 precision highp float;
 precision highp int;
+precision highp sampler2D;
 precision highp sampler3D;
+precision highp usampler2D;
 
 #define PI 3.141592653589793
 #define PI2 6.28318530718
@@ -11,6 +13,8 @@ precision highp sampler3D;
 #define SHADOWMAP_SIZE 1000.
 #define SHADOWMAP_SOFT_RADIUS 1.
 
+#define SELECTED_OBJECT_COLOR vec3(1, 0.458, 0.058)
+
 out vec4 FragColor;
 
 in vec2 vUv;
@@ -19,6 +23,9 @@ uniform sampler2D tColor;
 uniform sampler2D tDepth;
 uniform sampler2D tNormal;
 uniform sampler2D tPosition;
+uniform usampler2D tObjectId;
+uniform sampler2D tObjectOutline;
+uniform sampler2D tObjectShape;
 uniform samplerCube tSky;
 uniform mat4 viewMatrix;
 
@@ -291,11 +298,25 @@ float getShadowFactorForCascade(int cascadeId, vec3 worldPosition) {
 	return 1.;
 }
 
+vec3 applySelectionMask(vec3 color) {
+	float blurredSelection = min(texture(tObjectOutline, vUv).r * 5., 1.);
+	float selectionMask = texture(tObjectShape, vUv).r;
+	vec3 selectionColor = SRGBtoLINEAR(vec4(SELECTED_OBJECT_COLOR, 1.)).rgb;
+
+	if(selectionMask == 0.) {
+		return mix(color, selectionColor, blurredSelection);
+	}
+
+	return color;
+}
+
 void main() {
 	vec4 baseColor = SRGBtoLINEAR(texture(tColor, vUv));
 
 	if(baseColor.a == 0.) {
-		FragColor = vec4(LINEARtoSRGB(baseColor.rgb), 1);
+		vec3 color = LINEARtoSRGB(baseColor.rgb);
+		color = applySelectionMask(color);
+		FragColor = vec4(color, 1);
 		return;
 	}
 
@@ -354,6 +375,8 @@ void main() {
 	color += getIBLContribution(materialInfo, worldNormal, worldView);
 	color += applyDirectionalLight(light, materialInfo, worldNormal, worldView) * 0.75 * shadowFactor;
 	color += materialInfo.diffuseColor * 0.1;
+
+	color = applySelectionMask(color);
 
 	FragColor = vec4(color, 1);
 }

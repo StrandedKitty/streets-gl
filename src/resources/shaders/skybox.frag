@@ -1,5 +1,6 @@
 #version 300 es
 precision highp float;
+precision highp int;
 
 layout(location = 0) out vec4 outColor;
 layout(location = 1) out vec3 outNormal;
@@ -7,6 +8,7 @@ layout(location = 2) out vec3 outPosition;
 layout(location = 3) out vec4 outMetallicRoughness;
 layout(location = 4) out vec4 outEmission;
 layout(location = 5) out vec3 outMotion;
+layout(location = 6) out uint outObjectId;
 
 in vec3 vNormal;
 in vec4 vClipPos;
@@ -21,4 +23,5 @@ void main() {
 	outMetallicRoughness = vec4(0);
 	outEmission = vec4(0);
 	outMotion = 0.5 * vec3(vClipPos / vClipPos.w - vClipPosPrev / vClipPosPrev.w);
+	outObjectId = 0u;
 }

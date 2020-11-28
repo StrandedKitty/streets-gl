@@ -18,6 +18,8 @@ import Config from "../Config";
 import GroundDepthMaterial from "./materials/GroundDepthMaterial";
 import BuildingDepthMaterial from "./materials/BuildingDepthMaterial";
 import TAAPass from "./passes/TAAPass";
+import ObjectFilterPass from "./passes/ObjectFilterPass";
+import GaussianBlurPass from "./passes/GaussianBlurPass";
 
 export default class RenderSystem {
 	public renderer: Renderer;
@@ -28,6 +30,8 @@ export default class RenderSystem {
 	private skybox: Skybox;
 	private csm: CSM;
 	private taaPass: TAAPass;
+	private objectFilterPass: ObjectFilterPass;
+	private gaussianBlurPass: GaussianBlurPass;
 	private frameCount: number = 0;
 
 	private groundMaterial: GroundMaterial;
@@ -85,12 +89,20 @@ export default class RenderSystem {
 				format: GLConstants.RGBA,
 				type: GLConstants.FLOAT,
 				mipmaps: false
+			}, {
+				name: 'objectId',
+				internalFormat: GLConstants.R32UI,
+				format: GLConstants.RED_INTEGER,
+				type: GLConstants.UNSIGNED_INT,
+				mipmaps: false
 			}
 		]);
 		this.hdrComposeMaterial = new HDRComposeMaterial(this.renderer, this.gBuffer);
 		this.ldrComposeMaterial = new LDRComposeMaterial(this.renderer, this.gBuffer);
 
 		this.taaPass = new TAAPass(this.renderer, this.resolution.x, this.resolution.y);
+		this.objectFilterPass = new ObjectFilterPass(this.renderer, this.resolution.x, this.resolution.y);
+		this.gaussianBlurPass = new GaussianBlurPass(this.renderer, this.resolution.x, this.resolution.y);
 
 		this.camera = new PerspectiveCamera({
 			fov: 40,
@@ -143,6 +155,8 @@ export default class RenderSystem {
 		this.renderer.setSize(this.resolution.x, this.resolution.y);
 		this.gBuffer.setSize(this.resolution.x, this.resolution.y);
 		this.taaPass.setSize(this.resolution.x, this.resolution.y);
+		this.objectFilterPass.setSize(this.resolution.x, this.resolution.y);
+		this.gaussianBlurPass.setSize(this.resolution.x, this.resolution.y);
 		this.csm.updateFrustums();
 	}
 
@@ -200,12 +214,7 @@ export default class RenderSystem {
 
 		this.renderer.bindFramebuffer(this.gBuffer.framebuffer);
 
-		this.renderer.clearFramebuffer({
-			clearColor: [0.5, 0.5, 0.5, 1],
-			depthValue: 1,
-			color: true,
-			depth: true
-		});
+		this.gBuffer.clearDepth();
 
 		this.renderer.culling = false;
 		this.renderer.depthWrite = false;
@@ -233,7 +242,7 @@ export default class RenderSystem {
 
 		this.groundMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
 		this.groundMaterial.use();
-
+		
 		for (const tile of tiles.values()) {
 			if (tile.displayBufferNeedsUpdate) {
 				tile.updateDisplayBuffer();
@@ -264,20 +273,39 @@ export default class RenderSystem {
 				continue;
 			}
 
+			this.buildingMaterial.uniforms.tileId.value = tile.localId;
 			this.buildingMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(this.camera.matrixWorldInverse, tile.buildings.matrixWorld);
 			this.buildingMaterial.uniforms.modelViewMatrixPrev.value = Mat4.multiply(
 				this.taaPass.matrixWorldInversePrev || this.camera.matrixWorldInverse,
 				tile.buildings.matrixWorld
 			);
+			this.buildingMaterial.updateUniform('tileId');
 			this.buildingMaterial.updateUniform('modelViewMatrix');
 			this.buildingMaterial.updateUniform('modelViewMatrixPrev');
 
 			tile.buildings.draw();
 		}
 
+		const selectedObjectIdBuffer = this.pickObjectId();
+
+		if(selectedObjectIdBuffer > 0) {
+			this.renderer.bindFramebuffer(this.objectFilterPass.framebuffer);
+
+			this.objectFilterPass.material.uniforms.tSource.value = this.gBuffer.textures.objectId;
+			this.objectFilterPass.material.uniforms.objectId.value = selectedObjectIdBuffer;
+			this.objectFilterPass.material.use();
+			this.quad.draw();
+		} else {
+			this.objectFilterPass.clear();
+		}
+
+		this.gaussianBlurPass.render(this.quad, this.objectFilterPass.framebuffer.textures[0]);
+
 		this.renderer.bindFramebuffer(this.gBuffer.framebufferHDR);
 
 		this.hdrComposeMaterial.uniforms.viewMatrix.value = this.camera.matrixWorld;
+		this.hdrComposeMaterial.uniforms.tObjectOutline.value = this.gaussianBlurPass.framebuffer.textures[0];
+		this.hdrComposeMaterial.uniforms.tObjectShape.value = this.objectFilterPass.framebuffer.textures[0];
 		this.csm.applyUniformsToMaterial(this.hdrComposeMaterial);
 		this.hdrComposeMaterial.use();
 		this.quad.draw();
@@ -296,7 +324,6 @@ export default class RenderSystem {
 		this.renderer.bindFramebuffer(null);
 
 		this.ldrComposeMaterial.use();
-		//this.ldrComposeMaterial.uniforms.tHDR.value = this.gBuffer.framebufferHDR.textures[0];
 		this.ldrComposeMaterial.uniforms.tHDR.value = this.taaPass.framebufferOutput.textures[0];
 		this.quad.draw();
 	}
@@ -316,7 +343,7 @@ export default class RenderSystem {
 			this.renderer.depthWrite = true;
 
 			this.renderer.clearFramebuffer({
-				clearColor: [100000, 1, 1, 1],
+				clearColor: [0, 0, 0, 0],
 				depthValue: 1,
 				color: true,
 				depth: true
@@ -352,6 +379,12 @@ export default class RenderSystem {
 				tile.buildings.draw();
 			}
 		}
+	}
+
+	private pickObjectId(): number {
+		this.app.pickingSystem.readObjectId(this.renderer, this.gBuffer);
+
+		return this.app.pickingSystem.selectedObjectId;
 	}
 
 	public get resolution(): Vec2 {

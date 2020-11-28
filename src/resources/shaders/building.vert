@@ -6,6 +6,7 @@ in vec2 uv;
 in vec3 color;
 in uint display;
 in uint textureId;
+in uint localId;
 
 out vec2 vUv;
 out vec3 vPosition;
@@ -13,10 +14,12 @@ out vec3 vColor;
 out vec4 vClipPos;
 out vec4 vClipPosPrev;
 flat out int vTextureId;
+flat out uint vObjectId;
 
 uniform mat4 projectionMatrix;
 uniform mat4 modelViewMatrix;
 uniform mat4 modelViewMatrixPrev;
+uniform int tileId;
 
 void main() {
 	if(display > 0u) {
@@ -27,6 +30,7 @@ void main() {
 	vUv = uv;
 	vColor = color;
 	vTextureId = int(textureId);
+	vObjectId = (uint(tileId) << 16u) + localId + 1u;
 
 	vec3 transformedPosition = position;
 	vec4 cameraSpacePosition = modelViewMatrix * vec4(transformedPosition, 1.0);
