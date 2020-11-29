@@ -182,7 +182,7 @@ export default class TileGeometryBuilder {
 			nodes.set(node.id, new Node3D(node.id, node.lat, node.lon, node.descriptor.properties, this.x, this.y));
 		}
 
-		const usedWays = new Set<number>();
+		const processedWays = new Set<number>();
 
 		for(const relation of osm.relations.values()) {
 			if(relation.members.length === 0) {
@@ -205,20 +205,20 @@ export default class TileGeometryBuilder {
 
 						way3d.addRing(role === 'inner' ? RingType.Inner : RingType.Outer, feature.id, wayNodes, feature.descriptor.properties);
 
-						usedWays.add(feature.id);
+						processedWays.add(feature.id);
 					}
 				}
 			} else if(relationType === 'building') {
 				for(const {feature, role} of relation.members) {
 					if(feature instanceof OSMWay && role === 'outline') {
-						usedWays.add(feature.id);
+						processedWays.add(feature.id);
 					}
 				}
 			}
 		}
 
 		for (const way of osm.ways.values()) {
-			if(usedWays.has(way.id)) {
+			if(processedWays.has(way.id)) {
 				continue;
 			}
 

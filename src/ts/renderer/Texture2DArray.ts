@@ -3,12 +3,13 @@ import GLConstants from "./GLConstants";
 import Texture from "./Texture";
 
 export default class Texture2DArray extends Texture {
-	private depth: number;
-
 	protected textureTypeConstant = GLConstants.TEXTURE_2D_ARRAY;
+	public depth: number;
+	public urls: string[];
+	private imagesLoaded: number = 0;
 
 	constructor(renderer: Renderer, {
-		url,
+		urls,
 		anisotropy = 1,
 		minFilter = GLConstants.LINEAR_MIPMAP_LINEAR,
 		magFilter = GLConstants.LINEAR,
@@ -22,7 +23,7 @@ export default class Texture2DArray extends Texture {
 		flipY = false,
 		depth
 	}: {
-		url?: string,
+		urls?: string[],
 		anisotropy?: number,
 		minFilter?: number,
 		magFilter?: number,
@@ -36,8 +37,9 @@ export default class Texture2DArray extends Texture {
 		flipY?: boolean,
 		depth: number
 	}) {
-		super(renderer, {url, anisotropy, minFilter, magFilter, wrap, width, height, format, internalFormat, type, data, flipY});
+		super(renderer, {anisotropy, minFilter, magFilter, wrap, width, height, format, internalFormat, type, data, flipY});
 
+		this.urls = urls;
 		this.depth = depth;
 
 		this.gl.bindTexture(this.gl.TEXTURE_2D_ARRAY, this.WebGLTexture);
@@ -47,22 +49,52 @@ export default class Texture2DArray extends Texture {
 		this.updateFilters();
 		this.updateWrapping();
 
-		if(this.url) {
-			this.gl.texImage3D(this.gl.TEXTURE_2D_ARRAY, 0, this.gl.RGBA, 1, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
+		if(this.urls && this.urls.length > 0) {
+			this.writeFromBuffer(null);
 
-			this.load();
+			for(let i = 0; i < this.urls.length; i++) {
+				this.writeFromBuffer(null);
+				this.loadImage(i);
+			}
+		} else {
+			this.writeFromBuffer(this.data);
 		}
 
 		this.gl.bindTexture(this.gl.TEXTURE_2D_ARRAY, null);
 	}
 
-	protected writeImage(image: HTMLImageElement) {
+	private loadImage(slice: number) {
+		const image = new Image();
+
+		image.crossOrigin = "anonymous";
+		image.onload = () => {
+			this.writeFromImage(image, slice);
+
+			if(++this.imagesLoaded === this.urls.length) {
+				this.resolveLoading();
+			}
+		}
+		image.src = this.urls[slice];
+	}
+
+	private writeFromImage(image: HTMLImageElement, slice: number) {
 		this.gl.bindTexture(GLConstants.TEXTURE_2D_ARRAY, this.WebGLTexture);
 
 		this.updateFlipY();
-		this.gl.texImage3D(GLConstants.TEXTURE_2D_ARRAY, 0, GLConstants.RGBA, image.width, image.height / this.depth, this.depth, 0, GLConstants.RGBA, GLConstants.UNSIGNED_BYTE, image);
+		this.gl.texSubImage3D(GLConstants.TEXTURE_2D_ARRAY, 0, 0, 0, slice, this.width, this.height, 1, this.format, this.type, image);
 
 		this.generateMipmaps();
+	}
+
+	private writeFromBuffer(data: TypedArray) {
+		this.gl.bindTexture(GLConstants.TEXTURE_2D_ARRAY, this.WebGLTexture);
+
+		this.updateFlipY();
+		this.gl.texImage3D(GLConstants.TEXTURE_2D_ARRAY, 0, this.internalFormat, this.width, this.height, this.depth, 0, this.format, this.type, data);
+
+		if(data) {
+			this.generateMipmaps();
+		}
 	}
 
 	public setSize(width: number, height: number) {

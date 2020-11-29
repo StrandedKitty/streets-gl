@@ -5,7 +5,6 @@ export default abstract class Texture {
 	protected readonly gl: WebGL2RenderingContext;
 	protected readonly renderer: Renderer;
 
-	public readonly url: string;
 	public anisotropy: number;
 	public readonly minFilter: number;
 	public readonly magFilter: number;
@@ -24,7 +23,6 @@ export default abstract class Texture {
 	protected abstract textureTypeConstant: number;
 
 	protected constructor(renderer: Renderer, {
-		url,
 		anisotropy = 1,
 		minFilter = GLConstants.LINEAR_MIPMAP_LINEAR,
 		magFilter = GLConstants.LINEAR,
@@ -37,7 +35,6 @@ export default abstract class Texture {
 		data = null,
 		flipY = false
 	}: {
-		url?: string,
 		anisotropy?: number,
 		minFilter?: number,
 		magFilter?: number,
@@ -53,7 +50,6 @@ export default abstract class Texture {
 		this.renderer = renderer;
 		this.gl = renderer.gl;
 
-		this.url = url;
 		this.anisotropy = anisotropy;
 		this.minFilter = minFilter;
 		this.magFilter = magFilter;
@@ -63,7 +59,6 @@ export default abstract class Texture {
 		this.format = format;
 		this.internalFormat = internalFormat;
 		this.type = type;
-		this.data = data;
 		this.flipY = flipY;
 
 		this.WebGLTexture = this.gl.createTexture();
@@ -71,19 +66,6 @@ export default abstract class Texture {
 			this.loadingPromiseResolve = resolve;
 		});
 	}
-
-	protected load() {
-		const image = new Image();
-
-		image.crossOrigin = "anonymous";
-		image.onload = () => {
-			this.writeImage(image);
-			this.loadingPromiseResolve();
-		}
-		image.src = this.url;
-	}
-
-	protected abstract writeImage(image: HTMLImageElement): void;
 
 	public updateWrapping() {
 		this.gl.texParameteri(this.textureTypeConstant, GLConstants.TEXTURE_WRAP_S, this.wrap);
@@ -106,6 +88,10 @@ export default abstract class Texture {
 	public updateAnisotropy() {
 		const extension = this.renderer.extensions.get('EXT_texture_filter_anisotropic').TEXTURE_MAX_ANISOTROPY_EXT;
 		this.gl.texParameterf(this.textureTypeConstant, extension, this.anisotropy);
+	}
+
+	protected resolveLoading() {
+		this.loadingPromiseResolve();
 	}
 
 	public abstract setSize(width: number, height: number): void;

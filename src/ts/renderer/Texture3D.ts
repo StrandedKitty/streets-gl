@@ -36,16 +36,12 @@ export default class Texture3D extends Texture {
 		flipY?: boolean,
 		depth: number
 	}) {
-		super(renderer, {url, anisotropy, minFilter, magFilter, wrap, width, height, format, internalFormat, type, data, flipY});
+		super(renderer, {anisotropy, minFilter, magFilter, wrap, width, height, format, internalFormat, type, data, flipY});
 
 		this.depth = depth;
 	}
 
 	setSize(width: number, height: number) {
-
-	}
-
-	protected writeImage(image: HTMLImageElement) {
 
 	}
 }

@@ -4,6 +4,7 @@ import Texture from "./Texture";
 
 export default class Texture2D extends Texture {
 	protected textureTypeConstant = GLConstants.TEXTURE_2D;
+	public url: string;
 
 	constructor(renderer: Renderer, {
 		url,
@@ -32,7 +33,7 @@ export default class Texture2D extends Texture {
 		data?: TypedArray,
 		flipY?: boolean
 	}) {
-		super(renderer, {url, anisotropy, minFilter, magFilter, wrap, width, height, format, internalFormat, type, data, flipY});
+		super(renderer, {anisotropy, minFilter, magFilter, wrap, width, height, format, internalFormat, type, data, flipY});
 
 		this.gl.bindTexture(GLConstants.TEXTURE_2D, this.WebGLTexture);
 
@@ -41,23 +42,27 @@ export default class Texture2D extends Texture {
 		this.updateAnisotropy();
 
 		if(this.url) {
-			this.gl.texImage2D(GLConstants.TEXTURE_2D, 0, GLConstants.RGBA, 1, 1, 0, GLConstants.RGBA, GLConstants.UNSIGNED_BYTE, null);
+			//this.gl.texImage2D(GLConstants.TEXTURE_2D, 0, GLConstants.RGBA, this.width, this.height, 0, GLConstants.RGBA, GLConstants.UNSIGNED_BYTE, null);
+			this.writeFromBuffer(null);
 
-			this.load();
+			this.loadImage();
 		} else {
-			this.updateFlipY();
-
-			this.gl.texImage2D(GLConstants.TEXTURE_2D, 0, this.internalFormat, this.width, this.height, 0, this.format, this.type, this.data);
-
-			if (this.format === GLConstants.RGBA) {
-				this.generateMipmaps();
-			}
+			this.writeFromBuffer(this.data);
 		}
-
-		this.gl.bindTexture(GLConstants.TEXTURE_2D, null);
 	}
 
-	protected writeImage(image: HTMLImageElement) {
+	private loadImage() {
+		const image = new Image();
+
+		image.crossOrigin = "anonymous";
+		image.onload = () => {
+			this.writeFromImage(image);
+			this.resolveLoading();
+		}
+		image.src = this.url;
+	}
+
+	private writeFromImage(image: HTMLImageElement) {
 		this.gl.bindTexture(GLConstants.TEXTURE_2D, this.WebGLTexture);
 
 		this.width = image.width;
@@ -69,13 +74,22 @@ export default class Texture2D extends Texture {
 		this.generateMipmaps();
 	}
 
+	private writeFromBuffer(data: TypedArray) {
+		this.gl.bindTexture(GLConstants.TEXTURE_2D, this.WebGLTexture);
+
+		this.updateFlipY();
+		this.gl.texImage2D(GLConstants.TEXTURE_2D, 0, this.internalFormat, this.width, this.height, 0, this.format, this.type, data);
+
+		if(data) {
+			this.generateMipmaps();
+		}
+	}
+
 	public setSize(width: number, height: number) {
 		this.width = width;
 		this.height = height;
 
-		this.gl.bindTexture(GLConstants.TEXTURE_2D, this.WebGLTexture);
-		this.gl.texImage2D(GLConstants.TEXTURE_2D, 0, this.internalFormat, this.width, this.height, 0, this.format, this.type, this.data);
-		this.gl.bindTexture(GLConstants.TEXTURE_2D, null);
+		this.writeFromBuffer(this.data);
 	}
 
 	public loadFromTiles(urls: string[], segmentsX: number, segmentsY: number) {
@@ -105,11 +119,15 @@ export default class Texture2D extends Texture {
 		}
 
 		Promise.all(promises).then(() => {
-			if (this.format === GLConstants.RGBA) {
-				this.generateMipmaps();
-			}
+			this.generateMipmaps();
 
-			this.loadingPromiseResolve();
+			this.resolveLoading();
 		});
+	}
+
+	public generateMipmaps() {
+		if (this.format === GLConstants.RGBA) {
+			super.generateMipmaps();
+		}
 	}
 }
