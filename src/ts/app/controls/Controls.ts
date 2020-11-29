@@ -81,6 +81,7 @@ export default class Controls {
 
 		this.element.addEventListener('contextmenu', (e: MouseEvent) => e.preventDefault());
 		this.element.addEventListener('mousedown', (e: MouseEvent) => this.mouseDownEvent(e));
+		this.element.addEventListener('mouseleave', (e: MouseEvent) => this.mouseLeaveEvent(e));
 		this.element.addEventListener('mouseup', (e: MouseEvent) => this.mouseUpEvent(e));
 		this.element.addEventListener('mousemove', (e: MouseEvent) => this.mouseMoveEvent(e));
 		this.element.addEventListener('wheel', (e: WheelEvent) => this.wheelEvent(e));
@@ -119,6 +120,15 @@ export default class Controls {
 			this.isMovementMouseMode = true;
 			this.mouseDownPosition = this.projectOnGround(e.clientX, e.clientY);
 		}
+	}
+
+	private mouseLeaveEvent(e: MouseEvent) {
+		this.app.cursorStyleSystem.disableGrabbing();
+
+		this.isRotationMouseMode = false
+		this.isMovementMouseMode = false;
+		this.mouseDownPosition = null;
+		this.cachedMoveEvent = null;
 	}
 
 	private mouseUpEvent(e: MouseEvent) {
