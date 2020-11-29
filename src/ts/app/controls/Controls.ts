@@ -9,6 +9,7 @@ import TouchRotateHandler from "./TouchRotateHandler";
 import {TouchPitchHandler} from "./TouchPitchHandler";
 import URLControlsStateHandler from "./URLControlsStateHandler";
 import Config from "../Config";
+import {App} from "../App";
 
 const touchYawFactor = 4;
 const touchPitchFactor = 2;
@@ -22,6 +23,7 @@ export interface ControlsState {
 }
 
 export default class Controls {
+	private app: App;
 	private element: HTMLElement;
 	private camera: Camera;
 	private tick: number = 0;
@@ -44,8 +46,9 @@ export default class Controls {
 	private readonly rotationSpeed = 0.25;
 	private readonly movementSpeed = 1;
 
-	constructor(element: HTMLElement) {
-		this.element = element;
+	constructor(app: App) {
+		this.app = app;
+		this.element = app.canvas;
 
 		this.touchHandlers = new Map<string, DoubleTouchHandler>([
 			['zoom', new TouchZoomHandler()],
@@ -108,6 +111,8 @@ export default class Controls {
 	}
 
 	private mouseDownEvent(e: MouseEvent) {
+		this.app.cursorStyleSystem.enableGrabbing();
+
 		if (e.button && e.button == 2) {
 			this.isRotationMouseMode = true
 		} else {
@@ -117,6 +122,8 @@ export default class Controls {
 	}
 
 	private mouseUpEvent(e: MouseEvent) {
+		this.app.cursorStyleSystem.disableGrabbing();
+
 		if (e.button && e.button == 2)
 			this.isRotationMouseMode = false
 		else {

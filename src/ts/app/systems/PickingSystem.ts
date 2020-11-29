@@ -2,14 +2,18 @@ import Vec2 from "../../math/Vec2";
 import GLConstants from "../../renderer/GLConstants";
 import Renderer from "../../renderer/Renderer";
 import GBuffer from "../../renderer/GBuffer";
+import {App} from "../App";
 
 export default class PickingSystem {
+	private app: App;
 	private pointerPosition: Vec2 = new Vec2();
 	private pixelBuffer: WebGLBuffer;
 	private enablePicking: boolean = true;
 	public selectedObjectId: number = 0;
 
-	constructor() {
+	constructor(app: App) {
+		this.app = app;
+
 		window.addEventListener('pointerdown', e => {
 			this.pointerPosition.x = e.clientX;
 			this.pointerPosition.y = e.clientY;
@@ -37,16 +41,16 @@ export default class PickingSystem {
 		renderer.gl.bindBuffer(renderer.gl.PIXEL_PACK_BUFFER, buffer);
 		renderer.gl.bufferData(renderer.gl.PIXEL_PACK_BUFFER, 4, renderer.gl.STATIC_DRAW);
 		renderer.gl.bindBuffer(renderer.gl.PIXEL_PACK_BUFFER, null);
-		
+
 		this.pixelBuffer = buffer;
 	}
 
 	public readObjectId(renderer: Renderer, gBuffer: GBuffer) {
-		if(!this.pixelBuffer) {
+		if (!this.pixelBuffer) {
 			this.createPixelBuffer(renderer);
 		}
 
-		if(!this.enablePicking) {
+		if (!this.enablePicking) {
 			this.selectedObjectId = 0;
 		}
 
@@ -70,5 +74,17 @@ export default class PickingSystem {
 
 			this.selectedObjectId = data[0];
 		});
+	}
+
+	private updatePointer() {
+		if (this.selectedObjectId > 0 && this.enablePicking) {
+			this.app.cursorStyleSystem.enablePointer();
+		} else {
+			this.app.cursorStyleSystem.disablePointer();
+		}
+	}
+
+	public update() {
+
 	}
 }
