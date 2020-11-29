@@ -85,13 +85,6 @@ export default class Texture2D extends Texture {
 		}
 	}
 
-	public setSize(width: number, height: number) {
-		this.width = width;
-		this.height = height;
-
-		this.writeFromBuffer(this.data);
-	}
-
 	public loadFromTiles(urls: string[], segmentsX: number, segmentsY: number) {
 		const promises: Promise<void>[] = [];
 		const tileWidth = this.width / segmentsX;
@@ -129,5 +122,12 @@ export default class Texture2D extends Texture {
 		if (this.format === GLConstants.RGBA) {
 			super.generateMipmaps();
 		}
+	}
+
+	public setSize(width: number, height: number) {
+		this.width = width;
+		this.height = height;
+
+		this.writeFromBuffer(this.data);
 	}
 }

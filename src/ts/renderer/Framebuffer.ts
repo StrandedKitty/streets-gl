@@ -2,6 +2,7 @@ import Renderer from "./Renderer";
 import GLConstants from "./GLConstants";
 import Texture2D from "./Texture2D";
 import Texture3D from "./Texture3D";
+import Texture2DArray from "./Texture2DArray";
 
 export default class Framebuffer {
 	private readonly gl: WebGL2RenderingContext;
@@ -10,8 +11,8 @@ export default class Framebuffer {
 	public width: number;
 	public height: number;
 	public readonly usesDepth: boolean;
+	public depthTexture: Texture2D | Texture2DArray | Texture3D;
 	public readonly WebGLFramebuffer: WebGLFramebuffer;
-	public readonly depthTexture: Texture2D;
 
 	constructor(renderer: Renderer, {
 		textures,
@@ -63,17 +64,22 @@ export default class Framebuffer {
 		this.renderer.bindFramebuffer(null);
 	}
 
-	public attachTexture3DLayer(texture: Texture3D, layer: number, attachment = 0) {
+	public attachTexture3DLayer(texture: Texture3D | Texture2DArray, layer: number) {
 		this.renderer.bindFramebuffer(this);
-		this.renderer.gl.framebufferTextureLayer(GLConstants.FRAMEBUFFER, GLConstants.COLOR_ATTACHMENT0 + attachment, texture.WebGLTexture, 0, layer);
 
-		const attachments = [];
+		this.renderer.gl.framebufferTextureLayer(GLConstants.FRAMEBUFFER, GLConstants.COLOR_ATTACHMENT0, texture.WebGLTexture, 0, layer);
+		this.gl.drawBuffers([GLConstants.COLOR_ATTACHMENT0]);
 
-		for(let i = 0; i <= attachment; i++) {
-			attachments.push(GLConstants.COLOR_ATTACHMENT0 + i);
-		}
+		this.renderer.bindFramebuffer(null);
+	}
 
-		this.gl.drawBuffers(attachments);
+	public attachTexture3DLayerToDepth(texture: Texture3D | Texture2DArray, layer: number) {
+		this.renderer.bindFramebuffer(this);
+
+		this.renderer.gl.framebufferTextureLayer(GLConstants.FRAMEBUFFER, GLConstants.DEPTH_ATTACHMENT, texture.WebGLTexture, 0, layer);
+		this.depthTexture = texture;
+
+		this.renderer.bindFramebuffer(null);
 	}
 
 	public setSize(width: number, height: number) {
@@ -82,8 +88,9 @@ export default class Framebuffer {
 
 		this.renderer.bindFramebuffer(this);
 
-		if(this.depthTexture)
+		if(this.depthTexture) {
 			this.depthTexture.setSize(width, height);
+		}
 
 		for(let i = 0; i < this.textures.length; i++) {
 			this.textures[i].setSize(width, height);

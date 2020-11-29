@@ -100,5 +100,7 @@ export default class Texture2DArray extends Texture {
 	public setSize(width: number, height: number) {
 		this.width = width;
 		this.height = height;
+
+		this.writeFromBuffer(this.data);
 	}
 }

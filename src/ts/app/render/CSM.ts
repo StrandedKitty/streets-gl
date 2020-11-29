@@ -2,10 +2,12 @@ import Object3D from "../../core/Object3D";
 import Renderer from "../../renderer/Renderer";
 import PerspectiveCamera from "../../core/PerspectiveCamera";
 import Vec3 from "../../math/Vec3";
-import DirectionalLightShadow from "../../renderer/DirectionalLightShadow";
+import DirectionalLightShadow from "../objects/DirectionalLightShadow";
 import Frustum from "../../core/Frustum";
 import AABB from "../../core/AABB";
 import Material, {UniformType} from "../../renderer/Material";
+import Texture2DArray from "../../renderer/Texture2DArray";
+import GLConstants from "../../renderer/GLConstants";
 
 const ShadowCameraTopOffset: number = 2000;
 const FadeOffsetFactor: number = 250;
@@ -22,6 +24,7 @@ export default class CSM extends Object3D {
 	public direction: Vec3;
 
 	public lights: DirectionalLightShadow[] = [];
+	private texture: Texture2DArray;
 	private mainFrustum: Frustum;
 	private frustums: Frustum[];
 	private breaks: number[][];
@@ -68,12 +71,26 @@ export default class CSM extends Object3D {
 	}
 
 	private createLights() {
+		this.texture = new Texture2DArray(this.renderer, {
+			width: this.resolution,
+			height: this.resolution,
+			depth: this.cascades,
+			minFilter: GLConstants.NEAREST,
+			magFilter: GLConstants.NEAREST,
+			wrap: GLConstants.CLAMP_TO_EDGE,
+			internalFormat: GLConstants.DEPTH_COMPONENT32F,
+			format: GLConstants.DEPTH_COMPONENT,
+			type: GLConstants.FLOAT
+		});
+
 		for (let i = 0; i < this.cascades; i++) {
 			const light = new DirectionalLightShadow(this.renderer, {
 				resolution: this.resolution,
 				size: 0,
 				near: 1,
-				far: 10000
+				far: 10000,
+				textureArray: this.texture,
+				textureLayer: i
 			});
 
 			this.add(light);
@@ -165,11 +182,12 @@ export default class CSM extends Object3D {
 	}
 
 	public applyUniformsToMaterial(material: Material) {
+		material.uniforms[`shadowMap`] = {
+			type: UniformType.Texture2DArray,
+			value: this.texture
+		};
+
 		for (let i = 0; i < this.cascades; i++) {
-			material.uniforms[`cascades[${i}].shadowMap`] = {
-				type: UniformType.Texture2D,
-				value: this.lights[i].texture
-			};
 			material.uniforms[`cascades[${i}].matrixWorldInverse`] = {
 				type: UniformType.Matrix4,
 				value: this.lights[i].camera.matrixWorldInverse

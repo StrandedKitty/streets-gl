@@ -61,7 +61,7 @@ export default class GBuffer {
 			usesDepth: true
 		});
 
-		this.textures.depth = this.framebuffer.depthTexture;
+		this.textures.depth = <Texture2D>this.framebuffer.depthTexture;
 
 		this.framebufferHDR = new Framebuffer(this.renderer, {
 			width: this.width,

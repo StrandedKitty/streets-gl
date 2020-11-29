@@ -1,9 +1,9 @@
-import Object3D from "../core/Object3D";
-import OrthographicCamera from "../core/OrthographicCamera";
-import Renderer from "./Renderer";
-import Framebuffer from "./Framebuffer";
-import GLConstants from "./GLConstants";
-import Texture2D from "./Texture2D";
+import Object3D from "../../core/Object3D";
+import OrthographicCamera from "../../core/OrthographicCamera";
+import Renderer from "../../renderer/Renderer";
+import Framebuffer from "../../renderer/Framebuffer";
+import Texture2D from "../../renderer/Texture2D";
+import Texture2DArray from "../../renderer/Texture2DArray";
 
 export default class DirectionalLightShadow extends Object3D {
 	private readonly renderer: Renderer;
@@ -18,18 +18,23 @@ export default class DirectionalLightShadow extends Object3D {
 	public right: number;
 	public bottom: number;
 	public top: number;
+	private textureArray: Texture2DArray;
+	private textureLayer: number;
 
 	constructor(renderer: Renderer, {
 		resolution,
 		size,
 		near,
-		far
+		far,
+		textureArray,
+		textureLayer
 	}: {
 		resolution: number,
 		size: number,
 		near: number,
 		far: number,
-
+		textureArray: Texture2DArray,
+		textureLayer: number
 	}) {
 		super();
 
@@ -44,6 +49,8 @@ export default class DirectionalLightShadow extends Object3D {
 		this.top = this.size;
 		this.near = near;
 		this.far = far;
+		this.textureArray = textureArray;
+		this.textureLayer = textureLayer;
 
 		this.camera = new OrthographicCamera({
 			left: this.left,
@@ -63,11 +70,13 @@ export default class DirectionalLightShadow extends Object3D {
 			textures: []
 		});
 
+		this.framebuffer.attachTexture3DLayerToDepth(this.textureArray, this.textureLayer);
+
 		this.matrixOverwrite = false;
 	}
 
-	public get texture(): Texture2D {
-		return this.framebuffer.depthTexture;
+	public get texture(): Texture2DArray {
+		return <Texture2DArray>this.framebuffer.depthTexture;
 	}
 
 	public setSize(resolution: number) {

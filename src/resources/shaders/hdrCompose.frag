@@ -2,6 +2,7 @@
 precision highp float;
 precision highp int;
 precision highp sampler2D;
+precision highp sampler2DArray;
 precision highp sampler3D;
 precision highp usampler2D;
 
@@ -29,8 +30,9 @@ uniform sampler2D tObjectShape;
 uniform samplerCube tSky;
 uniform mat4 viewMatrix;
 
+uniform sampler2DArray shadowMap;
+
 struct Cascade {
-	sampler2D shadowMap;
 	float resolution;
 	float size;
 	vec2 bias;
@@ -213,22 +215,22 @@ float orthographicDepthToViewZ( const in float linearClipZ, const in float near,
     return linearClipZ * ( near - far ) - near;
 }
 
-float textureShadow(sampler2D depth, vec2 uv) {
-    return -orthographicDepthToViewZ(texture(depth, uv).r, 1., 10000.);
+float textureShadow(int shadowMapLayer, vec2 uv) {
+    return -orthographicDepthToViewZ(texture(shadowMap, vec3(uv, shadowMapLayer)).r, 1., 10000.);
 }
 
-float textureCompare(sampler2D depth, vec2 uv, float compare) {
-    return float(step(compare, textureShadow(depth, uv)));
+float textureCompare(int shadowMapLayer, vec2 uv, float compare) {
+    return float(step(compare, textureShadow(shadowMapLayer, uv)));
 }
 
-float textureShadowLerp(sampler2D depths, vec2 size, vec2 uv, float compare) {
+float textureShadowLerp(int shadowMapLayer, vec2 size, vec2 uv, float compare) {
     const vec2 offset = vec2(0.0, 1.0);
     vec2 texelSize = vec2(1.0) / size;
     vec2 centroidUV = (floor(uv * size - 0.5) + 0.5) * texelSize;
-    float lb = textureCompare(depths, centroidUV + texelSize * offset.xx, compare);
-    float lt = textureCompare(depths, centroidUV + texelSize * offset.xy, compare);
-    float rb = textureCompare(depths, centroidUV + texelSize * offset.yx, compare);
-    float rt = textureCompare(depths, centroidUV + texelSize * offset.yy, compare);
+    float lb = textureCompare(shadowMapLayer, centroidUV + texelSize * offset.xx, compare);
+    float lt = textureCompare(shadowMapLayer, centroidUV + texelSize * offset.xy, compare);
+    float rb = textureCompare(shadowMapLayer, centroidUV + texelSize * offset.yx, compare);
+    float rt = textureCompare(shadowMapLayer, centroidUV + texelSize * offset.yy, compare);
     vec2 f = fract(uv * size + 0.5);
     float a = mix(lb, lt, f.y);
     float b = mix(rb, rt, f.y);
@@ -236,7 +238,7 @@ float textureShadowLerp(sampler2D depths, vec2 size, vec2 uv, float compare) {
     return c;
 }
 
-float getShadow(sampler2D shadowMap, float shadowBias, vec4 shadowPosition, float shadowFrustumSize) {
+float getShadow(int shadowMapLayer, float shadowBias, vec4 shadowPosition, float shadowFrustumSize) {
     float shadow = 1.0;
     vec2 shadowUV = shadowPosition.xy / shadowFrustumSize * 0.5 + 0.5;
 
@@ -246,13 +248,13 @@ float getShadow(sampler2D shadowMap, float shadowBias, vec4 shadowPosition, floa
     if(inFrustum && shadowPosition.z / shadowPosition.w < 1.) {
         float shadowSpaceDepth = -shadowPosition.z + shadowBias;
 
-        shadow = textureCompare(shadowMap, shadowUV.xy, shadowSpaceDepth);
+        shadow = textureCompare(shadowMapLayer, shadowUV.xy, shadowSpaceDepth);
     }
 
     return shadow;
 }
 
-float getShadowSoft(sampler2D shadowMap, float shadowBias, vec4 shadowPosition, float shadowFrustumSize, vec2 shadowMapSize, float shadowRadius) {
+float getShadowSoft(int shadowMapLayer, float shadowBias, vec4 shadowPosition, float shadowFrustumSize, vec2 shadowMapSize, float shadowRadius) {
     float shadow = 1.0;
     vec2 shadowUV = (shadowPosition.xy / shadowFrustumSize + 1.) / 2.;
     bvec4 inFrustumVec = bvec4(shadowUV.x >= 0.0, shadowUV.x <= 1.0, shadowUV.y >= 0.0, shadowUV.y <= 1.0);
@@ -268,15 +270,15 @@ float getShadowSoft(sampler2D shadowMap, float shadowBias, vec4 shadowPosition, 
         float dy1 = +texelSize.y * shadowRadius;
 
         shadow = (
-            textureShadowLerp(shadowMap, shadowMapSize, shadowUV.xy + vec2(dx0, dy0), shadowSpaceDepth) +
-            textureShadowLerp(shadowMap, shadowMapSize, shadowUV.xy + vec2(0.0, dy0), shadowSpaceDepth) +
-            textureShadowLerp(shadowMap, shadowMapSize, shadowUV.xy + vec2(dx1, dy0), shadowSpaceDepth) +
-            textureShadowLerp(shadowMap, shadowMapSize, shadowUV.xy + vec2(dx0, 0.0), shadowSpaceDepth) +
-            textureShadowLerp(shadowMap, shadowMapSize, shadowUV.xy + vec2(0.0, 0.0), shadowSpaceDepth) +
-            textureShadowLerp(shadowMap, shadowMapSize, shadowUV.xy + vec2(dx1, 0.0), shadowSpaceDepth) +
-            textureShadowLerp(shadowMap, shadowMapSize, shadowUV.xy + vec2(dx0, dy1), shadowSpaceDepth) +
-            textureShadowLerp(shadowMap, shadowMapSize, shadowUV.xy + vec2(0.0, dy1), shadowSpaceDepth) +
-            textureShadowLerp(shadowMap, shadowMapSize, shadowUV.xy + vec2(dx1, dy1), shadowSpaceDepth)
+            textureShadowLerp(shadowMapLayer, shadowMapSize, shadowUV.xy + vec2(dx0, dy0), shadowSpaceDepth) +
+            textureShadowLerp(shadowMapLayer, shadowMapSize, shadowUV.xy + vec2(0.0, dy0), shadowSpaceDepth) +
+            textureShadowLerp(shadowMapLayer, shadowMapSize, shadowUV.xy + vec2(dx1, dy0), shadowSpaceDepth) +
+            textureShadowLerp(shadowMapLayer, shadowMapSize, shadowUV.xy + vec2(dx0, 0.0), shadowSpaceDepth) +
+            textureShadowLerp(shadowMapLayer, shadowMapSize, shadowUV.xy + vec2(0.0, 0.0), shadowSpaceDepth) +
+            textureShadowLerp(shadowMapLayer, shadowMapSize, shadowUV.xy + vec2(dx1, 0.0), shadowSpaceDepth) +
+            textureShadowLerp(shadowMapLayer, shadowMapSize, shadowUV.xy + vec2(dx0, dy1), shadowSpaceDepth) +
+            textureShadowLerp(shadowMapLayer, shadowMapSize, shadowUV.xy + vec2(0.0, dy1), shadowSpaceDepth) +
+            textureShadowLerp(shadowMapLayer, shadowMapSize, shadowUV.xy + vec2(dx1, dy1), shadowSpaceDepth)
         ) * (1. / 9.);
     }
 
@@ -291,9 +293,9 @@ float getShadowFactorForCascade(int cascadeId, vec3 worldPosition) {
 
 	vec4 shadowPosition = shadowMatrixWorldInverse * vec4(worldPosition, 1.);
 
-	if(cascadeId == 0) return getShadowSoft(cascades[0].shadowMap, shadowBias, shadowPosition, shadowSize, vec2(shadowResolution), SHADOWMAP_SOFT_RADIUS);
-	if(cascadeId == 1) return getShadowSoft(cascades[1].shadowMap, shadowBias, shadowPosition, shadowSize, vec2(shadowResolution), SHADOWMAP_SOFT_RADIUS);
-	if(cascadeId == 2) return getShadowSoft(cascades[2].shadowMap, shadowBias, shadowPosition, shadowSize, vec2(shadowResolution), SHADOWMAP_SOFT_RADIUS);
+	if(cascadeId == 0) return getShadowSoft(0, shadowBias, shadowPosition, shadowSize, vec2(shadowResolution), SHADOWMAP_SOFT_RADIUS);
+	if(cascadeId == 1) return getShadowSoft(1, shadowBias, shadowPosition, shadowSize, vec2(shadowResolution), SHADOWMAP_SOFT_RADIUS);
+	if(cascadeId == 2) return getShadowSoft(2, shadowBias, shadowPosition, shadowSize, vec2(shadowResolution), SHADOWMAP_SOFT_RADIUS);
 
 	return 1.;
 }
