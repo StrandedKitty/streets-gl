@@ -83,6 +83,16 @@ export default class TileManager {
 		return tiles;
 	}
 
+	public getTileByLocalId(localId: number): Tile {
+		for(const tile of this.tiles.values()) {
+			if(tile.localId === localId) {
+				return tile;
+			}
+		}
+
+		return null;
+	}
+
 	public update() {
 		this.updateTiles();
 		this.tileProvider.update();

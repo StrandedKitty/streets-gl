@@ -18,6 +18,7 @@ interface EarcutInput {
 }
 
 export default class Way3D extends Feature3D {
+	public buildingRelationId: number;
 	public vertices: [number, number][];
 	public maxGroundHeight: number;
 	public minGroundHeight: number;
@@ -28,9 +29,10 @@ export default class Way3D extends Feature3D {
 	public geoJSON: GeoJSON.MultiPolygon = null;
 	public aabb: WayAABB = new WayAABB();
 
-	constructor(id: number, tags: Tags, heightViewer: HeightViewer) {
+	constructor(id: number, buildingRelationId: number = null, tags: Tags, heightViewer: HeightViewer) {
 		super(id, tags);
 
+		this.buildingRelationId = buildingRelationId;
 		this.heightViewer = heightViewer;
 	}
 
@@ -99,9 +101,9 @@ export default class Way3D extends Feature3D {
 			));
 		}
 
-		const positionBuffer = TileGeometryBuilder.mergeTypedArrays(Float32Array, positionArrays);
-		const uvBuffer = TileGeometryBuilder.mergeTypedArrays(Float32Array, uvArrays);
-		const textureIdBuffer = TileGeometryBuilder.mergeTypedArrays(Uint8Array, textureIdArrays);
+		const positionBuffer = Utils.mergeTypedArrays(Float32Array, positionArrays);
+		const uvBuffer = Utils.mergeTypedArrays(Float32Array, uvArrays);
+		const textureIdBuffer = Utils.mergeTypedArrays(Uint8Array, textureIdArrays);
 		const color = new Uint8Array(<number[]>this.tags.facadeColor || [255, 255, 255]);
 		const colorBuffer = Utils.fillTypedArraySequence(
 			Uint8Array,

@@ -34,8 +34,9 @@ export default class Tile extends Object3D {
 	public ground: Ground;
 	public buildings: Mesh;
 	public staticGeometry: StaticTileGeometry;
-	public buildingOffsetMap: Map<number, [number, number]>;
-	public buildingVisibilityMap: Map<number, boolean>;
+	public buildingIdMap: Map<number, number> = new Map();
+	public buildingOffsetMap: Map<number, [number, number]> = new Map();
+	public buildingVisibilityMap: Map<number, boolean> = new Map();
 	public displayBufferNeedsUpdate: boolean = false;
 	public x: number;
 	public y: number;
@@ -176,26 +177,22 @@ export default class Tile extends Object3D {
 	}
 
 	private updateStaticGeometryOffsets() {
-		const offsetMap: Map<number, [number, number]> = new Map();
-		const visibilityMap: Map<number, boolean> = new Map();
 		const ids = this.staticGeometry.buildings.id;
 		const offsets = this.staticGeometry.buildings.offset;
 		const vertexCount = this.staticGeometry.buildings.position.length / 3;
 
 		for(let i = 0; i < ids.length; i += 2) {
-			const id = MathUtils.shiftLeft(ids[i + 1], 32) + ids[i];
-			const type = ids[i + 1] & 0xC000;
+			const id = MathUtils.shiftLeft(ids[i + 1] & 0x7FFFF, 32) + ids[i];
+			const type = ids[i + 1] >> 19;
 
-			const packedId = MathUtils.shiftLeft(type, 51) + id;
+			const packedId = Tile.packFeatureId(id, type);
 
 			const offset = offsets[i / 2];
 			const nextOffset = offsets[i / 2 + 1] || vertexCount;
-			offsetMap.set(packedId, [offset, nextOffset - offset]);
-			visibilityMap.set(packedId, true);
+			this.buildingIdMap.set(i / 2, packedId);
+			this.buildingOffsetMap.set(packedId, [offset, nextOffset - offset]);
+			this.buildingVisibilityMap.set(packedId, true);
 		}
-
-		this.buildingOffsetMap = offsetMap;
-		this.buildingVisibilityMap = visibilityMap;
 	}
 
 	public hideBuilding(id: number) {
@@ -256,5 +253,23 @@ export default class Tile extends Object3D {
 
 	public static decodePosition(encoded: number): Vec2 {
 		return new Vec2(encoded >> 16, encoded & 0xffff);
+	}
+
+	public static packFeatureId(id: number, type: number): number {
+		return MathUtils.shiftLeft(type, 51) + id;
+	}
+
+	public static unpackFeatureId(packedId: number): [number, number] {
+		const type = MathUtils.shiftRight(packedId, 51);
+		let id = packedId;
+
+		if (id >= 2**52) {
+			id -= 2**52;
+		}
+		if (id >= 2**51) {
+			id -= 2**51;
+		}
+
+		return [type, id];
 	}
 }

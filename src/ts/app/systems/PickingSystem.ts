@@ -3,6 +3,7 @@ import GLConstants from "../../renderer/GLConstants";
 import Renderer from "../../renderer/Renderer";
 import GBuffer from "../../renderer/GBuffer";
 import {App} from "../App";
+import Tile from "../objects/Tile";
 
 export default class PickingSystem {
 	private app: App;
@@ -10,6 +11,7 @@ export default class PickingSystem {
 	private pixelBuffer: WebGLBuffer;
 	private enablePicking: boolean = true;
 	public selectedObjectId: number = 0;
+	private pointerDownPosition: Vec2 = new Vec2();
 
 	constructor(app: App) {
 		this.app = app;
@@ -17,11 +19,23 @@ export default class PickingSystem {
 		window.addEventListener('pointerdown', e => {
 			this.pointerPosition.x = e.clientX;
 			this.pointerPosition.y = e.clientY;
+
+			this.pointerDownPosition.x = e.clientX;
+			this.pointerDownPosition.y = e.clientY;
 		});
 
 		window.addEventListener('pointermove', e => {
 			this.pointerPosition.x = e.clientX;
 			this.pointerPosition.y = e.clientY;
+		});
+
+		window.addEventListener('pointerup', e => {
+			this.pointerPosition.x = e.clientX;
+			this.pointerPosition.y = e.clientY;
+
+			if(this.pointerDownPosition.x === e.clientX && this.pointerDownPosition.y === e.clientY) {
+				this.onClick();
+			}
 		});
 
 		const canvas = document.getElementById('canvas');
@@ -83,6 +97,22 @@ export default class PickingSystem {
 		} else {
 			this.app.cursorStyleSystem.disablePointer();
 		}
+	}
+
+	private onClick() {
+		if(this.selectedObjectId !== 0) {
+			const selectedValue = this.selectedObjectId - 1;
+
+			const localTileId = selectedValue >> 16;
+			const tile = this.app.tileManager.getTileByLocalId(localTileId);
+			const localFeatureId = selectedValue & 0xffff;
+			const packedFeatureId = tile.buildingIdMap.get(localFeatureId);
+
+			const [type, id] = Tile.unpackFeatureId(packedFeatureId);
+			
+			console.log(`clicked ${type} ${id}`);
+		}
+
 	}
 
 	public update() {

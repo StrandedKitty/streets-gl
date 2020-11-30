@@ -30,7 +30,15 @@ ctx.addEventListener('message', event => {
 function sendMessage(msg: WorkerMessageIncoming) {
 	ctx.postMessage(msg,
 		msg.type === WorkerMessageIncomingType.Success ?
-			[msg.result.buildings.position.buffer, msg.result.buildings.uv.buffer] :
+			[
+				msg.result.buildings.position.buffer,
+				msg.result.buildings.uv.buffer,
+				msg.result.buildings.textureId.buffer,
+				msg.result.buildings.color.buffer,
+				msg.result.buildings.id.buffer,
+				msg.result.buildings.offset.buffer,
+				msg.result.buildings.localId.buffer
+			] :
 			[]
 	);
 }

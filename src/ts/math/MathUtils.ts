@@ -116,5 +116,9 @@ export default class MathUtils {
 	public static shiftLeft(num: number, bits: number): number {
 		return num * Math.pow(2, bits);
 	}
+
+	public static shiftRight(num: number, bits: number): number {
+		return Math.floor(num / Math.pow(2, bits));
+	}
 }
 

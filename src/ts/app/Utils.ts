@@ -30,6 +30,29 @@ export default class Utils {
 		return typedArray;
 	}
 
+	public static mergeTypedArrays<T extends TypedArray>(type: { new(l: number): T }, typedArrays: T[]): T {
+		if (typedArrays.length > 0) {
+			let length = 0;
+
+			for (let i = 0; i < typedArrays.length; i++) {
+				length += typedArrays[i].length;
+			}
+
+			const array = new type(length);
+
+			let currentLength = 0;
+
+			for (let i = 0; i < typedArrays.length; i++) {
+				array.set(typedArrays[i], currentLength);
+				currentLength += typedArrays[i].length;
+			}
+
+			return array;
+		}
+
+		return new type(0);
+	}
+
 	public static isMobileBrowser() {
 		let check = false;
 		(function (a) {

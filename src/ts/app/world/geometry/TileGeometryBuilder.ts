@@ -61,10 +61,22 @@ export default class TileGeometryBuilder {
 		const textureIdArrays: Uint8Array[] = [];
 		const localIdArrays: Uint32Array[] = [];
 
-		let wayLocalId = 0;
-		const visibleWays: Way3D[] = [];
+		const joinedWays: Map<number, Way3D[]> = new Map();
+
+		const featuresIDs: number[] = [];
+		const featuresTypes: number[] = [];
 
 		for (const way of ways.values()) {
+			if(way.buildingRelationId !== null) {
+				if(!joinedWays.has(way.buildingRelationId)) {
+					joinedWays.set(way.buildingRelationId, []);
+				}
+
+				joinedWays.get(way.buildingRelationId).push(way);
+
+				continue;
+			}
+
 			const {position, color, uv, textureId} = way.getAttributeBuffers();
 
 			if (position.length === 0) {
@@ -78,32 +90,71 @@ export default class TileGeometryBuilder {
 			localIdArrays.push(Utils.fillTypedArraySequence(
 				Uint32Array,
 				new Uint32Array(position.length / 3),
-				new Uint32Array([wayLocalId++])
+				new Uint32Array([localIdArrays.length])
 			));
 
-			visibleWays.push(way);
+			featuresIDs.push(way.id);
+			featuresTypes.push(0);
 		}
 
-		const offsets: Uint32Array = new Uint32Array(visibleWays.length);
-		const ids: Uint32Array = new Uint32Array(visibleWays.length * 2);
+		for(const [relationId, wayArray] of joinedWays.entries()) {
+			const relationPositionsArrays: Float32Array[] = [];
+			const relationColorArrays: Uint8Array[] = [];
+			const relationUvArrays: Float32Array[] = [];
+			const relationTextureIdArrays: Uint8Array[] = [];
+			const relationLocalIdArrays: Uint32Array[] = [];
+
+			for(const way of wayArray) {
+				const {position, color, uv, textureId} = way.getAttributeBuffers();
+
+				relationPositionsArrays.push(position);
+				relationColorArrays.push(color);
+				relationUvArrays.push(uv);
+				relationTextureIdArrays.push(textureId);
+				relationLocalIdArrays.push(Utils.fillTypedArraySequence(
+					Uint32Array,
+					new Uint32Array(position.length / 3),
+					new Uint32Array([localIdArrays.length])
+				));
+			}
+
+			positionArrays.push(
+				Utils.mergeTypedArrays(Float32Array, relationPositionsArrays)
+			);
+			colorArrays.push(
+				Utils.mergeTypedArrays(Uint8Array, relationColorArrays)
+			);
+			uvArrays.push(
+				Utils.mergeTypedArrays(Float32Array, relationUvArrays)
+			);
+			textureIdArrays.push(
+				Utils.mergeTypedArrays(Uint8Array, relationTextureIdArrays)
+			);
+			localIdArrays.push(
+				Utils.mergeTypedArrays(Uint32Array, relationLocalIdArrays)
+			);
+
+			featuresIDs.push(relationId);
+			featuresTypes.push(1);
+		}
+
+		const offsets: Uint32Array = new Uint32Array(featuresIDs.length);
+		const ids: Uint32Array = new Uint32Array(featuresIDs.length * 2);
 		let lastOffset = 0;
 
-		for (let i = 0; i < visibleWays.length; i++) {
-			const vertices = positionArrays[i];
-			const way = visibleWays[i];
-
-			ids[i * 2] = way.id;
-			ids[i * 2 + 1] = 0;
+		for (let i = 0; i < featuresIDs.length; i++) {
+			ids[i * 2] = Math.min(featuresIDs[i], 0xffffffff);
+			ids[i * 2 + 1] = MathUtils.shiftLeft(featuresTypes[i], 19) + MathUtils.shiftRight(featuresTypes[i], 32);
 
 			offsets[i] = lastOffset;
-			lastOffset += vertices.length / 3;
+			lastOffset += positionArrays[i].length / 3;
 		}
 
-		const positionBuffer = TileGeometryBuilder.mergeTypedArrays(Float32Array, positionArrays);
-		const colorBuffer = TileGeometryBuilder.mergeTypedArrays(Uint8Array, colorArrays);
-		const uvBuffer = TileGeometryBuilder.mergeTypedArrays(Float32Array, uvArrays);
-		const textureIdBuffer = TileGeometryBuilder.mergeTypedArrays(Uint8Array, textureIdArrays);
-		const localIdBuffer = TileGeometryBuilder.mergeTypedArrays(Uint32Array, localIdArrays);
+		const positionBuffer = Utils.mergeTypedArrays(Float32Array, positionArrays);
+		const colorBuffer = Utils.mergeTypedArrays(Uint8Array, colorArrays);
+		const uvBuffer = Utils.mergeTypedArrays(Float32Array, uvArrays);
+		const textureIdBuffer = Utils.mergeTypedArrays(Uint8Array, textureIdArrays);
+		const localIdBuffer = Utils.mergeTypedArrays(Uint32Array, localIdArrays);
 		const bbox = this.getBoundingBoxFromVertices(positionBuffer);
 
 		return {
@@ -183,6 +234,7 @@ export default class TileGeometryBuilder {
 		}
 
 		const processedWays = new Set<number>();
+		const buildingRelationsWays = new Map<number, number>();
 
 		for(const relation of osm.relations.values()) {
 			if(relation.members.length === 0) {
@@ -192,7 +244,7 @@ export default class TileGeometryBuilder {
 			const relationType: string = relation.descriptor.properties.relationType;
 
 			if(relationType === 'multipolygon') {
-				const way3d = new Way3D(relation.id, relation.descriptor.properties, this.heightViewer);
+				const way3d = new Way3D(relation.id, null, relation.descriptor.properties, this.heightViewer);
 				ways.set(way3d.id, way3d);
 
 				for(const {feature, role} of relation.members) {
@@ -212,6 +264,8 @@ export default class TileGeometryBuilder {
 				for(const {feature, role} of relation.members) {
 					if(feature instanceof OSMWay && role === 'outline') {
 						processedWays.add(feature.id);
+					} else if (role === 'part') {
+						buildingRelationsWays.set(feature.id, relation.id);
 					}
 				}
 			}
@@ -228,10 +282,15 @@ export default class TileGeometryBuilder {
 				wayNodes.push(nodes.get(node.id));
 			}
 
-			const way3d = new Way3D(way.id, way.descriptor.properties, this.heightViewer);
-			ways.set(way3d.id, way3d);
+			const way3d = new Way3D(
+				way.id,
+				buildingRelationsWays.get(way.id),
+				way.descriptor.properties,
+				this.heightViewer
+			);
 
 			way3d.addRing(RingType.Outer, way.id, wayNodes, way.descriptor.properties);
+			ways.set(way3d.id, way3d);
 		}
 
 		this.removeBuildingOutlines(ways);
@@ -287,28 +346,5 @@ export default class TileGeometryBuilder {
 		}
 
 		return {min, max};
-	}
-
-	static mergeTypedArrays<T extends TypedArray>(type: { new(l: number): T }, typedArrays: T[]): T {
-		if (typedArrays.length > 0) {
-			let length = 0;
-
-			for (let i = 0; i < typedArrays.length; i++) {
-				length += typedArrays[i].length;
-			}
-
-			const array = new type(length);
-
-			let currentLength = 0;
-
-			for (let i = 0; i < typedArrays.length; i++) {
-				array.set(typedArrays[i], currentLength);
-				currentLength += typedArrays[i].length;
-			}
-
-			return array;
-		}
-
-		return new type(0);
 	}
 }
