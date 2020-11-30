@@ -169,14 +169,13 @@ export default class RenderSystem {
 		this.wrapper.position.x = -this.camera.position.x;
 		this.wrapper.position.z = -this.camera.position.z;
 
+		this.wrapper.updateMatrix();
+
 		this.updateTiles();
 
-		this.scene.updateMatrixRecursively();
 		this.scene.updateMatrixWorldRecursively();
 
-		this.camera.updateMatrixWorld();
 		this.camera.updateMatrixWorldInverse();
-
 		this.camera.updateFrustum();
 
 		this.taaPass.jitterProjectionMatrix(this.camera.projectionMatrix, this.frameCount);

@@ -55,7 +55,9 @@ export default class Object3D {
 	}
 
 	public updateMatrixRecursively() {
-		if(this.matrixOverwrite) this.updateMatrix();
+		if(this.matrixOverwrite) {
+			this.updateMatrix();
+		}
 
 		for(let i = 0; i < this.children.length; ++i) {
 			this.children[i].updateMatrixRecursively();

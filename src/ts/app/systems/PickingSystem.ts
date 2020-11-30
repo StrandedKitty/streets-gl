@@ -73,6 +73,7 @@ export default class PickingSystem {
 			renderer.gl.bindBuffer(renderer.gl.PIXEL_PACK_BUFFER, null);
 
 			this.selectedObjectId = data[0];
+			this.updatePointer();
 		});
 	}
 

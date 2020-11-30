@@ -293,11 +293,7 @@ float getShadowFactorForCascade(int cascadeId, vec3 worldPosition) {
 
 	vec4 shadowPosition = shadowMatrixWorldInverse * vec4(worldPosition, 1.);
 
-	if(cascadeId == 0) return getShadowSoft(0, shadowBias, shadowPosition, shadowSize, vec2(shadowResolution), SHADOWMAP_SOFT_RADIUS);
-	if(cascadeId == 1) return getShadowSoft(1, shadowBias, shadowPosition, shadowSize, vec2(shadowResolution), SHADOWMAP_SOFT_RADIUS);
-	if(cascadeId == 2) return getShadowSoft(2, shadowBias, shadowPosition, shadowSize, vec2(shadowResolution), SHADOWMAP_SOFT_RADIUS);
-
-	return 1.;
+	return getShadowSoft(cascadeId, shadowBias, shadowPosition, shadowSize, vec2(shadowResolution), SHADOWMAP_SOFT_RADIUS);
 }
 
 vec3 applySelectionMask(vec3 color) {

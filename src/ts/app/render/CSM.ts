@@ -121,7 +121,7 @@ export default class CSM extends Object3D {
 		this.breaks = [];
 		this.fadeOffsets = [];
 
-		for(let i = 0; i < breaks.length; i++) {
+		for (let i = 0; i < breaks.length; i++) {
 			const prevBreak = i === 0 ? 0 : breaks[i - 1];
 
 			this.fadeOffsets.push(breaks[i] * FadeOffsetFactor);
@@ -134,7 +134,6 @@ export default class CSM extends Object3D {
 			const worldSpaceFrustum = this.frustums[i].toSpace(this.camera.matrix);
 			const light = this.lights[i];
 
-			light.camera.updateMatrixWorld();
 			light.camera.updateMatrixWorldInverse();
 
 			const lightSpaceFrustum = worldSpaceFrustum.toSpace(light.camera.matrixWorldInverse);
@@ -173,7 +172,7 @@ export default class CSM extends Object3D {
 	private getBreaksForUniform(): Float32Array {
 		const worldSpaceBreaks = [];
 
-		for(let i = 0; i < this.breaks.length; i++) {
+		for (let i = 0; i < this.breaks.length; i++) {
 			worldSpaceBreaks.push(this.breaks[i][0] * (this.far - this.near));
 			worldSpaceBreaks.push(this.breaks[i][1] * (this.far - this.near));
 		}

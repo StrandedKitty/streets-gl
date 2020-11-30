@@ -63,6 +63,7 @@ export default class Tile extends Object3D {
 
 		const positionInMeters = MathUtils.tile2meters(this.x, this.y + 1);
 		this.position.set(positionInMeters.x, 0, positionInMeters.y);
+		this.updateMatrix();
 	}
 
 	public async load(tileProvider: TileProvider, renderer: Renderer): Promise<void> {
