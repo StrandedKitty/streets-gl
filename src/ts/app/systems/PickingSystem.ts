@@ -10,6 +10,7 @@ export default class PickingSystem {
 	private pointerPosition: Vec2 = new Vec2();
 	private pixelBuffer: WebGLBuffer;
 	private enablePicking: boolean = true;
+	public hoveredObjectId: number = 0;
 	public selectedObjectId: number = 0;
 	private pointerDownPosition: Vec2 = new Vec2();
 
@@ -33,7 +34,7 @@ export default class PickingSystem {
 			this.pointerPosition.x = e.clientX;
 			this.pointerPosition.y = e.clientY;
 
-			if(this.pointerDownPosition.x === e.clientX && this.pointerDownPosition.y === e.clientY) {
+			if (this.pointerDownPosition.x === e.clientX && this.pointerDownPosition.y === e.clientY) {
 				this.onClick();
 			}
 		});
@@ -78,7 +79,7 @@ export default class PickingSystem {
 		const type = GLConstants.UNSIGNED_INT;
 
 		renderer.gl.bindBuffer(renderer.gl.PIXEL_PACK_BUFFER, this.pixelBuffer);
-		renderer.gl.readPixels(offset.x, gBuffer.height - offset.y, width, height, format, type, 0);
+		renderer.gl.readPixels(offset.x, gBuffer.height - offset.y - 1, width, height, format, type, 0);
 		renderer.gl.bindBuffer(renderer.gl.PIXEL_PACK_BUFFER, null);
 
 		renderer.fence().then(() => {
@@ -86,13 +87,13 @@ export default class PickingSystem {
 			renderer.gl.getBufferSubData(renderer.gl.PIXEL_PACK_BUFFER, 0, data);
 			renderer.gl.bindBuffer(renderer.gl.PIXEL_PACK_BUFFER, null);
 
-			this.selectedObjectId = data[0];
+			this.hoveredObjectId = data[0];
 			this.updatePointer();
 		});
 	}
 
 	private updatePointer() {
-		if (this.selectedObjectId > 0 && this.enablePicking) {
+		if (this.hoveredObjectId > 0 && this.enablePicking) {
 			this.app.cursorStyleSystem.enablePointer();
 		} else {
 			this.app.cursorStyleSystem.disablePointer();
@@ -100,7 +101,14 @@ export default class PickingSystem {
 	}
 
 	private onClick() {
-		if(this.selectedObjectId !== 0) {
+		if (this.hoveredObjectId === 0 || this.hoveredObjectId === this.selectedObjectId) {
+			this.selectedObjectId = 0;
+			return;
+		}
+
+		if (this.hoveredObjectId !== 0) {
+			this.selectedObjectId = this.hoveredObjectId;
+
 			const selectedValue = this.selectedObjectId - 1;
 
 			const localTileId = selectedValue >> 16;
@@ -109,10 +117,9 @@ export default class PickingSystem {
 			const packedFeatureId = tile.buildingIdMap.get(localFeatureId);
 
 			const [type, id] = Tile.unpackFeatureId(packedFeatureId);
-			
+
 			console.log(`clicked ${type} ${id}`);
 		}
-
 	}
 
 	public update() {
