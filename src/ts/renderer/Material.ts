@@ -90,43 +90,53 @@ export default class Material {
 				}
 			}
 
-			if (location !== null && uniform.value !== null) {
+			if (location !== null) {
 				if (uniform.type === UniformType.Texture2D) {
-					this.gl.activeTexture(GLConstants.TEXTURE0 + texturesUsed);
-					this.gl.bindTexture(GLConstants.TEXTURE_2D, uniform.value.WebGLTexture);
-					this.gl.uniform1i(this.uniformsLocations[name], texturesUsed);
+					if(uniform.value !== null) {
+						this.gl.activeTexture(GLConstants.TEXTURE0 + texturesUsed);
+						this.gl.bindTexture(GLConstants.TEXTURE_2D, uniform.value?.WebGLTexture);
+						this.gl.uniform1i(this.uniformsLocations[name], texturesUsed);
+					}
 
 					this.textureUnits.set(this.uniformsLocations[name], GLConstants.TEXTURE0 + texturesUsed);
 
 					++texturesUsed;
 				} else if (uniform.type === UniformType.TextureCube) {
-					this.gl.activeTexture(GLConstants.TEXTURE0 + texturesUsed);
-					if (uniform.value.loaded) {
-						this.gl.bindTexture(GLConstants.TEXTURE_CUBE_MAP, uniform.value.WebGLTexture);
+					if(uniform.value !== null) {
+						this.gl.activeTexture(GLConstants.TEXTURE0 + texturesUsed);
+						if (uniform.value.loaded) {
+							this.gl.bindTexture(GLConstants.TEXTURE_CUBE_MAP, uniform.value?.WebGLTexture);
+						}
+						this.gl.uniform1i(this.uniformsLocations[name], texturesUsed);
 					}
-					this.gl.uniform1i(this.uniformsLocations[name], texturesUsed);
 
 					this.textureUnits.set(this.uniformsLocations[name], GLConstants.TEXTURE0 + texturesUsed);
 
 					++texturesUsed;
 				} else if (uniform.type === UniformType.Texture2DArray) {
-					this.gl.activeTexture(GLConstants.TEXTURE0 + texturesUsed);
-					this.gl.bindTexture(GLConstants.TEXTURE_2D_ARRAY, uniform.value.WebGLTexture);
-					this.gl.uniform1i(this.uniformsLocations[name], texturesUsed);
+					if(uniform.value !== null) {
+						this.gl.activeTexture(GLConstants.TEXTURE0 + texturesUsed);
+						this.gl.bindTexture(GLConstants.TEXTURE_2D_ARRAY, uniform.value?.WebGLTexture);
+						this.gl.uniform1i(this.uniformsLocations[name], texturesUsed);
+					}
 
 					this.textureUnits.set(this.uniformsLocations[name], GLConstants.TEXTURE0 + texturesUsed);
 
 					++texturesUsed;
 				} else if (uniform.type === UniformType.Texture3D) {
-					this.gl.activeTexture(GLConstants.TEXTURE0 + texturesUsed);
-					this.gl.bindTexture(GLConstants.TEXTURE_3D, uniform.value.WebGLTexture);
-					this.gl.uniform1i(this.uniformsLocations[name], texturesUsed);
+					if(uniform.value !== null) {
+						this.gl.activeTexture(GLConstants.TEXTURE0 + texturesUsed);
+						this.gl.bindTexture(GLConstants.TEXTURE_3D, uniform.value?.WebGLTexture);
+						this.gl.uniform1i(this.uniformsLocations[name], texturesUsed);
+					}
 
 					this.textureUnits.set(this.uniformsLocations[name], GLConstants.TEXTURE0 + texturesUsed);
 
 					++texturesUsed;
 				} else {
-					this.updateUniform(name);
+					if (uniform.value !== null) {
+						this.updateUniform(name);
+					}
 				}
 			}
 		}
@@ -137,6 +147,7 @@ export default class Material {
 	public updateUniform(name: string) {
 		const uniform = this.uniforms[name];
 		const location = this.uniformsLocations[name];
+		const textureUnit = this.textureUnits.get(location);
 
 		switch (uniform.type) {
 			case UniformType.Float1:
@@ -188,14 +199,20 @@ export default class Material {
 				this.gl.uniformMatrix4fv(location, false, new Float32Array(uniform.value.values));
 				break;
 			case UniformType.Texture2D:
-				const textureUnit = this.textureUnits.get(location);
-
-				if(textureUnit) {
+				if (textureUnit) {
 					this.gl.activeTexture(textureUnit);
 					this.gl.bindTexture(GLConstants.TEXTURE_2D, uniform.value.WebGLTexture);
 				}
 
 				break;
+			case UniformType.Texture2DArray:
+				if (textureUnit) {
+					this.gl.activeTexture(textureUnit);
+					this.gl.bindTexture(GLConstants.TEXTURE_2D_ARRAY, uniform.value.WebGLTexture);
+				}
+
+				break;
+
 		}
 	}
 }

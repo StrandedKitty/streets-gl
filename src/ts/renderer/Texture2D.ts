@@ -42,13 +42,14 @@ export default class Texture2D extends Texture {
 		this.updateAnisotropy();
 
 		if(this.url) {
-			//this.gl.texImage2D(GLConstants.TEXTURE_2D, 0, GLConstants.RGBA, this.width, this.height, 0, GLConstants.RGBA, GLConstants.UNSIGNED_BYTE, null);
 			this.writeFromBuffer(null);
 
 			this.loadImage();
 		} else {
 			this.writeFromBuffer(this.data);
 		}
+
+		this.gl.bindTexture(GLConstants.TEXTURE_2D, null);
 	}
 
 	private loadImage() {
@@ -72,6 +73,8 @@ export default class Texture2D extends Texture {
 		this.gl.texImage2D(GLConstants.TEXTURE_2D, 0, GLConstants.RGBA, image.width, image.height, 0, GLConstants.RGBA, GLConstants.UNSIGNED_BYTE, image);
 
 		this.generateMipmaps();
+
+		this.gl.bindTexture(GLConstants.TEXTURE_2D, null);
 	}
 
 	private writeFromBuffer(data: TypedArray) {
@@ -83,6 +86,8 @@ export default class Texture2D extends Texture {
 		if(data) {
 			this.generateMipmaps();
 		}
+
+		this.gl.bindTexture(GLConstants.TEXTURE_2D, null);
 	}
 
 	public loadFromTiles(urls: string[], segmentsX: number, segmentsY: number) {
@@ -104,6 +109,8 @@ export default class Texture2D extends Texture {
 					this.updateFlipY();
 					this.gl.texSubImage2D(GLConstants.TEXTURE_2D, 0, offsetX, offsetY, tileWidth, tileHeight, this.format, this.type, image);
 
+					this.gl.bindTexture(GLConstants.TEXTURE_2D, null);
+
 					resolve();
 				}
 			}))
@@ -112,7 +119,9 @@ export default class Texture2D extends Texture {
 		}
 
 		Promise.all(promises).then(() => {
+			this.gl.bindTexture(GLConstants.TEXTURE_2D, this.WebGLTexture);
 			this.generateMipmaps();
+			this.gl.bindTexture(GLConstants.TEXTURE_2D, null);
 
 			this.resolveLoading();
 		});

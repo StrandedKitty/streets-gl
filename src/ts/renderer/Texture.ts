@@ -59,6 +59,7 @@ export default abstract class Texture {
 		this.format = format;
 		this.internalFormat = internalFormat;
 		this.type = type;
+		this.data = data;
 		this.flipY = flipY;
 
 		this.WebGLTexture = this.gl.createTexture();

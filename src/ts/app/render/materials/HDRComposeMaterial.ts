@@ -40,15 +40,15 @@ export default class HDRComposeMaterial extends Material {
 					type: UniformType.Texture2D,
 					value: gBuffer.textures.position
 				},
-				tObjectId: {
-					type: UniformType.Texture2D,
-					value: gBuffer.textures.objectId
-				},
 				tObjectOutline: {
 					type: UniformType.Texture2D,
 					value: null
 				},
 				tObjectShape: {
+					type: UniformType.Texture2D,
+					value: null
+				},
+				tAmbientOcclusion: {
 					type: UniformType.Texture2D,
 					value: null
 				},

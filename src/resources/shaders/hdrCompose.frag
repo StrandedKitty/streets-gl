@@ -24,9 +24,9 @@ uniform sampler2D tColor;
 uniform sampler2D tDepth;
 uniform sampler2D tNormal;
 uniform sampler2D tPosition;
-uniform usampler2D tObjectId;
 uniform sampler2D tObjectOutline;
 uniform sampler2D tObjectShape;
+uniform sampler2D tAmbientOcclusion;
 uniform samplerCube tSky;
 uniform mat4 viewMatrix;
 
@@ -370,11 +370,13 @@ void main() {
 
 	Light light = uLight;
 
-	color += getIBLContribution(materialInfo, worldNormal, worldView);
-	color += applyDirectionalLight(light, materialInfo, worldNormal, worldView) * 0.75 * shadowFactor;
-	color += materialInfo.diffuseColor * 0.1;
+	float ambientOcclusionFactor = texture(tAmbientOcclusion, vUv).r;
 
-	color = applySelectionMask(color);
+	color += getIBLContribution(materialInfo, worldNormal, worldView);
+	color += applyDirectionalLight(light, materialInfo, worldNormal, worldView) * 0.7 * shadowFactor;
+	color += materialInfo.diffuseColor * 0.2;
+
+	color = applySelectionMask(color) * ambientOcclusionFactor;
 
 	FragColor = vec4(color, 1);
 }

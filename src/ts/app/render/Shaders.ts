@@ -38,6 +38,14 @@ const Shaders = {
 	gaussianBlur: {
 		vertex: require('../../../resources/shaders/gaussianBlur.vert'),
 		fragment: require('../../../resources/shaders/gaussianBlur.frag')
+	},
+	ssao: {
+		vertex: require('../../../resources/shaders/ssao.vert'),
+		fragment: require('../../../resources/shaders/ssao.frag')
+	},
+	bilateralBlur: {
+		vertex: require('../../../resources/shaders/bilateralBlur.vert'),
+		fragment: require('../../../resources/shaders/bilateralBlur.frag')
 	}
 }
 

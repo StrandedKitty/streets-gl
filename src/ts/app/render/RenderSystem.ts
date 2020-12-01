@@ -20,6 +20,8 @@ import BuildingDepthMaterial from "./materials/BuildingDepthMaterial";
 import TAAPass from "./passes/TAAPass";
 import ObjectFilterPass from "./passes/ObjectFilterPass";
 import GaussianBlurPass from "./passes/GaussianBlurPass";
+import SSAOPass from "./passes/SSAOPass";
+import BilateralBlurPass from "./passes/BilateralBlurPass";
 
 export default class RenderSystem {
 	public renderer: Renderer;
@@ -30,8 +32,10 @@ export default class RenderSystem {
 	private skybox: Skybox;
 	private csm: CSM;
 	private taaPass: TAAPass;
+	private ssaoPass: SSAOPass;
 	private objectFilterPass: ObjectFilterPass;
 	private gaussianBlurPass: GaussianBlurPass;
+	private bilateralBlurPass: BilateralBlurPass;
 	private frameCount: number = 0;
 
 	private groundMaterial: GroundMaterial;
@@ -101,8 +105,10 @@ export default class RenderSystem {
 		this.ldrComposeMaterial = new LDRComposeMaterial(this.renderer, this.gBuffer);
 
 		this.taaPass = new TAAPass(this.renderer, this.resolution.x, this.resolution.y);
+		this.ssaoPass = new SSAOPass(this.renderer, this.resolution.x, this.resolution.y);
 		this.objectFilterPass = new ObjectFilterPass(this.renderer, this.resolution.x, this.resolution.y);
 		this.gaussianBlurPass = new GaussianBlurPass(this.renderer, this.resolution.x, this.resolution.y);
+		this.bilateralBlurPass = new BilateralBlurPass(this.renderer, this.resolution.x, this.resolution.y);
 
 		this.camera = new PerspectiveCamera({
 			fov: 40,
@@ -155,8 +161,10 @@ export default class RenderSystem {
 		this.renderer.setSize(this.resolution.x, this.resolution.y);
 		this.gBuffer.setSize(this.resolution.x, this.resolution.y);
 		this.taaPass.setSize(this.resolution.x, this.resolution.y);
+		this.ssaoPass.setSize(this.resolution.x, this.resolution.y);
 		this.objectFilterPass.setSize(this.resolution.x, this.resolution.y);
 		this.gaussianBlurPass.setSize(this.resolution.x, this.resolution.y);
+		this.bilateralBlurPass.setSize(this.resolution.x, this.resolution.y);
 		this.csm.updateFrustums();
 	}
 
@@ -245,6 +253,8 @@ export default class RenderSystem {
 		for (const tile of tiles.values()) {
 			if (tile.displayBufferNeedsUpdate) {
 				tile.updateDisplayBuffer();
+
+				tile.displayBufferNeedsUpdate = false;
 			}
 
 			if (!tile.ground || !tile.ground.inCameraFrustum(this.camera)) {
@@ -300,16 +310,28 @@ export default class RenderSystem {
 
 		this.gaussianBlurPass.render(this.quad, this.objectFilterPass.framebuffer.textures[0]);
 
+		this.renderer.bindFramebuffer(this.ssaoPass.framebuffer);
+
+		this.ssaoPass.material.uniforms.tPosition.value = this.gBuffer.textures.position;
+		this.ssaoPass.material.uniforms.tNormal.value = this.gBuffer.textures.normal;
+		this.ssaoPass.material.uniforms.cameraProjectionMatrix.value = this.camera.projectionMatrix;
+		this.ssaoPass.material.use();
+		this.quad.draw();
+
+		this.bilateralBlurPass.render(this.quad, this.ssaoPass.framebuffer.textures[0], this.gBuffer.textures.position);
+
 		this.renderer.bindFramebuffer(this.gBuffer.framebufferHDR);
 
 		this.hdrComposeMaterial.uniforms.viewMatrix.value = this.camera.matrixWorld;
 		this.hdrComposeMaterial.uniforms.tObjectOutline.value = this.gaussianBlurPass.framebuffer.textures[0];
 		this.hdrComposeMaterial.uniforms.tObjectShape.value = this.objectFilterPass.framebuffer.textures[0];
+		this.hdrComposeMaterial.uniforms.tAmbientOcclusion.value = this.bilateralBlurPass.framebuffer.textures[0];
 		this.csm.applyUniformsToMaterial(this.hdrComposeMaterial);
 		this.hdrComposeMaterial.use();
 		this.quad.draw();
 
 		this.renderer.bindFramebuffer(this.taaPass.framebufferOutput);
+
 		this.taaPass.material.uniforms.tAccum.value = this.taaPass.framebufferAccum.textures[0];
 		this.taaPass.material.uniforms.tNew.value = this.gBuffer.framebufferHDR.textures[0];
 		this.taaPass.material.uniforms.tMotion.value = this.gBuffer.textures.motion;
@@ -322,8 +344,8 @@ export default class RenderSystem {
 
 		this.renderer.bindFramebuffer(null);
 
-		this.ldrComposeMaterial.use();
 		this.ldrComposeMaterial.uniforms.tHDR.value = this.taaPass.framebufferOutput.textures[0];
+		this.ldrComposeMaterial.use();
 		this.quad.draw();
 	}
 
