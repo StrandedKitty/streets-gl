@@ -12,6 +12,8 @@ export default class PickingSystem {
 	private enablePicking: boolean = true;
 	public hoveredObjectId: number = 0;
 	public selectedObjectId: number = 0;
+	public selectedObjectLocalId: number = 0;
+	public selectedObjectTile: Tile = null;
 	private pointerDownPosition: Vec2 = new Vec2();
 
 	constructor(app: App) {
@@ -66,7 +68,7 @@ export default class PickingSystem {
 		}
 
 		if (!this.enablePicking) {
-			this.selectedObjectId = 0;
+			this.hoveredObjectId = 0;
 		}
 
 		renderer.gl.readBuffer(GLConstants.COLOR_ATTACHMENT6);
@@ -117,6 +119,9 @@ export default class PickingSystem {
 			const packedFeatureId = tile.buildingIdMap.get(localFeatureId);
 
 			const [type, id] = Tile.unpackFeatureId(packedFeatureId);
+
+			this.selectedObjectLocalId = localFeatureId;
+			this.selectedObjectTile = tile;
 
 			console.log(`clicked ${type} ${id}`);
 		}

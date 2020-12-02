@@ -18,10 +18,10 @@ import Config from "../Config";
 import GroundDepthMaterial from "./materials/GroundDepthMaterial";
 import BuildingDepthMaterial from "./materials/BuildingDepthMaterial";
 import TAAPass from "./passes/TAAPass";
-import ObjectFilterPass from "./passes/ObjectFilterPass";
 import GaussianBlurPass from "./passes/GaussianBlurPass";
 import SSAOPass from "./passes/SSAOPass";
 import BilateralBlurPass from "./passes/BilateralBlurPass";
+import SelectionMaskPass from "./passes/SelectionMaskPass";
 
 export default class RenderSystem {
 	public renderer: Renderer;
@@ -33,7 +33,7 @@ export default class RenderSystem {
 	private csm: CSM;
 	private taaPass: TAAPass;
 	private ssaoPass: SSAOPass;
-	private objectFilterPass: ObjectFilterPass;
+	private selectionMaskPass: SelectionMaskPass;
 	private gaussianBlurPass: GaussianBlurPass;
 	private bilateralBlurPass: BilateralBlurPass;
 	private frameCount: number = 0;
@@ -106,7 +106,7 @@ export default class RenderSystem {
 
 		this.taaPass = new TAAPass(this.renderer, this.resolution.x, this.resolution.y);
 		this.ssaoPass = new SSAOPass(this.renderer, this.resolution.x, this.resolution.y);
-		this.objectFilterPass = new ObjectFilterPass(this.renderer, this.resolution.x, this.resolution.y);
+		this.selectionMaskPass = new SelectionMaskPass(this.renderer, this.resolution.x, this.resolution.y);
 		this.gaussianBlurPass = new GaussianBlurPass(this.renderer, this.resolution.x, this.resolution.y);
 		this.bilateralBlurPass = new BilateralBlurPass(this.renderer, this.resolution.x, this.resolution.y);
 
@@ -162,7 +162,7 @@ export default class RenderSystem {
 		this.gBuffer.setSize(this.resolution.x, this.resolution.y);
 		this.taaPass.setSize(this.resolution.x, this.resolution.y);
 		this.ssaoPass.setSize(this.resolution.x, this.resolution.y);
-		this.objectFilterPass.setSize(this.resolution.x, this.resolution.y);
+		this.selectionMaskPass.setSize(this.resolution.x, this.resolution.y);
 		this.gaussianBlurPass.setSize(this.resolution.x, this.resolution.y);
 		this.bilateralBlurPass.setSize(this.resolution.x, this.resolution.y);
 		this.csm.updateFrustums();
@@ -295,20 +295,40 @@ export default class RenderSystem {
 			tile.buildings.draw();
 		}
 
-		const selectedObjectIdBuffer = this.pickObjectId();
+		const selectedObjectId = this.pickObjectId();
 
-		if(selectedObjectIdBuffer > 0) {
-			this.renderer.bindFramebuffer(this.objectFilterPass.framebuffer);
+		if(selectedObjectId > 0) {
+			this.selectionMaskPass.clear();
 
-			this.objectFilterPass.material.uniforms.tSource.value = this.gBuffer.textures.objectId;
-			this.objectFilterPass.material.uniforms.objectId.value = selectedObjectIdBuffer;
-			this.objectFilterPass.material.use();
-			this.quad.draw();
+			const tile = this.app.pickingSystem.selectedObjectTile;
+			const localId = this.app.pickingSystem.selectedObjectLocalId;
+
+			this.selectionMaskPass.buildingMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
+			this.selectionMaskPass.buildingMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(this.camera.matrixWorldInverse, tile.buildings.matrixWorld);
+			this.selectionMaskPass.buildingMaterial.uniforms.objectId.value = localId;
+			this.selectionMaskPass.buildingMaterial.use();
+			tile.buildings.draw();
+
+			const neighbors = this.app.tileManager.getTileNeighbors(tile.x, tile.y);
+			neighbors.push(tile);
+
+			this.selectionMaskPass.groundMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
+			this.selectionMaskPass.groundMaterial.use();
+
+			for(const tile of neighbors) {
+				if(!tile.ground) {
+					continue;
+				}
+
+				this.selectionMaskPass.groundMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(this.camera.matrixWorldInverse, tile.ground.matrixWorld);
+				this.selectionMaskPass.groundMaterial.updateUniform('modelViewMatrix');
+				tile.ground.draw();
+			}
 		} else {
-			this.objectFilterPass.clear();
+			this.selectionMaskPass.clear();
 		}
 
-		this.gaussianBlurPass.render(this.quad, this.objectFilterPass.framebuffer.textures[0]);
+		this.gaussianBlurPass.render(this.quad, this.selectionMaskPass.framebuffer.textures[0]);
 
 		this.renderer.bindFramebuffer(this.ssaoPass.framebuffer);
 
@@ -324,7 +344,7 @@ export default class RenderSystem {
 
 		this.hdrComposeMaterial.uniforms.viewMatrix.value = this.camera.matrixWorld;
 		this.hdrComposeMaterial.uniforms.tObjectOutline.value = this.gaussianBlurPass.framebuffer.textures[0];
-		this.hdrComposeMaterial.uniforms.tObjectShape.value = this.objectFilterPass.framebuffer.textures[0];
+		this.hdrComposeMaterial.uniforms.tObjectShape.value = this.selectionMaskPass.framebuffer.textures[0];
 		this.hdrComposeMaterial.uniforms.tAmbientOcclusion.value = this.bilateralBlurPass.framebuffer.textures[0];
 		this.csm.applyUniformsToMaterial(this.hdrComposeMaterial);
 		this.hdrComposeMaterial.use();

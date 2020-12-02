@@ -26,6 +26,7 @@ uniform sampler2D tNormal;
 uniform sampler2D tPosition;
 uniform sampler2D tObjectOutline;
 uniform sampler2D tObjectShape;
+uniform sampler2D tObjectDepth;
 uniform sampler2D tAmbientOcclusion;
 uniform samplerCube tSky;
 uniform mat4 viewMatrix;

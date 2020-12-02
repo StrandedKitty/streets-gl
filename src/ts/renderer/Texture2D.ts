@@ -35,6 +35,8 @@ export default class Texture2D extends Texture {
 	}) {
 		super(renderer, {anisotropy, minFilter, magFilter, wrap, width, height, format, internalFormat, type, data, flipY});
 
+		this.url = url;
+
 		this.gl.bindTexture(GLConstants.TEXTURE_2D, this.WebGLTexture);
 
 		this.updateWrapping();

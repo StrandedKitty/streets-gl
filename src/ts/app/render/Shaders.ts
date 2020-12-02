@@ -31,10 +31,6 @@ const Shaders = {
 		vertex: require('../../../resources/shaders/taa.vert'),
 		fragment: require('../../../resources/shaders/taa.frag')
 	},
-	objectFilter: {
-		vertex: require('../../../resources/shaders/objectFilter.vert'),
-		fragment: require('../../../resources/shaders/objectFilter.frag')
-	},
 	gaussianBlur: {
 		vertex: require('../../../resources/shaders/gaussianBlur.vert'),
 		fragment: require('../../../resources/shaders/gaussianBlur.frag')
@@ -46,6 +42,14 @@ const Shaders = {
 	bilateralBlur: {
 		vertex: require('../../../resources/shaders/bilateralBlur.vert'),
 		fragment: require('../../../resources/shaders/bilateralBlur.frag')
+	},
+	buildingMask: {
+		vertex: require('../../../resources/shaders/buildingMask.vert'),
+		fragment: require('../../../resources/shaders/buildingMask.frag')
+	},
+	groundMask: {
+		vertex: require('../../../resources/shaders/groundMask.vert'),
+		fragment: require('../../../resources/shaders/groundMask.frag')
 	}
 }
 
