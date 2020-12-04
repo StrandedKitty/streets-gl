@@ -3,13 +3,16 @@ import MathUtils from "../../math/MathUtils";
 import Camera from "../../core/Camera";
 import Vec2 from "../../math/Vec2";
 import HeightProvider from "../world/HeightProvider";
-import DoubleTouchHandler, {DoubleTouchMoveEvent} from "./DoubleTouchHandler";
-import TouchZoomHandler from "./TouchZoomHandler";
-import TouchRotateHandler from "./TouchRotateHandler";
-import {TouchPitchHandler} from "./TouchPitchHandler";
-import URLControlsStateHandler from "./URLControlsStateHandler";
+import DoubleTouchHandler, {DoubleTouchMoveEvent} from "../controls/DoubleTouchHandler";
+import TouchZoomHandler from "../controls/TouchZoomHandler";
+import TouchRotateHandler from "../controls/TouchRotateHandler";
+import {TouchPitchHandler} from "../controls/TouchPitchHandler";
+import URLControlsStateHandler from "../controls/URLControlsStateHandler";
 import Config from "../Config";
-import {App} from "../App";
+import System from "../System";
+import SystemManager from "../SystemManager";
+import CursorStyleSystem from "./CursorStyleSystem";
+import RenderSystem from "./RenderSystem";
 
 const touchYawFactor = 4;
 const touchPitchFactor = 2;
@@ -22,8 +25,7 @@ export interface ControlsState {
 	distance: number;
 }
 
-export default class Controls {
-	private app: App;
+export default class ControlsSystem extends System {
 	private element: HTMLElement;
 	private camera: Camera;
 	private tick: number = 0;
@@ -46,9 +48,10 @@ export default class Controls {
 	private readonly rotationSpeed = 0.25;
 	private readonly movementSpeed = 1;
 
-	constructor(app: App) {
-		this.app = app;
-		this.element = app.canvas;
+	constructor(systemManager: SystemManager) {
+		super(systemManager);
+
+		this.element = <HTMLCanvasElement>document.getElementById('canvas');
 
 		this.touchHandlers = new Map<string, DoubleTouchHandler>([
 			['zoom', new TouchZoomHandler()],
@@ -90,6 +93,10 @@ export default class Controls {
 		this.element.addEventListener('touchmove', (e: TouchEvent) => this.touchMoveEvent(e));
 	}
 
+	public postInit() {
+
+	}
+
 	private updateStateFromPosition() {
 		this.state.x = this.target.x;
 		this.state.z = this.target.z;
@@ -112,7 +119,7 @@ export default class Controls {
 	}
 
 	private mouseDownEvent(e: MouseEvent) {
-		this.app.cursorStyleSystem.enableGrabbing();
+		this.systemManager.getSystem(CursorStyleSystem).enableGrabbing();
 
 		if (e.button && e.button == 2) {
 			this.isRotationMouseMode = true
@@ -123,7 +130,7 @@ export default class Controls {
 	}
 
 	private mouseLeaveEvent(e: MouseEvent) {
-		this.app.cursorStyleSystem.disableGrabbing();
+		this.systemManager.getSystem(CursorStyleSystem).disableGrabbing();
 
 		this.isRotationMouseMode = false
 		this.isMovementMouseMode = false;
@@ -132,7 +139,7 @@ export default class Controls {
 	}
 
 	private mouseUpEvent(e: MouseEvent) {
-		this.app.cursorStyleSystem.disableGrabbing();
+		this.systemManager.getSystem(CursorStyleSystem).disableGrabbing();
 
 		if (e.button && e.button == 2)
 			this.isRotationMouseMode = false
@@ -258,8 +265,8 @@ export default class Controls {
 		return new Vec2(positionOnGround.x, positionOnGround.z);
 	}
 
-	public update(camera: Camera) {
-		this.camera = camera;
+	public update(deltaTile: number) {
+		this.camera = this.systemManager.getSystem(RenderSystem).camera;
 
 		const tile = MathUtils.meters2tile(this.target.x, this.target.z);
 		const tilePosition = new Vec2(Math.floor(tile.x), Math.floor(tile.y));
@@ -292,8 +299,8 @@ export default class Controls {
 		const cameraOffset = Vec3.multiplyScalar(this.direction, this.distance);
 		const cameraPosition = Vec3.add(this.target, cameraOffset);
 
-		camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
-		camera.lookAt(this.target, false);
+		this.camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+		this.camera.lookAt(this.target, false);
 
 		if (this.cachedMoveEvent && this.mouseDownPosition && !this.touchHandlers.get('pitch').active) {
 			this.camera.updateMatrixWorld();
@@ -306,8 +313,8 @@ export default class Controls {
 			const cameraOffset = Vec3.multiplyScalar(this.direction, this.distance);
 			const cameraPosition = Vec3.add(this.target, cameraOffset);
 
-			camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
-			camera.lookAt(this.target, false);
+			this.camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+			this.camera.lookAt(this.target, false);
 		}
 
 		const [newState, changedByUser] = this.urlHandler.getStateFromHash();
@@ -323,8 +330,8 @@ export default class Controls {
 			this.urlHandler.setHashFromState(this.state);
 		}
 
-		camera.updateMatrixWorld();
-		camera.updateMatrixWorldInverse();
+		this.camera.updateMatrixWorld();
+		this.camera.updateMatrixWorldInverse();
 
 		++this.tick;
 	}

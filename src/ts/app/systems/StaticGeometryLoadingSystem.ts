@@ -1,20 +1,25 @@
 import Tile, {StaticTileGeometry} from "../objects/Tile";
-import MapWorkerManager from "./worker/MapWorkerManager";
-import Config from "../Config";
 import Renderer from "../../renderer/Renderer";
+import System from "../System";
+import SystemManager from "../SystemManager";
+import RenderSystem from "./RenderSystem";
+import MapWorkerSystem from "./MapWorkerSystem";
 
 interface queueEntry {
 	tile: Tile,
 	onLoad: (...args: any[]) => any
 }
 
-export default class TileProvider {
-	private mapWorkerManager: MapWorkerManager = new MapWorkerManager(Config.WebWorkersNumber);
+export default class StaticGeometryLoadingSystem extends System {
 	private queue: queueEntry[] = [];
 	private renderer: Renderer;
 
-	constructor(renderer: Renderer) {
-		this.renderer = renderer;
+	constructor(systemManager: SystemManager) {
+		super(systemManager);
+	}
+
+	public postInit() {
+		this.renderer = this.systemManager.getSystem(RenderSystem).renderer;
 	}
 
 	public async getTileObjects(tile: Tile): Promise<StaticTileGeometry> {
@@ -28,11 +33,13 @@ export default class TileProvider {
 		});
 	}
 
-	public update() {
+	public update(deltaTime: number) {
 		this.removeDisposedTiles();
 
-		while (this.queue.length > 0 && this.mapWorkerManager.getFreeWorker()) {
-			const worker = this.mapWorkerManager.getFreeWorker();
+		const mapWorkerSystem = this.systemManager.getSystem(MapWorkerSystem);
+
+		while (this.queue.length > 0 && mapWorkerSystem.getFreeWorker()) {
+			const worker = mapWorkerSystem.getFreeWorker();
 			const {tile, onLoad} = this.getNearestTileInQueue();
 
 			worker.start(tile.x, tile.y).then(result => {

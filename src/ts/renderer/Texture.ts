@@ -17,6 +17,7 @@ export default abstract class Texture {
 	public data: TypedArray;
 	public flipY: boolean;
 	public readonly WebGLTexture: WebGLTexture;
+	protected deleted: boolean = false;
 	public loadingPromise: Promise<void>;
 	protected loadingPromiseResolve: () => void;
 
@@ -93,6 +94,11 @@ export default abstract class Texture {
 
 	protected resolveLoading() {
 		this.loadingPromiseResolve();
+	}
+
+	public delete() {
+		this.gl.deleteTexture(this.WebGLTexture);
+		this.deleted = true;
 	}
 
 	public abstract setSize(width: number, height: number): void;

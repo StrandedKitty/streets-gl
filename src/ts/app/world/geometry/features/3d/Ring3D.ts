@@ -15,6 +15,7 @@ export default class Ring3D extends Feature3D {
 	public minGroundHeight: number;
 	public maxGroundHeight: number;
 	public closed: boolean;
+	private gaussArea: number;
 
 	constructor(id: number, type: RingType, nodes: Node3D[], parent: Way3D, tags: Tags) {
 		super(id, tags);
@@ -31,6 +32,7 @@ export default class Ring3D extends Feature3D {
 
 		this.closed = this.isClosed();
 
+		this.updateGaussArea();
 		this.fixDirection();
 	}
 
@@ -58,11 +60,7 @@ export default class Ring3D extends Feature3D {
 		this.maxGroundHeight = maxHeight;
 	}
 
-	private isClosed(): boolean {
-		return this.nodes[0].id === this.nodes[this.nodes.length - 1].id;
-	}
-
-	private isClockwise(): boolean {
+	private updateGaussArea() {
 		let sum = 0;
 
 		for (let i = 0; i < this.vertices.length; i++) {
@@ -71,13 +69,26 @@ export default class Ring3D extends Feature3D {
 			sum += (point2[0] - point1[0]) * (point2[1] + point1[1]);
 		}
 
-		return sum > 0;
+		this.gaussArea = sum;
+	}
+
+	public getArea(): number {
+		return Math.abs(this.gaussArea);
+	}
+
+	private isClockwise(): boolean {
+		return this.gaussArea > 0;
+	}
+
+	private isClosed(): boolean {
+		return this.nodes[0].id === this.nodes[this.nodes.length - 1].id;
 	}
 
 	private fixDirection() {
 		if (+!this.isClockwise() ^ +(this.type === RingType.Inner)) {
 			this.nodes.reverse();
 			this.vertices.reverse();
+			this.gaussArea *= -1;
 		}
 	}
 
@@ -85,7 +96,7 @@ export default class Ring3D extends Feature3D {
 		return this.vertices.flat();
 	}
 
-	private getLength() {
+	private getLength(): number {
 		let length = 0;
 
 		for (let i = 0; i < this.vertices.length - 1; i++) {
@@ -97,7 +108,7 @@ export default class Ring3D extends Feature3D {
 		return length;
 	}
 
-	public triangulateWalls(): {positions: Float32Array, uvs: Float32Array} {
+	public triangulateWalls(): {positions: Float32Array, uvs: Float32Array, textureId: Uint8Array} {
 		const tags = this.parent.tags;
 		const heightFactor = this.parent.heightFactor;
 
@@ -106,6 +117,10 @@ export default class Ring3D extends Feature3D {
 
 		const positions: number[] = [];
 		const uvs: number[] = [];
+
+		const uvMinY = 0;
+		const uvMaxY = height - minHeight;
+		let uvX = 0;
 
 		for (let i = 0; i < this.vertices.length - 1; i++) {
 			const vertex = {x: this.vertices[i][0], z: this.vertices[i][1]};
@@ -119,10 +134,26 @@ export default class Ring3D extends Feature3D {
 			positions.push(nextVertex.x, height, nextVertex.z);
 			positions.push(vertex.x, height, vertex.z);
 
-			uvs.push(0, 0, 0, 0, 0, 0);
-			uvs.push(0, 0, 0, 0, 0, 0);
+			const nextUvX = uvX + Math.sqrt((vertex.x - nextVertex.x) ** 2 + (vertex.z - nextVertex.z) ** 2);
+
+			uvs.push(
+				nextUvX, uvMinY,
+				uvX, uvMaxY,
+				uvX, uvMinY
+			);
+			uvs.push(
+				nextUvX, uvMinY,
+				nextUvX, uvMaxY,
+				uvX, uvMaxY
+			);
+
+			uvX = nextUvX;
 		}
 
-		return {positions: new Float32Array(positions), uvs: new Float32Array(uvs)};
+		return {
+			positions: new Float32Array(positions),
+			uvs: new Float32Array(uvs),
+			textureId: new Uint8Array()
+		};
 	}
 }

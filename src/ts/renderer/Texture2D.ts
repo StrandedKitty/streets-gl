@@ -59,7 +59,10 @@ export default class Texture2D extends Texture {
 
 		image.crossOrigin = "anonymous";
 		image.onload = () => {
-			this.writeFromImage(image);
+			if(!this.deleted) {
+				this.writeFromImage(image);
+			}
+
 			this.resolveLoading();
 		}
 		image.src = this.url;
@@ -106,12 +109,14 @@ export default class Texture2D extends Texture {
 
 			promises.push(new Promise<void>(resolve => {
 				image.onload = () => {
-					this.gl.bindTexture(GLConstants.TEXTURE_2D, this.WebGLTexture);
+					if(!this.deleted) {
+						this.gl.bindTexture(GLConstants.TEXTURE_2D, this.WebGLTexture);
 
-					this.updateFlipY();
-					this.gl.texSubImage2D(GLConstants.TEXTURE_2D, 0, offsetX, offsetY, tileWidth, tileHeight, this.format, this.type, image);
+						this.updateFlipY();
+						this.gl.texSubImage2D(GLConstants.TEXTURE_2D, 0, offsetX, offsetY, tileWidth, tileHeight, this.format, this.type, image);
 
-					this.gl.bindTexture(GLConstants.TEXTURE_2D, null);
+						this.gl.bindTexture(GLConstants.TEXTURE_2D, null);
+					}
 
 					resolve();
 				}
@@ -121,9 +126,11 @@ export default class Texture2D extends Texture {
 		}
 
 		Promise.all(promises).then(() => {
-			this.gl.bindTexture(GLConstants.TEXTURE_2D, this.WebGLTexture);
-			this.generateMipmaps();
-			this.gl.bindTexture(GLConstants.TEXTURE_2D, null);
+			if(!this.deleted) {
+				this.gl.bindTexture(GLConstants.TEXTURE_2D, this.WebGLTexture);
+				this.generateMipmaps();
+				this.gl.bindTexture(GLConstants.TEXTURE_2D, null);
+			}
 
 			this.resolveLoading();
 		});

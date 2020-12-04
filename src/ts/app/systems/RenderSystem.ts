@@ -1,29 +1,32 @@
 import Renderer from "../../renderer/Renderer";
 import PerspectiveCamera from "../../core/PerspectiveCamera";
 import Object3D from "../../core/Object3D";
-import GroundMaterial from "./materials/GroundMaterial";
+import GroundMaterial from "../render/materials/GroundMaterial";
 import Mat4 from "../../math/Mat4";
-import {App} from "../App";
 import GBuffer from "../../renderer/GBuffer";
 import GLConstants from "../../renderer/GLConstants";
 import Vec2 from "../../math/Vec2";
-import BuildingMaterial from "./materials/BuildingMaterial";
+import BuildingMaterial from "../render/materials/BuildingMaterial";
 import FullScreenQuad from "../objects/FullScreenQuad";
-import HDRComposeMaterial from "./materials/HDRComposeMaterial";
-import SkyboxMaterial from "./materials/SkyboxMaterial";
+import HDRComposeMaterial from "../render/materials/HDRComposeMaterial";
+import SkyboxMaterial from "../render/materials/SkyboxMaterial";
 import Skybox from "../objects/Skybox";
-import LDRComposeMaterial from "./materials/LDRComposeMaterial";
-import CSM from "./CSM";
+import LDRComposeMaterial from "../render/materials/LDRComposeMaterial";
+import CSM from "../render/CSM";
 import Config from "../Config";
-import GroundDepthMaterial from "./materials/GroundDepthMaterial";
-import BuildingDepthMaterial from "./materials/BuildingDepthMaterial";
-import TAAPass from "./passes/TAAPass";
-import GaussianBlurPass from "./passes/GaussianBlurPass";
-import SSAOPass from "./passes/SSAOPass";
-import BilateralBlurPass from "./passes/BilateralBlurPass";
-import SelectionMaskPass from "./passes/SelectionMaskPass";
+import GroundDepthMaterial from "../render/materials/GroundDepthMaterial";
+import BuildingDepthMaterial from "../render/materials/BuildingDepthMaterial";
+import TAAPass from "../render/passes/TAAPass";
+import GaussianBlurPass from "../render/passes/GaussianBlurPass";
+import SSAOPass from "../render/passes/SSAOPass";
+import BilateralBlurPass from "../render/passes/BilateralBlurPass";
+import SelectionMaskPass from "../render/passes/SelectionMaskPass";
+import System from "../System";
+import SystemManager from "../SystemManager";
+import TileSystem from "./TileSystem";
+import PickingSystem from "./PickingSystem";
 
-export default class RenderSystem {
+export default class RenderSystem extends System {
 	public renderer: Renderer;
 	public camera: PerspectiveCamera;
 	public scene: Object3D;
@@ -47,7 +50,9 @@ export default class RenderSystem {
 	private hdrComposeMaterial: HDRComposeMaterial;
 	private ldrComposeMaterial: LDRComposeMaterial;
 
-	constructor(private app: App) {
+	constructor(systemManager: SystemManager) {
+		super(systemManager);
+
 		this.init();
 	}
 
@@ -124,6 +129,10 @@ export default class RenderSystem {
 		console.log(`Vendor: ${this.renderer.rendererInfo[0]}\nRenderer: ${this.renderer.rendererInfo[1]}`);
 
 		window.addEventListener('resize', () => this.resize());
+	}
+
+	public postInit() {
+
 	}
 
 	private initScene() {
@@ -205,11 +214,11 @@ export default class RenderSystem {
 	}
 
 	private updateTiles() {
-		const tiles = this.app.tileManager.tiles;
+		const tiles = this.systemManager.getSystem(TileSystem).tiles;
 
 		for (const tile of tiles.values()) {
 			if (!tile.ground && tile.readyForRendering) {
-				tile.createGround(this.renderer, this.app.tileManager.getTileNeighbors(tile.x, tile.y));
+				tile.createGround(this.renderer, this.systemManager.getSystem(TileSystem).getTileNeighbors(tile.x, tile.y));
 				tile.generateMeshes(this.renderer);
 				this.wrapper.add(tile);
 			}
@@ -217,7 +226,7 @@ export default class RenderSystem {
 	}
 
 	private renderTiles() {
-		const tiles = this.app.tileManager.tiles;
+		const tiles = this.systemManager.getSystem(TileSystem).tiles;
 
 		this.renderer.bindFramebuffer(this.gBuffer.framebuffer);
 
@@ -248,8 +257,9 @@ export default class RenderSystem {
 		this.renderer.depthWrite = true;
 
 		this.groundMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
+		this.groundMaterial.uniforms.map.value = null;
 		this.groundMaterial.use();
-		
+
 		for (const tile of tiles.values()) {
 			if (tile.displayBufferNeedsUpdate) {
 				tile.updateDisplayBuffer();
@@ -297,11 +307,11 @@ export default class RenderSystem {
 
 		const selectedObjectId = this.pickObjectId();
 
-		if(selectedObjectId > 0) {
+		if (selectedObjectId > 0) {
 			this.selectionMaskPass.clear();
 
-			const tile = this.app.pickingSystem.selectedObjectTile;
-			const localId = this.app.pickingSystem.selectedObjectLocalId;
+			const tile = this.systemManager.getSystem(PickingSystem).selectedObjectTile;
+			const localId = this.systemManager.getSystem(PickingSystem).selectedObjectLocalId;
 
 			this.selectionMaskPass.buildingMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
 			this.selectionMaskPass.buildingMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(this.camera.matrixWorldInverse, tile.buildings.matrixWorld);
@@ -309,14 +319,14 @@ export default class RenderSystem {
 			this.selectionMaskPass.buildingMaterial.use();
 			tile.buildings.draw();
 
-			const neighbors = this.app.tileManager.getTileNeighbors(tile.x, tile.y);
+			const neighbors = this.systemManager.getSystem(TileSystem).getTileNeighbors(tile.x, tile.y);
 			neighbors.push(tile);
 
 			this.selectionMaskPass.groundMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
 			this.selectionMaskPass.groundMaterial.use();
 
-			for(const tile of neighbors) {
-				if(!tile.ground) {
+			for (const tile of neighbors) {
+				if (!tile.ground) {
 					continue;
 				}
 
@@ -393,7 +403,7 @@ export default class RenderSystem {
 			this.groundDepthMaterial.uniforms.projectionMatrix.value = camera.projectionMatrix;
 			this.groundDepthMaterial.use();
 
-			const tiles = this.app.tileManager.tiles;
+			const tiles = this.systemManager.getSystem(TileSystem).tiles;
 
 			for (const tile of tiles.values()) {
 				if (!tile.ground || !tile.ground.inCameraFrustum(camera)) {
@@ -423,9 +433,9 @@ export default class RenderSystem {
 	}
 
 	private pickObjectId(): number {
-		this.app.pickingSystem.readObjectId(this.renderer, this.gBuffer);
+		this.systemManager.getSystem(PickingSystem).readObjectId(this.renderer, this.gBuffer);
 
-		return this.app.pickingSystem.selectedObjectId;
+		return this.systemManager.getSystem(PickingSystem).selectedObjectId;
 	}
 
 	public get resolution(): Vec2 {

@@ -1,3 +1,7 @@
+import Config from "../Config";
+import System from "../System";
+import SystemManager from "../SystemManager";
+
 enum CursorStyle {
 	Default = 'default',
 	Grab = 'grab',
@@ -5,13 +9,19 @@ enum CursorStyle {
 	Pointer = 'pointer'
 }
 
-export default class CursorStyleSystem {
+export default class CursorStyleSystem extends System {
 	private element: HTMLElement;
 	private grabbingEnabled: boolean = false;
 	private pointerEnabled: boolean = false;
 
-	constructor(element: HTMLElement) {
-		this.element = element;
+	constructor(systemManager: SystemManager) {
+		super(systemManager);
+
+		this.element = <HTMLCanvasElement>document.getElementById('canvas');
+	}
+
+	public postInit() {
+
 	}
 
 	public enableGrabbing() {
@@ -35,6 +45,10 @@ export default class CursorStyleSystem {
 	}
 
 	private updateStyle() {
+		if(Config.IsMobileBrowser) {
+			return;
+		}
+
 		if (this.pointerEnabled) {
 			this.element.style.cursor = CursorStyle.Pointer;
 			return;
@@ -46,5 +60,9 @@ export default class CursorStyleSystem {
 		}
 
 		this.element.style.cursor = CursorStyle.Grab;
+	}
+
+	public update(deltaTime: number) {
+
 	}
 }

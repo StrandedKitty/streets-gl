@@ -2,11 +2,13 @@ import Vec2 from "../../math/Vec2";
 import GLConstants from "../../renderer/GLConstants";
 import Renderer from "../../renderer/Renderer";
 import GBuffer from "../../renderer/GBuffer";
-import {App} from "../App";
 import Tile from "../objects/Tile";
+import System from "../System";
+import SystemManager from "../SystemManager";
+import CursorStyleSystem from "./CursorStyleSystem";
+import TileSystem from "./TileSystem";
 
-export default class PickingSystem {
-	private app: App;
+export default class PickingSystem extends System {
 	private pointerPosition: Vec2 = new Vec2();
 	private pixelBuffer: WebGLBuffer;
 	private enablePicking: boolean = true;
@@ -16,8 +18,8 @@ export default class PickingSystem {
 	public selectedObjectTile: Tile = null;
 	private pointerDownPosition: Vec2 = new Vec2();
 
-	constructor(app: App) {
-		this.app = app;
+	constructor(systemManager: SystemManager) {
+		super(systemManager);
 
 		window.addEventListener('pointerdown', e => {
 			this.pointerPosition.x = e.clientX;
@@ -50,6 +52,10 @@ export default class PickingSystem {
 		canvas.addEventListener('mouseleave', e => {
 			this.enablePicking = false;
 		});
+	}
+
+	public postInit() {
+
 	}
 
 	private createPixelBuffer(renderer: Renderer) {
@@ -96,9 +102,9 @@ export default class PickingSystem {
 
 	private updatePointer() {
 		if (this.hoveredObjectId > 0 && this.enablePicking) {
-			this.app.cursorStyleSystem.enablePointer();
+			this.systemManager.getSystem(CursorStyleSystem).enablePointer();
 		} else {
-			this.app.cursorStyleSystem.disablePointer();
+			this.systemManager.getSystem(CursorStyleSystem).disablePointer();
 		}
 	}
 
@@ -114,7 +120,7 @@ export default class PickingSystem {
 			const selectedValue = this.selectedObjectId - 1;
 
 			const localTileId = selectedValue >> 16;
-			const tile = this.app.tileManager.getTileByLocalId(localTileId);
+			const tile = this.systemManager.getSystem(TileSystem).getTileByLocalId(localTileId);
 			const localFeatureId = selectedValue & 0xffff;
 			const packedFeatureId = tile.buildingIdMap.get(localFeatureId);
 
@@ -127,7 +133,7 @@ export default class PickingSystem {
 		}
 	}
 
-	public update() {
+	public update(deltaTime: number) {
 
 	}
 }

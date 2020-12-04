@@ -7,10 +7,10 @@ import MathUtils from "../../../../../math/MathUtils";
 import {GeoJSON} from "geojson";
 import WayAABB from "./WayAABB";
 import Utils from "../../../../Utils";
-import TileGeometryBuilder from "../../TileGeometryBuilder";
 import Vec2 from "../../../../../math/Vec2";
 import {CalcConvexHull, ComputeOMBB, Vector} from "../../../../../math/OMBB";
 import SeededRandom from "../../../../../math/SeededRandom";
+import Config from "../../../../Config";
 
 interface EarcutInput {
 	vertices: number[];
@@ -82,12 +82,14 @@ export default class Way3D extends Feature3D {
 		const textureIdArrays: Uint8Array[] = [];
 
 		const footprint = this.triangulateFootprint();
+		const isFootprintTextured = this.getTotalArea() > Config.MinTexturedRoofArea;
+
 		positionArrays.push(footprint.positions);
 		uvArrays.push(footprint.uvs);
 		textureIdArrays.push(Utils.fillTypedArraySequence(
 			Uint8Array,
 			new Uint8Array(footprint.uvs.length / 2),
-			new Uint8Array([this.id % 4 + 1])
+			new Uint8Array(isFootprintTextured ? [this.id % 4 + 1] : [0])
 		));
 
 		for(const ring of this.rings) {
@@ -287,5 +289,21 @@ export default class Way3D extends Feature3D {
 		for(let i = 0; i < ring.vertices.length; i++) {
 			this.aabb.addPoint(ring.vertices[i][0], ring.vertices[i][1]);
 		}
+	}
+
+	private getTotalArea(): number {
+		let area = 0;
+
+		for(const ring of this.rings) {
+			let ringArea = ring.getArea();
+
+			if(ring.type === RingType.Inner) {
+				ringArea *= -1;
+			}
+
+			area += ringArea;
+		}
+
+		return area;
 	}
 }

@@ -1,4 +1,4 @@
-import {ControlsState} from "./Controls";
+import {ControlsState} from "../systems/ControlsSystem";
 import MathUtils from "../../math/MathUtils";
 import Config from "../Config";
 

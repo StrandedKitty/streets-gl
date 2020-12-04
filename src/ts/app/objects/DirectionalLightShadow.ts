@@ -2,7 +2,6 @@ import Object3D from "../../core/Object3D";
 import OrthographicCamera from "../../core/OrthographicCamera";
 import Renderer from "../../renderer/Renderer";
 import Framebuffer from "../../renderer/Framebuffer";
-import Texture2D from "../../renderer/Texture2D";
 import Texture2DArray from "../../renderer/Texture2DArray";
 
 export default class DirectionalLightShadow extends Object3D {

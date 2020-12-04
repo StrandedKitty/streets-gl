@@ -5,7 +5,7 @@ import MathUtils from "../../math/MathUtils";
 import Texture2D from "../../renderer/Texture2D";
 import GLConstants from "../../renderer/GLConstants";
 import HeightProvider from "../world/HeightProvider";
-import TileProvider from "../world/TileProvider";
+import StaticGeometryLoadingSystem from "../systems/StaticGeometryLoadingSystem";
 import Camera from "../../core/Camera";
 import Mesh from "../../renderer/Mesh";
 import Vec3 from "../../math/Vec3";
@@ -56,7 +56,7 @@ export default class Tile extends Object3D {
 
 		this.localId = tileCounter++;
 
-		if(tileCounter > 65535) {
+		if (tileCounter > 65535) {
 			tileCounter = 0;
 		}
 
@@ -67,7 +67,7 @@ export default class Tile extends Object3D {
 		this.updateMatrix();
 	}
 
-	public async load(tileProvider: TileProvider, renderer: Renderer): Promise<void> {
+	public async load(tileProvider: StaticGeometryLoadingSystem, renderer: Renderer): Promise<void> {
 		return Promise.all([
 			this.loadTextures(renderer),
 			HeightProvider.prepareDataForTile(this.x, this.y),
@@ -95,7 +95,7 @@ export default class Tile extends Object3D {
 			`https://a.tile.openstreetmap.org/17/${hdTileX}/${hdTileY + 1}.png`,
 			`https://b.tile.openstreetmap.org/17/${hdTileX + 1}/${hdTileY + 1}.png`,
 			`https://c.tile.openstreetmap.org/17/${hdTileX}/${hdTileY}.png`,
-			`https://a.tile.openstreetmap.org/17/${hdTileX + 1}/${hdTileY }.png`
+			`https://a.tile.openstreetmap.org/17/${hdTileX + 1}/${hdTileY}.png`
 		], 2, 2);
 
 		return this.colorMap.loadingPromise;
@@ -181,7 +181,7 @@ export default class Tile extends Object3D {
 		const offsets = this.staticGeometry.buildings.offset;
 		const vertexCount = this.staticGeometry.buildings.position.length / 3;
 
-		for(let i = 0; i < ids.length; i += 2) {
+		for (let i = 0; i < ids.length; i += 2) {
 			const id = MathUtils.shiftLeft(ids[i + 1] & 0x7FFFF, 32) + ids[i];
 			const type = ids[i + 1] >> 19;
 
@@ -199,7 +199,7 @@ export default class Tile extends Object3D {
 		const [start, size] = this.buildingOffsetMap.get(id);
 		const displayBuffer = this.buildings.attributes.get('display').buffer;
 
-		for(let i = start; i < start + size; i++) {
+		for (let i = start; i < start + size; i++) {
 			displayBuffer[i] = 255;
 		}
 
@@ -211,7 +211,7 @@ export default class Tile extends Object3D {
 		const [start, size] = this.buildingOffsetMap.get(id);
 		const displayBuffer = this.buildings.attributes.get('display').buffer;
 
-		for(let i = start; i < start + size; i++) {
+		for (let i = start; i < start + size; i++) {
 			displayBuffer[i] = 0;
 		}
 
@@ -236,6 +236,10 @@ export default class Tile extends Object3D {
 
 		if (this.buildings) {
 			this.buildings.delete();
+		}
+
+		if (this.colorMap) {
+			this.colorMap.delete();
 		}
 
 		if (this.parent) {
@@ -263,11 +267,11 @@ export default class Tile extends Object3D {
 		const type = MathUtils.shiftRight(packedId, 51);
 		let id = packedId;
 
-		if (id >= 2**52) {
-			id -= 2**52;
+		if (id >= 2 ** 52) {
+			id -= 2 ** 52;
 		}
-		if (id >= 2**51) {
-			id -= 2**51;
+		if (id >= 2 ** 51) {
+			id -= 2 ** 51;
 		}
 
 		return [type, id];

@@ -1,47 +1,47 @@
 import '../../css/style.css';
-import RenderSystem from "./render/RenderSystem";
-import TileManager from "./world/TileManager";
-import Controls from "./controls/Controls";
+import RenderSystem from "./systems/RenderSystem";
+import TileSystem from "./systems/TileSystem";
+import ControlsSystem from "./systems/ControlsSystem";
 import PickingSystem from "./systems/PickingSystem";
 import CursorStyleSystem from './systems/CursorStyleSystem';
+import SystemManager from "./SystemManager";
+import TileObjectsSystem from "./systems/TileObjectsSystem";
+import StaticGeometryLoadingSystem from "./systems/StaticGeometryLoadingSystem";
+import MapWorkerSystem from "./systems/MapWorkerSystem";
 
-export class App {
+class App {
 	private loop = (deltaTime: number) => this.update(deltaTime);
 	private time: number = 0;
-	public canvas: HTMLCanvasElement;
-
-	public renderSystem: RenderSystem;
-	public controls: Controls;
-	public tileManager: TileManager;
-	public pickingSystem: PickingSystem;
-	public cursorStyleSystem: CursorStyleSystem;
+	private systemManager: SystemManager;
 
 	constructor() {
-		this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-
-		this.pickingSystem = new PickingSystem(this);
-		this.renderSystem = new RenderSystem(this);
-		this.cursorStyleSystem = new CursorStyleSystem(this.canvas);
-		this.controls = new Controls(this);
-		this.tileManager = new TileManager(this);
-
 		this.init();
 	}
 
 	private init() {
+		this.systemManager = new SystemManager();
+
+		this.systemManager.addSystems([
+			ControlsSystem,
+			CursorStyleSystem,
+			PickingSystem,
+			TileSystem,
+			TileObjectsSystem,
+			RenderSystem,
+			MapWorkerSystem,
+			StaticGeometryLoadingSystem
+		]);
+
 		this.update();
 	}
 
-	public update(rafTime: number = 0) {
+	private update(rafTime: number = 0) {
 		requestAnimationFrame(this.loop);
 
 		const deltaTime = (rafTime - this.time) / 1e3;
 		this.time = rafTime;
 
-		this.controls.update(this.renderSystem.camera);
-		this.pickingSystem.update();
-		this.tileManager.update();
-		this.renderSystem.update(deltaTime);
+		this.systemManager.updateSystems(deltaTime);
 	}
 }
 

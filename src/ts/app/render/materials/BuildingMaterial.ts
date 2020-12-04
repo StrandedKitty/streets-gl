@@ -16,7 +16,8 @@ export default class BuildingMaterial extends Material {
 				modelViewMatrixPrev: {type: UniformType.Matrix4, value: null},
 				tileId: {type: UniformType.Int1, value: 0},
 				tRoof: {
-					type: UniformType.Texture2DArray, value: new Texture2DArray(renderer, {
+					type: UniformType.Texture2DArray,
+					value: new Texture2DArray(renderer, {
 						width: 512,
 						height: 512,
 						depth: 4,
@@ -29,7 +30,7 @@ export default class BuildingMaterial extends Material {
 						],
 						wrap: GLConstants.CLAMP_TO_EDGE
 					})
-				},
+				}
 			}
 		});
 	}

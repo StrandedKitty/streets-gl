@@ -1,35 +1,40 @@
 import Tile from "../objects/Tile";
 import Frustum from "../../core/Frustum";
 import Vec2 from "../../math/Vec2";
-import {App} from "../App";
 import PerspectiveCamera from "../../core/PerspectiveCamera";
 import Vec3 from "../../math/Vec3";
 import ConvexHullGrahamScan from "../../math/ConvexHullGrahamScan";
 import MathUtils from "../../math/MathUtils";
 import Config from "../Config";
-import TileProvider from "./TileProvider";
-import TileObjectsManager from "./TileObjectsManager";
+import StaticGeometryLoadingSystem from "./StaticGeometryLoadingSystem";
+import TileObjectsSystem from "./TileObjectsSystem";
+import System from "../System";
+import SystemManager from "../SystemManager";
+import RenderSystem from "./RenderSystem";
 
-export default class TileManager {
+export default class TileSystem extends System {
 	public tiles: Map<string, Tile> = new Map();
 	private camera: PerspectiveCamera;
 	private cameraFrustum: Frustum;
-	private tileProvider: TileProvider;
-	private objectsManager: TileObjectsManager;
+	private objectsManager: TileObjectsSystem;
 
-	constructor(private app: App) {
-		this.camera = app.renderSystem.camera;
-		this.tileProvider = new TileProvider(app.renderSystem.renderer);
-		this.objectsManager = new TileObjectsManager(this);
+	constructor(systemManager: SystemManager) {
+		super(systemManager);
 
 		this.init();
 	}
 
 	private init() {
+		window.addEventListener('resize', () => this.onResize());
+	}
+
+	public postInit() {
+		this.objectsManager = this.systemManager.getSystem(TileObjectsSystem);
+
+		this.camera = this.systemManager.getSystem(RenderSystem).camera;
+
 		this.cameraFrustum = new Frustum(this.camera.fov, this.camera.aspect, 1, 5000);
 		this.cameraFrustum.updateViewSpaceVertices();
-
-		window.addEventListener('resize', () => this.onResize());
 	}
 
 	private onResize() {
@@ -44,7 +49,10 @@ export default class TileManager {
 
 		tile.updateDistanceToCamera(this.camera);
 
-		tile.load(this.tileProvider, this.app.renderSystem.renderer);
+		tile.load(
+			this.systemManager.getSystem(StaticGeometryLoadingSystem),
+			this.systemManager.getSystem(RenderSystem).renderer
+		);
 	}
 
 	public getTile(x: number, y: number): Tile {
@@ -74,8 +82,8 @@ export default class TileManager {
 			this.getTile(x + 1, y - 1)
 		];
 
-		for(const tile of potentialTiles) {
-			if(tile) {
+		for (const tile of potentialTiles) {
+			if (tile) {
 				tiles.push(tile);
 			}
 		}
@@ -84,8 +92,8 @@ export default class TileManager {
 	}
 
 	public getTileByLocalId(localId: number): Tile {
-		for(const tile of this.tiles.values()) {
-			if(tile.localId === localId) {
+		for (const tile of this.tiles.values()) {
+			if (tile.localId === localId) {
 				return tile;
 			}
 		}
@@ -93,34 +101,31 @@ export default class TileManager {
 		return null;
 	}
 
-	public update() {
+	public update(deltaTime: number) {
 		this.updateTiles();
-		this.tileProvider.update();
 		this.removeCulledTiles();
-
-		this.objectsManager.update();
 	}
 
 	private updateTiles() {
 		const worldSpaceFrustum = this.cameraFrustum.toSpace(this.camera.matrix);
 		const frustumTiles = this.getTilesInFrustum(worldSpaceFrustum, this.camera.position);
 
-		for(const tile of this.tiles.values()) {
+		for (const tile of this.tiles.values()) {
 			tile.inFrustum = false;
 			tile.updateDistanceToCamera(this.camera);
 		}
 
 		let tilesToAdd = 1;
 
-		for(const tilePosition of frustumTiles) {
-			if(!this.getTile(tilePosition.x, tilePosition.y) && tilesToAdd > 0) {
+		for (const tilePosition of frustumTiles) {
+			if (!this.getTile(tilePosition.x, tilePosition.y) && tilesToAdd > 0) {
 				this.addTile(tilePosition.x, tilePosition.y);
 				--tilesToAdd;
 			}
 
 			const tile = this.getTile(tilePosition.x, tilePosition.y);
 
-			if(tile) {
+			if (tile) {
 				tile.inFrustum = true;
 			}
 		}
@@ -183,7 +188,7 @@ export default class TileManager {
 
 		const tilesMap: Map<string, Vec2> = new Map();
 
-		for(const tile of tilesOnEdges) {
+		for (const tile of tilesOnEdges) {
 			tilesMap.set(`${tile.x},${tile.y}`, tile);
 		}
 
@@ -242,7 +247,7 @@ export default class TileManager {
 			});
 		}
 
-		tilesList.sort((a: {distance: number}, b: {distance: number}) => (a.distance > b.distance) ? 1 : -1);
+		tilesList.sort((a: { distance: number }, b: { distance: number }) => (a.distance > b.distance) ? 1 : -1);
 
 		const result: Vec2[] = [];
 
@@ -254,11 +259,11 @@ export default class TileManager {
 	}
 
 	private removeCulledTiles() {
-		type tileEntry = {tile: Tile, distance: number};
+		type tileEntry = { tile: Tile, distance: number };
 		const tileList: tileEntry[] = [];
 
-		for(const tile of this.tiles.values()) {
-			if(!tile.inFrustum) {
+		for (const tile of this.tiles.values()) {
+			if (!tile.inFrustum) {
 				tileList.push({tile, distance: tile.distanceToCamera});
 			}
 		}
@@ -269,7 +274,7 @@ export default class TileManager {
 
 		const tilesToRemove = Math.min(tileList.length, this.tiles.size - Config.MaxConcurrentTiles);
 
-		for(let i = 0; i < tilesToRemove; i++) {
+		for (let i = 0; i < tilesToRemove; i++) {
 			this.removeTile(tileList[i].tile.x, tileList[i].tile.y);
 		}
 	}
