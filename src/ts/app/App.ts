@@ -8,6 +8,7 @@ import SystemManager from "./SystemManager";
 import TileObjectsSystem from "./systems/TileObjectsSystem";
 import StaticGeometryLoadingSystem from "./systems/StaticGeometryLoadingSystem";
 import MapWorkerSystem from "./systems/MapWorkerSystem";
+import MapTimeSystem from "./systems/MapTimeSystem";
 
 class App {
 	private loop = (deltaTime: number) => this.update(deltaTime);
@@ -25,6 +26,7 @@ class App {
 			ControlsSystem,
 			CursorStyleSystem,
 			PickingSystem,
+			MapTimeSystem,
 			TileSystem,
 			TileObjectsSystem,
 			RenderSystem,

@@ -25,6 +25,7 @@ import System from "../System";
 import SystemManager from "../SystemManager";
 import TileSystem from "./TileSystem";
 import PickingSystem from "./PickingSystem";
+import MapTimeSystem from "./MapTimeSystem";
 
 export default class RenderSystem extends System {
 	public renderer: Renderer;
@@ -380,6 +381,8 @@ export default class RenderSystem extends System {
 	}
 
 	private renderShadowMaps() {
+		this.csm.direction = this.systemManager.getSystem(MapTimeSystem).sunDirection;
+		this.csm.lightIntensity = this.systemManager.getSystem(MapTimeSystem).sunIntensity;
 		this.csm.update();
 
 		for (let i = 0; i < this.csm.lights.length; i++) {

@@ -22,7 +22,7 @@ export default class MapWorkerSystem extends System {
 		for(let i = 0; i < this.workers.length; i++) {
 			const worker = this.workers[i];
 
-			if(worker.queueLength < 2) {
+			if(worker.queueLength < Config.MaxTilesPerWorker) {
 				return worker;
 			}
 		}

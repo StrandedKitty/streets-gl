@@ -28,7 +28,7 @@ export interface StaticTileGeometry {
 	}
 }
 
-let tileCounter = 0;
+let tileCounter: number = 0;
 
 export default class Tile extends Object3D {
 	public ground: Ground;
@@ -60,9 +60,12 @@ export default class Tile extends Object3D {
 			tileCounter = 0;
 		}
 
-		this.ground = null;
+		this.updatePosition();
+	}
 
+	private updatePosition() {
 		const positionInMeters = MathUtils.tile2meters(this.x, this.y + 1);
+
 		this.position.set(positionInMeters.x, 0, positionInMeters.y);
 		this.updateMatrix();
 	}

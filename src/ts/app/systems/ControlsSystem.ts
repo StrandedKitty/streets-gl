@@ -97,6 +97,10 @@ export default class ControlsSystem extends System {
 
 	}
 
+	public getLatLon(): {lat: number, lon: number} {
+		return MathUtils.meters2degrees(this.target.x, this.target.z);
+	}
+
 	private updateStateFromPosition() {
 		this.state.x = this.target.x;
 		this.state.z = this.target.z;

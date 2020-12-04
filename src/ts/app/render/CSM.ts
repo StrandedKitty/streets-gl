@@ -2,7 +2,7 @@ import Object3D from "../../core/Object3D";
 import Renderer from "../../renderer/Renderer";
 import PerspectiveCamera from "../../core/PerspectiveCamera";
 import Vec3 from "../../math/Vec3";
-import DirectionalLightShadow from "../objects/DirectionalLightShadow";
+import DirectionalLightShadow from "./DirectionalLightShadow";
 import Frustum from "../../core/Frustum";
 import AABB from "../../core/AABB";
 import Material, {UniformType} from "../../renderer/Material";
@@ -22,6 +22,7 @@ export default class CSM extends Object3D {
 	private shadowBias: number;
 	private shadowNormalBias: number;
 	public direction: Vec3;
+	public lightIntensity: number = 0;
 
 	public lights: DirectionalLightShadow[] = [];
 	private texture: Texture2DArray;
@@ -130,6 +131,8 @@ export default class CSM extends Object3D {
 	}
 
 	public update() {
+		this.direction = Vec3.normalize(this.direction);
+
 		for (let i = 0; i < this.frustums.length; i++) {
 			const worldSpaceFrustum = this.frustums[i].toSpace(this.camera.matrix);
 			const light = this.lights[i];
@@ -185,6 +188,9 @@ export default class CSM extends Object3D {
 			type: UniformType.Texture2DArray,
 			value: this.texture
 		};
+
+		material.uniforms[`uLight.direction`].value = Vec3.toArray(this.direction);
+		material.uniforms[`uLight.intensity`].value = this.lightIntensity;
 
 		for (let i = 0; i < this.cascades; i++) {
 			material.uniforms[`cascades[${i}].matrixWorldInverse`] = {
