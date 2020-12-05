@@ -33,6 +33,7 @@ function sendMessage(msg: WorkerMessageIncoming) {
 			[
 				msg.result.buildings.position.buffer,
 				msg.result.buildings.uv.buffer,
+				msg.result.buildings.normal.buffer,
 				msg.result.buildings.textureId.buffer,
 				msg.result.buildings.color.buffer,
 				msg.result.buildings.id.buffer,

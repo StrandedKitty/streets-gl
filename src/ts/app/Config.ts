@@ -12,7 +12,9 @@ const Config = {
 	MinCameraPitch: 5,
 	MaxCameraPitch: 89.99,
 	IsMobileBrowser: Utils.isMobileBrowser(),
-	MinTexturedRoofArea: 50
+	MinTexturedRoofArea: 50,
+	MaxTexturedRoofAABBArea: 2e6,
+	BuildingSmoothNormalsThreshold: 20
 }
 
 export default Config;

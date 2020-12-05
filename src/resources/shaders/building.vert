@@ -3,6 +3,7 @@ precision highp float;
 
 in vec3 position;
 in vec2 uv;
+in vec3 normal;
 in vec3 color;
 in uint display;
 in uint textureId;
@@ -10,6 +11,7 @@ in uint localId;
 
 out vec2 vUv;
 out vec3 vPosition;
+out vec3 vNormal;
 out vec3 vColor;
 out vec4 vClipPos;
 out vec4 vClipPosPrev;
@@ -28,6 +30,7 @@ void main() {
 	}
 
 	vUv = uv;
+	vNormal = vec3(modelViewMatrix * vec4(normal, 0));
 	vColor = color;
 	vTextureId = int(textureId);
 	vObjectId = (uint(tileId) << 16u) + localId + 1u;

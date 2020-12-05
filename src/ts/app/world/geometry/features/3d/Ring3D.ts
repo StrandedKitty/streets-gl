@@ -1,6 +1,10 @@
 import Feature3D, {Tags} from "./Feature3D";
 import Node3D from "./Node3D";
 import Way3D from "./Way3D";
+import Vec3 from "../../../../../math/Vec3";
+import Vec2 from "../../../../../math/Vec2";
+import MathUtils from "../../../../../math/MathUtils";
+import Config from "../../../../Config";
 
 export enum RingType {
 	Outer,
@@ -108,7 +112,7 @@ export default class Ring3D extends Feature3D {
 		return length;
 	}
 
-	public triangulateWalls(): {positions: Float32Array, uvs: Float32Array, textureId: Uint8Array} {
+	public triangulateWalls(): { positions: Float32Array, uvs: Float32Array, normals: Float32Array, textureIds: Uint8Array } {
 		const tags = this.parent.tags;
 		const heightFactor = this.parent.heightFactor;
 
@@ -117,24 +121,47 @@ export default class Ring3D extends Feature3D {
 
 		const positions: number[] = [];
 		const uvs: number[] = [];
+		const normals: number[] = [];
+
+		const segmentNormals: Vec3[] = [];
+		const edgeSmoothness: boolean[] = [];
 
 		const uvMinY = 0;
 		const uvMaxY = height - minHeight;
 		let uvX = 0;
 
 		for (let i = 0; i < this.vertices.length - 1; i++) {
-			const vertex = {x: this.vertices[i][0], z: this.vertices[i][1]};
-			const nextVertex = {x: this.vertices[i + 1][0], z: this.vertices[i + 1][1]};
+			const prevVertexId = i < 1 ? this.vertices.length - 2 : i - 1;
 
-			positions.push(nextVertex.x, minHeight, nextVertex.z);
-			positions.push(vertex.x, height, vertex.z);
-			positions.push(vertex.x, minHeight, vertex.z);
+			const vertex = new Vec2(this.vertices[i][0], this.vertices[i][1]);
+			const nextVertex = new Vec2(this.vertices[i + 1][0], this.vertices[i + 1][1]);
+			const prevVertex = new Vec2(this.vertices[prevVertexId][0], this.vertices[prevVertexId][1]);
 
-			positions.push(nextVertex.x, minHeight, nextVertex.z);
-			positions.push(nextVertex.x, height, nextVertex.z);
-			positions.push(vertex.x, height, vertex.z);
+			const segmentLength = Vec2.distance(vertex, nextVertex);
 
-			const nextUvX = uvX + Math.sqrt((vertex.x - nextVertex.x) ** 2 + (vertex.z - nextVertex.z) ** 2);
+			positions.push(nextVertex.x, minHeight, nextVertex.y);
+			positions.push(vertex.x, height, vertex.y);
+			positions.push(vertex.x, minHeight, vertex.y);
+
+			positions.push(nextVertex.x, minHeight, nextVertex.y);
+			positions.push(nextVertex.x, height, nextVertex.y);
+			positions.push(vertex.x, height, vertex.y);
+
+			const normal = MathUtils.calculateNormal(
+				new Vec3(nextVertex.x, minHeight, nextVertex.y),
+				new Vec3(vertex.x, height, vertex.y),
+				new Vec3(vertex.x, minHeight, vertex.y)
+			);
+
+			segmentNormals.push(Vec3.multiplyScalar(normal, segmentLength));
+
+			const segmentVector = Vec2.normalize(Vec2.sub(nextVertex, vertex));
+			const prevSegmentVector = Vec2.normalize(Vec2.sub(vertex, prevVertex));
+			const dotProduct = Vec2.dot(segmentVector, prevSegmentVector);
+
+			edgeSmoothness.push(dotProduct > Math.cos(MathUtils.toRad(Config.BuildingSmoothNormalsThreshold)));
+
+			const nextUvX = uvX + segmentLength;
 
 			uvs.push(
 				nextUvX, uvMinY,
@@ -150,10 +177,36 @@ export default class Ring3D extends Feature3D {
 			uvX = nextUvX;
 		}
 
+		for (let i = 0; i < segmentNormals.length; i++) {
+			const normal = segmentNormals[i];
+			const normalNormalized = Vec3.normalize(segmentNormals[i]);
+			const nextNormal = i === segmentNormals.length - 1 ? segmentNormals[0] : segmentNormals[i + 1];
+			const prevNormal = i === 0 ? segmentNormals[segmentNormals.length - 1] : segmentNormals[i - 1];
+
+			const isSmooth: [boolean, boolean] = [
+				edgeSmoothness[i],
+				i === edgeSmoothness.length - 1 ? edgeSmoothness[0] : edgeSmoothness[i + 1]
+			];
+
+			const vertexSides: number[] = [1, 0, 0, 1, 1, 0];
+
+			for (let j = 0; j < 6; j++) {
+				const side = vertexSides[j];
+
+				if (isSmooth[side]) {
+					const neighborNormal = side === 1 ? nextNormal : prevNormal;
+					normals.push(...Vec3.toArray(Vec3.normalize(Vec3.add(normal, neighborNormal))));
+				} else {
+					normals.push(normalNormalized.x, normalNormalized.y, normalNormalized.z);
+				}
+			}
+		}
+
 		return {
 			positions: new Float32Array(positions),
 			uvs: new Float32Array(uvs),
-			textureId: new Uint8Array()
+			normals: new Float32Array(normals),
+			textureIds: new Uint8Array()
 		};
 	}
 }

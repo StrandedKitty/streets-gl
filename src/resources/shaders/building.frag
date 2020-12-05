@@ -14,6 +14,7 @@ layout(location = 6) out uint outObjectId;
 
 in vec2 vUv;
 in vec3 vPosition;
+in vec3 vNormal;
 in vec3 vColor;
 in vec4 vClipPos;
 in vec4 vClipPosPrev;
@@ -33,7 +34,7 @@ void main() {
 		outColor = texture(tRoof, vec3(vUv, vTextureId - 1));
 	}
 
-	outNormal = getFlatNormal(vPosition) * 0.5 + 0.5;
+	outNormal = vNormal * 0.5 + 0.5;
 	outPosition = vPosition;
 	outMetallicRoughness = vec4(0);
 	outEmission = vec4(0);

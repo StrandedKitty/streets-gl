@@ -120,5 +120,12 @@ export default class MathUtils {
 	public static shiftRight(num: number, bits: number): number {
 		return Math.floor(num / Math.pow(2, bits));
 	}
+
+	public static calculateNormal(vA: Vec3, vB: Vec3, vC: Vec3): Vec3 {
+		let cb = Vec3.sub(vC, vB);
+		let ab = Vec3.sub(vA, vB);
+		cb = Vec3.cross(cb, ab);
+		return Vec3.normalize(cb);
+	}
 }
 

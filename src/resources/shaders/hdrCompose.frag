@@ -377,7 +377,8 @@ void main() {
 	color += applyDirectionalLight(light, materialInfo, worldNormal, worldView) * 0.7 * shadowFactor;
 	color += materialInfo.diffuseColor * 0.2;
 
-	color = applySelectionMask(color) * ambientOcclusionFactor;
+	color *= ambientOcclusionFactor;
+	color = applySelectionMask(color);
 
 	FragColor = vec4(color, 1);
 }

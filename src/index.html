@@ -4,10 +4,21 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
         <link rel="icon" type="image/png" href="/images/favicon.png">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
         <title>Streets GL</title>
     </head>
     <body>
         <div id="wrapper">
+            <div class="ui" id="ui">
+                <div class="selection-info-wrapper">
+                    <div class="selection-info" id="selected-feature-container">
+                        <div class="selection-info-header" id="selected-feature-name"></div>
+                        <div class="selection-info-link">
+                            <a href="" target="_blank" id="selected-feature-link">Open on openstreetmap.org</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <canvas id="canvas"></canvas>
         </div>
         <script src="//cdn.jsdelivr.net/npm/eruda"></script>

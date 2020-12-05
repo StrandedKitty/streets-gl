@@ -1,3 +1,7 @@
+* {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
     color: #111111;
@@ -5,9 +9,10 @@ body {
     height: 100%;
     overflow: hidden;
     touch-action: none;
+    font-family: 'Inter', sans-serif;
 }
 
-canvas {
+#canvas {
     width: 100%;
     height: 100%;
     position: absolute;
@@ -15,4 +20,30 @@ canvas {
     right: 0;
     top: 0;
     overflow: hidden;
+    z-index: -1;
+}
+
+.selection-info-wrapper {
+    pointer-events: none;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.selection-info {
+    pointer-events: auto;
+    width: 500px;
+    max-width: 90%;
+    background: #fff;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.25);
+    padding: 24px;
+}
+
+.selection-info-header {
+    font-size: 24px;
+    font-weight: 600;
 }

@@ -7,6 +7,7 @@ import System from "../System";
 import SystemManager from "../SystemManager";
 import CursorStyleSystem from "./CursorStyleSystem";
 import TileSystem from "./TileSystem";
+import UISystem from "./UISystem";
 
 export default class PickingSystem extends System {
 	private pointerPosition: Vec2 = new Vec2();
@@ -21,7 +22,9 @@ export default class PickingSystem extends System {
 	constructor(systemManager: SystemManager) {
 		super(systemManager);
 
-		window.addEventListener('pointerdown', e => {
+		const canvas = document.getElementById('canvas');
+
+		canvas.addEventListener('pointerdown', e => {
 			this.pointerPosition.x = e.clientX;
 			this.pointerPosition.y = e.clientY;
 
@@ -29,12 +32,12 @@ export default class PickingSystem extends System {
 			this.pointerDownPosition.y = e.clientY;
 		});
 
-		window.addEventListener('pointermove', e => {
+		canvas.addEventListener('pointermove', e => {
 			this.pointerPosition.x = e.clientX;
 			this.pointerPosition.y = e.clientY;
 		});
 
-		window.addEventListener('pointerup', e => {
+		canvas.addEventListener('pointerup', e => {
 			this.pointerPosition.x = e.clientX;
 			this.pointerPosition.y = e.clientY;
 
@@ -42,8 +45,6 @@ export default class PickingSystem extends System {
 				this.onClick();
 			}
 		});
-
-		const canvas = document.getElementById('canvas');
 
 		canvas.addEventListener('mouseenter', e => {
 			this.enablePicking = true;
@@ -111,6 +112,7 @@ export default class PickingSystem extends System {
 	private onClick() {
 		if (this.hoveredObjectId === 0 || this.hoveredObjectId === this.selectedObjectId) {
 			this.selectedObjectId = 0;
+			this.systemManager.getSystem(UISystem).clearActiveFeature();
 			return;
 		}
 
@@ -130,6 +132,7 @@ export default class PickingSystem extends System {
 			this.selectedObjectTile = tile;
 
 			console.log(`clicked ${type} ${id}`);
+			this.systemManager.getSystem(UISystem).setActiveFeature(type, id);
 		}
 	}
 

@@ -58,6 +58,7 @@ export default class TileGeometryBuilder {
 		const positionArrays: Float32Array[] = [];
 		const colorArrays: Uint8Array[] = [];
 		const uvArrays: Float32Array[] = [];
+		const normalArrays: Float32Array[] = [];
 		const textureIdArrays: Uint8Array[] = [];
 		const localIdArrays: Uint32Array[] = [];
 
@@ -77,7 +78,7 @@ export default class TileGeometryBuilder {
 				continue;
 			}
 
-			const {position, color, uv, textureId} = way.getAttributeBuffers();
+			const {position, color, uv, normal, textureId} = way.getAttributeBuffers();
 
 			if (position.length === 0) {
 				continue;
@@ -86,6 +87,7 @@ export default class TileGeometryBuilder {
 			positionArrays.push(position);
 			colorArrays.push(color);
 			uvArrays.push(uv);
+			normalArrays.push(normal);
 			textureIdArrays.push(textureId);
 			localIdArrays.push(Utils.fillTypedArraySequence(
 				Uint32Array,
@@ -94,22 +96,24 @@ export default class TileGeometryBuilder {
 			));
 
 			featuresIDs.push(way.id);
-			featuresTypes.push(0);
+			featuresTypes.push(way.isRelation ? 1 : 0);
 		}
 
 		for(const [relationId, wayArray] of joinedWays.entries()) {
 			const relationPositionsArrays: Float32Array[] = [];
 			const relationColorArrays: Uint8Array[] = [];
 			const relationUvArrays: Float32Array[] = [];
+			const relationNormalArrays: Float32Array[] = [];
 			const relationTextureIdArrays: Uint8Array[] = [];
 			const relationLocalIdArrays: Uint32Array[] = [];
 
 			for(const way of wayArray) {
-				const {position, color, uv, textureId} = way.getAttributeBuffers();
+				const {position, color, uv, normal, textureId} = way.getAttributeBuffers();
 
 				relationPositionsArrays.push(position);
 				relationColorArrays.push(color);
 				relationUvArrays.push(uv);
+				relationNormalArrays.push(normal);
 				relationTextureIdArrays.push(textureId);
 				relationLocalIdArrays.push(Utils.fillTypedArraySequence(
 					Uint32Array,
@@ -126,6 +130,9 @@ export default class TileGeometryBuilder {
 			);
 			uvArrays.push(
 				Utils.mergeTypedArrays(Float32Array, relationUvArrays)
+			);
+			normalArrays.push(
+				Utils.mergeTypedArrays(Float32Array, relationNormalArrays)
 			);
 			textureIdArrays.push(
 				Utils.mergeTypedArrays(Uint8Array, relationTextureIdArrays)
@@ -153,6 +160,7 @@ export default class TileGeometryBuilder {
 		const positionBuffer = Utils.mergeTypedArrays(Float32Array, positionArrays);
 		const colorBuffer = Utils.mergeTypedArrays(Uint8Array, colorArrays);
 		const uvBuffer = Utils.mergeTypedArrays(Float32Array, uvArrays);
+		const normalBuffer = Utils.mergeTypedArrays(Float32Array, normalArrays);
 		const textureIdBuffer = Utils.mergeTypedArrays(Uint8Array, textureIdArrays);
 		const localIdBuffer = Utils.mergeTypedArrays(Uint32Array, localIdArrays);
 		const bbox = this.getBoundingBoxFromVertices(positionBuffer);
@@ -161,6 +169,7 @@ export default class TileGeometryBuilder {
 			buildings: {
 				position: positionBuffer,
 				uv: uvBuffer,
+				normal: normalBuffer,
 				textureId: textureIdBuffer,
 				color: colorBuffer,
 				id: ids,
@@ -244,7 +253,7 @@ export default class TileGeometryBuilder {
 			const relationType: string = relation.descriptor.properties.relationType;
 
 			if(relationType === 'multipolygon') {
-				const way3d = new Way3D(relation.id, null, relation.descriptor.properties, this.heightViewer);
+				const way3d = new Way3D(relation.id, null, relation.descriptor.properties, this.heightViewer, true);
 				ways.set(way3d.id, way3d);
 
 				for(const {feature, role} of relation.members) {
@@ -286,7 +295,8 @@ export default class TileGeometryBuilder {
 				way.id,
 				buildingRelationsWays.get(way.id),
 				way.descriptor.properties,
-				this.heightViewer
+				this.heightViewer,
+				false
 			);
 
 			way3d.addRing(RingType.Outer, way.id, wayNodes, way.descriptor.properties);

@@ -13,11 +13,11 @@ export default class MapTimeSystem extends System {
 		super(systemManager);
 	}
 
-	postInit() {
+	public postInit() {
 
 	}
 
-	update(deltaTime: number) {
+	public update(deltaTime: number) {
 		const latLon = this.systemManager.getSystem(ControlsSystem).getLatLon();
 		const sunPosition = SunCalc.getPosition(Date.now(), latLon.lat, latLon.lon);
 

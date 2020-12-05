@@ -3,7 +3,7 @@ export default class WayAABB {
 	private minY: number;
 	private maxX: number;
 	private maxY: number;
-	private empty: boolean = false;
+	private empty: boolean = true;
 
 	public set(minX: number, minY: number, maxX: number, maxY: number) {
 		this.minX = minX;
@@ -45,5 +45,9 @@ export default class WayAABB {
 			box.maxY <= this.minY ||
 			box.minY >= this.maxX
 		);
+	}
+
+	public getArea(): number {
+		return (this.maxX - this.minX) * (this.maxY - this.minY);
 	}
 }

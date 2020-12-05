@@ -18,7 +18,6 @@ interface EarcutInput {
 }
 
 export default class Way3D extends Feature3D {
-	public buildingRelationId: number;
 	public vertices: [number, number][];
 	public maxGroundHeight: number;
 	public minGroundHeight: number;
@@ -28,12 +27,15 @@ export default class Way3D extends Feature3D {
 	private holesArrays: EarcutInput;
 	public geoJSON: GeoJSON.MultiPolygon = null;
 	public aabb: WayAABB = new WayAABB();
+	public buildingRelationId: number;
+	public isRelation: boolean;
 
-	constructor(id: number, buildingRelationId: number = null, tags: Tags, heightViewer: HeightViewer) {
+	constructor(id: number, buildingRelationId: number = null, tags: Tags, heightViewer: HeightViewer, isRelation: boolean) {
 		super(id, tags);
 
 		this.buildingRelationId = buildingRelationId;
 		this.heightViewer = heightViewer;
+		this.isRelation = isRelation;
 	}
 
 	public addRing(type: RingType, id: number, nodes: Node3D[], tags: Tags) {
@@ -56,12 +58,13 @@ export default class Way3D extends Feature3D {
 		this.heightFactor = lat === null ? 1 : MathUtils.mercatorScaleFactor(lat);
 	}
 
-	public getAttributeBuffers(): {position: Float32Array, color: Uint8Array, uv: Float32Array, textureId: Uint8Array} {
+	public getAttributeBuffers(): {position: Float32Array, color: Uint8Array, uv: Float32Array, normal: Float32Array, textureId: Uint8Array} {
 		if (!this.visible || this.tags.type !== 'building') {
 			return {
 				position: new Float32Array(),
 				color: new Uint8Array(),
 				uv: new Float32Array(),
+				normal: new Float32Array(),
 				textureId: new Uint8Array()
 			};
 		}
@@ -79,13 +82,15 @@ export default class Way3D extends Feature3D {
 
 		const positionArrays: Float32Array[] = [];
 		const uvArrays: Float32Array[] = [];
+		const normalArrays: Float32Array[] = [];
 		const textureIdArrays: Uint8Array[] = [];
 
 		const footprint = this.triangulateFootprint();
-		const isFootprintTextured = this.getTotalArea() > Config.MinTexturedRoofArea;
+		const isFootprintTextured = this.getTotalArea() > Config.MinTexturedRoofArea && this.aabb.getArea() < Config.MaxTexturedRoofAABBArea;
 
 		positionArrays.push(footprint.positions);
 		uvArrays.push(footprint.uvs);
+		normalArrays.push(footprint.normals);
 		textureIdArrays.push(Utils.fillTypedArraySequence(
 			Uint8Array,
 			new Uint8Array(footprint.uvs.length / 2),
@@ -96,6 +101,7 @@ export default class Way3D extends Feature3D {
 			const ringData = ring.triangulateWalls();
 			positionArrays.push(ringData.positions);
 			uvArrays.push(ringData.uvs);
+			normalArrays.push(ringData.normals);
 			textureIdArrays.push(Utils.fillTypedArraySequence(
 				Uint8Array,
 				new Uint8Array(ringData.uvs.length / 2),
@@ -105,6 +111,7 @@ export default class Way3D extends Feature3D {
 
 		const positionBuffer = Utils.mergeTypedArrays(Float32Array, positionArrays);
 		const uvBuffer = Utils.mergeTypedArrays(Float32Array, uvArrays);
+		const normalBuffer = Utils.mergeTypedArrays(Float32Array, normalArrays);
 		const textureIdBuffer = Utils.mergeTypedArrays(Uint8Array, textureIdArrays);
 		const color = new Uint8Array(<number[]>this.tags.facadeColor || [255, 255, 255]);
 		const colorBuffer = Utils.fillTypedArraySequence(
@@ -117,6 +124,7 @@ export default class Way3D extends Feature3D {
 			position: positionBuffer,
 			color: colorBuffer,
 			uv: uvBuffer,
+			normal: normalBuffer,
 			textureId: textureIdBuffer
 		};
 	}
@@ -159,9 +167,10 @@ export default class Way3D extends Feature3D {
 		this.holesArrays = data;
 	}
 
-	private triangulateFootprint(): {positions: Float32Array, uvs: Float32Array} {
+	private triangulateFootprint(): {positions: Float32Array, normals: Float32Array, uvs: Float32Array} {
 		const positions: number[] = [];
 		const uvs: number[] = [];
+		const normals: number[] = [];
 
 		const ombbPoints: number[][] = [];
 
@@ -179,6 +188,7 @@ export default class Way3D extends Feature3D {
 						vertices[triangles[i] * 2 + 1]
 					);
 					uvs.push(vertices[triangles[i] * 2], vertices[triangles[i] * 2 + 1]);
+					normals.push(0, 1, 0);
 				}
 
 				for(const vertex of ring.vertices) {
@@ -233,7 +243,7 @@ export default class Way3D extends Feature3D {
 			}
 		}
 
-		return {positions: new Float32Array(positions), uvs: new Float32Array(uvs)};
+		return {positions: new Float32Array(positions), normals: new Float32Array(normals), uvs: new Float32Array(uvs)};
 	}
 
 	private getOMBBFromPoints(points: number[][]): Vec2[] {
