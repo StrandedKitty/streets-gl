@@ -79,7 +79,8 @@ export default class HDRComposeMaterial extends Material {
 				'uLight.innerConeCos': {type: UniformType.Float1, value: light.innerConeCos},
 				'uLight.outerConeCos': {type: UniformType.Float1, value: light.outerConeCos},
 				'uLight.type': {type: UniformType.Int1, value: light.type},
-				'uLight.padding': {type: UniformType.Float2, value: light.padding}
+				'uLight.padding': {type: UniformType.Float2, value: light.padding},
+				ambientLightIntensity: {type: UniformType.Float1, value: 1}
 			}
 		});
 	}

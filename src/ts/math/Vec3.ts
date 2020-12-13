@@ -31,6 +31,18 @@ export default class Vec3 {
 		return this.x === v.x && this.y === v.y && this.z === v.z;
 	}
 
+	public normalize() {
+		const length = Vec3.getLength(this);
+
+		if (length > 1e-10) {
+			this.x /= length;
+			this.y /= length;
+			this.z /= length;
+		}
+
+		return this;
+	}
+
 	public static add(v1: Vec3, v2: Vec3): Vec3 {
 		return new Vec3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
 	}
@@ -94,6 +106,10 @@ export default class Vec3 {
 		dst.y = (1 - amount) * v1.y + amount * v2.y;
 		dst.z = (1 - amount) * v1.z + amount * v2.z;
 		return dst;
+	}
+
+	public static nlerp(v1: Vec3, v2: Vec3, amount: number): Vec3 {
+		return Vec3.lerp(v1, v2, amount).normalize();
 	}
 
 	public static project(v: Vec3, camera: Camera): Vec3 {

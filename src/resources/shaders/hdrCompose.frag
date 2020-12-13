@@ -20,6 +20,7 @@ out vec4 FragColor;
 
 in vec2 vUv;
 
+uniform float ambientLightIntensity;
 uniform sampler2D tColor;
 uniform sampler2D tDepth;
 uniform sampler2D tNormal;
@@ -374,8 +375,8 @@ void main() {
 	float ambientOcclusionFactor = texture(tAmbientOcclusion, vUv).r;
 
 	color += getIBLContribution(materialInfo, worldNormal, worldView);
-	color += applyDirectionalLight(light, materialInfo, worldNormal, worldView) * 0.7 * shadowFactor;
-	color += materialInfo.diffuseColor * 0.2;
+	color += applyDirectionalLight(light, materialInfo, worldNormal, worldView) * shadowFactor;
+	color += materialInfo.diffuseColor * ambientLightIntensity;
 
 	color *= ambientOcclusionFactor;
 	color = applySelectionMask(color);

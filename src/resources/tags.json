@@ -37,5 +37,10 @@
 		"multipolygon": {
 			"relationType": "multipolygon"
 		}
+	},
+	"layer": {
+		"default": {
+			"layer": "@int"
+		}
 	}
 }

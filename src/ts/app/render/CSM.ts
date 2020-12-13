@@ -23,6 +23,7 @@ export default class CSM extends Object3D {
 	private shadowNormalBias: number;
 	public direction: Vec3;
 	public lightIntensity: number = 0;
+	public ambientLightIntensity: number = 0;
 
 	public lights: DirectionalLightShadow[] = [];
 	private texture: Texture2DArray;
@@ -40,7 +41,7 @@ export default class CSM extends Object3D {
 		resolution,
 		shadowBias,
 		shadowNormalBias,
-		direction = new Vec3(-1, -2, -1)
+		direction = new Vec3(-1, -1, -1)
 	}: {
 		camera: PerspectiveCamera,
 		parent: Object3D,
@@ -191,6 +192,7 @@ export default class CSM extends Object3D {
 
 		material.uniforms[`uLight.direction`].value = Vec3.toArray(this.direction);
 		material.uniforms[`uLight.intensity`].value = this.lightIntensity;
+		material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
 
 		for (let i = 0; i < this.cascades; i++) {
 			material.uniforms[`cascades[${i}].matrixWorldInverse`] = {

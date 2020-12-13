@@ -14,7 +14,8 @@ const Config = {
 	IsMobileBrowser: Utils.isMobileBrowser(),
 	MinTexturedRoofArea: 50,
 	MaxTexturedRoofAABBArea: 2e6,
-	BuildingSmoothNormalsThreshold: 20
+	BuildingSmoothNormalsThreshold: 20,
+	LightTransitionDuration: 1
 }
 
 export default Config;

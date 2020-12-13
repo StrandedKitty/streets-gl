@@ -250,6 +250,10 @@ export default class TileGeometryBuilder {
 				continue;
 			}
 
+			if(relation.descriptor.properties.layer < 0) {
+				continue;
+			}
+
 			const relationType: string = relation.descriptor.properties.relationType;
 
 			if(relationType === 'multipolygon') {
@@ -264,9 +268,13 @@ export default class TileGeometryBuilder {
 							wayNodes.push(nodes.get(node.id));
 						}
 
-						way3d.addRing(role === 'inner' ? RingType.Inner : RingType.Outer, feature.id, wayNodes, feature.descriptor.properties);
+						if(role === 'inner') {
+							way3d.addRing(RingType.Inner, feature.id, wayNodes, feature.descriptor.properties);
+						} else if(role === 'outer') {
+							way3d.addRing(RingType.Outer, feature.id, wayNodes, feature.descriptor.properties);
+						}
 
-						processedWays.add(feature.id);
+						//processedWays.add(feature.id);
 					}
 				}
 			} else if(relationType === 'building') {
@@ -282,6 +290,10 @@ export default class TileGeometryBuilder {
 
 		for (const way of osm.ways.values()) {
 			if(processedWays.has(way.id)) {
+				continue;
+			}
+
+			if(way.descriptor.properties.layer < 0) {
 				continue;
 			}
 
