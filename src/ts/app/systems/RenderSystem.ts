@@ -312,29 +312,34 @@ export default class RenderSystem extends System {
 		if (selectedObjectId > 0) {
 			this.selectionMaskPass.clear();
 
-			const tile = this.systemManager.getSystem(PickingSystem).selectedObjectTile;
-			const localId = this.systemManager.getSystem(PickingSystem).selectedObjectLocalId;
+			const picking = this.systemManager.getSystem(PickingSystem);
+			const tile = picking.selectedObjectTile;
+			const localId = picking.selectedObjectLocalId;
 
-			this.selectionMaskPass.buildingMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
-			this.selectionMaskPass.buildingMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(this.camera.matrixWorldInverse, tile.buildings.matrixWorld);
-			this.selectionMaskPass.buildingMaterial.uniforms.objectId.value = localId;
-			this.selectionMaskPass.buildingMaterial.use();
-			tile.buildings.draw();
+			if(!tile.disposed) {
+				this.selectionMaskPass.buildingMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
+				this.selectionMaskPass.buildingMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(this.camera.matrixWorldInverse, tile.buildings.matrixWorld);
+				this.selectionMaskPass.buildingMaterial.uniforms.objectId.value = localId;
+				this.selectionMaskPass.buildingMaterial.use();
+				tile.buildings.draw();
 
-			const neighbors = this.systemManager.getSystem(TileSystem).getTileNeighbors(tile.x, tile.y);
-			neighbors.push(tile);
+				const neighbors = this.systemManager.getSystem(TileSystem).getTileNeighbors(tile.x, tile.y);
+				neighbors.push(tile);
 
-			this.selectionMaskPass.groundMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
-			this.selectionMaskPass.groundMaterial.use();
+				this.selectionMaskPass.groundMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
+				this.selectionMaskPass.groundMaterial.use();
 
-			for (const tile of neighbors) {
-				if (!tile.ground) {
-					continue;
+				for (const tile of neighbors) {
+					if (!tile.ground) {
+						continue;
+					}
+
+					this.selectionMaskPass.groundMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(this.camera.matrixWorldInverse, tile.ground.matrixWorld);
+					this.selectionMaskPass.groundMaterial.updateUniform('modelViewMatrix');
+					tile.ground.draw();
 				}
-
-				this.selectionMaskPass.groundMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(this.camera.matrixWorldInverse, tile.ground.matrixWorld);
-				this.selectionMaskPass.groundMaterial.updateUniform('modelViewMatrix');
-				tile.ground.draw();
+			} else {
+				picking.clearSelection();
 			}
 		} else {
 			this.selectionMaskPass.clear();

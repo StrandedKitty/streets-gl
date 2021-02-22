@@ -5,9 +5,12 @@
 		}
 	},
 	"building:part": {
-		"yes": {
+		"default": {
 			"type": "building",
 			"buildingPart": true
+		},
+		"no": {
+			"type": "none"
 		}
 	},
 	"building:levels": {

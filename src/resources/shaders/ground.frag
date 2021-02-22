@@ -20,6 +20,12 @@ uniform sampler2D map;
 
 void main() {
     outColor = texture(map, vUv);
+
+    float borderSize = 0.005;
+    if(vUv.x > 1. - borderSize || vUv.y > 1. - borderSize || vUv.x < borderSize || vUv.y < borderSize) {
+        outColor = vec4(1, 0, 0, 1);
+    }
+
     outNormal = vNormal * 0.5 + 0.5;
     outPosition = vPosition;
     outMetallicRoughness = vec4(0);

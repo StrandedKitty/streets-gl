@@ -111,8 +111,7 @@ export default class PickingSystem extends System {
 
 	private onClick() {
 		if (this.hoveredObjectId === 0 || this.hoveredObjectId === this.selectedObjectId) {
-			this.selectedObjectId = 0;
-			this.systemManager.getSystem(UISystem).clearActiveFeature();
+			this.clearSelection();
 			return;
 		}
 
@@ -134,6 +133,11 @@ export default class PickingSystem extends System {
 			console.log(`clicked ${type} ${id}`);
 			this.systemManager.getSystem(UISystem).setActiveFeature(type, id);
 		}
+	}
+
+	public clearSelection() {
+		this.selectedObjectId = 0;
+		this.systemManager.getSystem(UISystem).clearActiveFeature();
 	}
 
 	public update(deltaTime: number) {

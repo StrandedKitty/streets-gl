@@ -322,7 +322,7 @@ export default class TileGeometryBuilder {
 
 	private removeBuildingOutlines(ways: Map<number, Way3D>) {
 		for (const part of ways.values()) {
-			if (!part.tags.buildingPart) {
+			if (!part.tags.buildingPart || part.tags.type === 'none') {
 				continue;
 			}
 
