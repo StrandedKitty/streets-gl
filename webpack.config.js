@@ -51,7 +51,7 @@ module.exports = [{
 				use: {loader: 'worker-loader'}
 			},
 			{
-				test: /\.ts$/,
+				test: /\.ts|.tsx$/,
 				loader: [
 					{loader: 'ts-loader', options: {configFile: 'tsconfig.json'}}
 				],
@@ -60,6 +60,6 @@ module.exports = [{
 		]
 	},
 	resolve: {
-		extensions: ['.ts', '.js']
+		extensions: ['.ts', '.js', '.tsx']
 	}
 }];

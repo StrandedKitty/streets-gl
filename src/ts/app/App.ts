@@ -42,10 +42,14 @@ class App {
 	private update(rafTime: number = 0) {
 		requestAnimationFrame(this.loop);
 
+		const frameStart = performance.now();
 		const deltaTime = (rafTime - this.time) / 1e3;
 		this.time = rafTime;
 
 		this.systemManager.updateSystems(deltaTime);
+
+		const frameTime = performance.now() - frameStart;
+		this.systemManager.getSystem(UISystem).updateFrameTime(frameTime);
 	}
 }
 

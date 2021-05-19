@@ -1,13 +1,25 @@
 import System from "../System";
 import SystemManager from "../SystemManager";
+import MathUtils from "../../math/MathUtils";
+import UI from "../ui/UI";
 
-interface FeatureLink {
-	type: number;
-	id: number;
+export interface UIGlobalState {
+	activeFeatureType: number;
+	activeFeatureId: number;
+	fps: number;
+	frameTime: number;
 }
 
+const FPSUpdateInterval = 0.4;
+
 export default class UISystem extends System {
-	private activeFeature: FeatureLink = null;
+	private globalState: UIGlobalState = {
+		activeFeatureType: null,
+		activeFeatureId: null,
+		fps: 0,
+		frameTime: 0
+	};
+	private fpsUpdateTimer: number = 0;
 
 	constructor(systemManager: SystemManager) {
 		super(systemManager);
@@ -20,47 +32,42 @@ export default class UISystem extends System {
 			event.stopPropagation();
 		});
 
-		this.updateFeatureInfo();
+		this.updateDOM();
 	}
 
 	public postInit() {
 
 	}
 
+	updateDOM() {
+		UI.update(this.globalState);
+	}
+
 	public setActiveFeature(type: number, id: number) {
-		if(!this.activeFeature || this.activeFeature.id !== id || this.activeFeature.type !== type) {
-			this.activeFeature = {type, id};
-			this.updateFeatureInfo();
-		}
+		this.globalState.activeFeatureId = id;
+		this.globalState.activeFeatureType = type;
+		this.updateDOM();
 	}
 
 	public clearActiveFeature() {
-		if(this.activeFeature) {
-			this.activeFeature = null;
-			this.updateFeatureInfo();
-		}
+		this.globalState.activeFeatureId = null;
+		this.globalState.activeFeatureType = null;
+		this.updateDOM();
 	}
 
-	private updateFeatureInfo() {
-		const containerElement = document.getElementById('selected-feature-container');
-		const nameElement = document.getElementById('selected-feature-name');
-		const linkElement = document.getElementById('selected-feature-link');
-
-		if(this.activeFeature) {
-			const {id, type} = this.activeFeature;
-
-			nameElement.innerText = `${type === 0 ? 'Way' : 'Relation'} ${id}`;
-			linkElement.setAttribute('href', `https://www.openstreetmap.org/${type === 0 ? 'way' : 'relation'}/${id}`);
-			containerElement.style.display = 'block';
-		} else {
-			nameElement.innerText = '';
-			linkElement.setAttribute('href', '');
-			containerElement.style.display = 'none';
-		}
+	public updateFrameTime(frameTime: number) {
+		this.globalState.frameTime = MathUtils.lerp(this.globalState.frameTime, frameTime, 0.1);
 	}
-
 
 	public update(deltaTime: number) {
+		const newFps = Math.min(Math.round(1 / deltaTime), 1e3);
+		this.globalState.fps = MathUtils.lerp(this.globalState.fps, newFps, 0.1);
 
+		if(this.fpsUpdateTimer >= FPSUpdateInterval) {
+			this.fpsUpdateTimer = 0;
+			this.updateDOM();
+		}
+
+		this.fpsUpdateTimer += deltaTime;
 	}
 }

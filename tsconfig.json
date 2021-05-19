@@ -14,7 +14,9 @@
 		"noImplicitThis": true,
 		"strictBindCallApply": true,
 		"strictFunctionTypes": true,
-		"resolveJsonModule": true
+		"resolveJsonModule": true,
+		"allowSyntheticDefaultImports": true,
+		"jsx": "react"
 	},
 	"include": [
 		"src"

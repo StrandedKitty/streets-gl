@@ -23,6 +23,22 @@ body {
     z-index: -1;
 }
 
+.debug-info {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    font-weight: 700;
+    font-size: 14px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    color: white;
+    padding: 10px 12px 6px 12px;
+}
+
+.debug-info-item {
+    margin: 0 0 4px 0;
+}
+
 .selection-info-wrapper {
     pointer-events: none;
     position: absolute;

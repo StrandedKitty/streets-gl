@@ -123,6 +123,8 @@ export default class ControlsSystem extends System {
 	}
 
 	private mouseDownEvent(e: MouseEvent) {
+		e.preventDefault();
+
 		this.systemManager.getSystem(CursorStyleSystem).enableGrabbing();
 
 		if (e.button && e.button == 2) {
