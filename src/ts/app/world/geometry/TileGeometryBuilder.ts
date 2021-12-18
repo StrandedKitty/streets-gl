@@ -5,11 +5,15 @@ import Vec2 from "../../../math/Vec2";
 import Node3D from "./features/3d/Node3D";
 import Way3D from "./features/3d/Way3D";
 import HeightViewer from "../HeightViewer";
-import {StaticTileGeometry} from "../../objects/Tile";
+import {GroundGeometryBuffers, StaticTileGeometry} from "../../objects/Tile";
 import {RingType} from "./features/3d/Ring3D";
 import OSMRelation, {OSMRelationMember} from "./features/osm/OSMRelation";
 import * as martinez from 'martinez-polygon-clipping';
 import Utils from "../../Utils";
+import MeshGroundProjector from "./features/MeshGroundProjector";
+import Config from "../../Config";
+import Vec3 from "../../../math/Vec3";
+import {strict} from "assert";
 
 interface OSMSource {
 	nodes: Map<number, OSMNode>,
@@ -62,14 +66,17 @@ export default class TileGeometryBuilder {
 		const textureIdArrays: Uint8Array[] = [];
 		const localIdArrays: Uint32Array[] = [];
 
+		const roadPositionArrays: Float32Array[] = [];
+		const roadUvArrays: Float32Array[] = [];
+
 		const joinedWays: Map<number, Way3D[]> = new Map();
 
 		const featuresIDs: number[] = [];
 		const featuresTypes: number[] = [];
 
 		for (const way of ways.values()) {
-			if(way.buildingRelationId !== null) {
-				if(!joinedWays.has(way.buildingRelationId)) {
+			if (way.buildingRelationId !== null) {
+				if (!joinedWays.has(way.buildingRelationId)) {
 					joinedWays.set(way.buildingRelationId, []);
 				}
 
@@ -78,7 +85,12 @@ export default class TileGeometryBuilder {
 				continue;
 			}
 
-			const {position, color, uv, normal, textureId} = way.getAttributeBuffers();
+			const {position, color, uv, normal, textureId, positionRoad, uvRoad} = way.getAttributeBuffers();
+
+			if (positionRoad) {
+				roadPositionArrays.push(positionRoad);
+				roadUvArrays.push(uvRoad);
+			}
 
 			if (position.length === 0) {
 				continue;
@@ -99,7 +111,7 @@ export default class TileGeometryBuilder {
 			featuresTypes.push(way.isRelation ? 1 : 0);
 		}
 
-		for(const [relationId, wayArray] of joinedWays.entries()) {
+		for (const [relationId, wayArray] of joinedWays.entries()) {
 			const relationPositionsArrays: Float32Array[] = [];
 			const relationColorArrays: Uint8Array[] = [];
 			const relationUvArrays: Float32Array[] = [];
@@ -107,7 +119,7 @@ export default class TileGeometryBuilder {
 			const relationTextureIdArrays: Uint8Array[] = [];
 			const relationLocalIdArrays: Uint32Array[] = [];
 
-			for(const way of wayArray) {
+			for (const way of wayArray) {
 				const {position, color, uv, normal, textureId} = way.getAttributeBuffers();
 
 				relationPositionsArrays.push(position);
@@ -165,6 +177,41 @@ export default class TileGeometryBuilder {
 		const localIdBuffer = Utils.mergeTypedArrays(Uint32Array, localIdArrays);
 		const bbox = this.getBoundingBoxFromVertices(positionBuffer);
 
+		const ground = this.getGroundGeometry();
+
+		const projector = new MeshGroundProjector(this.x, this.y, this.heightViewer, ground.geometry);
+
+		const projectedPositions = [];
+		const projectedNormals = [];
+		const projectedUvs = [];
+
+		for (let i = 0; i < roadPositionArrays.length; i++) {
+			const roadPositions = roadPositionArrays[i];
+			const roadUvs = roadUvArrays[i];
+
+			for (let i = 0, j = 0; i < roadPositions.length; i += 9, j += 6) {
+				const projectedMesh = projector.project([
+					[roadPositions[i] / Config.TileSize, roadPositions[i + 2] / Config.TileSize],
+					[roadPositions[i + 3] / Config.TileSize, roadPositions[i + 5] / Config.TileSize],
+					[roadPositions[i + 6] / Config.TileSize, roadPositions[i + 8] / Config.TileSize]
+				], {
+					uv: [
+						[roadUvs[j], roadUvs[j + 1]],
+						[roadUvs[j + 2], roadUvs[j + 3]],
+						[roadUvs[j + 4], roadUvs[j + 5]]
+					]
+				});
+
+				projectedPositions.push(projectedMesh.position);
+				projectedNormals.push(projectedMesh.normal);
+				projectedUvs.push(projectedMesh.attributes.uv);
+			}
+		}
+
+		const projectedMeshPosition = Utils.mergeTypedArrays(Float32Array, projectedPositions);
+		const projectedMeshNormal = Utils.mergeTypedArrays(Float32Array, projectedNormals);
+		const projectedMeshUv = Utils.mergeTypedArrays(Float32Array, projectedUvs);
+
 		return {
 			buildings: {
 				position: positionBuffer,
@@ -176,8 +223,232 @@ export default class TileGeometryBuilder {
 				offset: offsets,
 				localId: localIdBuffer
 			},
-			bbox
+			ground: {
+				position: ground.geometry.position,
+				uv: ground.geometry.uv,
+				normal: ground.geometry.normal,
+				index: ground.geometry.index
+			},
+			roads: {
+				position: projectedMeshPosition,
+				uv: projectedMeshUv,
+				normal: projectedMeshNormal
+			},
+			bbox,
+			bboxGround: ground.bbox
 		};
+	}
+
+	static createPlane(x: number, z: number, segmentsX: number, segmentsZ: number) {
+		const vertices: number[] = [];
+		const indices: number[] = [];
+		const uvs: number[] = [];
+
+		const segmentSize = {
+			x: x / segmentsX,
+			z: z / segmentsZ
+		};
+
+		for (let z = 0; z <= segmentsZ; z++) {
+			for (let x = 0; x <= segmentsX; x++) {
+				vertices.push(x * segmentSize.x, 0, z * segmentSize.z);
+				uvs.push(z / segmentsZ, x / segmentsX);
+			}
+		}
+
+		for (let z = 0; z < segmentsZ; z++) {
+			for (let x = 0; x < segmentsX; x++) {
+				const isOdd = (x + z) % 2 === 1;
+
+				const quad = [
+					z * (segmentsX + 1) + x,
+					z * (segmentsX + 1) + x + 1,
+					(z + 1) * (segmentsX + 1) + x,
+					(z + 1) * (segmentsX + 1) + x + 1,
+				];
+
+				if (isOdd) {
+					indices.push(
+						quad[1], quad[0], quad[3],
+						quad[3], quad[0], quad[2]
+					);
+				} else {
+					indices.push(
+						quad[2], quad[1], quad[0],
+						quad[3], quad[1], quad[2]
+					);
+				}
+			}
+		}
+
+		return {vertices: new Float32Array(vertices), uvs: new Float32Array(uvs), indices: new Uint32Array(indices)};
+	};
+
+	private getGroundGeometry(): {
+		geometry: GroundGeometryBuffers,
+		bbox: { min: number[], max: number[] }
+	} {
+		const plane = TileGeometryBuilder.createPlane(
+			Config.TileSize,
+			Config.TileSize,
+			Config.GroundSegments,
+			Config.GroundSegments
+		);
+
+		const vertices = plane.vertices;
+		const uvs = plane.uvs;
+
+		let maxHeight = -Infinity, minHeight = Infinity;
+
+		for(let i = 0; i < uvs.length / 2; i++) {
+			//const height = this.heightViewer.getHeight(this.x, this.y, uvs[i * 2], 1 - uvs[i * 2 + 1]);
+			const height = this.heightViewer.getHeight(this.x, this.y, vertices[i * 3 + 2] / Config.TileSize, 1 - vertices[i * 3] / Config.TileSize);
+
+			vertices[i * 3 + 1] = height;
+
+			maxHeight = Math.max(maxHeight, height);
+			minHeight = Math.min(minHeight, height);
+		}
+
+		const normals = this.calculateGroundNormals(vertices, plane.indices);
+
+		return {
+			geometry: {
+				position: plane.vertices,
+				uv: plane.uvs,
+				normal: normals,
+				index: plane.indices,
+			},
+			bbox: {
+				min: [0, minHeight, 0],
+				max: [Config.TileSize, maxHeight, Config.TileSize]
+			}
+		}
+	}
+
+	private calculateGroundNormals(vertices: Float32Array, indices: Uint32Array): Float32Array {
+		const normalBuffer = new Float32Array(vertices.length);
+
+		const accumulatedNormals: Map<number, Vec3> = new Map();
+		const borderTriangles: number[][] = [];
+
+		const buffer32 = new Float32Array(2);
+		const buffer64 = new Float64Array(buffer32.buffer);
+
+		const getVertexKey = (v: Vec2): number => {
+			buffer32.set([v.x, v.y]);
+
+			return buffer64[0];
+		}
+
+		const infMap = new Map();
+
+		for(let i = 0; i < indices.length; i += 3) {
+			const aIndex = indices[i] * 3;
+			const bIndex = indices[i + 1] * 3;
+			const cIndex = indices[i + 2] * 3;
+
+			const a = new Vec3(vertices[aIndex], vertices[aIndex + 1], vertices[aIndex + 2]);
+			const b = new Vec3(vertices[bIndex], vertices[bIndex + 1], vertices[bIndex + 2]);
+			const c = new Vec3(vertices[cIndex], vertices[cIndex + 1], vertices[cIndex + 2]);
+
+			const triangleNormal = Vec3.cross(Vec3.sub(b, a), Vec3.sub(c, a));
+
+			const triangleVertices = [a, b, c];
+
+			for (const vertex of triangleVertices) {
+				const key = getVertexKey(vertex.xz);
+				const accum = accumulatedNormals.get(key) || new Vec3();
+				const newValue = Vec3.add(accum, triangleNormal);
+
+				accumulatedNormals.set(key, newValue);
+
+				const normalizedX = vertex.x / Config.TileSize;
+				const normalizedZ = vertex.z / Config.TileSize;
+
+				if (normalizedX === 0 || normalizedZ === 0 || normalizedX === 1 || normalizedZ === 1) {
+					borderTriangles.push([
+						vertex.x,
+						vertex.z,
+						a.x,
+						a.z,
+						b.x,
+						b.z,
+						c.x,
+						c.z,
+					]);
+				}
+			}
+		}
+
+		const neighborOffsets: [number, number][] = [];
+
+		for (let x = -1; x <= 1; x++) {
+			for (let y = -1; y <= 1; y++) {
+				if (x !== 0 && y !== 0) {
+					neighborOffsets.push([x, y]);
+				}
+			}
+		}
+
+		for (const neighborOffset of neighborOffsets) {
+			const neighborX = this.x + neighborOffset[1];
+			const neighborY = this.y - neighborOffset[0];
+
+			for (const neighborTriangleData of borderTriangles) {
+				const fixedOffsetX = neighborOffset[0];
+				const fixedOffsetY = neighborOffset[1];
+
+				const localSpaceX = neighborTriangleData[0] + fixedOffsetX * Config.TileSize;
+				const localSpaceY = neighborTriangleData[1] + fixedOffsetY * Config.TileSize;
+
+				const vertexX = MathUtils.clamp(localSpaceX, 0, Config.TileSize);
+				const vertexY = MathUtils.clamp(localSpaceY, 0, Config.TileSize);
+
+				const vertexKey = getVertexKey(new Vec2(vertexX, vertexY));
+				const accum = accumulatedNormals.get(vertexKey) || new Vec3();
+
+				const sameX = vertexX === localSpaceX;
+				const sameY = vertexY === localSpaceY;
+
+				if (!sameX || !sameY) {
+					continue;
+				}
+
+				const k = `${vertexX} ${vertexY}`;
+
+				infMap.set(k, (infMap.get(k) || 0) + 1);
+
+				const vertexA = new Vec3(neighborTriangleData[2], 0, neighborTriangleData[3]);
+				const vertexB = new Vec3(neighborTriangleData[4], 0, neighborTriangleData[5]);
+				const vertexC = new Vec3(neighborTriangleData[6], 0, neighborTriangleData[7]);
+
+				vertexA.y = this.heightViewer.getHeight(neighborX, neighborY, vertexA.z / Config.TileSize, 1 - vertexA.x / Config.TileSize);
+				vertexB.y = this.heightViewer.getHeight(neighborX, neighborY, vertexB.z / Config.TileSize, 1 - vertexB.x / Config.TileSize);
+				vertexC.y = this.heightViewer.getHeight(neighborX, neighborY, vertexC.z / Config.TileSize, 1 - vertexC.x / Config.TileSize);
+
+				const neighborTriangleNormal = Vec3.cross(Vec3.sub(vertexB, vertexA), Vec3.sub(vertexC, vertexA));
+
+				const newValue = Vec3.add(accum, neighborTriangleNormal);
+
+				accumulatedNormals.set(vertexKey, newValue);
+			}
+		}
+
+		for (let i = 0; i < normalBuffer.length; i += 3) {
+			const vertexX = vertices[i];
+			const vertexZ = vertices[i + 2];
+
+			const normalsSum = accumulatedNormals.get(getVertexKey(new Vec2(vertexX, vertexZ)));
+
+			const normal = Vec3.normalize(normalsSum);
+
+			normalBuffer[i] = normal.x;
+			normalBuffer[i + 1] = normal.y;
+			normalBuffer[i + 2] = normal.z;
+		}
+
+		return normalBuffer;
 	}
 
 	private createOSMFeatures(data: any[]): OSMSource {
@@ -242,45 +513,45 @@ export default class TileGeometryBuilder {
 			nodes.set(node.id, new Node3D(node.id, node.lat, node.lon, node.descriptor.properties, this.x, this.y));
 		}
 
-		const processedWays = new Set<number>();
+		const ignoredWays = new Set<number>();
 		const buildingRelationsWays = new Map<number, number>();
 
-		for(const relation of osm.relations.values()) {
-			if(relation.members.length === 0) {
+		for (const relation of osm.relations.values()) {
+			if (relation.members.length === 0) {
 				continue;
 			}
 
-			if(relation.descriptor.properties.layer < 0) {
+			if (relation.descriptor.properties.layer < 0) {
 				continue;
 			}
 
 			const relationType: string = relation.descriptor.properties.relationType;
 
-			if(relationType === 'multipolygon') {
+			if (relationType === 'multipolygon') {
 				const way3d = new Way3D(relation.id, null, relation.descriptor.properties, this.heightViewer, true);
 				ways.set(way3d.id, way3d);
 
-				for(const {feature, role} of relation.members) {
-					if(feature instanceof OSMWay) {
+				for (const {feature, role} of relation.members) {
+					if (feature instanceof OSMWay) {
 						const wayNodes: Node3D[] = [];
 
 						for (const node of feature.nodes) {
 							wayNodes.push(nodes.get(node.id));
 						}
 
-						if(role === 'inner') {
+						if (role === 'inner') {
 							way3d.addRing(RingType.Inner, feature.id, wayNodes, feature.descriptor.properties);
-						} else if(role === 'outer') {
+						} else if (role === 'outer') {
 							way3d.addRing(RingType.Outer, feature.id, wayNodes, feature.descriptor.properties);
 						}
 
-						//processedWays.add(feature.id);
+						//ignoredWays.add(feature.id);
 					}
 				}
-			} else if(relationType === 'building') {
-				for(const {feature, role} of relation.members) {
-					if(feature instanceof OSMWay && role === 'outline') {
-						processedWays.add(feature.id);
+			} else if (relationType === 'building') {
+				for (const {feature, role} of relation.members) {
+					if (feature instanceof OSMWay && role === 'outline') {
+						ignoredWays.add(feature.id);
 					} else if (role === 'part') {
 						buildingRelationsWays.set(feature.id, relation.id);
 					}
@@ -289,11 +560,11 @@ export default class TileGeometryBuilder {
 		}
 
 		for (const way of osm.ways.values()) {
-			if(processedWays.has(way.id)) {
+			if (ignoredWays.has(way.id)) {
 				continue;
 			}
 
-			if(way.descriptor.properties.layer < 0) {
+			if (way.descriptor.properties.layer < 0) {
 				continue;
 			}
 
@@ -335,14 +606,14 @@ export default class TileGeometryBuilder {
 					continue;
 				}
 
-				if(!part.geoJSON) part.updateGeoJSON();
-				if(!outline.geoJSON) outline.updateGeoJSON();
+				if (!part.geoJSON) part.updateGeoJSON();
+				if (!outline.geoJSON) outline.updateGeoJSON();
 
-				if(part.geoJSON.coordinates.length > 0 && outline.geoJSON.coordinates.length > 0) {
+				if (part.geoJSON.coordinates.length > 0 && outline.geoJSON.coordinates.length > 0) {
 					try {
 						const intersection = martinez.intersection(part.geoJSON.coordinates, outline.geoJSON.coordinates);
 
-						if(intersection && intersection.length > 0) {
+						if (intersection && intersection.length > 0) {
 							outline.visible = false;
 						}
 					} catch (e) {
@@ -353,11 +624,11 @@ export default class TileGeometryBuilder {
 		}
 	}
 
-	private getBoundingBoxFromVertices(vertices: TypedArray): {min: number[], max: number[]} {
+	private getBoundingBoxFromVertices(vertices: TypedArray): { min: number[], max: number[] } {
 		const min = [Infinity, Infinity, Infinity];
 		const max = [-Infinity, -Infinity, -Infinity];
 
-		for(let i = 0; i < vertices.length; i += 3) {
+		for (let i = 0; i < vertices.length; i += 3) {
 			min[0] = Math.min(min[0], vertices[i]);
 			min[1] = Math.min(min[1], vertices[i + 1]);
 			min[2] = Math.min(min[2], vertices[i + 2]);

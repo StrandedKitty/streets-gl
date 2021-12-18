@@ -9,15 +9,35 @@ export default class HeightViewer {
 
 	}
 
+	public getTile(x: number, y: number): Uint8ClampedArray {
+		return this.tiles.get(`${x},${y}`);
+	}
+
 	public isTileLoaded(x: number, y: number): boolean {
 		return this.tiles.get(`${x},${y}`) !== undefined;
 	}
 
 	public getHeight(tileX: number, tileY: number, x: number, y: number): number {
-		const positionX = Math.floor(x * 255);
-		const positionY = Math.floor(y * 255);
+		let positionX = Math.floor(x * 255);
+		let positionY = Math.floor(y * 255);
 
-		const tile = this.tiles.get(`${tileX},${tileY}`);
+		//positionX = Math.min(positionX, 255);
+		//positionY = Math.min(positionY, 255);
+
+		let tile = this.getTile(tileX, tileY);
+
+		if (x === 1 && y === 1) {
+			tile = this.getTile(tileX + 1, tileY + 1);
+			positionX = 0;
+			positionY = 0;
+		} else if (x === 1) {
+			tile = this.getTile(tileX + 1, tileY);
+			positionX = 0;
+		} else if (y === 1) {
+			tile = this.getTile(tileX, tileY + 1);
+			positionY = 0;
+		}
+
 		const start = (positionX + positionY * 256) * 4;
 
 		return -10000 + ((tile[start] * 256 * 256 + tile[start + 1] * 256 + tile[start + 2]) * 0.1);

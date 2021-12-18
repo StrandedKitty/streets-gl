@@ -83,7 +83,7 @@ export default class MapTimeSystem extends System {
 		return MathUtils.sphericalToCartesian(moonPosition.azimuth + Math.PI, moonPosition.altitude);
 	}
 
-	private doTransition(deltaTime: number, targetSunDirection: Vec3, targetMoonDirection: Vec3) {
+	private doTransition(targetSunDirection: Vec3, targetMoonDirection: Vec3, deltaTime: number) {
 		if(this.sunDirection === null || this.sunTransitionStart === null) {
 			this.sunDirection = targetSunDirection;
 		} else {
@@ -116,7 +116,7 @@ export default class MapTimeSystem extends System {
 		const targetSunDirection = this.getSunDirection();
 		const targetMoonDirection = this.getMoonDirection();
 
-		this.doTransition(deltaTime, targetSunDirection, targetMoonDirection);
+		this.doTransition(targetSunDirection, targetMoonDirection, deltaTime);
 
 		if(this.sunDirection.y < 0) {
 			this.lightIntensity = 3.5;

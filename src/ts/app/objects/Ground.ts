@@ -4,24 +4,22 @@ import Renderer from "../../renderer/Renderer";
 import Config from "../Config";
 import HeightProvider from "../world/HeightProvider";
 import Vec3 from "../../math/Vec3";
-import Tile from "./Tile";
+import Tile, {StaticTileGeometry} from "./Tile";
 
 export default class Ground extends Mesh {
 	public borderVertices: number[];
 
-	constructor(renderer: Renderer) {
+	constructor(renderer: Renderer, tileGeometry: StaticTileGeometry) {
 		super(renderer, {
 			bboxCulled: true
 		});
 
-		const {vertices, uvs, indices} = Ground.createPlane(Config.TileSize, Config.TileSize, 32, 32);
-
 		this.indexed = true;
-		this.indices = indices;
+		this.indices = tileGeometry.ground.index;
 		this.updateIndexBuffer();
 
 		this.addAttribute({name: 'position'});
-		this.setAttributeData('position', vertices);
+		this.setAttributeData('position', tileGeometry.ground.position);
 
 		this.addAttribute({
 			name: 'uv',
@@ -29,7 +27,7 @@ export default class Ground extends Mesh {
 			type: GLConstants.FLOAT,
 			normalized: false
 		});
-		this.setAttributeData('uv', uvs);
+		this.setAttributeData('uv', tileGeometry.ground.uv);
 
 		this.addAttribute({
 			name: 'normal',
@@ -37,7 +35,12 @@ export default class Ground extends Mesh {
 			type: GLConstants.FLOAT,
 			normalized: false
 		});
-		this.setAttributeData('normal', new Float32Array(this.attributes.get('position').buffer.length));
+		this.setAttributeData('normal', tileGeometry.ground.normal);
+
+		this.setBoundingBox(
+			new Vec3(...tileGeometry.bboxGround.min),
+			new Vec3(...tileGeometry.bboxGround.max)
+		);
 	}
 
 	public applyHeightmap(x: number, y: number) {
@@ -158,49 +161,4 @@ export default class Ground extends Mesh {
 
 		this.updateAttribute('normal');
 	}
-
-	static createPlane(x: number, z: number, segmentsX: number, segmentsZ: number) {
-		const vertices: number[] = [];
-		const indices: number[] = [];
-		const uvs: number[] = [];
-
-		const segmentSize = {
-			x: x / segmentsX,
-			z: z / segmentsZ
-		};
-
-		for(let z = 0; z <= segmentsZ; z++) {
-			for(let x = 0; x <= segmentsX; x++) {
-				vertices.push(x * segmentSize.x, 0, z * segmentSize.z);
-				uvs.push(z / segmentsZ, x / segmentsX);
-			}
-		}
-
-		for(let z = 0; z < segmentsZ; z++) {
-			for(let x = 0; x < segmentsX; x++) {
-				const isOdd = (x + z) % 2 === 1;
-
-				const quad = [
-					z * (segmentsX + 1) + x,
-					z * (segmentsX + 1) + x + 1,
-					(z + 1) * (segmentsX + 1) + x,
-					(z + 1) * (segmentsX + 1) + x + 1,
-				];
-
-				if(isOdd) {
-					indices.push(
-						quad[1], quad[0], quad[3],
-						quad[3], quad[0], quad[2]
-					);
-				} else {
-					indices.push(
-						quad[2], quad[1], quad[0],
-						quad[3], quad[1], quad[2]
-					);
-				}
-			}
-		}
-
-		return {vertices: new Float32Array(vertices), uvs: new Float32Array(uvs), indices: new Uint32Array(indices)};
-	};
 }

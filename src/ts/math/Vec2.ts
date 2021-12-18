@@ -72,6 +72,14 @@ export default class Vec2 {
 		);
 	}
 
+	public static rotateLeft(v: Vec2): Vec2 {
+		return new Vec2(-v.y, v.x);
+	}
+
+	public static rotateRight(v: Vec2): Vec2 {
+		return new Vec2(v.y, -v.x);
+	}
+
 	public static applyMatrix3(v: Vec2, mat: Mat3): Vec2 {
 		const dst = new Vec2();
 		const m = mat.values;

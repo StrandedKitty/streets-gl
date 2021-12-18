@@ -7,8 +7,12 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 module.exports = [{
 	entry: './src/ts/app/App.ts',
 	output: {
-		filename: './js/main.[contenthash].js',
+		filename: './js/main.js',
 		path: path.resolve(__dirname, 'build')
+	},
+	performance: {
+		maxEntrypointSize: 8000000,
+		maxAssetSize: 8000000
 	},
 	devtool: 'inline-source-map',
 	plugins: [
@@ -19,7 +23,7 @@ module.exports = [{
 			minify: false
 		}),
 		new MiniCssExtractPlugin({
-			filename: 'style.[contenthash].css'
+			filename: 'style.css'
 		}),
 		new CopyPlugin({
 			patterns: [

@@ -1,6 +1,8 @@
 import Material, {UniformType} from "../../../renderer/Material";
 import Shaders from "../Shaders";
 import Renderer from "../../../renderer/Renderer";
+import Texture2D from "../../../renderer/Texture2D";
+import GLConstants from "../../../renderer/GLConstants";
 
 export default class GroundMaterial extends Material {
 	constructor(renderer: Renderer) {
@@ -15,6 +17,20 @@ export default class GroundMaterial extends Material {
 				map: {
 					type: UniformType.Texture2D,
 					value: null
+				},
+				grass: {
+					type: UniformType.Texture2D,
+					value: new Texture2D(renderer, {
+						url: "/textures/grass.png",
+						wrap: GLConstants.REPEAT
+					})
+				},
+				noise: {
+					type: UniformType.Texture2D,
+					value: new Texture2D(renderer, {
+						url: "/textures/noise.png",
+						wrap: GLConstants.REPEAT
+					})
 				}
 			}
 		});

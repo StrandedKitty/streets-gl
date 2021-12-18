@@ -7,6 +7,10 @@ const Shaders = {
 		vertex: require('../../../resources/shaders/buildingDepth.vert'),
 		fragment: require('../../../resources/shaders/buildingDepth.frag')
 	},
+	road: {
+		vertex: require('../../../resources/shaders/road.vert'),
+		fragment: require('../../../resources/shaders/road.frag')
+	},
 	ground: {
 		vertex: require('../../../resources/shaders/ground.vert'),
 		fragment: require('../../../resources/shaders/ground.frag')

@@ -125,8 +125,6 @@ export default class ControlsSystem extends System {
 	private mouseDownEvent(e: MouseEvent) {
 		e.preventDefault();
 
-		this.systemManager.getSystem(CursorStyleSystem).enableGrabbing();
-
 		if (e.button && e.button == 2) {
 			this.isRotationMouseMode = true
 		} else {
@@ -147,9 +145,9 @@ export default class ControlsSystem extends System {
 	private mouseUpEvent(e: MouseEvent) {
 		this.systemManager.getSystem(CursorStyleSystem).disableGrabbing();
 
-		if (e.button && e.button == 2)
+		if (e.button && e.button == 2) {
 			this.isRotationMouseMode = false
-		else {
+		} else {
 			this.isMovementMouseMode = false;
 			this.mouseDownPosition = null;
 			this.cachedMoveEvent = null;
@@ -157,6 +155,10 @@ export default class ControlsSystem extends System {
 	}
 
 	private mouseMoveEvent(e: MouseEvent) {
+		if (this.isRotationMouseMode || this.isMovementMouseMode) {
+			this.systemManager.getSystem(CursorStyleSystem).enableGrabbing();
+		}
+
 		if (this.isRotationMouseMode) {
 			this.yaw += MathUtils.toRad(e.movementX) * this.rotationSpeed;
 			this.pitch += MathUtils.toRad(e.movementY) * this.rotationSpeed;
@@ -271,16 +273,7 @@ export default class ControlsSystem extends System {
 		return new Vec2(positionOnGround.x, positionOnGround.z);
 	}
 
-	public update(deltaTile: number) {
-		this.camera = this.systemManager.getSystem(RenderSystem).camera;
-
-		const tile = MathUtils.meters2tile(this.target.x, this.target.z);
-		const tilePosition = new Vec2(Math.floor(tile.x), Math.floor(tile.y));
-
-		if (HeightProvider.getTile(tilePosition.x, tilePosition.y)) {
-			this.target.y = HeightProvider.getHeight(tilePosition.x, tilePosition.y, tile.x % 1, tile.y % 1);
-		}
-
+	private updateDistance() {
 		this.distanceTarget = MathUtils.clamp(
 			this.distanceTarget,
 			Config.MinCameraDistance,
@@ -292,6 +285,37 @@ export default class ControlsSystem extends System {
 		} else {
 			this.distance = MathUtils.lerp(this.distance, this.distanceTarget, 0.4);
 		}
+	}
+
+	private updateTargetHeightFromHeightmap() {
+		const tileSpacePosition = MathUtils.meters2tile(this.target.x, this.target.z);
+		const tilePosition = new Vec2(Math.floor(tileSpacePosition.x), Math.floor(tileSpacePosition.y));
+
+		if (HeightProvider.getTile(tilePosition.x, tilePosition.y)) {
+			this.target.y = HeightProvider.getHeight(tilePosition.x, tilePosition.y, tileSpacePosition.x % 1, tileSpacePosition.y % 1);
+		}
+	}
+
+	private updateHash() {
+		const [newState, changedByUser] = this.urlHandler.getStateFromHash();
+
+		if (newState && changedByUser) {
+			this.updatePositionFromState(newState);
+			this.state = newState;
+		} else {
+			this.updateStateFromPosition();
+		}
+
+		if (this.tick % 30 === 0) {
+			this.urlHandler.setHashFromState(this.state);
+		}
+	}
+
+	public update(deltaTile: number) {
+		this.camera = this.systemManager.getSystem(RenderSystem).camera;
+
+		this.updateTargetHeightFromHeightmap();
+		this.updateDistance();
 
 		this.pitch = MathUtils.clamp(
 			this.pitch,
@@ -323,18 +347,7 @@ export default class ControlsSystem extends System {
 			this.camera.lookAt(this.target, false);
 		}
 
-		const [newState, changedByUser] = this.urlHandler.getStateFromHash();
-
-		if (newState && changedByUser) {
-			this.updatePositionFromState(newState);
-			this.state = newState;
-		} else {
-			this.updateStateFromPosition();
-		}
-
-		if (this.tick % 30 === 0) {
-			this.urlHandler.setHashFromState(this.state);
-		}
+		this.updateHash();
 
 		this.camera.updateMatrixWorld();
 		this.camera.updateMatrixWorldInverse();

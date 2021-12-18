@@ -26,7 +26,7 @@ import SystemManager from "../SystemManager";
 import TileSystem from "./TileSystem";
 import PickingSystem from "./PickingSystem";
 import MapTimeSystem from "./MapTimeSystem";
-import Vec3 from "../../math/Vec3";
+import RoadMaterial from "../render/materials/RoadMaterial";
 
 export default class RenderSystem extends System {
 	public renderer: Renderer;
@@ -47,6 +47,7 @@ export default class RenderSystem extends System {
 	private groundDepthMaterial: GroundDepthMaterial;
 	private buildingMaterial: BuildingMaterial;
 	private buildingDepthMaterial: BuildingDepthMaterial;
+	private roadMaterial: RoadMaterial;
 	private skyboxMaterial: SkyboxMaterial;
 	private quad: FullScreenQuad;
 	private hdrComposeMaterial: HDRComposeMaterial;
@@ -162,6 +163,7 @@ export default class RenderSystem extends System {
 		this.groundDepthMaterial = new GroundDepthMaterial(this.renderer);
 		this.buildingMaterial = new BuildingMaterial(this.renderer);
 		this.buildingDepthMaterial = new BuildingDepthMaterial(this.renderer);
+		this.roadMaterial = new RoadMaterial(this.renderer);
 		this.skyboxMaterial = new SkyboxMaterial(this.renderer);
 	}
 
@@ -220,7 +222,7 @@ export default class RenderSystem extends System {
 
 		for (const tile of tiles.values()) {
 			if (!tile.ground && tile.readyForRendering) {
-				tile.createGround(this.renderer, this.systemManager.getSystem(TileSystem).getTileNeighbors(tile.x, tile.y));
+				//tile.createGround(this.renderer, this.systemManager.getSystem(TileSystem).getTileNeighbors(tile.x, tile.y));
 				tile.generateMeshes(this.renderer);
 				this.wrapper.add(tile);
 			}
@@ -285,6 +287,32 @@ export default class RenderSystem extends System {
 
 			tile.ground.draw();
 		}
+
+		this.roadMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
+		this.roadMaterial.use();
+
+		this.renderer.gl.enable(GLConstants.POLYGON_OFFSET_FILL);
+		this.renderer.gl.polygonOffset(-1, -10);
+		this.renderer.depthWrite = false;
+
+		for (const tile of tiles.values()) {
+			if (!tile.roads) {
+				continue;
+			}
+
+			this.roadMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(this.camera.matrixWorldInverse, tile.roads.matrixWorld);
+			this.roadMaterial.uniforms.modelViewMatrixPrev.value = Mat4.multiply(
+				this.taaPass.matrixWorldInversePrev || this.camera.matrixWorldInverse,
+				tile.roads.matrixWorld
+			);
+			this.roadMaterial.updateUniform('modelViewMatrix');
+			this.roadMaterial.updateUniform('modelViewMatrixPrev');
+
+			tile.roads.draw();
+		}
+
+		this.renderer.gl.disable(GLConstants.POLYGON_OFFSET_FILL);
+		this.renderer.depthWrite = true;
 
 		this.buildingMaterial.uniforms.projectionMatrix.value = this.camera.projectionMatrix;
 		this.buildingMaterial.use();

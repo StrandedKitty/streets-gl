@@ -11,6 +11,7 @@ import Vec2 from "../../../../../math/Vec2";
 import {CalcConvexHull, ComputeOMBB, Vector} from "../../../../../math/OMBB";
 import SeededRandom from "../../../../../math/SeededRandom";
 import Config from "../../../../Config";
+import RoadPolylineBuilder from "../../RoadPolylineBuilder";
 
 interface EarcutInput {
 	vertices: number[];
@@ -58,8 +59,44 @@ export default class Way3D extends Feature3D {
 		this.heightFactor = lat === null ? 1 : MathUtils.mercatorScaleFactor(lat);
 	}
 
-	public getAttributeBuffers(): {position: Float32Array, color: Uint8Array, uv: Float32Array, normal: Float32Array, textureId: Uint8Array} {
-		if (!this.visible || this.tags.type !== 'building') {
+	public getAttributeBuffers(): {
+		position: Float32Array,
+		color: Uint8Array,
+		uv: Float32Array,
+		normal: Float32Array,
+		textureId: Uint8Array,
+		positionRoad?: Float32Array,
+		uvRoad?: Float32Array}
+	{
+		if (!this.visible) {
+			return {
+				position: new Float32Array(),
+				color: new Uint8Array(),
+				uv: new Float32Array(),
+				normal: new Float32Array(),
+				textureId: new Uint8Array()
+			};
+		}
+
+		if (this.tags.type === 'road') {
+			const ring = this.rings.find(ring => ring.type === RingType.Outer);
+
+			if (ring) {
+				const roadGeometry = RoadPolylineBuilder.build(ring.vertices.map(v => new Vec2(v[0], v[1])), 10);
+
+				return {
+					position: new Float32Array(),
+					color: new Uint8Array(),
+					uv: new Float32Array(),
+					normal: new Float32Array(),
+					textureId: new Uint8Array(),
+					positionRoad: roadGeometry.positions,
+					uvRoad: roadGeometry.uvs
+				};
+			}
+		}
+
+		if (this.tags.type !== 'building') {
 			return {
 				position: new Float32Array(),
 				color: new Uint8Array(),

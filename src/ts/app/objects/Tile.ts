@@ -12,6 +12,13 @@ import Vec3 from "../../math/Vec3";
 import Vec2 from "../../math/Vec2";
 import {AttributeFormat} from "../../renderer/Attribute";
 
+export interface GroundGeometryBuffers {
+	position: Float32Array,
+	uv: Float32Array,
+	normal: Float32Array,
+	index: Uint32Array
+}
+
 export interface StaticTileGeometry {
 	buildings: {
 		position: Float32Array,
@@ -23,7 +30,17 @@ export interface StaticTileGeometry {
 		offset: Uint32Array,
 		localId: Uint32Array
 	},
+	ground: GroundGeometryBuffers,
+	roads: {
+		position: Float32Array,
+		uv: Float32Array,
+		normal: Float32Array
+	},
 	bbox: {
+		min: number[],
+		max: number[]
+	},
+	bboxGround: {
 		min: number[],
 		max: number[]
 	}
@@ -34,6 +51,7 @@ let tileCounter: number = 0;
 export default class Tile extends Object3D {
 	public ground: Ground;
 	public buildings: Mesh;
+	public roads: Mesh;
 	public staticGeometry: StaticTileGeometry;
 	public buildingIdMap: Map<number, number> = new Map();
 	public buildingOffsetMap: Map<number, [number, number]> = new Map();
@@ -106,12 +124,12 @@ export default class Tile extends Object3D {
 	}
 
 	public createGround(renderer: Renderer, neighbors: Tile[]) {
-		this.ground = new Ground(renderer);
+		/*this.ground = new Ground(renderer);
 		this.ground.applyHeightmap(this.x, this.y);
 
 		this.add(this.ground);
 
-		this.ground.updateBorderNormals(this.x, this.y, neighbors.filter((tile) => tile.ground));
+		this.ground.updateBorderNormals(this.x, this.y, neighbors.filter((tile) => tile.ground));*/
 	}
 
 	public generateMeshes(renderer: Renderer) {
@@ -120,7 +138,13 @@ export default class Tile extends Object3D {
 			bboxCulled: true
 		});
 
-		const vertexCount = buildings.vertices.length / 3;
+		const roads = new Mesh(renderer, {
+			vertices: this.staticGeometry.roads.position
+		});
+
+		const ground = new Ground(renderer, this.staticGeometry);
+
+		this.add(ground);
 
 		buildings.addAttribute({
 			name: 'uv',
@@ -162,7 +186,7 @@ export default class Tile extends Object3D {
 			type: GLConstants.UNSIGNED_BYTE,
 			normalized: false
 		});
-		buildings.setAttributeData('display', new Uint8Array(vertexCount));
+		buildings.setAttributeData('display', new Uint8Array(buildings.vertices.length / 3));
 
 		buildings.addAttribute({
 			name: 'localId',
@@ -178,9 +202,29 @@ export default class Tile extends Object3D {
 			new Vec3(...this.staticGeometry.bbox.max)
 		);
 
-		this.buildings = buildings;
-
 		this.add(buildings);
+
+		roads.addAttribute({
+			name: 'uv',
+			size: 2,
+			type: GLConstants.FLOAT,
+			normalized: false
+		});
+		roads.setAttributeData('uv', this.staticGeometry.roads.uv);
+
+		roads.addAttribute({
+			name: 'normal',
+			size: 3,
+			type: GLConstants.FLOAT,
+			normalized: false
+		});
+		roads.setAttributeData('normal', this.staticGeometry.roads.normal);
+
+		this.add(roads);
+
+		this.buildings = buildings;
+		this.roads = roads;
+		this.ground = ground;
 	}
 
 	public updateDistanceToCamera(camera: Camera) {

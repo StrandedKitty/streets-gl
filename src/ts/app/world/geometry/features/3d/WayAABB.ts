@@ -1,8 +1,8 @@
 export default class WayAABB {
-	private minX: number;
-	private minY: number;
-	private maxX: number;
-	private maxY: number;
+	public minX: number;
+	public minY: number;
+	public maxX: number;
+	public maxY: number;
 	private empty: boolean = true;
 
 	public set(minX: number, minY: number, maxX: number, maxY: number) {
@@ -43,7 +43,7 @@ export default class WayAABB {
 			box.maxX <= this.minX ||
 			box.minX >= this.maxX ||
 			box.maxY <= this.minY ||
-			box.minY >= this.maxX
+			box.minY >= this.maxY
 		);
 	}
 

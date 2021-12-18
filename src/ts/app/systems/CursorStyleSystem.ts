@@ -49,13 +49,13 @@ export default class CursorStyleSystem extends System {
 			return;
 		}
 
-		if (this.pointerEnabled) {
-			this.element.style.cursor = CursorStyle.Pointer;
+		if (this.grabbingEnabled) {
+			this.element.style.cursor = CursorStyle.Grabbing;
 			return;
 		}
 
-		if (this.grabbingEnabled) {
-			this.element.style.cursor = CursorStyle.Grabbing;
+		if (this.pointerEnabled) {
+			this.element.style.cursor = CursorStyle.Pointer;
 			return;
 		}
 

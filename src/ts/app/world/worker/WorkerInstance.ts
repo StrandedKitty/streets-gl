@@ -7,6 +7,8 @@ import {
 	WorkerMessageOutgoing,
 	WorkerMessageOutgoingType
 } from "./WorkerMessageTypes";
+import Vec2 from "../../../math/Vec2";
+import Config from "../../Config";
 
 const ctx: Worker = self as any;
 const heightViewer = new HeightViewer();
@@ -61,7 +63,7 @@ function load(x: number, y: number) {
 	];
 	let url = urls[Math.floor(urls.length * Math.random())];
 	url += `
-		[out:json][timeout:25];
+		[out:json][timeout:${Math.floor(Config.OverpassRequestTimeout / 1000)}];
 		(
 			node(${bbox});
 			way(${bbox});
@@ -96,6 +98,7 @@ function load(x: number, y: number) {
 		}
 	};
 
+	httpRequest.timeout = Config.OverpassRequestTimeout;
 	httpRequest.open('GET', url);
 	httpRequest.send();
 }
@@ -104,7 +107,16 @@ async function buildGeometry(x: number, y: number, data: any) {
 	const builder = new TileGeometryBuilder(x, y, heightViewer);
 	const tilesList = builder.getCoveredTiles(data);
 
+	const neighbors = [];
+
+	for (let i = -1; i <= 2; i++) {
+		for (let j = -1; j <= 2; j++) {
+			neighbors.push(new Vec2(x + i, y + j));
+		}
+	}
+
 	await heightViewer.requestTileSet(tilesList);
+	await heightViewer.requestTileSet(neighbors);
 
 	const result = await builder.getTileGeometry();
 

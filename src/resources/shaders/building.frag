@@ -46,7 +46,6 @@ mat3 getTBN(vec3 N, vec3 p, vec2 uv) {
 	return mat3(T * invmax, -B * invmax, N);
 }
 
-
 vec3 getRoofNormal() {
 	mat3 tbn = getTBN(vNormal, vPosition, vUv);
 	vec3 mapValue = texture(tRoofNormal, vec3(vUv, vTextureId - 1)).xyz * 2. - 1.;

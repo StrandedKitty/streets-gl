@@ -45,5 +45,10 @@
 		"default": {
 			"layer": "@int"
 		}
+	},
+	"highway": {
+		"default": {
+			"type": "road"
+		}
 	}
 }
