@@ -21,15 +21,17 @@ export default class GroundMaterial extends Material {
 				grass: {
 					type: UniformType.Texture2D,
 					value: new Texture2D(renderer, {
-						url: "/textures/grass.png",
-						wrap: GLConstants.REPEAT
+						url: "/textures/surfaces/grass.png",
+						wrap: GLConstants.REPEAT,
+						anisotropy: 16
 					})
 				},
 				noise: {
 					type: UniformType.Texture2D,
 					value: new Texture2D(renderer, {
 						url: "/textures/noise.png",
-						wrap: GLConstants.REPEAT
+						wrap: GLConstants.REPEAT,
+						anisotropy: 16
 					})
 				}
 			}
