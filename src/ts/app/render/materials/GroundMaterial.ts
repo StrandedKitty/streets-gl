@@ -21,7 +21,7 @@ export default class GroundMaterial extends Material {
 				grass: {
 					type: UniformType.Texture2D,
 					value: new Texture2D(renderer, {
-						url: "/textures/surfaces/grass.png",
+						url: "/textures/surfaces/grass_color.png",
 						wrap: GLConstants.REPEAT,
 						anisotropy: 16
 					})

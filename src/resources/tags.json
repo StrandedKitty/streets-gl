@@ -50,5 +50,16 @@
 		"default": {
 			"type": "road"
 		}
+	},
+	"roof:shape": {
+		"default": {
+			"roofShape": "flat"
+		},
+		"hipped": {
+			"roofShape": "hipped"
+		},
+		"gabled": {
+			"roofShape": "gabled"
+		}
 	}
 }
