@@ -378,21 +378,35 @@ export default class Way3D extends Feature3D {
 		return area;
 	}
 
-	private buildStraightSkeleton(): Skeleton {
-		const outer = this.rings.find(ring => ring.type === RingType.Outer);
+	private addRandomOffsetToSkeletonInput(vertices: [number, number][], scale: number) {
+		for (let i = 0; i < vertices.length; i++) {
+			vertices[i] = [
+				vertices[i][0] + (Math.random() - 0.5) * scale,
+				vertices[i][1] + (Math.random() - 0.5) * scale
+			];
+		}
+	}
 
-		if (!outer) {
+	private buildStraightSkeleton(): Skeleton {
+		const outerRing = this.rings.find(ring => ring.type === RingType.Outer);
+
+		if (!outerRing) {
 			return null;
 		}
 
-		const inners = this.rings.filter(ring => ring.type === RingType.Inner).map(ring => ring.vertices.slice(0, -1));
+		const outerVertices = outerRing.vertices.slice(0, -1);
+		const innersVertices = this.rings.filter(ring => ring.type === RingType.Inner).map(ring => ring.vertices.slice(0, -1));
+
+		for (const inputVertices of [outerVertices, ...innersVertices]) {
+			this.addRandomOffsetToSkeletonInput(inputVertices, 0.5);
+		}
 
 		let skeleton = null;
 
 		try {
 			skeleton = SkeletonBuilder.BuildFromGeoJSON([[
-				outer.vertices.slice(0, -1),
-				...inners
+				outerVertices,
+				...innersVertices
 			]]);
 		} catch (e) {
 

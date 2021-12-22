@@ -5,6 +5,7 @@ import Vec3 from "../../../../../math/Vec3";
 import Vec2 from "../../../../../math/Vec2";
 import MathUtils from "../../../../../math/MathUtils";
 import Config from "../../../../Config";
+import * as Simplify from "simplify-js";
 
 export enum RingType {
 	Outer,
@@ -30,14 +31,22 @@ export default class Ring3D extends Feature3D {
 
 		this.vertices = [];
 
-		for (const node of this.nodes) {
-			this.vertices.push([node.position.x, node.position.y]);
-		}
+		this.buildVerticesFromNodes();
 
 		this.closed = this.isClosed();
 
 		this.updateGaussArea();
 		this.fixDirection();
+	}
+
+	private buildVerticesFromNodes() {
+		const nodeVertices: Vec2[] = this.nodes.map(node => Vec2.copy(node.position));
+
+		if (nodeVertices.length <= 999) {
+			this.vertices = nodeVertices.map(p => [p.x, p.y]);
+		}
+
+		this.vertices = Simplify(nodeVertices, 0.1, false).map(p => [p.x, p.y]);
 	}
 
 	public updateFootprintHeight() {
