@@ -438,9 +438,13 @@ export default class Way3D extends Feature3D {
 
 				const heightMap: Map<string, number> = new Map();
 				const minHeight = this.minGroundHeight + (+this.tags.height || 6) * this.heightFactor;
+				const roofHeight = +this.tags.roofHeight;
+				const useRoofHeight = roofHeight > 0;
+				let maxHeight = 0;
 
 				for (const [point, distance] of skeleton.Distances.entries()) {
 					heightMap.set(`${point.X} ${point.Y}`, distance);
+					maxHeight = Math.max(maxHeight, distance);
 				}
 
 				const vertices: number[] = [];
@@ -458,9 +462,10 @@ export default class Way3D extends Feature3D {
 				for (let i = 0; i < vertices.length; i += 3) {
 					const x = vertices[i];
 					const z = vertices[i + 2];
-					const y = heightMap.get(`${x} ${z}`);
+					const y = heightMap.get(`${x} ${z}`) || 0;
+					const height = useRoofHeight ? (y / maxHeight * roofHeight) : (y * 0.5);
 
-					vertices[i + 1] = +y * 0.5 * this.heightFactor + minHeight;
+					vertices[i + 1] = height * this.heightFactor + minHeight;
 				}
 
 				const normals = new Float32Array(vertices.length);
@@ -494,9 +499,13 @@ export default class Way3D extends Feature3D {
 
 				const heightMap: Map<string, number> = new Map();
 				const minHeight = this.minGroundHeight + (+this.tags.height || 6) * this.heightFactor;
+				const roofHeight = +this.tags.roofHeight;
+				const useRoofHeight = roofHeight > 0;
+				let maxHeight = 0;
 
 				for (const [point, distance] of skeleton.Distances.entries()) {
 					heightMap.set(`${point.X} ${point.Y}`, distance);
+					maxHeight = Math.max(maxHeight, distance);
 				}
 
 				const vertices: number[] = [];
@@ -543,8 +552,10 @@ export default class Way3D extends Feature3D {
 					const x = vertices[i];
 					const z = vertices[i + 2];
 					const y = vertices[i + 1] || heightMap.get(`${x} ${z}`);
+					
+					const height = useRoofHeight ? (y / maxHeight * roofHeight) : (y * 0.5);
 
-					vertices[i + 1] = +y * this.heightFactor + minHeight;
+					vertices[i + 1] = height * this.heightFactor + minHeight;
 				}
 
 				const normals = new Float32Array(vertices.length);

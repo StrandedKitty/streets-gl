@@ -61,5 +61,10 @@
 		"gabled": {
 			"roofShape": "gabled"
 		}
+	},
+	"roof:height": {
+		"default": {
+			"roofHeight": "@units"
+		}
 	}
 }
