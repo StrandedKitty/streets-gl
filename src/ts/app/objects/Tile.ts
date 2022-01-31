@@ -34,7 +34,8 @@ export interface StaticTileGeometry {
 	roads: {
 		position: Float32Array,
 		uv: Float32Array,
-		normal: Float32Array
+		normal: Float32Array,
+		textureId: Uint8Array
 	},
 	bbox: {
 		min: number[],
@@ -219,6 +220,15 @@ export default class Tile extends Object3D {
 			normalized: false
 		});
 		roads.setAttributeData('normal', this.staticGeometry.roads.normal);
+
+		roads.addAttribute({
+			name: 'textureId',
+			size: 1,
+			dataFormat: AttributeFormat.Integer,
+			type: GLConstants.UNSIGNED_BYTE,
+			normalized: false
+		});
+		roads.setAttributeData('textureId', this.staticGeometry.roads.textureId);
 
 		this.add(roads);
 

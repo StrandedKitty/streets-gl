@@ -13,7 +13,6 @@ import Utils from "../../Utils";
 import MeshGroundProjector from "./features/MeshGroundProjector";
 import Config from "../../Config";
 import Vec3 from "../../../math/Vec3";
-import {strict} from "assert";
 
 interface OSMSource {
 	nodes: Map<number, OSMNode>,
@@ -68,6 +67,7 @@ export default class TileGeometryBuilder {
 
 		const roadPositionArrays: Float32Array[] = [];
 		const roadUvArrays: Float32Array[] = [];
+		const roadTextureIdArrays: Uint8Array[] = [];
 
 		const joinedWays: Map<number, Way3D[]> = new Map();
 
@@ -90,6 +90,7 @@ export default class TileGeometryBuilder {
 			if (positionRoad) {
 				roadPositionArrays.push(positionRoad);
 				roadUvArrays.push(uvRoad);
+				roadTextureIdArrays.push(textureId);
 			}
 
 			if (position.length === 0) {
@@ -181,13 +182,23 @@ export default class TileGeometryBuilder {
 
 		const projector = new MeshGroundProjector(this.x, this.y, this.heightViewer, ground.geometry);
 
-		const projectedPositions = [];
-		const projectedNormals = [];
-		const projectedUvs = [];
+		const projectedPositions: Float32Array[] = [];
+		const projectedNormals: Float32Array[] = [];
+		const projectedUvs: Float32Array[] = [];
+		const projectedTextureIds: Uint8Array[] = [];
 
-		for (let i = 0; i < roadPositionArrays.length; i++) {
+		for (let ii = 0; ii < roadPositionArrays.length * 2; ii++) {
+			let i = ii % roadPositionArrays.length;
+
 			const roadPositions = roadPositionArrays[i];
 			const roadUvs = roadUvArrays[i];
+			const roadTextureIds = roadTextureIdArrays[i];
+
+			const part = Math.floor(ii / roadPositionArrays.length);
+
+			if (roadTextureIds[0] !== part) {
+				continue;
+			}
 
 			for (let i = 0, j = 0; i < roadPositions.length; i += 9, j += 6) {
 				const projectedMesh = projector.project([
@@ -199,18 +210,20 @@ export default class TileGeometryBuilder {
 						[roadUvs[j], roadUvs[j + 1]],
 						[roadUvs[j + 2], roadUvs[j + 3]],
 						[roadUvs[j + 4], roadUvs[j + 5]]
-					]
+					],
 				});
 
 				projectedPositions.push(projectedMesh.position);
 				projectedNormals.push(projectedMesh.normal);
 				projectedUvs.push(projectedMesh.attributes.uv);
+				projectedTextureIds.push(new Uint8Array(projectedMesh.position.length / 3).fill(roadTextureIds[0]));
 			}
 		}
 
 		const projectedMeshPosition = Utils.mergeTypedArrays(Float32Array, projectedPositions);
 		const projectedMeshNormal = Utils.mergeTypedArrays(Float32Array, projectedNormals);
 		const projectedMeshUv = Utils.mergeTypedArrays(Float32Array, projectedUvs);
+		const projectedMeshTextureId = Utils.mergeTypedArrays(Uint8Array, projectedTextureIds);
 
 		return {
 			buildings: {
@@ -232,7 +245,8 @@ export default class TileGeometryBuilder {
 			roads: {
 				position: projectedMeshPosition,
 				uv: projectedMeshUv,
-				normal: projectedMeshNormal
+				normal: projectedMeshNormal,
+				textureId: projectedMeshTextureId
 			},
 			bbox,
 			bboxGround: ground.bbox
@@ -609,11 +623,13 @@ export default class TileGeometryBuilder {
 				if (!part.geoJSON) part.updateGeoJSON();
 				if (!outline.geoJSON) outline.updateGeoJSON();
 
+				if (outline.id === 183403581) debugger;
+
 				if (part.geoJSON.coordinates.length > 0 && outline.geoJSON.coordinates.length > 0) {
 					try {
 						const intersection = martinez.intersection(part.geoJSON.coordinates, outline.geoJSON.coordinates);
 
-						if (intersection && intersection.length > 0) {
+						if (intersection && intersection.length !== 0 && this.getGaussArea(intersection) > 1) {
 							outline.visible = false;
 						}
 					} catch (e) {
@@ -622,6 +638,20 @@ export default class TileGeometryBuilder {
 				}
 			}
 		}
+	}
+
+	private getGaussArea(data: martinez.Geometry): number {
+		let sum = 0;
+
+		const vertices = data[0][0].slice(0, -1) as martinez.Position[];
+
+		for (let i = 0; i < vertices.length; i++) {
+			const point1 = vertices[i];
+			const point2 = vertices[i + 1] || vertices[0];
+			sum -= (point2[0] - point1[0]) * (point2[1] + point1[1]);
+		}
+
+		return sum;
 	}
 
 	private getBoundingBoxFromVertices(vertices: TypedArray): { min: number[], max: number[] } {

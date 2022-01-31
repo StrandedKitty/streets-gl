@@ -12,8 +12,8 @@ import {CalcConvexHull, ComputeOMBB, Vector} from "../../../../../math/OMBB";
 import SeededRandom from "../../../../../math/SeededRandom";
 import Config from "../../../../Config";
 import RoadPolylineBuilder from "../../RoadPolylineBuilder";
-import SkeletonBuilder, {Skeleton} from "straight-skeleton";
 import Vec3 from "../../../../../math/Vec3";
+import StraightSkeletonBuilder from "../../StraightSkeletonBuilder";
 
 interface EarcutInput {
 	vertices: number[];
@@ -32,7 +32,9 @@ export default class Way3D extends Feature3D {
 	public minGroundHeight: number;
 	public heightViewer: HeightViewer;
 	public heightFactor: number;
-	private rings: Ring3D[] = [];
+	public rings: Ring3D[] = [];
+	public outerRings: Ring3D[] = [];
+	public innerRings: Ring3D[] = [];
 	private holesArrays: EarcutInput;
 	public geoJSON: GeoJSON.MultiPolygon = null;
 	public aabb: WayAABB = new WayAABB();
@@ -54,6 +56,12 @@ export default class Way3D extends Feature3D {
 
 		this.rings.push(ring);
 		this.addRingToAABB(ring);
+
+		if (ring.type === RingType.Inner) {
+			this.innerRings.push(ring);
+		} else if (ring.type === RingType.Outer) {
+			this.outerRings.push(ring);
+		}
 	}
 
 	private updateHeightFactor() {
@@ -84,6 +92,37 @@ export default class Way3D extends Feature3D {
 		this.roofShape = roofType;
 	}
 
+	private getRoadWidth(): number {
+		if (this.tags.width) {
+			return +this.tags.width;
+		}
+
+		if (this.tags.roadType === 'sidewalk') {
+			return 4;
+		}
+
+		if (this.tags.roadLanes || this.tags.roadLanesForward || this.tags.roadLanesBackward) {
+			let totalLanes;
+
+			if (!isNaN(+this.tags.roadLanes)) {
+				totalLanes = +this.tags.roadLanes;
+			} else {
+				const forward = +this.tags.roadLanesForward || 0;
+				const backward = +this.tags.roadLanesBackward || 0;
+
+				totalLanes = forward + backward;
+			}
+
+			if (totalLanes === 1) {
+				return 6;
+			}
+
+			return totalLanes * 3.7;
+		}
+
+		return 7;
+	}
+
 	public getAttributeBuffers(): {
 		position: Float32Array,
 		color: Uint8Array,
@@ -103,18 +142,20 @@ export default class Way3D extends Feature3D {
 			};
 		}
 
-		if (this.tags.type === 'road') {
+		if (this.tags.type === 'road' && !this.tags.isArea) {
 			const ring = this.rings.find(ring => ring.type === RingType.Outer);
 
 			if (ring) {
-				const roadGeometry = RoadPolylineBuilder.build(ring.vertices.map(v => new Vec2(v[0], v[1])), 10);
+				const roadWidth = this.getRoadWidth();
+				const roadGeometry = RoadPolylineBuilder.build(ring.vertices.map(v => new Vec2(v[0], v[1])), roadWidth);
+				const textureId = this.tags.roadType === 'sidewalk' ? 0 : 1;
 
 				return {
 					position: new Float32Array(),
 					color: new Uint8Array(),
 					uv: new Float32Array(),
 					normal: new Float32Array(),
-					textureId: new Uint8Array(),
+					textureId: new Uint8Array(roadGeometry.positions.length / 3).fill(textureId),
 					positionRoad: roadGeometry.positions,
 					uvRoad: roadGeometry.uvs
 				};
@@ -378,43 +419,6 @@ export default class Way3D extends Feature3D {
 		return area;
 	}
 
-	private addRandomOffsetToSkeletonInput(vertices: [number, number][], scale: number) {
-		for (let i = 0; i < vertices.length; i++) {
-			vertices[i] = [
-				vertices[i][0] + (Math.random() - 0.5) * scale,
-				vertices[i][1] + (Math.random() - 0.5) * scale
-			];
-		}
-	}
-
-	private buildStraightSkeleton(): Skeleton {
-		const outerRing = this.rings.find(ring => ring.type === RingType.Outer);
-
-		if (!outerRing) {
-			return null;
-		}
-
-		const outerVertices = outerRing.vertices.slice(0, -1);
-		const innersVertices = this.rings.filter(ring => ring.type === RingType.Inner).map(ring => ring.vertices.slice(0, -1));
-
-		for (const inputVertices of [outerVertices, ...innersVertices]) {
-			this.addRandomOffsetToSkeletonInput(inputVertices, 0.5);
-		}
-
-		let skeleton = null;
-
-		try {
-			skeleton = SkeletonBuilder.BuildFromGeoJSON([[
-				outerVertices,
-				...innersVertices
-			]]);
-		} catch (e) {
-
-		}
-
-		return skeleton;
-	}
-
 	private buildRoof(): { position: Float32Array, normal: Float32Array, uv: Float32Array, isTextured: boolean } {
 		switch (this.roofShape) {
 			case RoofShape.Flat: {
@@ -429,7 +433,7 @@ export default class Way3D extends Feature3D {
 				};
 			}
 			case RoofShape.Hipped: {
-				const skeleton = this.buildStraightSkeleton();
+				const skeleton = StraightSkeletonBuilder.buildFromWay(this);
 
 				if (!skeleton) {
 					this.roofShape = RoofShape.Flat;
@@ -490,7 +494,7 @@ export default class Way3D extends Feature3D {
 				};
 			}
 			case RoofShape.Gabled: {
-				const skeleton = this.buildStraightSkeleton();
+				const skeleton = StraightSkeletonBuilder.buildFromWay(this);
 
 				if (!skeleton) {
 					this.roofShape = RoofShape.Flat;
@@ -552,7 +556,7 @@ export default class Way3D extends Feature3D {
 					const x = vertices[i];
 					const z = vertices[i + 2];
 					const y = vertices[i + 1] || heightMap.get(`${x} ${z}`);
-					
+
 					const height = useRoofHeight ? (y / maxHeight * roofHeight) : (y * 0.5);
 
 					vertices[i + 1] = height * this.heightFactor + minHeight;

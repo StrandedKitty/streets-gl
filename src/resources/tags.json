@@ -49,6 +49,14 @@
 	"highway": {
 		"default": {
 			"type": "road"
+		},
+		"footway": {
+			"type": "road",
+			"roadType": "sidewalk"
+		},
+		"steps": {
+			"type": "road",
+			"roadType": "sidewalk"
 		}
 	},
 	"roof:shape": {
@@ -65,6 +73,34 @@
 	"roof:height": {
 		"default": {
 			"roofHeight": "@units"
+		}
+	},
+	"lanes": {
+		"default": {
+			"roadLanes": "@int"
+		}
+	},
+	"lanes:forward": {
+		"default": {
+			"roadLanesForward": "@int"
+		}
+	},
+	"lanes:backward": {
+		"default": {
+			"roadLanesBackward": "@int"
+		}
+	},
+	"width": {
+		"default": {
+			"width": "@units"
+		}
+	},
+	"area": {
+		"default": {
+			"isArea": false
+		},
+		"yes": {
+			"isArea": true
 		}
 	}
 }

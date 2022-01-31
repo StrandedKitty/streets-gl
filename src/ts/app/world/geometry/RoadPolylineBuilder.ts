@@ -90,14 +90,6 @@ export default class RoadPolylineBuilder {
 				positions.push(...Vec3.toArray(this.vec2ToVec3(a)), ...Vec3.toArray(this.vec2ToVec3(b)), ...Vec3.toArray(this.vec2ToVec3(current[4])));
 				positions.push(...Vec3.toArray(this.vec2ToVec3(current[2])), ...Vec3.toArray(this.vec2ToVec3(current[3])), ...Vec3.toArray(this.vec2ToVec3(current[4])));
 
-				if (inverse) {
-					//uvs.push(0, startA, 1, endA, 1, startA);
-					//uvs.push(0, startB, 1, startB, 1, endB);
-				} else {
-					//uvs.push(0, endA, 1, startA, 0, startA);
-					//uvs.push(0, startB, 1, startB, 0, endB);
-				}
-
 				uvs.push(0, endB, 1, endB, inverse ? 1 : 0, startB);
 				uvs.push(0, startA, 1, startA, inverse ? 1 : 0, endA);
 

@@ -13,7 +13,8 @@ export default class Extensions {
 			'EXT_texture_filter_anisotropic',
 			'EXT_color_buffer_float',
 			'WEBGL_debug_renderer_info',
-			'OES_texture_float_linear'
+			'OES_texture_float_linear',
+			'EXT_disjoint_timer_query_webgl2',
 		];
 
 		for(const ext of names) {

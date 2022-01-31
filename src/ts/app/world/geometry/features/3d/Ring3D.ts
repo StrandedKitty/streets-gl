@@ -42,8 +42,9 @@ export default class Ring3D extends Feature3D {
 	private buildVerticesFromNodes() {
 		const nodeVertices: Vec2[] = this.nodes.map(node => Vec2.copy(node.position));
 
-		if (nodeVertices.length <= 999) {
+		if (nodeVertices.length <= 3) {
 			this.vertices = nodeVertices.map(p => [p.x, p.y]);
+			return;
 		}
 
 		this.vertices = Simplify(nodeVertices, 0.1, false).map(p => [p.x, p.y]);

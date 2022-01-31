@@ -4,12 +4,14 @@ import Extensions from "./Extensions";
 import Framebuffer from "./Framebuffer";
 import GLConstants from "./GLConstants";
 import Material from "./Material";
+import GPUTimer from "./GPUTimer";
 
 export default class Renderer {
 	private readonly canvas: HTMLCanvasElement;
 	public readonly gl: WebGL2RenderingContext;
 	public extensions: Extensions;
 	public capabilities: WebGLCapabilities;
+	public gpuTimer: GPUTimer;
 	public currentMaterial: Material;
 
 	constructor(canvas: HTMLCanvasElement) {
@@ -23,6 +25,7 @@ export default class Renderer {
 
 		this.extensions = new Extensions(this.gl);
 		this.capabilities = new WebGLCapabilities(this);
+		this.gpuTimer = new GPUTimer(this);
 
 		this.gl.enable(this.gl.DEPTH_TEST);
 		this.gl.depthFunc(this.gl.LEQUAL);
