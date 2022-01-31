@@ -97,6 +97,10 @@ export default class ControlsSystem extends System {
 
 	}
 
+	public getCameraRayLength(): number {
+		return this.distance;
+	}
+
 	public getLatLon(): {lat: number, lon: number} {
 		return MathUtils.meters2degrees(this.target.x, this.target.z);
 	}

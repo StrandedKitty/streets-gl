@@ -54,6 +54,10 @@ const Shaders = {
 	groundMask: {
 		vertex: require('../../../resources/shaders/groundMask.vert'),
 		fragment: require('../../../resources/shaders/groundMask.frag')
+	},
+	bokeh: {
+		vertex: require('../../../resources/shaders/bokeh.vert'),
+		fragment: require('../../../resources/shaders/bokeh.frag')
 	}
 }
 

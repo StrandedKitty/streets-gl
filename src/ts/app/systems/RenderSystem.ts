@@ -27,6 +27,8 @@ import TileSystem from "./TileSystem";
 import PickingSystem from "./PickingSystem";
 import MapTimeSystem from "./MapTimeSystem";
 import RoadMaterial from "../render/materials/RoadMaterial";
+import BokehPass from "../render/passes/BokehPass";
+import ControlsSystem from "./ControlsSystem";
 
 export default class RenderSystem extends System {
 	public renderer: Renderer;
@@ -41,6 +43,7 @@ export default class RenderSystem extends System {
 	private selectionMaskPass: SelectionMaskPass;
 	private gaussianBlurPass: GaussianBlurPass;
 	private bilateralBlurPass: BilateralBlurPass;
+	private bokehPass: BokehPass;
 	private frameCount: number = 0;
 
 	private groundMaterial: GroundMaterial;
@@ -117,6 +120,7 @@ export default class RenderSystem extends System {
 		this.selectionMaskPass = new SelectionMaskPass(this.renderer, this.resolution.x, this.resolution.y);
 		this.gaussianBlurPass = new GaussianBlurPass(this.renderer, this.resolution.x, this.resolution.y);
 		this.bilateralBlurPass = new BilateralBlurPass(this.renderer, this.resolution.x, this.resolution.y);
+		this.bokehPass = new BokehPass(this.renderer, this.resolution.x, this.resolution.y);
 
 		this.camera = new PerspectiveCamera({
 			fov: 40,
@@ -178,6 +182,7 @@ export default class RenderSystem extends System {
 		this.selectionMaskPass.setSize(this.resolution.x, this.resolution.y);
 		this.gaussianBlurPass.setSize(this.resolution.x, this.resolution.y);
 		this.bilateralBlurPass.setSize(this.resolution.x, this.resolution.y);
+		this.bokehPass.setSize(this.resolution.x, this.resolution.y);
 		this.csm.updateFrustums();
 	}
 
@@ -395,10 +400,20 @@ export default class RenderSystem extends System {
 		this.hdrComposeMaterial.use();
 		this.quad.draw();
 
+		this.renderer.bindFramebuffer(this.bokehPass.framebuffer);
+
+		this.bokehPass.material.uniforms.tColor.value = this.gBuffer.framebufferHDR.textures[0];
+		this.bokehPass.material.uniforms.tPosition.value = this.gBuffer.textures.position;
+		this.bokehPass.material.uniforms.uPixelSize.value = [1 / this.bokehPass.width, 1 / this.bokehPass.height];
+		this.bokehPass.material.uniforms.uFocusPoint.value = this.systemManager.getSystem(ControlsSystem).getCameraRayLength();
+		this.bokehPass.material.use();
+		this.quad.draw();
+
 		this.renderer.bindFramebuffer(this.taaPass.framebufferOutput);
 
 		this.taaPass.material.uniforms.tAccum.value = this.taaPass.framebufferAccum.textures[0];
-		this.taaPass.material.uniforms.tNew.value = this.gBuffer.framebufferHDR.textures[0];
+		//this.taaPass.material.uniforms.tNew.value = this.gBuffer.framebufferHDR.textures[0];
+		this.taaPass.material.uniforms.tNew.value = this.bokehPass.framebuffer.textures[0];
 		this.taaPass.material.uniforms.tMotion.value = this.gBuffer.textures.motion;
 		this.taaPass.material.uniforms.ignoreHistory.value = this.frameCount === 0 ? 1 : 0;
 		this.taaPass.material.use();

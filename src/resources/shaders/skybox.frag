@@ -19,7 +19,7 @@ uniform samplerCube tSky;
 void main() {
 	outColor = vec4(texture(tSky, vNormal).rgb, 0);
 	outNormal = vNormal * 0.5 + 0.5;
-	outPosition = vec3(0);
+	outPosition = vec3(0, 0, -1e8);
 	outMetallicRoughness = vec4(0);
 	outEmission = vec4(0);
 	outMotion = 0.5 * vec3(vClipPos / vClipPos.w - vClipPosPrev / vClipPosPrev.w);
