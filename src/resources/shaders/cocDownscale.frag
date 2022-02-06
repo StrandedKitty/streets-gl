@@ -12,18 +12,16 @@ in vec2 vUv;
 
 uniform sampler2D tCoC;
 uniform sampler2D tColor;
-uniform vec2 taaOffset;
 
 void main() {
     vec2 texelSize = 1. / vec2(textureSize(tCoC, 0));
-    vec2 dejitterOffset = -texelSize * taaOffset * 0.;
 
     vec4 o = texelSize.xyxy * vec2(-0.5, 0.5).xxyy;
 
-    float coc0 = texture(tCoC, vUv + o.xy + dejitterOffset).r;
-    float coc1 = texture(tCoC, vUv + o.zy + dejitterOffset).r;
-    float coc2 = texture(tCoC, vUv + o.xw + dejitterOffset).r;
-    float coc3 = texture(tCoC, vUv + o.zw + dejitterOffset).r;
+    float coc0 = texture(tCoC, vUv + o.xy).r;
+    float coc1 = texture(tCoC, vUv + o.zy).r;
+    float coc2 = texture(tCoC, vUv + o.xw).r;
+    float coc3 = texture(tCoC, vUv + o.zw).r;
 
     float cocMin = min(min(min(coc0, coc1), coc2), coc3);
     float cocMax = max(max(max(coc0, coc1), coc2), coc3);

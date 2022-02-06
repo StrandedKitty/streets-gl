@@ -20,10 +20,6 @@ export default class CoCTempFilterMaterial extends Material {
 				tMotion: {
 					type: UniformType.Texture2D,
 					value: null
-				},
-				taaOffset: {
-					type: UniformType.Float2,
-					value: new Float32Array([0, 0])
 				}
 			}
 		});

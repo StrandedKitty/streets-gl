@@ -428,8 +428,6 @@ export default class RenderSystem extends System {
 		this.taaPass.copyOutputToAccum();
 		this.taaPass.matrixWorldInversePrev = Mat4.copy(this.camera.matrixWorldInverse);
 
-		this.renderer.gpuTimer.start();
-
 		this.renderer.bindFramebuffer(this.cocPass.framebuffer);
 
 		this.cocPass.material.uniforms.tPosition.value = this.gBuffer.textures.position;
@@ -444,7 +442,6 @@ export default class RenderSystem extends System {
 		this.cocTempFilterPass.material.uniforms.tCoC.value = this.cocPass.framebuffer.textures[0];
 		this.cocTempFilterPass.material.uniforms.tCoCAccum.value = this.cocTempFilterPass.framebufferAccum.textures[0];
 		this.cocTempFilterPass.material.uniforms.tMotion.value = this.gBuffer.textures.motion;
-		this.cocTempFilterPass.material.uniforms.taaOffset.value = this.taaPass.lastJitterOffset;
 		this.cocTempFilterPass.material.use();
 		this.quad.draw();
 
@@ -454,7 +451,6 @@ export default class RenderSystem extends System {
 
 		this.cocDownscalePass.material.uniforms.tCoC.value = this.cocTempFilterPass.framebuffer.textures[0];
 		this.cocDownscalePass.material.uniforms.tColor.value = this.taaPass.framebufferOutput.textures[0];
-		this.cocDownscalePass.material.uniforms.taaOffset.value = this.taaPass.lastJitterOffset;
 		this.cocDownscalePass.material.use();
 		this.quad.draw();
 
@@ -470,9 +466,6 @@ export default class RenderSystem extends System {
 		this.dofTentPass.material.uniforms.tMap.value = this.dofPass.framebuffer.textures[0];
 		this.dofTentPass.material.use();
 		this.quad.draw();
-
-		this.renderer.gpuTimer.stop('dof');
-		//console.log(this.renderer.gpuTimer.getResult('dof'))
 
 		this.renderer.bindFramebuffer(null);
 

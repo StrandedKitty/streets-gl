@@ -13,7 +13,6 @@ in vec2 vUv;
 uniform sampler2D tCoC;
 uniform sampler2D tCoCAccum;
 uniform sampler2D tMotion;
-uniform vec2 taaOffset;
 
 const vec2 offsets[] = vec2[](
     vec2(1, 0),
@@ -24,7 +23,6 @@ const vec2 offsets[] = vec2[](
 
 void main() {
     vec2 texelSize = 1. / vec2(textureSize(tCoC, 0));
-    vec2 dejitterOffset = -texelSize * taaOffset;
 
     float newSample = texture(tCoC, vUv).r;
 
