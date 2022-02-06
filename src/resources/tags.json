@@ -38,7 +38,8 @@
 			"relationType": "building"
 		},
 		"multipolygon": {
-			"relationType": "multipolygon"
+			"relationType": "multipolygon",
+			"isArea": true
 		}
 	},
 	"layer": {
@@ -55,6 +56,10 @@
 			"roadType": "sidewalk"
 		},
 		"steps": {
+			"type": "road",
+			"roadType": "sidewalk"
+		},
+		"pedestrian": {
 			"type": "road",
 			"roadType": "sidewalk"
 		}
@@ -101,6 +106,11 @@
 		},
 		"yes": {
 			"isArea": true
+		}
+	},
+	"amenity": {
+		"parking": {
+			"type": "parking"
 		}
 	}
 }

@@ -70,6 +70,7 @@ function load(x: number, y: number) {
 			rel["type"="building"](${bbox});
 		 	rel["type"="multipolygon"]["building"](${bbox});
 		 	rel["type"="multipolygon"]["building:part"](${bbox});
+		 	rel["type"="multipolygon"]["highway"](${bbox});
 		)->.data;
 		
 		.data > ->.dataMembers;

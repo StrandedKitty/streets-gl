@@ -162,6 +162,36 @@ export default class Way3D extends Feature3D {
 			}
 		}
 
+		if (this.tags.type === 'road' && this.tags.isArea) {
+			const footprint = this.triangulateFootprint();
+			const textureId = this.tags.roadType === 'sidewalk' ? 0 : 1;
+
+			return {
+				position: new Float32Array(),
+				color: new Uint8Array(),
+				uv: new Float32Array(),
+				normal: new Float32Array(),
+				textureId: new Uint8Array(footprint.positions.length / 3).fill(textureId),
+				positionRoad: footprint.positions,
+				uvRoad: footprint.uvs
+			};
+		}
+
+		if (this.tags.type === 'parking') {
+			const footprint = this.triangulateFootprint();
+			const textureId = 1;
+
+			return {
+				position: new Float32Array(),
+				color: new Uint8Array(),
+				uv: new Float32Array(),
+				normal: new Float32Array(),
+				textureId: new Uint8Array(footprint.positions.length / 3).fill(textureId),
+				positionRoad: footprint.positions,
+				uvRoad: footprint.uvs
+			};
+		}
+
 		if (this.tags.type !== 'building') {
 			return {
 				position: new Float32Array(),
