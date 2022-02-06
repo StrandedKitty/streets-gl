@@ -52,9 +52,22 @@ export default class Program {
 
 		if (!compilationStatus) {
 			const compilationLog = this.gl.getShaderInfoLog(shader);
-			console.error((type === GLConstants.VERTEX_SHADER ? 'Vertex' : 'Fragment') + ' shader compilation error\n\n' + compilationLog + '\n%c' + source, 'color: #111');
+			const formattedSource = this.formatShaderSource(source);
+			const shaderType = type === GLConstants.VERTEX_SHADER ? 'Vertex' : 'Fragment';
+
+			console.error(`${shaderType} shader compilation error\n\n${compilationLog}\n%c${formattedSource}`, 'color: #111');
 		}
 
 		return shader;
+	}
+
+	private formatShaderSource(source: string): string {
+		const sourceLines = source.split('\n');
+		const maxFigures = Math.ceil(Math.log10(sourceLines.length));
+		const sourceLinesWithLineNumbers = sourceLines.map((line, i) => {
+			return `${i.toString().padEnd(maxFigures)}  ${line}`;
+		})
+
+		return sourceLinesWithLineNumbers.join('\n');
 	}
 }

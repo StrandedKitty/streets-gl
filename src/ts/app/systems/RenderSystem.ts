@@ -27,8 +27,12 @@ import TileSystem from "./TileSystem";
 import PickingSystem from "./PickingSystem";
 import MapTimeSystem from "./MapTimeSystem";
 import RoadMaterial from "../render/materials/RoadMaterial";
-import BokehPass from "../render/passes/BokehPass";
 import ControlsSystem from "./ControlsSystem";
+import CoCPass from "../render/passes/CoCPass";
+import CoCDownscalePass from "../render/passes/CoCDownscalePass";
+import DoFTentPass from "../render/passes/DoFTentPass";
+import DoFPass from "../render/passes/DoFPass";
+import CoCTempFilterPass from "../render/passes/CoCTempFilterPass";
 
 export default class RenderSystem extends System {
 	public renderer: Renderer;
@@ -43,7 +47,11 @@ export default class RenderSystem extends System {
 	private selectionMaskPass: SelectionMaskPass;
 	private gaussianBlurPass: GaussianBlurPass;
 	private bilateralBlurPass: BilateralBlurPass;
-	private bokehPass: BokehPass;
+	private cocPass: CoCPass;
+	private cocTempFilterPass: CoCTempFilterPass;
+	private cocDownscalePass: CoCDownscalePass;
+	private dofTentPass: DoFTentPass;
+	private dofPass: DoFPass;
 	private frameCount: number = 0;
 
 	private groundMaterial: GroundMaterial;
@@ -120,7 +128,11 @@ export default class RenderSystem extends System {
 		this.selectionMaskPass = new SelectionMaskPass(this.renderer, this.resolution.x, this.resolution.y);
 		this.gaussianBlurPass = new GaussianBlurPass(this.renderer, this.resolution.x, this.resolution.y);
 		this.bilateralBlurPass = new BilateralBlurPass(this.renderer, this.resolution.x, this.resolution.y);
-		this.bokehPass = new BokehPass(this.renderer, this.resolution.x, this.resolution.y);
+		this.cocPass = new CoCPass(this.renderer, this.resolution.x, this.resolution.y);
+		this.cocTempFilterPass = new CoCTempFilterPass(this.renderer, this.resolution.x, this.resolution.y);
+		this.cocDownscalePass = new CoCDownscalePass(this.renderer, this.resolution.x, this.resolution.y);
+		this.dofTentPass = new DoFTentPass(this.renderer, this.resolution.x, this.resolution.y);
+		this.dofPass = new DoFPass(this.renderer, this.resolution.x, this.resolution.y);
 
 		this.camera = new PerspectiveCamera({
 			fov: 40,
@@ -182,7 +194,11 @@ export default class RenderSystem extends System {
 		this.selectionMaskPass.setSize(this.resolution.x, this.resolution.y);
 		this.gaussianBlurPass.setSize(this.resolution.x, this.resolution.y);
 		this.bilateralBlurPass.setSize(this.resolution.x, this.resolution.y);
-		this.bokehPass.setSize(this.resolution.x, this.resolution.y);
+		this.cocPass.setSize(this.resolution.x, this.resolution.y);
+		this.cocTempFilterPass.setSize(this.resolution.x, this.resolution.y);
+		this.cocDownscalePass.setSize(this.resolution.x, this.resolution.y);
+		this.dofTentPass.setSize(this.resolution.x, this.resolution.y);
+		this.dofPass.setSize(this.resolution.x, this.resolution.y);
 		this.csm.updateFrustums();
 	}
 
@@ -400,20 +416,10 @@ export default class RenderSystem extends System {
 		this.hdrComposeMaterial.use();
 		this.quad.draw();
 
-		this.renderer.bindFramebuffer(this.bokehPass.framebuffer);
-
-		this.bokehPass.material.uniforms.tColor.value = this.gBuffer.framebufferHDR.textures[0];
-		this.bokehPass.material.uniforms.tPosition.value = this.gBuffer.textures.position;
-		this.bokehPass.material.uniforms.uPixelSize.value = [1 / this.bokehPass.width, 1 / this.bokehPass.height];
-		this.bokehPass.material.uniforms.uFocusPoint.value = this.systemManager.getSystem(ControlsSystem).getCameraRayLength();
-		this.bokehPass.material.use();
-		this.quad.draw();
-
 		this.renderer.bindFramebuffer(this.taaPass.framebufferOutput);
 
 		this.taaPass.material.uniforms.tAccum.value = this.taaPass.framebufferAccum.textures[0];
-		//this.taaPass.material.uniforms.tNew.value = this.gBuffer.framebufferHDR.textures[0];
-		this.taaPass.material.uniforms.tNew.value = this.bokehPass.framebuffer.textures[0];
+		this.taaPass.material.uniforms.tNew.value = this.gBuffer.framebufferHDR.textures[0];
 		this.taaPass.material.uniforms.tMotion.value = this.gBuffer.textures.motion;
 		this.taaPass.material.uniforms.ignoreHistory.value = this.frameCount === 0 ? 1 : 0;
 		this.taaPass.material.use();
@@ -422,9 +428,57 @@ export default class RenderSystem extends System {
 		this.taaPass.copyOutputToAccum();
 		this.taaPass.matrixWorldInversePrev = Mat4.copy(this.camera.matrixWorldInverse);
 
+		this.renderer.gpuTimer.start();
+
+		this.renderer.bindFramebuffer(this.cocPass.framebuffer);
+
+		this.cocPass.material.uniforms.tPosition.value = this.gBuffer.textures.position;
+		this.cocPass.material.uniforms.uFocusPoint.value = this.systemManager.getSystem(ControlsSystem).getCameraRayLength();
+		this.cocPass.material.uniforms.uCoCScale.value = Config.DoFCoCScale;
+		this.cocPass.material.uniforms.uFocusScale.value = Config.DoFFocusScale;
+		this.cocPass.material.use();
+		this.quad.draw();
+
+		this.renderer.bindFramebuffer(this.cocTempFilterPass.framebuffer);
+
+		this.cocTempFilterPass.material.uniforms.tCoC.value = this.cocPass.framebuffer.textures[0];
+		this.cocTempFilterPass.material.uniforms.tCoCAccum.value = this.cocTempFilterPass.framebufferAccum.textures[0];
+		this.cocTempFilterPass.material.uniforms.tMotion.value = this.gBuffer.textures.motion;
+		this.cocTempFilterPass.material.uniforms.taaOffset.value = this.taaPass.lastJitterOffset;
+		this.cocTempFilterPass.material.use();
+		this.quad.draw();
+
+		this.cocTempFilterPass.copyOutputToAccum();
+
+		this.renderer.bindFramebuffer(this.cocDownscalePass.framebuffer);
+
+		this.cocDownscalePass.material.uniforms.tCoC.value = this.cocTempFilterPass.framebuffer.textures[0];
+		this.cocDownscalePass.material.uniforms.tColor.value = this.taaPass.framebufferOutput.textures[0];
+		this.cocDownscalePass.material.uniforms.taaOffset.value = this.taaPass.lastJitterOffset;
+		this.cocDownscalePass.material.use();
+		this.quad.draw();
+
+		this.renderer.bindFramebuffer(this.dofPass.framebuffer);
+
+		this.dofPass.material.uniforms.tCoC.value = this.cocDownscalePass.framebuffer.textures[0];
+		this.dofPass.material.uniforms.uBokehRadius.value = Config.DoFBokehRadius;
+		this.dofPass.material.use();
+		this.quad.draw();
+
+		this.renderer.bindFramebuffer(this.dofTentPass.framebuffer);
+
+		this.dofTentPass.material.uniforms.tMap.value = this.dofPass.framebuffer.textures[0];
+		this.dofTentPass.material.use();
+		this.quad.draw();
+
+		this.renderer.gpuTimer.stop('dof');
+		//console.log(this.renderer.gpuTimer.getResult('dof'))
+
 		this.renderer.bindFramebuffer(null);
 
 		this.ldrComposeMaterial.uniforms.tHDR.value = this.taaPass.framebufferOutput.textures[0];
+		this.ldrComposeMaterial.uniforms.tDoF.value = this.dofTentPass.framebuffer.textures[0];
+		this.ldrComposeMaterial.uniforms.tCoC.value = this.cocTempFilterPass.framebuffer.textures[0];
 		this.ldrComposeMaterial.use();
 		this.quad.draw();
 	}

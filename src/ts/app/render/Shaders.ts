@@ -58,6 +58,26 @@ const Shaders = {
 	bokeh: {
 		vertex: require('../../../resources/shaders/bokeh.vert'),
 		fragment: require('../../../resources/shaders/bokeh.frag')
+	},
+	coc: {
+		vertex: require('../../../resources/shaders/coc.vert'),
+		fragment: require('../../../resources/shaders/coc.frag')
+	},
+	cocTempFilter: {
+		vertex: require('../../../resources/shaders/cocTempFilter.vert'),
+		fragment: require('../../../resources/shaders/cocTempFilter.frag')
+	},
+	cocDownscale: {
+		vertex: require('../../../resources/shaders/cocDownscale.vert'),
+		fragment: require('../../../resources/shaders/cocDownscale.frag')
+	},
+	dofTent: {
+		vertex: require('../../../resources/shaders/dofTent.vert'),
+		fragment: require('../../../resources/shaders/dofTent.frag')
+	},
+	dof: {
+		vertex: require('../../../resources/shaders/dof.vert'),
+		fragment: require('../../../resources/shaders/dof.frag')
 	}
 }
 

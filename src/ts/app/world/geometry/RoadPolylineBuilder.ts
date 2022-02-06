@@ -1,5 +1,4 @@
 import Vec2 from "../../../math/Vec2";
-import Utils from "../../Utils";
 import Vec3 from "../../../math/Vec3";
 import * as Simplify from 'simplify-js';
 

@@ -2,13 +2,13 @@ import Renderer from "../../../renderer/Renderer";
 import Framebuffer from "../../../renderer/Framebuffer";
 import Texture2D from "../../../renderer/Texture2D";
 import GLConstants from "../../../renderer/GLConstants";
-import BokehMaterial from "../materials/BokehMaterial";
+import CoCMaterial from "../materials/CoCMaterial";
 
-export default class BokehPass {
+export default class CoCPass {
 	private readonly renderer: Renderer;
 	public width: number;
 	public height: number;
-	public material: BokehMaterial;
+	public material: CoCMaterial;
 	public framebuffer: Framebuffer;
 
 	constructor(renderer: Renderer, width: number, height: number) {
@@ -20,7 +20,7 @@ export default class BokehPass {
 	}
 
 	private init() {
-		this.material = new BokehMaterial(this.renderer);
+		this.material = new CoCMaterial(this.renderer);
 
 		this.framebuffer = new Framebuffer(this.renderer, {
 			width: this.width,

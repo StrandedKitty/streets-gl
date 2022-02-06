@@ -40,11 +40,7 @@ const vec2 offsets[] = vec2[](
 	vec2(1, 0),
 	vec2(-1, 0),
 	vec2(0, 1),
-	vec2(0, -1),
-	vec2(1, 1),
-	vec2(-1, -1),
-	vec2(1, -1),
-	vec2(-1, 1)
+	vec2(0, -1)
 );
 
 void main() {
@@ -67,7 +63,6 @@ void main() {
 
 	vec4 maxNeighbor = newSample;
 	vec4 minNeighbor = newSample;
-	vec4 avg = vec4(0);
 
 	for(int i = 0; i < 4; i++) {
 		vec2 neighborUv = vUv + offsets[i] / size;
@@ -79,8 +74,6 @@ void main() {
 
 		maxNeighbor = max(maxNeighbor, neighborTexel);
 		minNeighbor = min(minNeighbor, neighborTexel);
-
-		avg += neighborTexel;
 	}
 
 	accumSample = clamp(accumSample, minNeighbor, maxNeighbor);

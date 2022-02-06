@@ -623,8 +623,6 @@ export default class TileGeometryBuilder {
 				if (!part.geoJSON) part.updateGeoJSON();
 				if (!outline.geoJSON) outline.updateGeoJSON();
 
-				if (outline.id === 183403581) debugger;
-
 				if (part.geoJSON.coordinates.length > 0 && outline.geoJSON.coordinates.length > 0) {
 					try {
 						const intersection = martinez.intersection(part.geoJSON.coordinates, outline.geoJSON.coordinates);

@@ -2,25 +2,25 @@ import Renderer from "../../../renderer/Renderer";
 import Framebuffer from "../../../renderer/Framebuffer";
 import Texture2D from "../../../renderer/Texture2D";
 import GLConstants from "../../../renderer/GLConstants";
-import BokehMaterial from "../materials/BokehMaterial";
+import CoCDownscaleMaterial from "../materials/CoCDownscaleMaterial";
 
-export default class BokehPass {
+export default class CoCDownscalePass {
 	private readonly renderer: Renderer;
 	public width: number;
 	public height: number;
-	public material: BokehMaterial;
+	public material: CoCDownscaleMaterial;
 	public framebuffer: Framebuffer;
 
 	constructor(renderer: Renderer, width: number, height: number) {
 		this.renderer = renderer;
-		this.width = width;
-		this.height = height;
+		this.width = width / 2;
+		this.height = height / 2;
 
 		this.init();
 	}
 
 	private init() {
-		this.material = new BokehMaterial(this.renderer);
+		this.material = new CoCDownscaleMaterial(this.renderer);
 
 		this.framebuffer = new Framebuffer(this.renderer, {
 			width: this.width,
@@ -41,8 +41,8 @@ export default class BokehPass {
 	}
 
 	public setSize(width: number, height: number) {
-		this.width = width;
-		this.height = height;
+		this.width = width / 2;
+		this.height = height / 2;
 
 		this.framebuffer.setSize(this.width, this.height);
 	}

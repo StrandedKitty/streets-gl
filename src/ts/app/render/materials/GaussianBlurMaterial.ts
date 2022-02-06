@@ -1,8 +1,6 @@
 import Material, {UniformType} from "../../../renderer/Material";
 import Shaders from "../Shaders";
 import Renderer from "../../../renderer/Renderer";
-import Texture2DArray from "../../../renderer/Texture2DArray";
-import GLConstants from "../../../renderer/GLConstants";
 
 export default class GaussianBlurMaterial extends Material {
 	constructor(renderer: Renderer) {

@@ -1,0 +1,31 @@
+import Material, {UniformType} from "../../../renderer/Material";
+import Shaders from "../Shaders";
+import Renderer from "../../../renderer/Renderer";
+
+export default class CoCTempFilterMaterial extends Material {
+	constructor(renderer: Renderer) {
+		super(renderer, {
+			name: 'CoCTempFilterMaterial',
+			fragmentShader: Shaders.cocTempFilter.fragment,
+			vertexShader: Shaders.cocTempFilter.vertex,
+			uniforms: {
+				tCoC: {
+					type: UniformType.Texture2D,
+					value: null
+				},
+				tCoCAccum: {
+					type: UniformType.Texture2D,
+					value: null
+				},
+				tMotion: {
+					type: UniformType.Texture2D,
+					value: null
+				},
+				taaOffset: {
+					type: UniformType.Float2,
+					value: new Float32Array([0, 0])
+				}
+			}
+		});
+	}
+}

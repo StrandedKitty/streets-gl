@@ -13,6 +13,14 @@ export default class LDRComposeMaterial extends Material {
 				tHDR: {
 					type: UniformType.Texture2D,
 					value: gBuffer.framebufferHDR.textures[0]
+				},
+				tDoF: {
+					type: UniformType.Texture2D,
+					value: null
+				},
+				tCoC: {
+					type: UniformType.Texture2D,
+					value: null
 				}
 			}
 		});
