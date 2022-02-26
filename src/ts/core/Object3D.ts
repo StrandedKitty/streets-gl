@@ -65,6 +65,10 @@ export default class Object3D {
 	}
 
 	public add(object: Object3D) {
+		if (this.children.includes(object)) {
+			return;
+		}
+
 		this.children.push(object);
 		object.parent = this;
 		object.updateMatrixWorld();

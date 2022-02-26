@@ -50,8 +50,7 @@ export default class TileSystem extends System {
 		tile.updateDistanceToCamera(this.camera);
 
 		tile.load(
-			this.systemManager.getSystem(StaticGeometryLoadingSystem),
-			this.systemManager.getSystem(RenderSystem).renderer
+			this.systemManager.getSystem(StaticGeometryLoadingSystem)
 		);
 	}
 

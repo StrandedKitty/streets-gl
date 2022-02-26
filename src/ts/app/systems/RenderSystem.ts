@@ -33,36 +33,19 @@ import CoCDownscalePass from "../render/passes/CoCDownscalePass";
 import DoFTentPass from "../render/passes/DoFTentPass";
 import DoFPass from "../render/passes/DoFPass";
 import CoCTempFilterPass from "../render/passes/CoCTempFilterPass";
+import GBufferPass from "~/app/render/passes/GBufferPass";
+import WebGL2Renderer from "../../renderer/webgl2-renderer/WebGL2Renderer";
+import AbstractRenderer from "../../renderer/abstract-renderer/AbstractRenderer";
 
 export default class RenderSystem extends System {
-	public renderer: Renderer;
+	public renderer: AbstractRenderer;
 	public camera: PerspectiveCamera;
 	public scene: Object3D;
+	public skybox: Skybox;
 	public wrapper: Object3D;
-	private gBuffer: GBuffer;
-	private skybox: Skybox;
-	private csm: CSM;
-	private taaPass: TAAPass;
-	private ssaoPass: SSAOPass;
-	private selectionMaskPass: SelectionMaskPass;
-	private gaussianBlurPass: GaussianBlurPass;
-	private bilateralBlurPass: BilateralBlurPass;
-	private cocPass: CoCPass;
-	private cocTempFilterPass: CoCTempFilterPass;
-	private cocDownscalePass: CoCDownscalePass;
-	private dofTentPass: DoFTentPass;
-	private dofPass: DoFPass;
 	private frameCount: number = 0;
 
-	private groundMaterial: GroundMaterial;
-	private groundDepthMaterial: GroundDepthMaterial;
-	private buildingMaterial: BuildingMaterial;
-	private buildingDepthMaterial: BuildingDepthMaterial;
-	private roadMaterial: RoadMaterial;
-	private skyboxMaterial: SkyboxMaterial;
-	private quad: FullScreenQuad;
-	private hdrComposeMaterial: HDRComposeMaterial;
-	private ldrComposeMaterial: LDRComposeMaterial;
+	private gBufferPass: GBufferPass;
 
 	constructor(systemManager: SystemManager) {
 		super(systemManager);
@@ -71,11 +54,12 @@ export default class RenderSystem extends System {
 	}
 
 	private init() {
-		this.renderer = new Renderer(<HTMLCanvasElement>document.getElementById('canvas'));
-		this.renderer.setSize(this.resolution.x, this.resolution.y);
-		this.renderer.culling = true;
+		const canvas = <HTMLCanvasElement>document.getElementById('canvas');
 
-		this.gBuffer = new GBuffer(this.renderer, this.resolution.x, this.resolution.y, [
+		this.renderer = new WebGL2Renderer(canvas.getContext('webgl2'));
+		this.renderer.setSize(this.resolution.x, this.resolution.y);
+
+		/*this.gBuffer = new GBuffer(this.renderer, this.resolution.x, this.resolution.y, [
 			{
 				name: 'color',
 				internalFormat: GLConstants.RGBA8,
@@ -132,7 +116,7 @@ export default class RenderSystem extends System {
 		this.cocTempFilterPass = new CoCTempFilterPass(this.renderer, this.resolution.x, this.resolution.y);
 		this.cocDownscalePass = new CoCDownscalePass(this.renderer, this.resolution.x, this.resolution.y);
 		this.dofTentPass = new DoFTentPass(this.renderer, this.resolution.x, this.resolution.y);
-		this.dofPass = new DoFPass(this.renderer, this.resolution.x, this.resolution.y);
+		this.dofPass = new DoFPass(this.renderer, this.resolution.x, this.resolution.y);*/
 
 		this.camera = new PerspectiveCamera({
 			fov: 40,
@@ -141,11 +125,9 @@ export default class RenderSystem extends System {
 			aspect: window.innerWidth / window.innerHeight
 		});
 
-		this.quad = new FullScreenQuad(this.renderer);
-
 		this.initScene();
 
-		console.log(`Vendor: ${this.renderer.rendererInfo[0]}\nRenderer: ${this.renderer.rendererInfo[1]}`);
+		//console.log(`Vendor: ${this.renderer.rendererInfo[0]}\nRenderer: ${this.renderer.rendererInfo[1]}`);
 
 		window.addEventListener('resize', () => this.resize());
 	}
@@ -164,7 +146,16 @@ export default class RenderSystem extends System {
 		this.skybox = new Skybox(this.renderer);
 		this.wrapper.add(this.skybox);
 
-		this.csm = new CSM(this.renderer, {
+		this.gBufferPass = new GBufferPass(this.renderer);
+
+		this.gBufferPass.setTilesMap(this.systemManager.getSystem(TileSystem).tiles);
+		this.gBufferPass.setSkybox(this.skybox);
+		this.gBufferPass.setCamera(this.camera);
+
+		//this.skybox = new Skybox(this.renderer);
+		//this.wrapper.add(this.skybox);
+
+		/*this.csm = new CSM(this.renderer, {
 			camera: this.camera,
 			parent: this.wrapper,
 			near: this.camera.near,
@@ -173,14 +164,14 @@ export default class RenderSystem extends System {
 			cascades: Config.ShadowCascades,
 			shadowBias: -0.003,
 			shadowNormalBias: 0.002,
-		});
+		});*/
 
-		this.groundMaterial = new GroundMaterial(this.renderer);
+		/*this.groundMaterial = new GroundMaterial(this.renderer);
 		this.groundDepthMaterial = new GroundDepthMaterial(this.renderer);
 		this.buildingMaterial = new BuildingMaterial(this.renderer);
 		this.buildingDepthMaterial = new BuildingDepthMaterial(this.renderer);
 		this.roadMaterial = new RoadMaterial(this.renderer);
-		this.skyboxMaterial = new SkyboxMaterial(this.renderer);
+		this.skyboxMaterial = new SkyboxMaterial(this.renderer);*/
 	}
 
 	private resize() {
@@ -188,7 +179,7 @@ export default class RenderSystem extends System {
 		this.camera.updateProjectionMatrix();
 
 		this.renderer.setSize(this.resolution.x, this.resolution.y);
-		this.gBuffer.setSize(this.resolution.x, this.resolution.y);
+		/*this.gBuffer.setSize(this.resolution.x, this.resolution.y);
 		this.taaPass.setSize(this.resolution.x, this.resolution.y);
 		this.ssaoPass.setSize(this.resolution.x, this.resolution.y);
 		this.selectionMaskPass.setSize(this.resolution.x, this.resolution.y);
@@ -198,11 +189,14 @@ export default class RenderSystem extends System {
 		this.cocTempFilterPass.setSize(this.resolution.x, this.resolution.y);
 		this.cocDownscalePass.setSize(this.resolution.x, this.resolution.y);
 		this.dofTentPass.setSize(this.resolution.x, this.resolution.y);
-		this.dofPass.setSize(this.resolution.x, this.resolution.y);
-		this.csm.updateFrustums();
+		this.dofPass.setSize(this.resolution.x, this.resolution.y);*/
+		//this.csm.updateFrustums();
 	}
 
 	public update(deltaTime: number) {
+		this.skybox.position.set(this.camera.position.x, this.camera.position.y, this.camera.position.z);
+		this.skybox.updateMatrix();
+
 		const pivotDelta = new Vec2(
 			this.wrapper.position.x + this.camera.position.x,
 			this.wrapper.position.z + this.camera.position.z
@@ -220,7 +214,7 @@ export default class RenderSystem extends System {
 		this.camera.updateMatrixWorldInverse();
 		this.camera.updateFrustum();
 
-		this.taaPass.jitterProjectionMatrix(this.camera.projectionMatrix, this.frameCount);
+		/*this.taaPass.jitterProjectionMatrix(this.camera.projectionMatrix, this.frameCount);
 		this.taaPass.matrixWorldInverse = this.camera.matrixWorldInverse;
 
 		if (this.taaPass.matrixWorldInversePrev) {
@@ -230,10 +224,12 @@ export default class RenderSystem extends System {
 				0,
 				pivotDelta.y
 			);
-		}
+		}*/
 
-		this.renderShadowMaps();
-		this.renderTiles();
+		//this.renderShadowMaps();
+		//this.renderTiles();
+
+		this.gBufferPass.render();
 
 		++this.frameCount;
 	}
@@ -244,13 +240,13 @@ export default class RenderSystem extends System {
 		for (const tile of tiles.values()) {
 			if (!tile.ground && tile.readyForRendering) {
 				//tile.createGround(this.renderer, this.systemManager.getSystem(TileSystem).getTileNeighbors(tile.x, tile.y));
-				tile.generateMeshes(this.renderer);
+				//tile.generateMeshes(this.renderer);
 				this.wrapper.add(tile);
 			}
 		}
 	}
 
-	private renderTiles() {
+	/*private renderTiles() {
 		const tiles = this.systemManager.getSystem(TileSystem).tiles;
 
 		this.renderer.bindFramebuffer(this.gBuffer.framebuffer);
@@ -538,10 +534,10 @@ export default class RenderSystem extends System {
 		this.systemManager.getSystem(PickingSystem).readObjectId(this.renderer, this.gBuffer);
 
 		return this.systemManager.getSystem(PickingSystem).selectedObjectId;
-	}
+	}*/
 
 	public get resolution(): Vec2 {
-		const pixelRatio = Config.IsMobileBrowser ? Math.min(window.devicePixelRatio, 1) : window.devicePixelRatio;
+		const pixelRatio = window.devicePixelRatio;
 		return new Vec2(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio);
 	}
 }

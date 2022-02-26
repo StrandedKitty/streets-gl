@@ -11,6 +11,10 @@ import Mesh from "../../renderer/Mesh";
 import Vec3 from "../../math/Vec3";
 import Vec2 from "../../math/Vec2";
 import {AttributeFormat} from "../../renderer/Attribute";
+import AbstractRenderer from "../../renderer/abstract-renderer/AbstractRenderer";
+import {RendererTypes} from "../../renderer/RendererTypes";
+import AttributeType = RendererTypes.AttributeType;
+import AbstractMesh from "../../renderer/abstract-renderer/AbstractMesh";
 
 export interface GroundGeometryBuffers {
 	position: Float32Array,
@@ -67,6 +71,7 @@ export default class Tile extends Object3D {
 	public readyForRendering: boolean = false;
 	public buildingsUpdated: boolean = false;
 	public disposed: boolean = false;
+	public buildingsMesh: AbstractMesh;
 
 	constructor(x: number, y: number) {
 		super();
@@ -90,12 +95,12 @@ export default class Tile extends Object3D {
 		this.updateMatrix();
 	}
 
-	public async load(tileProvider: StaticGeometryLoadingSystem, renderer: Renderer): Promise<void> {
+	public async load(tileProvider: StaticGeometryLoadingSystem): Promise<void> {
 		return Promise.all([
-			this.loadTextures(renderer),
+			//this.loadTextures(renderer),
 			HeightProvider.prepareDataForTile(this.x, this.y),
 			tileProvider.getTileObjects(this),
-		]).then(([a, b, objects]: [void, void[], StaticTileGeometry]) => {
+		]).then(([a, objects]: [void[], StaticTileGeometry]) => {
 			this.staticGeometry = objects;
 			this.updateStaticGeometryOffsets();
 			this.readyForRendering = true;
@@ -131,6 +136,34 @@ export default class Tile extends Object3D {
 		this.add(this.ground);
 
 		this.ground.updateBorderNormals(this.x, this.y, neighbors.filter((tile) => tile.ground));*/
+	}
+
+	public createMeshes(renderer: AbstractRenderer) {
+		this.buildingsMesh = renderer.createMesh({
+			attributes: [
+				renderer.createAttribute({
+					name: 'position',
+					size: 3,
+					type: AttributeType.Float32,
+					normalized: false,
+					data: this.staticGeometry.buildings.position
+				}),
+				renderer.createAttribute({
+					name: 'normal',
+					size: 3,
+					type: AttributeType.Float32,
+					normalized: false,
+					data: this.staticGeometry.buildings.normal
+				}),
+				renderer.createAttribute({
+					name: 'color',
+					size: 3,
+					type: AttributeType.UnsignedByte,
+					normalized: true,
+					data: this.staticGeometry.buildings.color
+				}),
+			]
+		});
 	}
 
 	public generateMeshes(renderer: Renderer) {

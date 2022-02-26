@@ -12,14 +12,13 @@ interface queueEntry {
 
 export default class StaticGeometryLoadingSystem extends System {
 	private queue: queueEntry[] = [];
-	private renderer: Renderer;
 
 	constructor(systemManager: SystemManager) {
 		super(systemManager);
 	}
 
 	public postInit() {
-		this.renderer = this.systemManager.getSystem(RenderSystem).renderer;
+
 	}
 
 	public async getTileObjects(tile: Tile): Promise<StaticTileGeometry> {

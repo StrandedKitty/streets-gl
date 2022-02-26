@@ -9,7 +9,7 @@ const Config = {
 	ShadowCascades: 3,
 	StartPosition: [40.76050, -73.98088],
 	MinCameraDistance: 20,
-	MaxCameraDistance: 2000,
+	MaxCameraDistance: 3000,
 	MinCameraPitch: 5,
 	MaxCameraPitch: 89.99,
 	IsMobileBrowser: Utils.isMobileBrowser(),

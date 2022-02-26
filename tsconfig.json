@@ -16,9 +16,13 @@
 		"strictFunctionTypes": true,
 		"resolveJsonModule": true,
 		"allowSyntheticDefaultImports": true,
-		"jsx": "react"
+		"jsx": "react",
+		"baseUrl": "./src",
+		"paths": {
+			"~/*": ["ts/*"]
+		}
 	},
 	"include": [
 		"src"
-	]
+	],
 }

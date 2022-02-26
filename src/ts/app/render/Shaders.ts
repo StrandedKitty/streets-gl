@@ -1,7 +1,7 @@
 const Shaders = {
 	building: {
-		vertex: require('../../../resources/shaders/building.vert'),
-		fragment: require('../../../resources/shaders/building.frag')
+		vertex: require('../../../resources/shaders/building2.vert'),
+		fragment: require('../../../resources/shaders/building2.frag')
 	},
 	buildingDepth: {
 		vertex: require('../../../resources/shaders/buildingDepth.vert'),
@@ -20,16 +20,16 @@ const Shaders = {
 		fragment: require('../../../resources/shaders/groundDepth.frag')
 	},
 	skybox: {
-		vertex: require('../../../resources/shaders/skybox.vert'),
-		fragment: require('../../../resources/shaders/skybox.frag')
+		vertex: require('../../../resources/shaders/skybox2.vert'),
+		fragment: require('../../../resources/shaders/skybox2.frag')
 	},
 	hdrCompose: {
 		vertex: require('../../../resources/shaders/hdrCompose.vert'),
 		fragment: require('../../../resources/shaders/hdrCompose.frag')
 	},
 	ldrCompose: {
-		vertex: require('../../../resources/shaders/ldrCompose.vert'),
-		fragment: require('../../../resources/shaders/ldrCompose.frag')
+		vertex: require('../../../resources/shaders/ldrCompose2.vert'),
+		fragment: require('../../../resources/shaders/ldrCompose2.frag')
 	},
 	taa: {
 		vertex: require('../../../resources/shaders/taa.vert'),
