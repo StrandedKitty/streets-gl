@@ -5,7 +5,7 @@ import {Queue} from "./Utils";
 import ResourcePool from "./PhysicalResourcePool";
 
 export default class RenderGraph {
-	private passes: Set<Pass> = new Set();
+	public passes: Set<Pass> = new Set();
 	private resourcePool: ResourcePool = new ResourcePool();
 
 	public addPass(pass: Pass) {
@@ -18,7 +18,7 @@ export default class RenderGraph {
 		const queue = new Queue<Node>();
 
 		for (const node of nodes) {
-			if (node.tempAdjacencyList.size === 0) {
+			if (node.previousNodes.size === 0) {
 				queue.push(node);
 			}
 		}
@@ -128,7 +128,12 @@ export default class RenderGraph {
 		const sorted = <Pass[]>this.sortRenderableNodes(graph);
 
 		for (const pass of sorted) {
+			pass.fetchPhysicalResources(this.resourcePool);
 			pass.render();
+		}
+
+		for (const pass of sorted) {
+			pass.freePhysicalResources(this.resourcePool);
 		}
 	}
 }

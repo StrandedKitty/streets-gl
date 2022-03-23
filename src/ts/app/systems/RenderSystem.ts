@@ -36,6 +36,8 @@ import CoCTempFilterPass from "../render/passes/CoCTempFilterPass";
 import GBufferPass from "~/app/render/passes/GBufferPass";
 import WebGL2Renderer from "../../renderer/webgl2-renderer/WebGL2Renderer";
 import AbstractRenderer from "../../renderer/abstract-renderer/AbstractRenderer";
+import * as RG from "~/render-graph";
+import RenderGraphResourceFactory from "~/app/render/render-graph/RenderGraphResourceFactory";
 
 export default class RenderSystem extends System {
 	public renderer: AbstractRenderer;
@@ -45,7 +47,8 @@ export default class RenderSystem extends System {
 	public wrapper: Object3D;
 	private frameCount: number = 0;
 
-	private gBufferPass: GBufferPass;
+	private renderGraph: RG.RenderGraph;
+	private renderGraphResourceFactory: RenderGraphResourceFactory;
 
 	constructor(systemManager: SystemManager) {
 		super(systemManager);
@@ -146,11 +149,16 @@ export default class RenderSystem extends System {
 		this.skybox = new Skybox(this.renderer);
 		this.wrapper.add(this.skybox);
 
-		this.gBufferPass = new GBufferPass(this.renderer);
+		this.renderGraph = new RG.RenderGraph();
+		this.renderGraphResourceFactory = new RenderGraphResourceFactory(this.renderer);
 
-		this.gBufferPass.setTilesMap(this.systemManager.getSystem(TileSystem).tiles);
-		this.gBufferPass.setSkybox(this.skybox);
-		this.gBufferPass.setCamera(this.camera);
+		const gBufferPass = new GBufferPass(this.renderer, this.renderGraphResourceFactory);
+
+		gBufferPass.setTilesMap(this.systemManager.getSystem(TileSystem).tiles);
+		gBufferPass.setSkybox(this.skybox);
+		gBufferPass.setCamera(this.camera);
+
+		this.renderGraph.addPass(gBufferPass);
 
 		//this.skybox = new Skybox(this.renderer);
 		//this.wrapper.add(this.skybox);
@@ -229,7 +237,7 @@ export default class RenderSystem extends System {
 		//this.renderShadowMaps();
 		//this.renderTiles();
 
-		this.gBufferPass.render();
+		this.renderGraph.render();
 
 		++this.frameCount;
 	}

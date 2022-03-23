@@ -1,8 +1,8 @@
 import * as RG from "~/render-graph";
 import AbstractMaterial from "~/renderer/abstract-renderer/AbstractMaterial";
 import AbstractRenderer from "../../../renderer/abstract-renderer/AbstractRenderer";
-import {RendererTypes} from "../../../renderer/RendererTypes";
-import {UniformMatrix4} from "../../../renderer/abstract-renderer/Uniform";
+import {RendererTypes} from "~/renderer/RendererTypes";
+import {UniformMatrix4} from "~/renderer/abstract-renderer/Uniform";
 import FullScreenTriangle from "../../objects/FullScreenTriangle";
 import Tile from "~/app/objects/Tile";
 import PerspectiveCamera from "../../../core/PerspectiveCamera";
@@ -11,9 +11,13 @@ import AbstractRenderPass from "../../../renderer/abstract-renderer/AbstractRend
 import Skybox from "../../objects/Skybox";
 import Shaders from "../Shaders";
 import AbstractTexture2D from "../../../renderer/abstract-renderer/AbstractTexture2D";
+import RenderGraphResourceFactory from "~/app/render/render-graph/RenderGraphResourceFactory";
+import RenderPassResourceDescriptor from "~/app/render/render-graph/resource-descriptors/RenderPassResourceDescriptor";
+import TextureResourceDescriptor, {TextureResourceType} from "~/app/render/render-graph/resource-descriptors/TextureResourceDescriptor";
 
 export default class GBufferPass extends RG.Pass {
 	private readonly renderer: AbstractRenderer;
+	private readonly resourceFactory: RenderGraphResourceFactory;
 	private material: AbstractMaterial;
 	private material2: AbstractMaterial;
 	private materialSkybox: AbstractMaterial;
@@ -21,13 +25,12 @@ export default class GBufferPass extends RG.Pass {
 	private tilesMap: Map<string, Tile>;
 	private camera: PerspectiveCamera;
 	private skybox: Skybox;
-	private backBufferRenderPass: AbstractRenderPass;
-	private testRenderPass: AbstractRenderPass;
 
-	constructor(renderer: AbstractRenderer) {
+	constructor(renderer: AbstractRenderer, resourceFactory: RenderGraphResourceFactory) {
 		super('GBufferPass');
 
 		this.renderer = renderer;
+		this.resourceFactory = resourceFactory;
 
 		this.init();
 	}
@@ -47,42 +50,50 @@ export default class GBufferPass extends RG.Pass {
 	private init() {
 		this.fullScreenTriangle = new FullScreenTriangle(this.renderer);
 
-		const testColorTex = this.renderer.createTexture2D({
-			width: this.renderer.resolution.x,
-			height: this.renderer.resolution.y,
-			format: RendererTypes.TextureFormat.RGBA8Unorm,
-			minFilter: RendererTypes.MinFilter.Nearest,
-			magFilter: RendererTypes.MagFilter.Nearest,
-			mipmaps: false
-		});
+		this.addOutputResource(this.resourceFactory.createRenderPassResource({
+			name: 'BackbufferRenderPass',
+			isTransient: true,
+			isUsedExternally: true,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: []
+			})
+		}));
 
-		const testDepthTex = this.renderer.createTexture2D({
-			width: this.renderer.resolution.x,
-			height: this.renderer.resolution.y,
-			format: RendererTypes.TextureFormat.Depth32Float,
-			minFilter: RendererTypes.MinFilter.Nearest,
-			magFilter: RendererTypes.MagFilter.Nearest,
-			mipmaps: false
-		})
-
-		this.backBufferRenderPass = this.renderer.createRenderPass({
-			colorAttachments: []
-		});
-
-		this.testRenderPass = this.renderer.createRenderPass({
-			colorAttachments: [{
-				texture: testColorTex,
-				clearValue: {r: 0, g: 1, b: 1, a: 1},
-				loadOp: RendererTypes.AttachmentLoadOp.Load,
-				storeOp: RendererTypes.AttachmentStoreOp.Store
-			}],
-			depthAttachment: {
-				texture: testDepthTex,
-				clearValue: 1,
-				loadOp: RendererTypes.AttachmentLoadOp.Clear,
-				storeOp: RendererTypes.AttachmentStoreOp.Store
-			}
-		});
+		this.addInputResource(this.resourceFactory.createRenderPassResource({
+			name: 'TestRenderPass',
+			isTransient: false,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [{
+					texture: new TextureResourceDescriptor({
+						type: TextureResourceType.Texture2D,
+						width: this.renderer.resolution.x,
+						height: this.renderer.resolution.y,
+						format: RendererTypes.TextureFormat.RGBA8Unorm,
+						minFilter: RendererTypes.MinFilter.Nearest,
+						magFilter: RendererTypes.MagFilter.Nearest,
+						mipmaps: false
+					}),
+					clearValue: {r: 0, g: 1, b: 1, a: 1},
+					loadOp: RendererTypes.AttachmentLoadOp.Load,
+					storeOp: RendererTypes.AttachmentStoreOp.Store
+				}],
+				depthAttachment: {
+					texture: new TextureResourceDescriptor({
+						type: TextureResourceType.Texture2D,
+						width: this.renderer.resolution.x,
+						height: this.renderer.resolution.y,
+						format: RendererTypes.TextureFormat.Depth32Float,
+						minFilter: RendererTypes.MinFilter.Nearest,
+						magFilter: RendererTypes.MagFilter.Nearest,
+						mipmaps: false
+					}),
+					clearValue: 1,
+					loadOp: RendererTypes.AttachmentLoadOp.Clear,
+					storeOp: RendererTypes.AttachmentStoreOp.Store
+				}
+			})
+		}));
 
 		this.createMaterials();
 	}
@@ -122,7 +133,7 @@ export default class GBufferPass extends RG.Pass {
 					name: 'map',
 					block: null,
 					type: RendererTypes.UniformType.Texture2D,
-					value: <AbstractTexture2D>this.testRenderPass.colorAttachments[0].texture
+					value: null
 				}
 			],
 			primitive: {
@@ -172,7 +183,10 @@ export default class GBufferPass extends RG.Pass {
 			}
 		}
 
-		this.renderer.beginRenderPass(this.testRenderPass);
+		const testRenderPass = <AbstractRenderPass>this.getInputPhysicalResource('TestRenderPass');
+		const backbufferRenderPass = <AbstractRenderPass>this.getOutputPhysicalResource('BackbufferRenderPass');
+
+		this.renderer.beginRenderPass(testRenderPass);
 
 		this.renderer.useMaterial(this.materialSkybox);
 
@@ -181,7 +195,7 @@ export default class GBufferPass extends RG.Pass {
 		this.materialSkybox.applyUniformUpdates('projectionMatrix', 'Uniforms');
 		this.materialSkybox.applyUniformUpdates('modelViewMatrix', 'Uniforms');
 
-		this.skybox.draw();
+		//this.skybox.draw();
 
 		this.renderer.useMaterial(this.material);
 
@@ -201,7 +215,9 @@ export default class GBufferPass extends RG.Pass {
 			tile.buildingsMesh.draw();
 		}
 
-		this.renderer.beginRenderPass(this.backBufferRenderPass);
+		this.material2.getUniform('map').value = <AbstractTexture2D>testRenderPass.colorAttachments[0].texture;
+
+		this.renderer.beginRenderPass(backbufferRenderPass);
 		this.renderer.useMaterial(this.material2);
 
 		this.fullScreenTriangle.mesh.draw();

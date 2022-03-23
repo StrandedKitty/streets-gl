@@ -50,4 +50,8 @@ export default class WebGL2RenderPass implements AbstractRenderPass {
 			this.framebuffer.clear();
 		}
 	}
+
+	public setSize(width: number, height: number) {
+		throw new Error("Method not implemented.");
+	}
 }

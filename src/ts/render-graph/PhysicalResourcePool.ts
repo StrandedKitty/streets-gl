@@ -26,7 +26,7 @@ export default class PhysicalResourcePool {
 		this.resourcesMap.get(id).push(new PhysicalResourceEntry(physicalResource));
 	}
 
-	public getPhysicalResource(resource: Resource) {
+	public getPhysicalResource(resource: Resource): PhysicalResource {
 		const id = resource.descriptor.deserialize();
 
 		if (!this.resourcesMap.get(id)) {
@@ -35,6 +35,6 @@ export default class PhysicalResourcePool {
 
 		const entries = this.resourcesMap.get(id);
 
-		return entries.pop();
+		return entries.pop().resource;
 	}
 }

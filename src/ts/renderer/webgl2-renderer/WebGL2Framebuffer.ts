@@ -6,7 +6,6 @@ import WebGL2Texture3D from "~/renderer/webgl2-renderer/WebGL2Texture3D";
 import WebGL2Texture2D from "~/renderer/webgl2-renderer/WebGL2Texture2D";
 import {RendererTypes} from "~/renderer/RendererTypes";
 import AbstractTexture from "~/renderer/abstract-renderer/AbstractTexture";
-import GLConstants from "~/renderer/GLConstants";
 
 export default class WebGL2Framebuffer {
 	private readonly renderer: WebGL2Renderer;

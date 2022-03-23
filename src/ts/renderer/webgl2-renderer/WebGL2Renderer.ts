@@ -18,6 +18,8 @@ import WebGL2Framebuffer from "~/renderer/webgl2-renderer/WebGL2Framebuffer";
 import AbstractRenderPass, {AbstractRenderPassParams} from "~/renderer/abstract-renderer/AbstractRenderPass";
 import WebGL2RenderPass from "~/renderer/webgl2-renderer/WebGL2RenderPass";
 import {RendererTypes} from "~/renderer/RendererTypes";
+import AbstractTexture3D, {AbstractTexture3DParams} from "~/renderer/abstract-renderer/AbstractTexture3D";
+import WebGL2Texture3D from "~/renderer/webgl2-renderer/WebGL2Texture3D";
 
 export default class WebGL2Renderer implements AbstractRenderer {
 	public gl: WebGL2RenderingContext;
@@ -71,6 +73,10 @@ export default class WebGL2Renderer implements AbstractRenderer {
 
 	public createTexture2DArray(params: AbstractTexture2DArrayParams): AbstractTexture2DArray {
 		return new WebGL2Texture2DArray(this, params);
+	}
+
+	public createTexture3D(params: AbstractTexture3DParams): AbstractTexture3D {
+		return new WebGL2Texture3D(this, params);
 	}
 
 	public createTextureCube(params: AbstractTextureCubeParams): AbstractTextureCube {

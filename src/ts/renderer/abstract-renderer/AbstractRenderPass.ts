@@ -31,5 +31,5 @@ export interface AbstractRenderPassParams {
 export default interface AbstractRenderPass {
 	colorAttachments: ColorAttachment[];
 	depthAttachment: DepthAttachment;
-	//setSize(width: number, height: number): void;
+	setSize(width: number, height: number): void;
 }

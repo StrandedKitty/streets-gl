@@ -1,11 +1,4 @@
 export namespace RendererTypes {
-	export enum TextureDimension {
-		Single1D,
-		Single2D,
-		Single3D,
-		Array2D,
-	}
-
 	export enum TextureWrap {
 		Repeat,
 		ClampToEdge,
