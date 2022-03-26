@@ -3,9 +3,9 @@ import AbstractRenderer from "~/renderer/abstract-renderer/AbstractRenderer";
 import RenderPassResourceDescriptor from "~/app/render/render-graph/resource-descriptors/RenderPassResourceDescriptor";
 import TexturePhysicalResourceBuilder
     from "~/app/render/render-graph/physical-resource-builders/TexturePhysicalResourceBuilder";
-import {ColorAttachment} from "~/renderer/abstract-renderer/AbstractRenderPass";
+import AbstractRenderPass, {ColorAttachment} from "~/renderer/abstract-renderer/AbstractRenderPass";
 
-export default class RenderPassPhysicalResourceBuilder extends RG.PhysicalResourceBuilder {
+export default class RenderPassPhysicalResourceBuilder extends RG.PhysicalResourceBuilder<AbstractRenderPass> {
     private renderer: AbstractRenderer;
     private textureBuilder: TexturePhysicalResourceBuilder;
 
@@ -15,7 +15,7 @@ export default class RenderPassPhysicalResourceBuilder extends RG.PhysicalResour
         this.textureBuilder = textureBuilder;
     }
 
-    public createFromResourceDescriptor(descriptor: RenderPassResourceDescriptor): RG.PhysicalResource {
+    public createFromResourceDescriptor(descriptor: RenderPassResourceDescriptor): AbstractRenderPass {
         const colorAttachments: ColorAttachment[] = descriptor.colorAttachments.map(attachment => {
             return {
                 ...attachment,

@@ -1,11 +1,12 @@
-#version 300 es
-precision highp float;
-precision highp sampler2DArray;
-precision highp samplerCube;
-layout(location = 0) out vec4 FragColor;
+#include <versionPrecision>
+#include <gBufferOut>
 
 in vec3 vNormal;
 
+#include <packNormal>
+
 void main() {
-    FragColor = vec4(normalize(vNormal) * 0.5 + 0.5, 1);
+    outColor = vec4(normalize(vNormal) * 0.5 + 0.5, 1);
+    outNormal = packNormal(vNormal);
+    outPosition = vec3(0, 0, -1e8);
 }

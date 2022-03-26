@@ -64,9 +64,19 @@ export default class TextureResourceDescriptor extends ResourceDescriptor {
 		this.mipmaps = mipmaps;
 	}
 
+	public setSize(width: number, height: number, depth?: number) {
+		this.width = width;
+		this.height = height;
+
+		if (depth !== undefined) {
+			this.depth = depth;
+		}
+	}
+
 	public memorySize(): number {
 		return this.width * this.height * this.depth * 4;
 	}
+
 	public deserialize(): string {
 		return JSON.stringify([
 			this.width,

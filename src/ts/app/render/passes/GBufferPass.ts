@@ -1,4 +1,3 @@
-import * as RG from "~/render-graph";
 import AbstractMaterial from "~/renderer/abstract-renderer/AbstractMaterial";
 import AbstractRenderer from "../../../renderer/abstract-renderer/AbstractRenderer";
 import {RendererTypes} from "~/renderer/RendererTypes";
@@ -9,13 +8,25 @@ import PerspectiveCamera from "../../../core/PerspectiveCamera";
 import Mat4 from "../../../math/Mat4";
 import AbstractRenderPass from "../../../renderer/abstract-renderer/AbstractRenderPass";
 import Skybox from "../../objects/Skybox";
-import Shaders from "../Shaders";
+import Shaders from "../shaders/Shaders";
 import AbstractTexture2D from "../../../renderer/abstract-renderer/AbstractTexture2D";
 import RenderGraphResourceFactory from "~/app/render/render-graph/RenderGraphResourceFactory";
 import RenderPassResourceDescriptor from "~/app/render/render-graph/resource-descriptors/RenderPassResourceDescriptor";
 import TextureResourceDescriptor, {TextureResourceType} from "~/app/render/render-graph/resource-descriptors/TextureResourceDescriptor";
+import Pass from "~/app/render/passes/Pass";
+import RenderPassResource from "~/app/render/render-graph/resources/RenderPassResource";
+import {InternalResourceType} from '~/render-graph/Pass';
 
-export default class GBufferPass extends RG.Pass {
+export default class GBufferPass extends Pass<{
+	BackbufferRenderPass: {
+		type: InternalResourceType.Output,
+		resource: RenderPassResource
+	},
+	GBufferRenderPass: {
+		type: InternalResourceType.Input,
+		resource: RenderPassResource
+	},
+}> {
 	private readonly renderer: AbstractRenderer;
 	private readonly resourceFactory: RenderGraphResourceFactory;
 	private material: AbstractMaterial;
@@ -27,7 +38,10 @@ export default class GBufferPass extends RG.Pass {
 	private skybox: Skybox;
 
 	constructor(renderer: AbstractRenderer, resourceFactory: RenderGraphResourceFactory) {
-		super('GBufferPass');
+		super('GBufferPass', {
+			BackbufferRenderPass: {type: InternalResourceType.Output, resource: null},
+			GBufferRenderPass: {type: InternalResourceType.Input, resource: null},
+		});
 
 		this.renderer = renderer;
 		this.resourceFactory = resourceFactory;
@@ -50,7 +64,7 @@ export default class GBufferPass extends RG.Pass {
 	private init() {
 		this.fullScreenTriangle = new FullScreenTriangle(this.renderer);
 
-		this.addOutputResource(this.resourceFactory.createRenderPassResource({
+		this.setResource('BackbufferRenderPass', this.resourceFactory.createRenderPassResource({
 			name: 'BackbufferRenderPass',
 			isTransient: true,
 			isUsedExternally: true,
@@ -59,25 +73,53 @@ export default class GBufferPass extends RG.Pass {
 			})
 		}));
 
-		this.addInputResource(this.resourceFactory.createRenderPassResource({
-			name: 'TestRenderPass',
-			isTransient: false,
+		this.setResource('GBufferRenderPass', this.resourceFactory.createRenderPassResource({
+			name: 'GBufferRenderPass',
+			isTransient: true,
 			isUsedExternally: false,
 			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [{
-					texture: new TextureResourceDescriptor({
-						type: TextureResourceType.Texture2D,
-						width: this.renderer.resolution.x,
-						height: this.renderer.resolution.y,
-						format: RendererTypes.TextureFormat.RGBA8Unorm,
-						minFilter: RendererTypes.MinFilter.Nearest,
-						magFilter: RendererTypes.MagFilter.Nearest,
-						mipmaps: false
-					}),
-					clearValue: {r: 0, g: 1, b: 1, a: 1},
-					loadOp: RendererTypes.AttachmentLoadOp.Load,
-					storeOp: RendererTypes.AttachmentStoreOp.Store
-				}],
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: this.renderer.resolution.x,
+							height: this.renderer.resolution.y,
+							format: RendererTypes.TextureFormat.RGBA8Unorm,
+							minFilter: RendererTypes.MinFilter.Nearest,
+							magFilter: RendererTypes.MagFilter.Nearest,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 1},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}, {
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: this.renderer.resolution.x,
+							height: this.renderer.resolution.y,
+							format: RendererTypes.TextureFormat.RGB8Unorm,
+							minFilter: RendererTypes.MinFilter.Nearest,
+							magFilter: RendererTypes.MagFilter.Nearest,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 1},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}, {
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: this.renderer.resolution.x,
+							height: this.renderer.resolution.y,
+							format: RendererTypes.TextureFormat.RGBA32Float,
+							minFilter: RendererTypes.MinFilter.Nearest,
+							magFilter: RendererTypes.MagFilter.Nearest,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				],
 				depthAttachment: {
 					texture: new TextureResourceDescriptor({
 						type: TextureResourceType.Texture2D,
@@ -183,8 +225,8 @@ export default class GBufferPass extends RG.Pass {
 			}
 		}
 
-		const testRenderPass = <AbstractRenderPass>this.getInputPhysicalResource('TestRenderPass');
-		const backbufferRenderPass = <AbstractRenderPass>this.getOutputPhysicalResource('BackbufferRenderPass');
+		const testRenderPass = <AbstractRenderPass>this.getPhysicalResource('GBufferRenderPass');
+		const backbufferRenderPass = <AbstractRenderPass>this.getPhysicalResource('BackbufferRenderPass');
 
 		this.renderer.beginRenderPass(testRenderPass);
 
@@ -195,7 +237,7 @@ export default class GBufferPass extends RG.Pass {
 		this.materialSkybox.applyUniformUpdates('projectionMatrix', 'Uniforms');
 		this.materialSkybox.applyUniformUpdates('modelViewMatrix', 'Uniforms');
 
-		//this.skybox.draw();
+		this.skybox.draw();
 
 		this.renderer.useMaterial(this.material);
 
@@ -221,5 +263,9 @@ export default class GBufferPass extends RG.Pass {
 		this.renderer.useMaterial(this.material2);
 
 		this.fullScreenTriangle.mesh.draw();
+	}
+
+	public setSize(width: number, height: number) {
+		this.getResource('GBufferRenderPass').descriptor.setSize(width, height);
 	}
 }

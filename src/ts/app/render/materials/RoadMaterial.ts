@@ -1,5 +1,5 @@
 import Material, {UniformType} from "../../../renderer/Material";
-import Shaders from "../Shaders";
+import Shaders from "../shaders/Shaders";
 import Renderer from "../../../renderer/Renderer";
 import GLConstants from "../../../renderer/GLConstants";
 import Texture2DArray from "../../../renderer/Texture2DArray";

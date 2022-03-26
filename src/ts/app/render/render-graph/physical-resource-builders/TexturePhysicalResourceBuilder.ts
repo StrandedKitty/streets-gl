@@ -3,7 +3,7 @@ import TextureResourceDescriptor, {TextureResourceType} from "~/app/render/rende
 import AbstractRenderer from "~/renderer/abstract-renderer/AbstractRenderer";
 import AbstractTexture from "~/renderer/abstract-renderer/AbstractTexture";
 
-export default class TexturePhysicalResourceBuilder extends RG.PhysicalResourceBuilder {
+export default class TexturePhysicalResourceBuilder extends RG.PhysicalResourceBuilder<AbstractTexture> {
     private renderer: AbstractRenderer;
 
     constructor(renderer: AbstractRenderer) {

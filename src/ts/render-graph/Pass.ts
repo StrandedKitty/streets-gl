@@ -3,95 +3,75 @@ import Node from "./Node";
 import PhysicalResourcePool from "~/render-graph/PhysicalResourcePool";
 import PhysicalResource from "~/render-graph/PhysicalResource";
 
-export default abstract class Pass extends Node {
-	public readonly isRenderable: boolean = true;
-	protected readonly inputResources: Map<string, Resource>;
-	protected readonly outputResources: Map<string, Resource>;
-	protected readonly inputPhysicalResources: Map<string, PhysicalResource>;
-	protected readonly outputPhysicalResources: Map<string, PhysicalResource>;
+export enum InternalResourceType {
+	Input,
+	Output
+}
 
-	protected constructor(name: string) {
+interface InternalResource {
+	type: InternalResourceType,
+	resource: Resource;
+}
+
+export type ResourcePropMap = Record<string, InternalResource>;
+
+export default abstract class Pass<T extends ResourcePropMap = ResourcePropMap> extends Node {
+	public readonly isRenderable: boolean = true;
+	protected readonly internalResources: Map<keyof T, T[keyof T]>;
+	protected readonly physicalResources: Map<keyof T, T[keyof T]['resource']['physicalResourceBuilder']['type']>;
+
+	protected constructor(name: string, initialResources: T) {
 		super(name);
 
-		this.inputResources = new Map();
-		this.outputResources = new Map();
-		this.inputPhysicalResources = new Map();
-		this.outputPhysicalResources = new Map();
+		const internalResourcesMap = new Map();
+
+		for (const [name, resource] of Object.entries(initialResources)) {
+			internalResourcesMap.set(name, resource);
+		}
+
+		this.internalResources = internalResourcesMap;
+		this.physicalResources = new Map();
 	}
 
 	public fetchPhysicalResources(pool: PhysicalResourcePool) {
-		for (const [resourceName, resource] of this.inputResources.entries()) {
-			if (this.inputPhysicalResources.has(resourceName)) {
+		for (const [name, internalResource] of this.internalResources.entries()) {
+			if (this.physicalResources.has(name)) {
 				continue;
 			}
 
-			this.inputPhysicalResources.set(resourceName, pool.getPhysicalResource(resource));
-		}
-
-		for (const [resourceName, resource] of this.outputResources.entries()) {
-			if (this.outputPhysicalResources.has(resourceName)) {
-				continue;
-			}
-
-			this.outputPhysicalResources.set(resourceName, pool.getPhysicalResource(resource));
+			this.physicalResources.set(name, pool.getPhysicalResource(internalResource.resource));
 		}
 	}
 
 	public freePhysicalResources(pool: PhysicalResourcePool) {
-		for (const [resourceName, physicalResource] of this.inputPhysicalResources.entries()) {
-			const inputResource = this.getInputResource(resourceName);
-			const inputPhysicalResource = physicalResource;
+		for (const [name, physicalResource] of this.physicalResources.entries()) {
+			const internalResource = this.internalResources.get(name);
 
-			if (!inputResource.isTransient) {
+			if (!internalResource.resource.isTransient) {
 				continue;
 			}
 
-			pool.pushPhysicalResource(inputResource.descriptor, inputPhysicalResource);
+			pool.pushPhysicalResource(internalResource.resource.descriptor, physicalResource);
 
-			this.inputPhysicalResources.delete(resourceName);
-		}
-
-		for (const [resourceName, physicalResource] of this.outputPhysicalResources.entries()) {
-			const outputResource = this.getOutputResource(resourceName);
-			const outputPhysicalResource = physicalResource;
-
-			if (!outputResource.isTransient) {
-				continue;
-			}
-
-			pool.pushPhysicalResource(outputResource.descriptor, outputPhysicalResource);
-
-			this.outputPhysicalResources.delete(resourceName);
+			this.physicalResources.delete(name);
 		}
 	}
 
-	protected addInputResource(resource: Resource) {
-		this.inputResources.set(resource.name, resource);
+	public setResource<K extends keyof T>(name: K, resource: T[K]['resource']) {
+		this.internalResources.get(name).resource = resource;
 	}
 
-	protected addOutputResource(resource: Resource) {
-		this.outputResources.set(resource.name, resource);
+	public getResource<K extends keyof T>(name: K): T[K]['resource'] {
+		return this.internalResources.get(name).resource;
 	}
 
-	public getInputResource(name: string): Resource {
-		return this.inputResources.get(name);
-	}
-
-	public getOutputResource(name: string): Resource {
-		return this.outputResources.get(name);
-	}
-
-	public getInputPhysicalResource(name: string): PhysicalResource {
-		return this.inputPhysicalResources.get(name);
-	}
-
-	public getOutputPhysicalResource(name: string): PhysicalResource {
-		return this.outputPhysicalResources.get(name);
+	public getPhysicalResource<K extends keyof T>(name: K): T[K]['resource']['physicalResourceBuilder']['type'] {
+		return this.physicalResources.get(name);
 	}
 
 	public hasExternalOutput(): boolean {
-		for (const resource of this.outputResources.values()) {
-			if (resource.isUsedExternally) {
+		for (const internalResource of this.internalResources.values()) {
+			if (internalResource.type === InternalResourceType.Output && internalResource.resource.isUsedExternally) {
 				return true;
 			}
 		}
@@ -99,12 +79,10 @@ export default abstract class Pass extends Node {
 		return false;
 	}
 
-	public getAllInputResources(): Set<Resource> {
-		return new Set(this.inputResources.values());
-	}
+	public getAllResourcesOfType(type: InternalResourceType): Set<Resource> {
+		const filtered = Array.from(this.internalResources.values()).filter(r => r.type === type);
 
-	public getAllOutputResources(): Set<Resource> {
-		return new Set(this.outputResources.values());
+		return new Set(filtered.map(r => r.resource));
 	}
 
 	public abstract render(): void;

@@ -3,10 +3,11 @@ import ResourceDescriptor from "./ResourceDescriptor";
 import PhysicalResourceBuilder from "./PhysicalResourceBuilder";
 import PhysicalResource from "./PhysicalResource";
 
-export default abstract class Resource extends Node {
+export default abstract class Resource<TDescriptor extends ResourceDescriptor = ResourceDescriptor,
+	TBuilder extends PhysicalResourceBuilder = PhysicalResourceBuilder> extends Node {
 	public isRenderable: boolean = false;
-	public descriptor: ResourceDescriptor;
-	public physicalResourceBuilder: PhysicalResourceBuilder;
+	public descriptor: TDescriptor;
+	public physicalResourceBuilder: TBuilder;
 	public isTransient: boolean;
 	public isUsedExternally: boolean;
 
@@ -19,8 +20,8 @@ export default abstract class Resource extends Node {
 			isUsedExternally
 		}: {
 			name: string,
-			descriptor: ResourceDescriptor,
-			physicalResourceBuilder: PhysicalResourceBuilder,
+			descriptor: TDescriptor,
+			physicalResourceBuilder: TBuilder,
 			isTransient: boolean,
 			isUsedExternally: boolean
 		}

@@ -1,6 +1,6 @@
 import Material, {UniformType} from "../../../renderer/Material";
 import Renderer from "../../../renderer/Renderer";
-import Shaders from "../Shaders";
+import Shaders from "../shaders/Shaders";
 import GBuffer from "../../../renderer/GBuffer";
 import TextureCube from "../../../renderer/TextureCube";
 import GLConstants from "../../../renderer/GLConstants";

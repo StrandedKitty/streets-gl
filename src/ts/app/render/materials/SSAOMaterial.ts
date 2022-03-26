@@ -1,5 +1,5 @@
 import Material, {UniformType} from "../../../renderer/Material";
-import Shaders from "../Shaders";
+import Shaders from "../shaders/Shaders";
 import Renderer from "../../../renderer/Renderer";
 import SeededRandom from "../../../math/SeededRandom";
 import Vec3 from "../../../math/Vec3";

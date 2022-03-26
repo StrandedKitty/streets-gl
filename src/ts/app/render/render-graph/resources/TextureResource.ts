@@ -3,7 +3,7 @@ import * as RG from "~/render-graph";
 import TexturePhysicalResourceBuilder
 	from "~/app/render/render-graph/physical-resource-builders/TexturePhysicalResourceBuilder";
 
-export default class TextureResource extends RG.Resource {
+export default class TextureResource extends RG.Resource<TextureResourceDescriptor, TexturePhysicalResourceBuilder> {
 	constructor(name: string, descriptor: TextureResourceDescriptor, physicalResourceBuilder: TexturePhysicalResourceBuilder, isTransient: boolean, isUsedExternally: boolean) {
 		super({
 			name,

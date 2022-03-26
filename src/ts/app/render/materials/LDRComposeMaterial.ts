@@ -1,6 +1,6 @@
 import Material, {UniformType} from "../../../renderer/Material";
 import Renderer from "../../../renderer/Renderer";
-import Shaders from "../Shaders";
+import Shaders from "../shaders/Shaders";
 import GBuffer from "../../../renderer/GBuffer";
 
 export default class LDRComposeMaterial extends Material {

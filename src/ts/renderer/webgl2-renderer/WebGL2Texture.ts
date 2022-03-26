@@ -174,6 +174,12 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 					internalFormat: WebGL2Constants.RGBA8,
 					type: WebGL2Constants.UNSIGNED_BYTE
 				};
+			case RendererTypes.TextureFormat.RGBA32Float:
+				return {
+					format: WebGL2Constants.RGBA,
+					internalFormat: WebGL2Constants.RGBA32F,
+					type: WebGL2Constants.FLOAT
+				};
 			case RendererTypes.TextureFormat.Depth32Float:
 				return {
 					format: WebGL2Constants.DEPTH_COMPONENT,

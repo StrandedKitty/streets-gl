@@ -1,4 +1,4 @@
-import Pass from "./Pass";
+import Pass, {InternalResourceType} from "./Pass";
 import Resource from "./Resource";
 import Node from "./Node";
 import {Queue} from "./Utils";
@@ -91,11 +91,11 @@ export default class RenderGraph {
 	}
 
 	public updateAllNodesVertices() {
-		const allResources: Set<Resource> = new Set();
+		const allResources: Set<Resource<any, any>> = new Set();
 
 		for (const pass of this.passes) {
-			const inputResources = pass.getAllInputResources();
-			const outputResources = pass.getAllOutputResources();
+			const inputResources = pass.getAllResourcesOfType(InternalResourceType.Input);
+			const outputResources = pass.getAllResourcesOfType(InternalResourceType.Output);
 
 			pass.previousNodes = inputResources;
 			pass.nextNodes = outputResources;

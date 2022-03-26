@@ -1,4 +1,5 @@
-#version 300 es
+#include <versionPrecision>
+
 in vec3 position;
 
 out vec3 vNormal;
