@@ -1,7 +1,6 @@
 import Resource from "./Resource";
 import Node from "./Node";
-import PhysicalResourcePool from "~/render-graph/PhysicalResourcePool";
-import PhysicalResource from "~/render-graph/PhysicalResource";
+import PhysicalResourcePool from "./PhysicalResourcePool";
 
 export enum InternalResourceType {
 	Input,
@@ -19,6 +18,7 @@ export default abstract class Pass<T extends ResourcePropMap = ResourcePropMap> 
 	public readonly isRenderable: boolean = true;
 	protected readonly internalResources: Map<keyof T, T[keyof T]>;
 	protected readonly physicalResources: Map<keyof T, T[keyof T]['resource']['physicalResourceBuilder']['type']>;
+	private readonly physicalResourcesIds: Map<keyof T, string> = new Map();
 
 	protected constructor(name: string, initialResources: T) {
 		super(name);
@@ -35,11 +35,19 @@ export default abstract class Pass<T extends ResourcePropMap = ResourcePropMap> 
 
 	public fetchPhysicalResources(pool: PhysicalResourcePool) {
 		for (const [name, internalResource] of this.internalResources.entries()) {
-			if (this.physicalResources.has(name)) {
+			if (internalResource.resource === null) {
+				continue;
+			}
+
+			const resourceId = internalResource.resource.descriptor.deserialize();
+			const idChanged = this.physicalResourcesIds.get(name) !== resourceId;
+
+			if (!idChanged && this.physicalResources.has(name)) {
 				continue;
 			}
 
 			this.physicalResources.set(name, pool.getPhysicalResource(internalResource.resource));
+			this.physicalResourcesIds.set(name, resourceId);
 		}
 	}
 
@@ -54,6 +62,7 @@ export default abstract class Pass<T extends ResourcePropMap = ResourcePropMap> 
 			pool.pushPhysicalResource(internalResource.resource.descriptor, physicalResource);
 
 			this.physicalResources.delete(name);
+			this.physicalResourcesIds.delete(name);
 		}
 	}
 

@@ -38,6 +38,7 @@ import WebGL2Renderer from "../../renderer/webgl2-renderer/WebGL2Renderer";
 import AbstractRenderer from "../../renderer/abstract-renderer/AbstractRenderer";
 import * as RG from "~/render-graph";
 import RenderGraphResourceFactory from "~/app/render/render-graph/RenderGraphResourceFactory";
+import Pass from '~/app/render/passes/Pass';
 
 export default class RenderSystem extends System {
 	public renderer: AbstractRenderer;
@@ -49,6 +50,7 @@ export default class RenderSystem extends System {
 
 	private renderGraph: RG.RenderGraph;
 	private renderGraphResourceFactory: RenderGraphResourceFactory;
+	private passes: Set<Pass> = new Set();
 
 	constructor(systemManager: SystemManager) {
 		super(systemManager);
@@ -159,6 +161,7 @@ export default class RenderSystem extends System {
 		gBufferPass.setCamera(this.camera);
 
 		this.renderGraph.addPass(gBufferPass);
+		this.passes.add(gBufferPass);
 
 		//this.skybox = new Skybox(this.renderer);
 		//this.wrapper.add(this.skybox);
@@ -183,10 +186,12 @@ export default class RenderSystem extends System {
 	}
 
 	private resize() {
-		this.camera.aspect = window.innerWidth / window.innerHeight;
+		const {x: width, y: height} = this.resolution;
+
+		this.camera.aspect = width / height;
 		this.camera.updateProjectionMatrix();
 
-		this.renderer.setSize(this.resolution.x, this.resolution.y);
+		this.renderer.setSize(width, height);
 		/*this.gBuffer.setSize(this.resolution.x, this.resolution.y);
 		this.taaPass.setSize(this.resolution.x, this.resolution.y);
 		this.ssaoPass.setSize(this.resolution.x, this.resolution.y);
@@ -199,6 +204,10 @@ export default class RenderSystem extends System {
 		this.dofTentPass.setSize(this.resolution.x, this.resolution.y);
 		this.dofPass.setSize(this.resolution.x, this.resolution.y);*/
 		//this.csm.updateFrustums();
+
+		for (const pass of this.passes) {
+			pass.setSize(width, height)
+		}
 	}
 
 	public update(deltaTime: number) {
