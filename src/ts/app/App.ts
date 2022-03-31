@@ -10,6 +10,7 @@ import StaticGeometryLoadingSystem from "./systems/StaticGeometryLoadingSystem";
 import MapWorkerSystem from "./systems/MapWorkerSystem";
 import MapTimeSystem from "./systems/MapTimeSystem";
 import UISystem from "./systems/UISystem";
+import SceneSystem from '~/app/systems/SceneSystem';
 
 class App {
 	private loop = (deltaTime: number) => this.update(deltaTime);
@@ -24,6 +25,7 @@ class App {
 		this.systemManager = new SystemManager();
 
 		this.systemManager.addSystems([
+			SceneSystem,
 			ControlsSystem,
 			CursorStyleSystem,
 			PickingSystem,

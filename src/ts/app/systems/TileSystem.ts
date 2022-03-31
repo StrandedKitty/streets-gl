@@ -11,6 +11,7 @@ import TileObjectsSystem from "./TileObjectsSystem";
 import System from "../System";
 import SystemManager from "../SystemManager";
 import RenderSystem from "./RenderSystem";
+import SceneSystem from '~/app/systems/SceneSystem';
 
 export default class TileSystem extends System {
 	public tiles: Map<string, Tile> = new Map();
@@ -31,7 +32,7 @@ export default class TileSystem extends System {
 	public postInit() {
 		this.objectsManager = this.systemManager.getSystem(TileObjectsSystem);
 
-		this.camera = this.systemManager.getSystem(RenderSystem).camera;
+		this.camera = this.systemManager.getSystem(SceneSystem).objects.camera;
 
 		this.cameraFrustum = new Frustum(this.camera.fov, this.camera.aspect, 1, 5000);
 		this.cameraFrustum.updateViewSpaceVertices();

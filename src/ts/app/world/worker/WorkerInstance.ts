@@ -55,8 +55,8 @@ function load(x: number, y: number) {
 	const bbox = position[0].lat + ',' + position[0].lon + ',' + position[1].lat + ',' + position[1].lon;
 
 	const urls = [
-		'http://overpass.openstreetmap.ru/cgi/interpreter?data=',
-		//'https://overpass.kumi.systems/api/interpreter?data=',
+		//'http://overpass.openstreetmap.ru/cgi/interpreter?data=',
+		'https://overpass.kumi.systems/api/interpreter?data=',
 		//'https://overpass.nchc.org.tw/api/interpreter?data=',
 		//'https://lz4.overpass-api.de/api/interpreter?data=',
 		//'https://z.overpass-api.de/api/interpreter?data='

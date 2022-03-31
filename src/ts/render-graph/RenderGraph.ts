@@ -18,12 +18,13 @@ export default class RenderGraph {
 		const queue = new Queue<Node>();
 
 		for (const node of nodes) {
-			if (node.previousNodes.size === 0) {
+			if (node.tempIndegreeSet.size === 0) {
 				queue.push(node);
 			}
 		}
 
-		let visitedCount: number = 0;
+		let visitedCount = 0;
+		const graphNodeCount = nodes.size;
 		const topOrder: Node[] = [];
 
 		while (!queue.isEmpty()) {
@@ -33,10 +34,10 @@ export default class RenderGraph {
 				topOrder.push(node);
 			}
 
-			for (const adjacentNode of node.tempAdjacencyList) {
-				adjacentNode.tempAdjacencyList.delete(node);
+			for (const adjacentNode of node.tempOutdegreeSet) {
+				adjacentNode.tempIndegreeSet.delete(node);
 
-				if (adjacentNode.tempAdjacencyList.size === 0) {
+				if (adjacentNode.tempIndegreeSet.size === 0) {
 					queue.push(adjacentNode);
 				}
 			}
@@ -44,19 +45,21 @@ export default class RenderGraph {
 			++visitedCount;
 		}
 
-		if (visitedCount !== nodes.size) {
+		if (visitedCount !== graphNodeCount) {
 			throw new Error('Render graph has a cycle');
 		}
 
 		return topOrder;
 	}
 
-	private getPassesWithExternalOutput(passes: Set<Pass>): Set<Pass> {
-		const result: Set<Pass> = new Set();
+	private getResourcesUsedExternally(passes: Set<Pass>): Set<Resource> {
+		const result: Set<Resource> = new Set();
 
 		for (const pass of passes) {
-			if (pass.hasExternalOutput()) {
-				result.add(pass);
+			const resources = pass.getOutputResourcesUsedExternally();
+
+			for (const resource of resources) {
+				result.add(resource);
 			}
 		}
 
@@ -64,26 +67,31 @@ export default class RenderGraph {
 	}
 
 	private buildGraphWithCulling(passes: Set<Pass>): Set<Node> {
-		const nodes: Pass[] = Array.from(this.getPassesWithExternalOutput(passes));
+		const nodes: Node[] = Array.from(this.getResourcesUsedExternally(passes));
 		const graph: Set<Node> = new Set();
 
 		for (const node of nodes) {
-			node.tempAdjacencyList.clear();
+			node.tempIndegreeSet.clear();
+			node.tempOutdegreeSet.clear();
 
 			graph.add(node);
 		}
 
 		while (nodes.length > 0) {
-			const node = nodes.pop();
+			const node = nodes.shift();
 
 			for (const prevNode of node.previousNodes) {
 				if (!graph.has(prevNode)) {
-					prevNode.tempAdjacencyList.clear();
+					prevNode.tempIndegreeSet.clear();
+					prevNode.tempOutdegreeSet.clear();
+
+					graph.add(prevNode);
+					nodes.push(prevNode);
 				}
 
-				graph.add(prevNode);
+				node.tempIndegreeSet.add(prevNode);
 
-				prevNode.tempAdjacencyList.add(node);
+				prevNode.tempOutdegreeSet.add(node);
 			}
 		}
 

@@ -1,6 +1,10 @@
 export class Queue<T> {
 	private store: T[] = [];
 
+	public get size(): number {
+		return this.store.length;
+	}
+
 	public push(val: T) {
 		this.store.push(val);
 	}

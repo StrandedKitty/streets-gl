@@ -16,7 +16,6 @@ import CSM from "../render/CSM";
 import Config from "../Config";
 import GroundDepthMaterial from "../render/materials/GroundDepthMaterial";
 import BuildingDepthMaterial from "../render/materials/BuildingDepthMaterial";
-import TAAPass from "../render/passes/TAAPass";
 import GaussianBlurPass from "../render/passes/GaussianBlurPass";
 import SSAOPass from "../render/passes/SSAOPass";
 import BilateralBlurPass from "../render/passes/BilateralBlurPass";
@@ -39,18 +38,17 @@ import AbstractRenderer from "../../renderer/abstract-renderer/AbstractRenderer"
 import * as RG from "~/render-graph";
 import RenderGraphResourceFactory from "~/app/render/render-graph/RenderGraphResourceFactory";
 import Pass from '~/app/render/passes/Pass';
+import PassManager from '~/app/render/PassManager';
+import SceneSystem from '~/app/systems/SceneSystem';
+import TAAPass from '~/app/render/passes/TAAPass';
 
 export default class RenderSystem extends System {
 	public renderer: AbstractRenderer;
-	public camera: PerspectiveCamera;
-	public scene: Object3D;
-	public skybox: Skybox;
-	public wrapper: Object3D;
 	private frameCount: number = 0;
 
 	private renderGraph: RG.RenderGraph;
 	private renderGraphResourceFactory: RenderGraphResourceFactory;
-	private passes: Set<Pass> = new Set();
+	private passManager: PassManager;
 
 	constructor(systemManager: SystemManager) {
 		super(systemManager);
@@ -123,13 +121,6 @@ export default class RenderSystem extends System {
 		this.dofTentPass = new DoFTentPass(this.renderer, this.resolution.x, this.resolution.y);
 		this.dofPass = new DoFPass(this.renderer, this.resolution.x, this.resolution.y);*/
 
-		this.camera = new PerspectiveCamera({
-			fov: 40,
-			near: 10,
-			far: 25000,
-			aspect: window.innerWidth / window.innerHeight
-		});
-
 		this.initScene();
 
 		//console.log(`Vendor: ${this.renderer.rendererInfo[0]}\nRenderer: ${this.renderer.rendererInfo[1]}`);
@@ -142,26 +133,16 @@ export default class RenderSystem extends System {
 	}
 
 	private initScene() {
-		this.scene = new Object3D();
-		this.wrapper = new Object3D();
-		this.scene.add(this.wrapper);
-
-		this.wrapper.add(this.camera);
-
-		this.skybox = new Skybox(this.renderer);
-		this.wrapper.add(this.skybox);
-
 		this.renderGraph = new RG.RenderGraph();
 		this.renderGraphResourceFactory = new RenderGraphResourceFactory(this.renderer);
+		this.passManager = new PassManager(this.systemManager, this.renderer, this.renderGraphResourceFactory, this.renderGraph);
 
-		const gBufferPass = new GBufferPass(this.renderer, this.renderGraphResourceFactory);
+		this.passManager.addPass(GBufferPass);
+		this.passManager.addPass(TAAPass);
 
-		gBufferPass.setTilesMap(this.systemManager.getSystem(TileSystem).tiles);
-		gBufferPass.setSkybox(this.skybox);
-		gBufferPass.setCamera(this.camera);
-
-		this.renderGraph.addPass(gBufferPass);
-		this.passes.add(gBufferPass);
+		//gBufferPass.setTilesMap(this.systemManager.getSystem(TileSystem).tiles);
+		//gBufferPass.setSkybox(this.skybox);
+		//gBufferPass.setCamera(this.camera);
 
 		//this.skybox = new Skybox(this.renderer);
 		//this.wrapper.add(this.skybox);
@@ -188,8 +169,8 @@ export default class RenderSystem extends System {
 	private resize() {
 		const {x: width, y: height} = this.resolution;
 
-		this.camera.aspect = width / height;
-		this.camera.updateProjectionMatrix();
+		//this.camera.aspect = width / height;
+		//this.camera.updateProjectionMatrix();
 
 		this.renderer.setSize(width, height);
 		/*this.gBuffer.setSize(this.resolution.x, this.resolution.y);
@@ -205,13 +186,19 @@ export default class RenderSystem extends System {
 		this.dofPass.setSize(this.resolution.x, this.resolution.y);*/
 		//this.csm.updateFrustums();
 
-		for (const pass of this.passes) {
+		for (const pass of this.passManager.passes) {
 			pass.setSize(width, height)
 		}
 	}
 
 	public update(deltaTime: number) {
-		this.skybox.position.set(this.camera.position.x, this.camera.position.y, this.camera.position.z);
+		const sceneSystem = this.systemManager.getSystem(SceneSystem);
+
+		for (const object of sceneSystem.getObjectsToUpdate()) {
+			object.updateMesh(this.renderer);
+		}
+
+		/*this.skybox.position.set(this.camera.position.x, this.camera.position.y, this.camera.position.z);
 		this.skybox.updateMatrix();
 
 		const pivotDelta = new Vec2(
@@ -229,7 +216,7 @@ export default class RenderSystem extends System {
 		this.scene.updateMatrixWorldRecursively();
 
 		this.camera.updateMatrixWorldInverse();
-		this.camera.updateFrustum();
+		this.camera.updateFrustum();*/
 
 		/*this.taaPass.jitterProjectionMatrix(this.camera.projectionMatrix, this.frameCount);
 		this.taaPass.matrixWorldInverse = this.camera.matrixWorldInverse;
@@ -258,7 +245,8 @@ export default class RenderSystem extends System {
 			if (!tile.ground && tile.readyForRendering) {
 				//tile.createGround(this.renderer, this.systemManager.getSystem(TileSystem).getTileNeighbors(tile.x, tile.y));
 				//tile.generateMeshes(this.renderer);
-				this.wrapper.add(tile);
+				//this.wrapper.add(tile);
+				this.systemManager.getSystem(SceneSystem).objects.tiles.add(tile);
 			}
 		}
 	}

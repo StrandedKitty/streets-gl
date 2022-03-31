@@ -1,21 +1,16 @@
 import AbstractMaterial from "~/renderer/abstract-renderer/AbstractMaterial";
-import AbstractRenderer from "../../../renderer/abstract-renderer/AbstractRenderer";
 import {RendererTypes} from "~/renderer/RendererTypes";
 import {UniformMatrix4} from "~/renderer/abstract-renderer/Uniform";
 import FullScreenTriangle from "../../objects/FullScreenTriangle";
 import Tile from "~/app/objects/Tile";
-import PerspectiveCamera from "../../../core/PerspectiveCamera";
 import Mat4 from "../../../math/Mat4";
 import AbstractRenderPass from "../../../renderer/abstract-renderer/AbstractRenderPass";
-import Skybox from "../../objects/Skybox";
 import Shaders from "../shaders/Shaders";
 import AbstractTexture2D from "../../../renderer/abstract-renderer/AbstractTexture2D";
-import RenderGraphResourceFactory from "~/app/render/render-graph/RenderGraphResourceFactory";
-import RenderPassResourceDescriptor from "~/app/render/render-graph/resource-descriptors/RenderPassResourceDescriptor";
-import TextureResourceDescriptor, {TextureResourceType} from "~/app/render/render-graph/resource-descriptors/TextureResourceDescriptor";
 import Pass from "~/app/render/passes/Pass";
 import RenderPassResource from "~/app/render/render-graph/resources/RenderPassResource";
 import {InternalResourceType} from '~/render-graph/Pass';
+import PassManager from '~/app/render/PassManager';
 
 export default class GBufferPass extends Pass<{
 	BackbufferRenderPass: {
@@ -23,119 +18,26 @@ export default class GBufferPass extends Pass<{
 		resource: RenderPassResource
 	},
 	GBufferRenderPass: {
-		type: InternalResourceType.Input,
+		type: InternalResourceType.Output,
 		resource: RenderPassResource
-	},
+	}
 }> {
-	private readonly renderer: AbstractRenderer;
-	private readonly resourceFactory: RenderGraphResourceFactory;
 	private material: AbstractMaterial;
 	private material2: AbstractMaterial;
 	private materialSkybox: AbstractMaterial;
 	private fullScreenTriangle: FullScreenTriangle;
-	private tilesMap: Map<string, Tile>;
-	private camera: PerspectiveCamera;
-	private skybox: Skybox;
 
-	constructor(renderer: AbstractRenderer, resourceFactory: RenderGraphResourceFactory) {
-		super('GBufferPass', {
-			BackbufferRenderPass: {type: InternalResourceType.Output, resource: null},
-			GBufferRenderPass: {type: InternalResourceType.Input, resource: null},
+	constructor(manager: PassManager) {
+		super('GBufferPass', manager, {
+			BackbufferRenderPass: {type: InternalResourceType.Output, resource: manager.getSharedResource('BackbufferRenderPass')},
+			GBufferRenderPass: {type: InternalResourceType.Output, resource: manager.getSharedResource('GBufferRenderPass')}
 		});
-
-		this.renderer = renderer;
-		this.resourceFactory = resourceFactory;
 
 		this.init();
 	}
 
-	public setTilesMap(tilesMap: Map<string, Tile>) {
-		this.tilesMap = tilesMap;
-	}
-
-	public setCamera(camera: PerspectiveCamera) {
-		this.camera = camera;
-	}
-
-	public setSkybox(skybox: Skybox) {
-		this.skybox = skybox;
-	}
-
 	private init() {
 		this.fullScreenTriangle = new FullScreenTriangle(this.renderer);
-
-		this.setResource('BackbufferRenderPass', this.resourceFactory.createRenderPassResource({
-			name: 'BackbufferRenderPass',
-			isTransient: true,
-			isUsedExternally: true,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: []
-			})
-		}));
-
-		this.setResource('GBufferRenderPass', this.resourceFactory.createRenderPassResource({
-			name: 'GBufferRenderPass',
-			isTransient: true,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: this.renderer.resolution.x,
-							height: this.renderer.resolution.y,
-							format: RendererTypes.TextureFormat.RGBA8Unorm,
-							minFilter: RendererTypes.MinFilter.Nearest,
-							magFilter: RendererTypes.MagFilter.Nearest,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 1},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}, {
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: this.renderer.resolution.x,
-							height: this.renderer.resolution.y,
-							format: RendererTypes.TextureFormat.RGB8Unorm,
-							minFilter: RendererTypes.MinFilter.Nearest,
-							magFilter: RendererTypes.MagFilter.Nearest,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 1},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}, {
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: this.renderer.resolution.x,
-							height: this.renderer.resolution.y,
-							format: RendererTypes.TextureFormat.RGBA32Float,
-							minFilter: RendererTypes.MinFilter.Nearest,
-							magFilter: RendererTypes.MagFilter.Nearest,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 0},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				],
-				depthAttachment: {
-					texture: new TextureResourceDescriptor({
-						type: TextureResourceType.Texture2D,
-						width: this.renderer.resolution.x,
-						height: this.renderer.resolution.y,
-						format: RendererTypes.TextureFormat.Depth32Float,
-						minFilter: RendererTypes.MinFilter.Nearest,
-						magFilter: RendererTypes.MagFilter.Nearest,
-						mipmaps: false
-					}),
-					clearValue: 1,
-					loadOp: RendererTypes.AttachmentLoadOp.Clear,
-					storeOp: RendererTypes.AttachmentStoreOp.Store
-				}
-			})
-		}));
 
 		this.createMaterials();
 	}
@@ -219,7 +121,11 @@ export default class GBufferPass extends Pass<{
 	}
 
 	public render() {
-		for (const tile of this.tilesMap.values()) {
+		const camera = this.manager.sceneSystem.objects.camera;
+		const skybox = this.manager.sceneSystem.objects.skybox;
+		const tiles = this.manager.sceneSystem.objects.tiles.children as Tile[];
+
+		for (const tile of tiles) {
 			if (!tile.buildingsMesh && tile.readyForRendering) {
 				tile.createMeshes(this.renderer);
 			}
@@ -232,24 +138,24 @@ export default class GBufferPass extends Pass<{
 
 		this.renderer.useMaterial(this.materialSkybox);
 
-		this.materialSkybox.getUniform<UniformMatrix4>('projectionMatrix', 'Uniforms').value = new Float32Array(this.camera.projectionMatrix.values);
-		this.materialSkybox.getUniform<UniformMatrix4>('modelViewMatrix', 'Uniforms').value = new Float32Array(Mat4.multiply(this.camera.matrixWorldInverse, this.skybox.matrixWorld).values);
+		this.materialSkybox.getUniform<UniformMatrix4>('projectionMatrix', 'Uniforms').value = new Float32Array(camera.projectionMatrix.values);
+		this.materialSkybox.getUniform<UniformMatrix4>('modelViewMatrix', 'Uniforms').value = new Float32Array(Mat4.multiply(camera.matrixWorldInverse, skybox.matrixWorld).values);
 		this.materialSkybox.applyUniformUpdates('projectionMatrix', 'Uniforms');
 		this.materialSkybox.applyUniformUpdates('modelViewMatrix', 'Uniforms');
 
-		this.skybox.draw();
+		skybox.draw();
 
 		this.renderer.useMaterial(this.material);
 
-		this.material.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value = new Float32Array(this.camera.projectionMatrix.values);
+		this.material.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.projectionMatrix.values);
 		this.material.applyUniformUpdates('projectionMatrix', 'PerMaterial');
 
-		for (const tile of this.tilesMap.values()) {
+		for (const tile of tiles) {
 			if (!tile.buildingsMesh) {
 				continue;
 			}
 
-			const mvMatrix = Mat4.multiply(this.camera.matrixWorldInverse, tile.matrixWorld);
+			const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, tile.matrixWorld);
 
 			this.material.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
 			this.material.applyUniformUpdates('modelViewMatrix', 'PerMesh');

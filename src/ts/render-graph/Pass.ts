@@ -7,7 +7,7 @@ export enum InternalResourceType {
 	Output
 }
 
-interface InternalResource {
+export interface InternalResource {
 	type: InternalResourceType,
 	resource: Resource;
 }
@@ -78,14 +78,16 @@ export default abstract class Pass<T extends ResourcePropMap = ResourcePropMap> 
 		return this.physicalResources.get(name);
 	}
 
-	public hasExternalOutput(): boolean {
+	public getOutputResourcesUsedExternally(): Set<Resource> {
+		const resources: Set<Resource> = new Set();
+
 		for (const internalResource of this.internalResources.values()) {
 			if (internalResource.type === InternalResourceType.Output && internalResource.resource.isUsedExternally) {
-				return true;
+				resources.add(internalResource.resource);
 			}
 		}
 
-		return false;
+		return resources;
 	}
 
 	public getAllResourcesOfType(type: InternalResourceType): Set<Resource> {

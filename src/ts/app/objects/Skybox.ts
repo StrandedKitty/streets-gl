@@ -44,11 +44,19 @@ const vertices: number[] = [
 ];
 
 export default class Skybox extends RenderableObject3D {
-	public mesh: AbstractMesh;
+	public mesh: AbstractMesh = null;
 
-	constructor(renderer: AbstractRenderer) {
+	constructor() {
 		super();
 
+		this.scale.set(1000, 1000, 1000);
+	}
+
+	isMeshReady(): boolean {
+		return this.mesh !== null;
+	}
+
+	updateMesh(renderer: AbstractRenderer) {
 		this.mesh = renderer.createMesh({
 			attributes: [
 				renderer.createAttribute({
@@ -60,7 +68,5 @@ export default class Skybox extends RenderableObject3D {
 				})
 			]
 		});
-
-		this.scale.set(1000, 1000, 1000);
 	}
 }

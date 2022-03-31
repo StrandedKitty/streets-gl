@@ -8,6 +8,10 @@ import RenderPassResource from "~/app/render/render-graph/resources/RenderPassRe
 import TextureResourceDescriptor from "~/app/render/render-graph/resource-descriptors/TextureResourceDescriptor";
 import RenderPassResourceDescriptor from "~/app/render/render-graph/resource-descriptors/RenderPassResourceDescriptor";
 
+export interface RenderGraphResourceFactoryParams {
+
+}
+
 export default class RenderGraphResourceFactory {
 	private readonly textureBuilder: TexturePhysicalResourceBuilder;
 	private readonly renderPassBuilder: RenderPassPhysicalResourceBuilder;

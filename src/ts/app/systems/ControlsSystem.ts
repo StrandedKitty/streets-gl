@@ -13,6 +13,7 @@ import System from "../System";
 import SystemManager from "../SystemManager";
 import CursorStyleSystem from "./CursorStyleSystem";
 import RenderSystem from "./RenderSystem";
+import SceneSystem from '~/app/systems/SceneSystem';
 
 const touchYawFactor = 4;
 const touchPitchFactor = 2;
@@ -316,7 +317,7 @@ export default class ControlsSystem extends System {
 	}
 
 	public update(deltaTile: number) {
-		this.camera = this.systemManager.getSystem(RenderSystem).camera;
+		this.camera = this.systemManager.getSystem(SceneSystem).objects.camera;
 
 		this.updateTargetHeightFromHeightmap();
 		this.updateDistance();
