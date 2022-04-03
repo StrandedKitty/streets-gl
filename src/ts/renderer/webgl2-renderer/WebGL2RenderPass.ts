@@ -67,4 +67,16 @@ export default class WebGL2RenderPass implements AbstractRenderPass {
 		this.renderer.gl.readBuffer(WebGL2Constants.COLOR_ATTACHMENT0 + attachmentId);
 		this.renderer.gl.copyTexImage2D(WebGL2Constants.TEXTURE_2D, 0, internalFormat, 0, 0, texture.width, texture.height, 0);
 	}
+
+	public delete() {
+		for (const attachment of this.colorAttachments) {
+			attachment.texture.delete();
+		}
+
+		if (this.depthAttachment) {
+			this.depthAttachment.texture.delete();
+		}
+
+		this.framebuffer.delete();
+	}
 }

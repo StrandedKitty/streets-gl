@@ -103,4 +103,8 @@ export default class WebGL2Framebuffer {
 	private static clearValueToTypedArray<T extends TypedArray>(type: { new(arr: number[]): T }, clearValue: ColorClearValue): T {
 		return new type([clearValue.r, clearValue.g, clearValue.b, clearValue.a]);
 	}
+
+	public delete() {
+		this.renderer.gl.deleteFramebuffer(this.WebGLFramebuffer);
+	}
 }

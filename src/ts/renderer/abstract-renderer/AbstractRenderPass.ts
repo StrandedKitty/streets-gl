@@ -33,4 +33,5 @@ export default interface AbstractRenderPass {
 	depthAttachment: DepthAttachment;
 	copyColorAttachmentToTexture(attachmentId: number, texture: AbstractTexture): void;
 	setSize(width: number, height: number): void;
+	delete(): void;
 }

@@ -143,5 +143,7 @@ export default class RenderGraph {
 		for (const pass of sorted) {
 			pass.freePhysicalResources(this.resourcePool);
 		}
+
+		this.resourcePool.update();
 	}
 }

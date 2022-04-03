@@ -2,6 +2,8 @@ import PhysicalResource from "./PhysicalResource";
 import ResourceDescriptor from "./ResourceDescriptor";
 import Resource from "./Resource";
 
+const UnusedResourceLifeTime = 2;
+
 class PhysicalResourceEntry {
 	public frameCount: number = 0;
 
@@ -35,13 +37,22 @@ export default class PhysicalResourcePool {
 	}
 
 	public update() {
-		for (const resourceArray of this.resourcesMap.values()) {
-			for (const resource of resourceArray) {
-				++resource.frameCount;
+		for (const [resourceId, resourceArray] of this.resourcesMap.entries()) {
+			for (let i = 0; i < resourceArray.length; i++) {
+				const resourceEntry = resourceArray[i];
 
-				if (resource.frameCount > 2) {
+				++resourceEntry.frameCount;
 
+				if (resourceEntry.frameCount > UnusedResourceLifeTime) {
+					resourceEntry.resource.delete();
+
+					resourceArray.splice(i, 1);
+					--i;
 				}
+			}
+
+			if (resourceArray.length === 0) {
+				this.resourcesMap.delete(resourceId);
 			}
 		}
 	}

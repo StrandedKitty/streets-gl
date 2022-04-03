@@ -1,1 +1,3 @@
-export default interface PhysicalResource {}
+export default interface PhysicalResource {
+	delete(): void;
+}
