@@ -70,8 +70,8 @@ export default class PassManager {
 							width: this.renderer.resolution.x,
 							height: this.renderer.resolution.y,
 							format: RendererTypes.TextureFormat.RGBA8Unorm,
-							minFilter: RendererTypes.MinFilter.Nearest,
-							magFilter: RendererTypes.MagFilter.Nearest,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
 							mipmaps: false
 						}),
 						clearValue: {r: 0, g: 0, b: 0, a: 1},
@@ -83,8 +83,8 @@ export default class PassManager {
 							width: this.renderer.resolution.x,
 							height: this.renderer.resolution.y,
 							format: RendererTypes.TextureFormat.RGB8Unorm,
-							minFilter: RendererTypes.MinFilter.Nearest,
-							magFilter: RendererTypes.MagFilter.Nearest,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
 							mipmaps: false
 						}),
 						clearValue: {r: 0, g: 0, b: 0, a: 1},
@@ -96,8 +96,21 @@ export default class PassManager {
 							width: this.renderer.resolution.x,
 							height: this.renderer.resolution.y,
 							format: RendererTypes.TextureFormat.RGBA32Float,
-							minFilter: RendererTypes.MinFilter.Nearest,
-							magFilter: RendererTypes.MagFilter.Nearest,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}, {
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: this.renderer.resolution.x,
+							height: this.renderer.resolution.y,
+							format: RendererTypes.TextureFormat.RGBA32Float,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
 							mipmaps: false
 						}),
 						clearValue: {r: 0, g: 0, b: 0, a: 0},

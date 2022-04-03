@@ -3,13 +3,9 @@ import ResourceDescriptor from "./ResourceDescriptor";
 import Resource from "./Resource";
 
 class PhysicalResourceEntry {
-	public createdAt: Date = new Date();
+	public frameCount: number = 0;
 
 	constructor(public resource: PhysicalResource) {
-	}
-
-	public update() {
-		this.createdAt = new Date();
 	}
 }
 
@@ -36,5 +32,17 @@ export default class PhysicalResourcePool {
 		const entries = this.resourcesMap.get(id);
 
 		return entries.pop().resource;
+	}
+
+	public update() {
+		for (const resourceArray of this.resourcesMap.values()) {
+			for (const resource of resourceArray) {
+				++resource.frameCount;
+
+				if (resource.frameCount > 2) {
+
+				}
+			}
+		}
 	}
 }

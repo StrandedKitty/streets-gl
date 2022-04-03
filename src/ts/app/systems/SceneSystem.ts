@@ -6,6 +6,7 @@ import Skybox from '~/app/objects/Skybox';
 import RenderableObject3D from '~/app/objects/RenderableObject3D';
 import Vec2 from '~/math/Vec2';
 import TileSystem from '~/app/systems/TileSystem';
+import Mat4 from '~/math/Mat4';
 
 interface SceneObjects {
 	wrapper: Object3D;
@@ -17,6 +18,7 @@ interface SceneObjects {
 export default class SceneSystem extends System {
 	public scene: Object3D;
 	public objects: SceneObjects;
+	public pivotDelta: Vec2 = new Vec2();
 
 	constructor(systemManager: SystemManager) {
 		super(systemManager);
@@ -95,7 +97,7 @@ export default class SceneSystem extends System {
 		this.objects.skybox.position.set(cameraPos.x, cameraPos.y, cameraPos.z);
 		this.objects.skybox.updateMatrix();
 
-		const pivotDelta = new Vec2(
+		this.pivotDelta = new Vec2(
 			this.objects.wrapper.position.x + cameraPos.x,
 			this.objects.wrapper.position.z + cameraPos.z
 		);

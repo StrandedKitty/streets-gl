@@ -3,6 +3,7 @@ const ShaderChunks: Record<string, string> = {
 	gBufferOut: require('../../../../resources/shaders/chunks/gBufferOut.glsl'),
 	packNormal: require('../../../../resources/shaders/chunks/packNormal.glsl'),
 	unpackNormal: require('../../../../resources/shaders/chunks/unpackNormal.glsl'),
+	getMotionVector: require('../../../../resources/shaders/chunks/getMotionVector.glsl'),
 };
 
 export default ShaderChunks;

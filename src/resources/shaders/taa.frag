@@ -3,7 +3,7 @@ precision highp float;
 precision highp int;
 precision highp sampler3D;
 
-#define USE_YCOCG
+//#define USE_YCOCG
 
 out vec4 FragColor;
 
@@ -12,7 +12,8 @@ in vec2 vUv;
 uniform sampler2D tAccum;
 uniform sampler2D tNew;
 uniform sampler2D tMotion;
-uniform int ignoreHistory;
+
+const int ignoreHistory = 0;
 
 vec3 RGB_YCoCg(vec3 c) {
 	// Y = R/4 + G/2 + B/4

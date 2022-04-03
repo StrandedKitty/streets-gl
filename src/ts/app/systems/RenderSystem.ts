@@ -42,6 +42,17 @@ import PassManager from '~/app/render/PassManager';
 import SceneSystem from '~/app/systems/SceneSystem';
 import TAAPass from '~/app/render/passes/TAAPass';
 
+const jitterOffsets: [number, number][] = [
+	[-7 / 8, 1 / 8],
+	[-5 / 8, -5 / 8],
+	[-1 / 8, -3 / 8],
+	[3 / 8, -7 / 8],
+	[5 / 8, -1 / 8],
+	[7 / 8, 7 / 8],
+	[1 / 8, 3 / 8],
+	[-3 / 8, 5 / 8]
+];
+
 export default class RenderSystem extends System {
 	public renderer: AbstractRenderer;
 	private frameCount: number = 0;
@@ -191,12 +202,22 @@ export default class RenderSystem extends System {
 		}
 	}
 
+	public jitterProjectionMatrix(projectionMatrix: Mat4, frame: number) {
+		const offsetX = jitterOffsets[frame % jitterOffsets.length][0];
+		const offsetY = jitterOffsets[frame % jitterOffsets.length][1];
+
+		projectionMatrix.values[8] = offsetX / this.resolution.x;
+		projectionMatrix.values[9] = offsetY / this.resolution.y;
+	}
+
 	public update(deltaTime: number) {
 		const sceneSystem = this.systemManager.getSystem(SceneSystem);
 
 		for (const object of sceneSystem.getObjectsToUpdate()) {
 			object.updateMesh(this.renderer);
 		}
+
+		this.jitterProjectionMatrix(sceneSystem.objects.camera.projectionMatrix, this.frameCount);
 
 		/*this.skybox.position.set(this.camera.position.x, this.camera.position.y, this.camera.position.z);
 		this.skybox.updateMatrix();

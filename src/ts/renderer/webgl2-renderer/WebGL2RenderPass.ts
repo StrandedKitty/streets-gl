@@ -1,9 +1,12 @@
 import AbstractRenderPass, {
 	AbstractRenderPassParams,
-	ColorAttachment, DepthAttachment
+	ColorAttachment,
+	DepthAttachment
 } from "~/renderer/abstract-renderer/AbstractRenderPass";
 import WebGL2Renderer from "~/renderer/webgl2-renderer/WebGL2Renderer";
 import WebGL2Framebuffer from "~/renderer/webgl2-renderer/WebGL2Framebuffer";
+import WebGL2Constants from '~/renderer/webgl2-renderer/WebGL2Constants';
+import WebGL2Texture from '~/renderer/webgl2-renderer/WebGL2Texture';
 
 export default class WebGL2RenderPass implements AbstractRenderPass {
 	private readonly renderer: WebGL2Renderer;
@@ -53,5 +56,15 @@ export default class WebGL2RenderPass implements AbstractRenderPass {
 
 	public setSize(width: number, height: number) {
 		throw new Error("Method not implemented.");
+	}
+
+	public copyColorAttachmentToTexture(attachmentId: number, texture: WebGL2Texture) {
+		this.renderer.bindFramebuffer(this.framebuffer);
+
+		const {internalFormat} = WebGL2Texture.convertFormatToWebGLConstants(texture.format);
+
+		this.renderer.gl.bindTexture(WebGL2Constants.TEXTURE_2D, texture.WebGLTexture);
+		this.renderer.gl.readBuffer(WebGL2Constants.COLOR_ATTACHMENT0 + attachmentId);
+		this.renderer.gl.copyTexImage2D(WebGL2Constants.TEXTURE_2D, 0, internalFormat, 0, 0, texture.width, texture.height, 0);
 	}
 }

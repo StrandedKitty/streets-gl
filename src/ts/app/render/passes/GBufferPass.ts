@@ -13,23 +13,17 @@ import {InternalResourceType} from '~/render-graph/Pass';
 import PassManager from '~/app/render/PassManager';
 
 export default class GBufferPass extends Pass<{
-	BackbufferRenderPass: {
-		type: InternalResourceType.Output,
-		resource: RenderPassResource
-	},
 	GBufferRenderPass: {
 		type: InternalResourceType.Output,
 		resource: RenderPassResource
 	}
 }> {
 	private material: AbstractMaterial;
-	private material2: AbstractMaterial;
 	private materialSkybox: AbstractMaterial;
-	private fullScreenTriangle: FullScreenTriangle;
+	private cameraMatrixWorldInversePrev: Mat4 = null;
 
 	constructor(manager: PassManager) {
 		super('GBufferPass', manager, {
-			BackbufferRenderPass: {type: InternalResourceType.Output, resource: manager.getSharedResource('BackbufferRenderPass')},
 			GBufferRenderPass: {type: InternalResourceType.Output, resource: manager.getSharedResource('GBufferRenderPass')}
 		});
 
@@ -37,8 +31,6 @@ export default class GBufferPass extends Pass<{
 	}
 
 	private init() {
-		this.fullScreenTriangle = new FullScreenTriangle(this.renderer);
-
 		this.createMaterials();
 	}
 
@@ -48,6 +40,11 @@ export default class GBufferPass extends Pass<{
 			uniforms: [
 				{
 					name: 'modelViewMatrix',
+					block: 'PerMesh',
+					type: RendererTypes.UniformType.Matrix4,
+					value: new Float32Array(16)
+				}, {
+					name: 'modelViewMatrixPrev',
 					block: 'PerMesh',
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array(16)
@@ -70,33 +67,16 @@ export default class GBufferPass extends Pass<{
 			fragmentShaderSource: Shaders.building.fragment
 		});
 
-		this.material2 = this.renderer.createMaterial({
-			name: 'Compose material',
-			uniforms: [
-				{
-					name: 'map',
-					block: null,
-					type: RendererTypes.UniformType.Texture2D,
-					value: null
-				}
-			],
-			primitive: {
-				frontFace: RendererTypes.FrontFace.CCW,
-				cullMode: RendererTypes.CullMode.None
-			},
-			depth: {
-				depthWrite: true,
-				depthCompare: RendererTypes.DepthCompare.LessEqual
-			},
-			vertexShaderSource: Shaders.ldrCompose.vertex,
-			fragmentShaderSource: Shaders.ldrCompose.fragment
-		});
-
 		this.materialSkybox = this.renderer.createMaterial({
 			name: 'Skybox material',
 			uniforms: [
 				{
 					name: 'modelViewMatrix',
+					block: 'Uniforms',
+					type: RendererTypes.UniformType.Matrix4,
+					value: new Float32Array(16)
+				}, {
+					name: 'modelViewMatrixPrev',
 					block: 'Uniforms',
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array(16)
@@ -125,6 +105,19 @@ export default class GBufferPass extends Pass<{
 		const skybox = this.manager.sceneSystem.objects.skybox;
 		const tiles = this.manager.sceneSystem.objects.tiles.children as Tile[];
 
+		if (!this.cameraMatrixWorldInversePrev) {
+			this.cameraMatrixWorldInversePrev = camera.matrixWorldInverse;
+		} else {
+			const pivotDelta = this.manager.sceneSystem.pivotDelta;
+
+			this.cameraMatrixWorldInversePrev = Mat4.translate(
+				this.cameraMatrixWorldInversePrev,
+				pivotDelta.x,
+				0,
+				pivotDelta.y
+			);
+		}
+
 		for (const tile of tiles) {
 			if (!tile.buildingsMesh && tile.readyForRendering) {
 				tile.createMeshes(this.renderer);
@@ -132,7 +125,6 @@ export default class GBufferPass extends Pass<{
 		}
 
 		const testRenderPass = <AbstractRenderPass>this.getPhysicalResource('GBufferRenderPass');
-		const backbufferRenderPass = <AbstractRenderPass>this.getPhysicalResource('BackbufferRenderPass');
 
 		this.renderer.beginRenderPass(testRenderPass);
 
@@ -140,8 +132,10 @@ export default class GBufferPass extends Pass<{
 
 		this.materialSkybox.getUniform<UniformMatrix4>('projectionMatrix', 'Uniforms').value = new Float32Array(camera.projectionMatrix.values);
 		this.materialSkybox.getUniform<UniformMatrix4>('modelViewMatrix', 'Uniforms').value = new Float32Array(Mat4.multiply(camera.matrixWorldInverse, skybox.matrixWorld).values);
+		this.materialSkybox.getUniform<UniformMatrix4>('modelViewMatrixPrev', 'Uniforms').value = new Float32Array(Mat4.multiply(this.cameraMatrixWorldInversePrev, skybox.matrixWorld).values);
 		this.materialSkybox.applyUniformUpdates('projectionMatrix', 'Uniforms');
 		this.materialSkybox.applyUniformUpdates('modelViewMatrix', 'Uniforms');
+		this.materialSkybox.applyUniformUpdates('modelViewMatrixPrev', 'Uniforms');
 
 		skybox.draw();
 
@@ -156,19 +150,21 @@ export default class GBufferPass extends Pass<{
 			}
 
 			const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, tile.matrixWorld);
+			const mvMatrixPrev = Mat4.multiply(this.cameraMatrixWorldInversePrev, tile.matrixWorld);
 
 			this.material.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
+			this.material.getUniform<UniformMatrix4>('modelViewMatrixPrev', 'PerMesh').value = new Float32Array(mvMatrixPrev.values);
 			this.material.applyUniformUpdates('modelViewMatrix', 'PerMesh');
+			this.material.applyUniformUpdates('modelViewMatrixPrev', 'PerMesh');
 
 			tile.buildingsMesh.draw();
 		}
 
-		this.material2.getUniform('map').value = <AbstractTexture2D>testRenderPass.colorAttachments[0].texture;
+		this.saveCameraMatrixWorldInverse();
+	}
 
-		this.renderer.beginRenderPass(backbufferRenderPass);
-		this.renderer.useMaterial(this.material2);
-
-		this.fullScreenTriangle.mesh.draw();
+	private saveCameraMatrixWorldInverse() {
+		this.cameraMatrixWorldInversePrev = this.manager.sceneSystem.objects.camera.matrixWorldInverse;
 	}
 
 	public setSize(width: number, height: number) {
