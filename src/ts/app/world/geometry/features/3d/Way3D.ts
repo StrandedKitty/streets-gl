@@ -33,8 +33,6 @@ export default class Way3D extends Feature3D {
 	public heightViewer: HeightViewer;
 	public heightFactor: number;
 	public rings: Ring3D[] = [];
-	public outerRings: Ring3D[] = [];
-	public innerRings: Ring3D[] = [];
 	private holesArrays: EarcutInput;
 	public geoJSON: GeoJSON.MultiPolygon = null;
 	public aabb: WayAABB = new WayAABB();
@@ -51,16 +49,45 @@ export default class Way3D extends Feature3D {
 		this.updateRoofShapeType();
 	}
 
-	public addRing(type: RingType, id: number, nodes: Node3D[], tags: Tags) {
+	public addRing(type: RingType, id: number, nodes: Node3D[], tags: Tags, canMerge: boolean = false) {
 		const ring = new Ring3D(id, type, nodes, this, tags);
 
 		this.rings.push(ring);
-		this.addRingToAABB(ring);
 
-		if (ring.type === RingType.Inner) {
-			this.innerRings.push(ring);
-		} else if (ring.type === RingType.Outer) {
-			this.outerRings.push(ring);
+		if (canMerge) {
+			const firstNode = nodes[0];
+			const lastNode = nodes[nodes.length - 1];
+
+			if (!firstNode.posEquals(lastNode)) {
+				ring.isMergeable = true;
+			}
+		}
+	}
+
+	public build() {
+		for (const ring of this.rings) {
+			if (ring.deleted) {
+				continue;
+			}
+
+			for (const otherRing of this.rings) {
+				if (otherRing.deleted) {
+					continue;
+				}
+
+				const isMerged = ring.tryMerge(otherRing);
+
+				if (isMerged) {
+					otherRing.deleted = true;
+				}
+			}
+		}
+
+		this.rings = this.rings.filter(ring => ring.deleted === false);
+
+		for (const ring of this.rings) {
+			ring.build();
+			this.addRingToAABB(ring);
 		}
 	}
 
@@ -217,6 +244,7 @@ export default class Way3D extends Feature3D {
 		const uvArrays: Float32Array[] = [];
 		const normalArrays: Float32Array[] = [];
 		const textureIdArrays: Uint8Array[] = [];
+		const colorArrays: Uint8Array[] = [];
 
 		const roofBuffers = this.buildRoof();
 
@@ -227,6 +255,11 @@ export default class Way3D extends Feature3D {
 			Uint8Array,
 			new Uint8Array(roofBuffers.uv.length / 2),
 			new Uint8Array(roofBuffers.isTextured ? [this.id % 4 + 1] : [0])
+		));
+		colorArrays.push(Utils.fillTypedArraySequence(
+			Uint8Array,
+			new Uint8Array(roofBuffers.uv.length / 2 * 3),
+			new Uint8Array(<number[]>this.tags.roofColor || [255, 255, 255])
 		));
 
 		for (const ring of this.rings) {
@@ -239,18 +272,18 @@ export default class Way3D extends Feature3D {
 				new Uint8Array(ringData.uvs.length / 2),
 				new Uint8Array([0])
 			));
+			colorArrays.push(Utils.fillTypedArraySequence(
+				Uint8Array,
+				new Uint8Array(ringData.uvs.length / 2 * 3),
+				new Uint8Array(<number[]>this.tags.facadeColor || [255, 255, 255])
+			));
 		}
 
 		const positionBuffer = Utils.mergeTypedArrays(Float32Array, positionArrays);
 		const uvBuffer = Utils.mergeTypedArrays(Float32Array, uvArrays);
 		const normalBuffer = Utils.mergeTypedArrays(Float32Array, normalArrays);
 		const textureIdBuffer = Utils.mergeTypedArrays(Uint8Array, textureIdArrays);
-		const color = new Uint8Array(<number[]>this.tags.facadeColor || [255, 255, 255]);
-		const colorBuffer = Utils.fillTypedArraySequence(
-			Uint8Array,
-			new Uint8Array(positionBuffer.length),
-			color
-		);
+		const colorBuffer = Utils.mergeTypedArrays(Uint8Array, colorArrays);
 
 		return {
 			position: positionBuffer,

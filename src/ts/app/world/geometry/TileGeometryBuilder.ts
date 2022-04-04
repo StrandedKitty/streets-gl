@@ -502,6 +502,9 @@ export default class TileGeometryBuilder {
 						case 'way':
 							memberFeature = ways.get(member.ref);
 							break;
+						case 'relation':
+							memberFeature = relations.get(member.ref);
+							break;
 					}
 
 					if (memberFeature) {
@@ -554,9 +557,9 @@ export default class TileGeometryBuilder {
 						}
 
 						if (role === 'inner') {
-							way3d.addRing(RingType.Inner, feature.id, wayNodes, feature.descriptor.properties);
+							way3d.addRing(RingType.Inner, feature.id, wayNodes, feature.descriptor.properties, true);
 						} else if (role === 'outer') {
-							way3d.addRing(RingType.Outer, feature.id, wayNodes, feature.descriptor.properties);
+							way3d.addRing(RingType.Outer, feature.id, wayNodes, feature.descriptor.properties, true);
 						}
 
 						//ignoredWays.add(feature.id);
@@ -600,12 +603,16 @@ export default class TileGeometryBuilder {
 			ways.set(way3d.id, way3d);
 		}
 
-		this.removeBuildingOutlines(ways);
+		for (const way of ways.values()) {
+			way.build();
+		}
+
+		this.removeBuildingOutlines(ways, buildingRelationsWays);
 
 		return {nodes, ways} as Features3D;
 	}
 
-	private removeBuildingOutlines(ways: Map<number, Way3D>) {
+	private removeBuildingOutlines(ways: Map<number, Way3D>, partsRelations: Map<number, number>) {
 		for (const part of ways.values()) {
 			if (!part.tags.buildingPart || part.tags.type === 'none') {
 				continue;
@@ -617,6 +624,10 @@ export default class TileGeometryBuilder {
 					outline.tags.type !== 'building' ||
 					!outline.aabb.intersectsAABB(part.aabb)
 				) {
+					continue;
+				}
+
+				if (partsRelations.get(part.id) !== undefined) {
 					continue;
 				}
 

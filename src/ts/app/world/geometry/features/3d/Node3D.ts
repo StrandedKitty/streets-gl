@@ -19,4 +19,8 @@ export default class Node3D extends Feature3D {
 		this.position = Vec2.sub(MathUtils.degrees2meters(this.lat, this.lon), pivot);
 		this.tile = MathUtils.degrees2tile(this.lat, this.lon);
 	}
+
+	public posEquals(node: Node3D): boolean {
+		return this.lat === node.lat && this.lon === node.lon;
+	}
 }

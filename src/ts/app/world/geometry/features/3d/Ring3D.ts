@@ -21,6 +21,8 @@ export default class Ring3D extends Feature3D {
 	public maxGroundHeight: number;
 	public closed: boolean;
 	private gaussArea: number;
+	public isMergeable: boolean = false;
+	public deleted: boolean = false;
 
 	constructor(id: number, type: RingType, nodes: Node3D[], parent: Way3D, tags: Tags) {
 		super(id, tags);
@@ -29,6 +31,17 @@ export default class Ring3D extends Feature3D {
 		this.nodes = nodes;
 		this.parent = parent;
 
+		/*this.vertices = [];
+
+		this.buildVerticesFromNodes();
+
+		this.closed = this.isClosed();
+
+		this.updateGaussArea();
+		this.fixDirection();*/
+	}
+
+	public build() {
 		this.vertices = [];
 
 		this.buildVerticesFromNodes();
@@ -37,6 +50,40 @@ export default class Ring3D extends Feature3D {
 
 		this.updateGaussArea();
 		this.fixDirection();
+	}
+
+	public tryMerge(ring: Ring3D): boolean {
+		if (this.type !== ring.type || this.id === ring.id || !this.isMergeable || !ring.isMergeable) {
+			return false;
+		}
+
+		const removeLastEl = (arr: Node3D[]): Node3D[] => {
+			return arr.slice(0, arr.length - 1);
+		};
+
+		if (this.firstNode.posEquals(ring.firstNode)) {
+			this.nodes = [...removeLastEl(this.nodes.reverse()), ...ring.nodes];
+			return true;
+		} else if (this.lastNode.posEquals(ring.firstNode)) {
+			this.nodes = [...removeLastEl(this.nodes), ...ring.nodes];
+			return true;
+		} else if (this.firstNode.posEquals(ring.lastNode)) {
+			this.nodes = [...ring.nodes, ...this.nodes.slice(1)];
+			return true;
+		} else if (this.lastNode.posEquals(ring.lastNode)) {
+			this.nodes = [...ring.nodes, ...this.nodes.reverse().slice(1)];
+			return true;
+		}
+
+		return false;
+	}
+
+	get firstNode(): Node3D {
+		return this.nodes[0];
+	}
+
+	get lastNode(): Node3D {
+		return this.nodes[this.nodes.length - 1];
 	}
 
 	private buildVerticesFromNodes() {

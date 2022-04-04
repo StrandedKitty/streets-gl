@@ -33,6 +33,11 @@
 			"facadeColor": "@color"
 		}
 	},
+	"roof:colour": {
+		"default": {
+			"roofColor": "@color"
+		}
+	},
 	"type": {
 		"building": {
 			"relationType": "building"

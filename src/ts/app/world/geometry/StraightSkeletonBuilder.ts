@@ -1,5 +1,5 @@
 import Way3D from "./features/3d/Way3D";
-import Ring3D from "./features/3d/Ring3D";
+import Ring3D, {RingType} from "./features/3d/Ring3D";
 import SkeletonBuilder, {Skeleton} from "straight-skeleton";
 
 export default class StraightSkeletonBuilder {
@@ -22,8 +22,8 @@ export default class StraightSkeletonBuilder {
 	}
 
 	private static getInputDataFromWay(way: Way3D): [number, number][][][] {
-		const outerRings = way.outerRings;
-		const innerRings = way.innerRings;
+		const outerRings = way.rings.filter(ring => ring.type === RingType.Outer);
+		const innerRings = way.rings.filter(ring => ring.type === RingType.Inner);
 
 		if (outerRings.length === 0) {
 			return [];
