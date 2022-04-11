@@ -11,6 +11,7 @@ import MapWorkerSystem from "./systems/MapWorkerSystem";
 import MapTimeSystem from "./systems/MapTimeSystem";
 import UISystem from "./systems/UISystem";
 import SceneSystem from '~/app/systems/SceneSystem';
+import ResourceManager from '~/app/world/ResourceManager';
 
 class App {
 	private loop = (deltaTime: number) => this.update(deltaTime);
@@ -18,7 +19,22 @@ class App {
 	private systemManager: SystemManager;
 
 	constructor() {
-		this.init();
+		const resourceManager = ResourceManager;
+
+		resourceManager.add('roofColor1', '/textures/buildings/roofs/1_color.png');
+		resourceManager.add('roofColor2', '/textures/buildings/roofs/2_color.png');
+		resourceManager.add('roofColor3', '/textures/buildings/roofs/3_color.png');
+		resourceManager.add('roofColor4', '/textures/buildings/roofs/4_color.png');
+		resourceManager.add('roofNormal1', '/textures/buildings/roofs/1_normal.png');
+		resourceManager.add('roofNormal2', '/textures/buildings/roofs/2_normal.png');
+		resourceManager.add('roofNormal3', '/textures/buildings/roofs/3_normal.png');
+		resourceManager.add('roofNormal4', '/textures/buildings/roofs/4_normal.png');
+
+		console.log(resourceManager)
+
+		resourceManager.load().then(() => {
+			this.init();
+		});
 	}
 
 	private init() {

@@ -62,6 +62,7 @@ export default class Skybox extends RenderableObject3D {
 				renderer.createAttribute({
 					name: 'position',
 					type: RendererTypes.AttributeType.Float32,
+					format: RendererTypes.AttributeFormat.Float,
 					size: 3,
 					normalized: false,
 					data: new Float32Array(vertices)

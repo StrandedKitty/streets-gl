@@ -14,6 +14,7 @@ export default class WebGL2Attribute implements AbstractAttribute {
 	public normalized: boolean;
 	public size: number;
 	public type: RendererTypes.AttributeType;
+	public format: RendererTypes.AttributeFormat;
 	public usage: RendererTypes.BufferUsage;
 	public data: TypedArray;
 	private buffer: WebGLBuffer;
@@ -24,6 +25,7 @@ export default class WebGL2Attribute implements AbstractAttribute {
 			name,
 			size,
 			type,
+			format,
 			usage = RendererTypes.BufferUsage.StaticDraw,
 			normalized,
 			instanced = false,
@@ -36,6 +38,7 @@ export default class WebGL2Attribute implements AbstractAttribute {
 		this.name = name;
 		this.size = size;
 		this.type = type;
+		this.format = format;
 		this.usage = usage;
 		this.normalized = normalized;
 		this.instanced = instanced;
@@ -57,19 +60,19 @@ export default class WebGL2Attribute implements AbstractAttribute {
 		if (location !== -1) {
 			this.gl.bindBuffer(WebGL2Constants.ARRAY_BUFFER, this.buffer);
 
-			/*switch (this.dataFormat) {
-				case AttributeFormat.Integer:
-					this.gl.vertexAttribIPointer(this.location, this.size, this.type, 0, 0);
-					break;
-				case AttributeFormat.Float:
-					this.gl.vertexAttribPointer(this.location, this.size, this.type, this.normalized, 0, 0);
-					break;
-			}*/
-
 			const typeConstant = WebGL2Attribute.convertTypeToWebGLConstant(this.type);
 			this.gl.enableVertexAttribArray(location);
 
-			this.gl.vertexAttribPointer(location, this.size, typeConstant, this.normalized, 0, 0);
+			//this.gl.vertexAttribPointer(location, this.size, typeConstant, this.normalized, 0, 0);
+
+			switch (this.format) {
+				case RendererTypes.AttributeFormat.Integer:
+					this.gl.vertexAttribIPointer(location, this.size, typeConstant, 0, 0);
+					break;
+				case RendererTypes.AttributeFormat.Float:
+					this.gl.vertexAttribPointer(location, this.size, typeConstant, this.normalized, 0, 0);
+					break;
+			}
 
 			if (this.instanced) {
 				this.gl.vertexAttribDivisor(location, this.divisor);

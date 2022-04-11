@@ -40,7 +40,15 @@ function sendMessage(msg: WorkerMessageIncoming) {
 				msg.result.buildings.color.buffer,
 				msg.result.buildings.id.buffer,
 				msg.result.buildings.offset.buffer,
-				msg.result.buildings.localId.buffer
+				msg.result.buildings.localId.buffer,
+				msg.result.ground.position.buffer,
+				msg.result.ground.uv.buffer,
+				msg.result.ground.normal.buffer,
+				msg.result.ground.index.buffer,
+				msg.result.roads.position.buffer,
+				msg.result.roads.uv.buffer,
+				msg.result.roads.normal.buffer,
+				msg.result.roads.textureId.buffer,
 			] :
 			[]
 	);
@@ -88,7 +96,7 @@ function load(x: number, y: number) {
 	httpRequest.onreadystatechange = function () {
 		if (httpRequest.readyState === XMLHttpRequest.DONE) {
 			if (httpRequest.status === 200) {
-				buildGeometry(x, y, JSON.parse(httpRequest.responseText).elements);
+				buildGeometry(x, y, JSON.parse(httpRequest.responseText));
 			} else {
 				sendMessage({
 					type: WorkerMessageIncomingType.Error,
@@ -100,7 +108,7 @@ function load(x: number, y: number) {
 	};
 
 	httpRequest.timeout = Config.OverpassRequestTimeout;
-	httpRequest.open('GET', url);
+	httpRequest.open('GET', 'http://localhost:3000?x=' + x + '&y=' + y);
 	httpRequest.send();
 }
 

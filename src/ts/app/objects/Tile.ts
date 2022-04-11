@@ -145,6 +145,7 @@ export default class Tile extends Object3D {
 					name: 'position',
 					size: 3,
 					type: AttributeType.Float32,
+					format: RendererTypes.AttributeFormat.Float,
 					normalized: false,
 					data: this.staticGeometry.buildings.position
 				}),
@@ -152,6 +153,7 @@ export default class Tile extends Object3D {
 					name: 'normal',
 					size: 3,
 					type: AttributeType.Float32,
+					format: RendererTypes.AttributeFormat.Float,
 					normalized: false,
 					data: this.staticGeometry.buildings.normal
 				}),
@@ -159,8 +161,25 @@ export default class Tile extends Object3D {
 					name: 'color',
 					size: 3,
 					type: AttributeType.UnsignedByte,
+					format: RendererTypes.AttributeFormat.Float,
 					normalized: true,
 					data: this.staticGeometry.buildings.color
+				}),
+				renderer.createAttribute({
+					name: 'uv',
+					size: 2,
+					type: AttributeType.Float32,
+					format: RendererTypes.AttributeFormat.Float,
+					normalized: false,
+					data: this.staticGeometry.buildings.uv
+				}),
+				renderer.createAttribute({
+					name: 'textureId',
+					size: 1,
+					type: AttributeType.UnsignedInt,
+					format: RendererTypes.AttributeFormat.Integer,
+					normalized: false,
+					data: this.staticGeometry.buildings.textureId
 				}),
 			]
 		});

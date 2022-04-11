@@ -94,7 +94,7 @@ export default class Ring3D extends Feature3D {
 			return;
 		}
 
-		this.vertices = Simplify(nodeVertices, 0.1, false).map(p => [p.x, p.y]);
+		this.vertices = Simplify(nodeVertices, 1, false).map(p => [p.x, p.y]);
 	}
 
 	public updateFootprintHeight() {

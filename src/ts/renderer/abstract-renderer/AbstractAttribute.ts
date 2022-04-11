@@ -4,6 +4,7 @@ export interface AbstractAttributeParams {
 	name: string;
 	size: number;
 	type: RendererTypes.AttributeType;
+	format: RendererTypes.AttributeFormat;
 	usage?: RendererTypes.BufferUsage;
 	normalized: boolean;
 	instanced?: boolean;
@@ -15,6 +16,7 @@ export default interface AbstractAttribute {
 	name: string;
 	size: number;
 	type: RendererTypes.AttributeType;
+	format: RendererTypes.AttributeFormat;
 	usage: RendererTypes.BufferUsage;
 	normalized: boolean;
 	instanced: boolean;

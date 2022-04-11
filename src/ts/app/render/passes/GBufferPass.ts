@@ -1,16 +1,15 @@
 import AbstractMaterial from "~/renderer/abstract-renderer/AbstractMaterial";
 import {RendererTypes} from "~/renderer/RendererTypes";
 import {UniformMatrix4} from "~/renderer/abstract-renderer/Uniform";
-import FullScreenTriangle from "../../objects/FullScreenTriangle";
 import Tile from "~/app/objects/Tile";
 import Mat4 from "../../../math/Mat4";
 import AbstractRenderPass from "../../../renderer/abstract-renderer/AbstractRenderPass";
 import Shaders from "../shaders/Shaders";
-import AbstractTexture2D from "../../../renderer/abstract-renderer/AbstractTexture2D";
 import Pass from "~/app/render/passes/Pass";
 import RenderPassResource from "~/app/render/render-graph/resources/RenderPassResource";
 import {InternalResourceType} from '~/render-graph/Pass';
 import PassManager from '~/app/render/PassManager';
+import ResourceManager from '~/app/world/ResourceManager';
 
 export default class GBufferPass extends Pass<{
 	GBufferRenderPass: {
@@ -53,6 +52,44 @@ export default class GBufferPass extends Pass<{
 					block: 'PerMaterial',
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array(16)
+				}, {
+					name: 'tRoofColor',
+					block: null,
+					type: RendererTypes.UniformType.Texture2DArray,
+					value: this.renderer.createTexture2DArray({
+						width: 512,
+						height: 512,
+						depth: 4,
+						anisotropy: 16,
+						data: [
+							ResourceManager.get('roofColor1'),
+							ResourceManager.get('roofColor2'),
+							ResourceManager.get('roofColor3'),
+							ResourceManager.get('roofColor4'),
+						],
+						wrap: RendererTypes.TextureWrap.ClampToEdge,
+						format: RendererTypes.TextureFormat.RGBA8Unorm,
+						mipmaps: true
+					})
+				}, {
+					name: 'tRoofNormal',
+					block: null,
+					type: RendererTypes.UniformType.Texture2DArray,
+					value: this.renderer.createTexture2DArray({
+						width: 512,
+						height: 512,
+						depth: 4,
+						anisotropy: 16,
+						data: [
+							ResourceManager.get('roofNormal1'),
+							ResourceManager.get('roofNormal2'),
+							ResourceManager.get('roofNormal3'),
+							ResourceManager.get('roofNormal4'),
+						],
+						wrap: RendererTypes.TextureWrap.ClampToEdge,
+						format: RendererTypes.TextureFormat.RGBA8Unorm,
+						mipmaps: true
+					})
 				}
 			],
 			primitive: {

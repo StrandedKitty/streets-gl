@@ -44,7 +44,7 @@ export default class StaticGeometryLoadingSystem extends System {
 			worker.start(tile.x, tile.y).then(result => {
 				onLoad(result);
 			}, error => {
-				console.error(error, `${tile.x}, ${tile.y}`);
+				//console.error(error, `${tile.x}, ${tile.y}`);
 				this.queue.unshift({tile, onLoad});
 			});
 		}

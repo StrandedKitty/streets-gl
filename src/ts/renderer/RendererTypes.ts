@@ -48,6 +48,11 @@ export namespace RendererTypes {
 		Float32
 	}
 
+	export enum AttributeFormat {
+		Float,
+		Integer
+	}
+
 	export enum BufferUsage {
 		StaticDraw,
 		DynamicDraw,

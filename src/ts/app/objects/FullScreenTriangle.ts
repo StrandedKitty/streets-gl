@@ -22,6 +22,7 @@ export default class FullScreenTriangle extends Object3D {
 					name: 'position',
 					size: 3,
 					type: RendererTypes.AttributeType.Float32,
+					format: RendererTypes.AttributeFormat.Float,
 					normalized: false,
 					data: new Float32Array([
 						-1, 3, 0,
@@ -33,6 +34,7 @@ export default class FullScreenTriangle extends Object3D {
 					name: 'uv',
 					size: 2,
 					type: RendererTypes.AttributeType.Float32,
+					format: RendererTypes.AttributeFormat.Float,
 					normalized: true,
 					data: new Float32Array([
 						0, 2,

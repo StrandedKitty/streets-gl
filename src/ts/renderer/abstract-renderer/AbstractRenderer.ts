@@ -9,26 +9,15 @@ import AbstractTexture3D, {AbstractTexture3DParams} from "~/renderer/abstract-re
 
 export default interface AbstractRenderer {
 	setSize(width: number, height: number): void;
-
 	createTexture2D(params: AbstractTexture2DParams): AbstractTexture2D;
-
 	createTexture2DArray(params: AbstractTexture2DArrayParams): AbstractTexture2DArray;
-
 	createTexture3D(params: AbstractTexture3DParams): AbstractTexture3D;
-
 	createTextureCube(params: AbstractTextureCubeParams): AbstractTextureCube;
-
 	createRenderPass(params: AbstractRenderPassParams): AbstractRenderPass;
-
 	createMaterial(params: AbstractMaterialParams): AbstractMaterial;
-
 	createAttribute(params: AbstractAttributeParams): AbstractAttribute;
-
 	createMesh(params: AbstractMeshParams): AbstractMesh;
-
 	beginRenderPass(renderPass: AbstractRenderPass): void;
-
 	useMaterial(material: AbstractMaterial): void;
-
 	readonly resolution: { x: number, y: number };
 }

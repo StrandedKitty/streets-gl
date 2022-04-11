@@ -3,6 +3,17 @@ import WebGL2Renderer from "~/renderer/webgl2-renderer/WebGL2Renderer";
 import WebGL2Constants from "~/renderer/webgl2-renderer/WebGL2Constants";
 import {Uniform} from "~/renderer/abstract-renderer/Uniform";
 
+function equal (buf1: TypedArray, buf2: TypedArray): boolean {
+	if (buf1.byteLength != buf2.byteLength) return false;
+	const dv1 = new Int8Array(buf1.buffer);
+	const dv2 = new Int8Array(buf2.buffer);
+	for (let i = 0 ; i != buf1.byteLength ; i++)
+	{
+		if (dv1[i] != dv2[i]) return false;
+	}
+	return true;
+}
+
 export default class WebGL2UBO {
 	private readonly renderer: WebGL2Renderer;
 	private readonly gl: WebGL2RenderingContext;
@@ -12,6 +23,7 @@ export default class WebGL2UBO {
 	private buffer: WebGLBuffer;
 	private blockIndex: number;
 	private uniformsOffsets: Map<string, number> = new Map();
+	private savedUniformValues: Map<string, TypedArray> = new Map();
 
 	constructor(renderer: WebGL2Renderer, program: WebGL2Program, blockName: string, uniforms: Uniform[]) {
 		this.renderer = renderer;
@@ -68,6 +80,12 @@ export default class WebGL2UBO {
 	}
 
 	public setUniformValue(uniformName: string, value: TypedArray) {
+		const savedValue = this.savedUniformValues.get(uniformName);
+
+		if (savedValue && equal(savedValue, value)) {
+			return;
+		}
+
 		this.bind();
 
 		this.gl.bufferSubData(
@@ -76,5 +94,7 @@ export default class WebGL2UBO {
 			value,
 			0
 		);
+
+		this.savedUniformValues.set(uniformName, value);
 	}
 }

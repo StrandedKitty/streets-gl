@@ -7,7 +7,8 @@ export default class RoadPolylineBuilder {
 		const extrudedPoints: Vec2[][] = [];
 		const positions: number[] = [];
 		const uvs: number[] = [];
-		const points = Simplify(sourcePoints, 1, false).map(p => new Vec2(p.x, p.y));
+		//const points = Simplify(sourcePoints, 1, false).map(p => new Vec2(p.x, p.y));
+		const points = sourcePoints;
 
 		const isClosed = points[0].equals(points[points.length - 1]);
 
