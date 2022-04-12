@@ -1,0 +1,34 @@
+{
+	"roofColor1": {
+		"url": "/textures/buildings/roofs/1_color.png",
+		"type": "image"
+	},
+	"roofColor2": {
+		"url": "/textures/buildings/roofs/2_color.png",
+		"type": "image"
+	},
+	"roofColor3": {
+		"url": "/textures/buildings/roofs/3_color.png",
+		"type": "image"
+	},
+	"roofColor4": {
+		"url": "/textures/buildings/roofs/4_color.png",
+		"type": "image"
+	},
+	"roofNormal1": {
+		"url": "/textures/buildings/roofs/1_normal.png",
+		"type": "image"
+	},
+	"roofNormal2": {
+		"url": "/textures/buildings/roofs/2_normal.png",
+		"type": "image"
+	},
+	"roofNormal3": {
+		"url": "/textures/buildings/roofs/3_normal.png",
+		"type": "image"
+	},
+	"roofNormal4": {
+		"url": "/textures/buildings/roofs/4_normal.png",
+		"type": "image"
+	}
+}

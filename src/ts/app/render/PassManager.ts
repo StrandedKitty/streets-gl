@@ -22,6 +22,7 @@ export default class PassManager {
 	public readonly renderer: AbstractRenderer;
 	public readonly renderGraph: RG.RenderGraph;
 	public passes: Set<Pass> = new Set();
+	private passMap: Map<{ new(manager: PassManager): Pass }, Pass> = new Map();
 	public sharedResources: Map<keyof SharedResources, SharedResources[keyof SharedResources]> = new Map();
 
 	constructor(systemManager: SystemManager, renderer: AbstractRenderer, resourceFactory: RenderGraphResourceFactory, renderGraph: RG.RenderGraph) {
@@ -37,7 +38,12 @@ export default class PassManager {
 		const pass = new passConstructor(this);
 
 		this.passes.add(pass);
+		this.passMap.set(passConstructor, pass);
 		this.renderGraph.addPass(pass);
+	}
+
+	public getPass<T extends Pass>(passConstructor: PassConstructor<T>): T {
+		return <T>this.passMap.get(passConstructor);
 	}
 
 	public getSharedResource<K extends keyof SharedResources>(name: K): SharedResources[K] {

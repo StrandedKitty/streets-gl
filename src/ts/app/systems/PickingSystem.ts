@@ -70,7 +70,7 @@ export default class PickingSystem extends System {
 	}
 
 	public readObjectId(renderer: Renderer, gBuffer: GBuffer) {
-		if (!this.pixelBuffer) {
+		/*if (!this.pixelBuffer) {
 			this.createPixelBuffer(renderer);
 		}
 
@@ -98,7 +98,9 @@ export default class PickingSystem extends System {
 
 			this.hoveredObjectId = data[0];
 			this.updatePointer();
-		});
+		});*/
+
+
 	}
 
 	private updatePointer() {

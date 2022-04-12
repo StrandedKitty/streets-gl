@@ -32,6 +32,7 @@ export default interface AbstractRenderPass {
 	colorAttachments: ColorAttachment[];
 	depthAttachment: DepthAttachment;
 	copyColorAttachmentToTexture(attachmentId: number, texture: AbstractTexture): void;
+	readColorAttachmentPixel<T extends TypedArray>(attachmentId: number, buffer: T, x: number, y: number, width?: number, height?: number): Promise<void>;
 	setSize(width: number, height: number): void;
 	delete(): void;
 }

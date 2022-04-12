@@ -2,10 +2,10 @@ import Utils from "./Utils";
 
 const Config = {
 	TileSize: /*40075016.7 / (1 << 16)*/ 611.4962158203125,
-	GroundSegments: 32,
+	GroundSegments: 1,
 	MaxConcurrentTiles: 100,
 	MaxTilesPerWorker: 2,
-	WebWorkersNumber: navigator.hardwareConcurrency,
+	WebWorkersNumber: Math.min(6, navigator.hardwareConcurrency),
 	ShadowCascades: 3,
 	StartPosition: [40.76050, -73.98088],
 	MinCameraDistance: 20,
@@ -20,7 +20,8 @@ const Config = {
 	OverpassRequestTimeout: 10000,
 	DoFCoCScale: 4,
 	DoFFocusScale: 2,
-	DoFBokehRadius: 5
-}
+	DoFBokehRadius: 5,
+	devicePixelRatio: 1
+};
 
 export default Config;

@@ -3,7 +3,9 @@ import AbstractTexture2D, {AbstractTexture2DParams} from "~/renderer/abstract-re
 import WebGL2Texture from "~/renderer/webgl2-renderer/WebGL2Texture";
 import WebGL2Extensions from "~/renderer/webgl2-renderer/WebGL2Extensions";
 import WebGL2Texture2D from "~/renderer/webgl2-renderer/WebGL2Texture2D";
-import AbstractTexture2DArray, {AbstractTexture2DArrayParams} from "~/renderer/abstract-renderer/AbstractTexture2DArray";
+import AbstractTexture2DArray, {
+	AbstractTexture2DArrayParams
+} from "~/renderer/abstract-renderer/AbstractTexture2DArray";
 import WebGL2Texture2DArray from "~/renderer/webgl2-renderer/WebGL2Texture2DArray";
 import AbstractTextureCube, {AbstractTextureCubeParams} from "~/renderer/abstract-renderer/AbstractTextureCube";
 import WebGL2TextureCube from "~/renderer/webgl2-renderer/WebGL2TextureCube";
@@ -47,7 +49,8 @@ export default class WebGL2Renderer implements AbstractRenderer {
 			floatRenderable: this.gl.getExtension("EXT_color_buffer_float"),
 			debugInfo: this.gl.getExtension("WEBGL_debug_renderer_info"),
 			floatLinear: this.gl.getExtension("OES_texture_float_linear"),
-			timerQuery: this.gl.getExtension("EXT_disjoint_timer_query_webgl2")
+			timerQuery: this.gl.getExtension("EXT_disjoint_timer_query_webgl2"),
+			rendererInfo: this.gl.getExtension("WEBGL_debug_renderer_info")
 		};
 	}
 
@@ -233,7 +236,41 @@ export default class WebGL2Renderer implements AbstractRenderer {
 		}
 	}
 
-	public get resolution(): { x: number, y: number } {
+	public get rendererInfo(): [string, string] {
+		const ext = this.extensions.rendererInfo;
+
+		if (ext !== null) {
+			return [
+				this.gl.getParameter(ext.UNMASKED_VENDOR_WEBGL),
+				this.gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)
+			];
+		}
+
+		return [null, null];
+	}
+
+	public async fence(): Promise<void> {
+		return new Promise((resolve) => {
+			const sync = this.gl.fenceSync(WebGL2Constants.SYNC_GPU_COMMANDS_COMPLETE, 0);
+
+			this.gl.flush();
+
+			const check = () => {
+				const status = this.gl.getSyncParameter(sync, WebGL2Constants.SYNC_STATUS);
+
+				if (status == this.gl.SIGNALED) {
+					this.gl.deleteSync(sync);
+					resolve();
+				} else {
+					setTimeout(check, 0);
+				}
+			};
+
+			setTimeout(check, 0);
+		});
+	}
+
+	public get resolution(): {x: number, y: number} {
 		return {
 			x: this.gl.canvas.width,
 			y: this.gl.canvas.height

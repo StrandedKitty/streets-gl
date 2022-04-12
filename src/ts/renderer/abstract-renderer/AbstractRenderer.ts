@@ -19,5 +19,7 @@ export default interface AbstractRenderer {
 	createMesh(params: AbstractMeshParams): AbstractMesh;
 	beginRenderPass(renderPass: AbstractRenderPass): void;
 	useMaterial(material: AbstractMaterial): void;
+	fence(): Promise<void>;
+	readonly rendererInfo: [string, string];
 	readonly resolution: { x: number, y: number };
 }

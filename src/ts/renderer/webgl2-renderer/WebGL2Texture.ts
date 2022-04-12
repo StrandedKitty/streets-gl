@@ -17,6 +17,7 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 	protected renderer: WebGL2Renderer;
 	protected gl: WebGL2RenderingContext;
 	public WebGLTexture: WebGLTexture;
+	private pixelPackBuffer: WebGLBuffer = null;
 	protected deleted: boolean = false;
 
 	protected constructor(
@@ -94,6 +95,24 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 
 		this.renderer.bindTexture(this);
 		this.gl.texParameterf(this.textureTypeConstant, extension, this.anisotropy);
+	}
+
+	public getPixelPackBuffer(): WebGLBuffer {
+		if (this.pixelPackBuffer) {
+			return this.pixelPackBuffer;
+		}
+
+		const buffer = this.renderer.gl.createBuffer();
+
+		this.renderer.gl.bindBuffer(this.renderer.gl.PIXEL_PACK_BUFFER, buffer);
+		this.renderer.gl.bufferData(
+			this.renderer.gl.PIXEL_PACK_BUFFER,
+			WebGL2Texture.getFormatByteSize(this.format),
+			WebGL2Constants.STATIC_DRAW
+		);
+		this.renderer.gl.bindBuffer(this.renderer.gl.PIXEL_PACK_BUFFER, null);
+
+		return buffer;
 	}
 
 	public delete() {
@@ -193,5 +212,18 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 			internalFormat: WebGL2Constants.RGBA8,
 			type: WebGL2Constants.UNSIGNED_BYTE
 		};
+	}
+
+	static getFormatByteSize(format: RendererTypes.TextureFormat): number {
+		switch (format) {
+			case RendererTypes.TextureFormat.R8Unorm: return 1;
+			case RendererTypes.TextureFormat.RG8Unorm: return 2;
+			case RendererTypes.TextureFormat.RGB8Unorm: return 3;
+			case RendererTypes.TextureFormat.RGBA8Unorm: return 4;
+			case RendererTypes.TextureFormat.RGBA32Float: return 16;
+			case RendererTypes.TextureFormat.Depth32Float: return 4;
+		}
+
+		return 4;
 	}
 }

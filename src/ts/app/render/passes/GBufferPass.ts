@@ -161,7 +161,7 @@ export default class GBufferPass extends Pass<{
 			}
 		}
 
-		const testRenderPass = <AbstractRenderPass>this.getPhysicalResource('GBufferRenderPass');
+		const testRenderPass = this.getPhysicalResource('GBufferRenderPass');
 
 		this.renderer.beginRenderPass(testRenderPass);
 
@@ -196,6 +196,12 @@ export default class GBufferPass extends Pass<{
 
 			tile.buildingsMesh.draw();
 		}
+
+		const buffer = new Uint8Array(4);
+
+		/*testRenderPass.readColorAttachmentPixel(0, buffer, 0, 0, 1, 1).then(() => {
+			//console.log(buffer);
+		});*/
 
 		this.saveCameraMatrixWorldInverse();
 	}

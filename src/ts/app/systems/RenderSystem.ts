@@ -70,8 +70,10 @@ export default class RenderSystem extends System {
 	private init() {
 		const canvas = <HTMLCanvasElement>document.getElementById('canvas');
 
-		this.renderer = new WebGL2Renderer(canvas.getContext('webgl2'));
+		this.renderer = new WebGL2Renderer(canvas.getContext('webgl2', {powerPreference: "high-performance"}));
 		this.renderer.setSize(this.resolution.x, this.resolution.y);
+
+		console.log(`Vendor: ${this.renderer.rendererInfo[0]} \nRenderer: ${this.renderer.rendererInfo[1]}`);
 
 		/*this.gBuffer = new GBuffer(this.renderer, this.resolution.x, this.resolution.y, [
 			{
@@ -198,7 +200,7 @@ export default class RenderSystem extends System {
 		//this.csm.updateFrustums();
 
 		for (const pass of this.passManager.passes) {
-			pass.setSize(width, height)
+			pass.setSize(width, height);
 		}
 	}
 
@@ -255,6 +257,8 @@ export default class RenderSystem extends System {
 		//this.renderTiles();
 
 		this.renderGraph.render();
+
+		this.pickObjectId();
 
 		++this.frameCount;
 	}
@@ -554,16 +558,19 @@ export default class RenderSystem extends System {
 				tile.buildings.draw();
 			}
 		}
-	}
-
-	private pickObjectId(): number {
-		this.systemManager.getSystem(PickingSystem).readObjectId(this.renderer, this.gBuffer);
-
-		return this.systemManager.getSystem(PickingSystem).selectedObjectId;
 	}*/
 
+	private pickObjectId(): number {
+		//const pass = this.passManager.getPass(GBufferPass);
+
+
+		//this.systemManager.getSystem(PickingSystem).readObjectId(this.renderer, this.gBuffer);
+
+		return this.systemManager.getSystem(PickingSystem).selectedObjectId;
+	}
+
 	public get resolution(): Vec2 {
-		const pixelRatio = window.devicePixelRatio;
+		const pixelRatio = Config.devicePixelRatio;
 		return new Vec2(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio);
 	}
 }
