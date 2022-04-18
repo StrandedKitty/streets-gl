@@ -561,10 +561,13 @@ export default class RenderSystem extends System {
 	}*/
 
 	private pickObjectId(): number {
-		//const pass = this.passManager.getPass(GBufferPass);
+		const picking = this.systemManager.getSystem(PickingSystem);
+		const pass = this.passManager.getPass(GBufferPass);
 
+		pass.objectIdX = picking.pointerPosition.x;
+		pass.objectIdY = picking.pointerPosition.y;
 
-		//this.systemManager.getSystem(PickingSystem).readObjectId(this.renderer, this.gBuffer);
+		this.systemManager.getSystem(PickingSystem).readObjectId(pass.objectIdBuffer);
 
 		return this.systemManager.getSystem(PickingSystem).selectedObjectId;
 	}

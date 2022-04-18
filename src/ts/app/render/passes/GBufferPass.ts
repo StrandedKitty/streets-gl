@@ -20,6 +20,9 @@ export default class GBufferPass extends Pass<{
 	private material: AbstractMaterial;
 	private materialSkybox: AbstractMaterial;
 	private cameraMatrixWorldInversePrev: Mat4 = null;
+	public objectIdBuffer: Uint32Array = new Uint32Array(1);
+	public objectIdX: number = 0;
+	public objectIdY: number = 0;
 
 	constructor(manager: PassManager) {
 		super('GBufferPass', manager, {
@@ -47,6 +50,11 @@ export default class GBufferPass extends Pass<{
 					block: 'PerMesh',
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array(16)
+				}, {
+					name: 'tileId',
+					block: 'PerMesh',
+					type: RendererTypes.UniformType.Uint1,
+					value: new Uint32Array(1)
 				}, {
 					name: 'projectionMatrix',
 					block: 'PerMaterial',
@@ -191,17 +199,15 @@ export default class GBufferPass extends Pass<{
 
 			this.material.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
 			this.material.getUniform<UniformMatrix4>('modelViewMatrixPrev', 'PerMesh').value = new Float32Array(mvMatrixPrev.values);
+			this.material.getUniform<UniformMatrix4>('tileId', 'PerMesh').value[0] = tile.localId;
 			this.material.applyUniformUpdates('modelViewMatrix', 'PerMesh');
 			this.material.applyUniformUpdates('modelViewMatrixPrev', 'PerMesh');
+			this.material.applyUniformUpdates('tileId', 'PerMesh');
 
 			tile.buildingsMesh.draw();
 		}
 
-		const buffer = new Uint8Array(4);
-
-		/*testRenderPass.readColorAttachmentPixel(0, buffer, 0, 0, 1, 1).then(() => {
-			//console.log(buffer);
-		});*/
+		testRenderPass.readColorAttachmentPixel(4, this.objectIdBuffer, this.objectIdX, this.objectIdY);
 
 		this.saveCameraMatrixWorldInverse();
 	}

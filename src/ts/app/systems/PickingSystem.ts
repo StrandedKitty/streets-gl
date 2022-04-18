@@ -10,14 +10,13 @@ import TileSystem from "./TileSystem";
 import UISystem from "./UISystem";
 
 export default class PickingSystem extends System {
-	private pointerPosition: Vec2 = new Vec2();
-	private pixelBuffer: WebGLBuffer;
+	public pointerPosition: Vec2 = new Vec2();
 	private enablePicking: boolean = true;
 	public hoveredObjectId: number = 0;
 	public selectedObjectId: number = 0;
 	public selectedObjectLocalId: number = 0;
 	public selectedObjectTile: Tile = null;
-	private pointerDownPosition: Vec2 = new Vec2();
+	public pointerDownPosition: Vec2 = new Vec2();
 
 	constructor(systemManager: SystemManager) {
 		super(systemManager);
@@ -59,17 +58,7 @@ export default class PickingSystem extends System {
 
 	}
 
-	private createPixelBuffer(renderer: Renderer) {
-		const buffer = renderer.gl.createBuffer();
-
-		renderer.gl.bindBuffer(renderer.gl.PIXEL_PACK_BUFFER, buffer);
-		renderer.gl.bufferData(renderer.gl.PIXEL_PACK_BUFFER, 4, renderer.gl.STATIC_DRAW);
-		renderer.gl.bindBuffer(renderer.gl.PIXEL_PACK_BUFFER, null);
-
-		this.pixelBuffer = buffer;
-	}
-
-	public readObjectId(renderer: Renderer, gBuffer: GBuffer) {
+	public readObjectId(buffer: Uint32Array) {
 		/*if (!this.pixelBuffer) {
 			this.createPixelBuffer(renderer);
 		}
@@ -100,7 +89,8 @@ export default class PickingSystem extends System {
 			this.updatePointer();
 		});*/
 
-
+		this.hoveredObjectId = buffer[0];
+		this.updatePointer();
 	}
 
 	private updatePointer() {

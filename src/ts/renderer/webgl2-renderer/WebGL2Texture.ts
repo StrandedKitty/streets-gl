@@ -205,6 +205,12 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 					internalFormat: WebGL2Constants.DEPTH_COMPONENT32F,
 					type: WebGL2Constants.FLOAT
 				};
+			case RendererTypes.TextureFormat.R32Uint:
+				return {
+					format: WebGL2Constants.RED_INTEGER,
+					internalFormat: WebGL2Constants.R32UI,
+					type: WebGL2Constants.UNSIGNED_INT
+				};
 		}
 
 		return {
@@ -216,12 +222,20 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 
 	static getFormatByteSize(format: RendererTypes.TextureFormat): number {
 		switch (format) {
-			case RendererTypes.TextureFormat.R8Unorm: return 1;
-			case RendererTypes.TextureFormat.RG8Unorm: return 2;
-			case RendererTypes.TextureFormat.RGB8Unorm: return 3;
-			case RendererTypes.TextureFormat.RGBA8Unorm: return 4;
-			case RendererTypes.TextureFormat.RGBA32Float: return 16;
-			case RendererTypes.TextureFormat.Depth32Float: return 4;
+			case RendererTypes.TextureFormat.R8Unorm:
+				return 1;
+			case RendererTypes.TextureFormat.RG8Unorm:
+				return 2;
+			case RendererTypes.TextureFormat.RGB8Unorm:
+				return 3;
+			case RendererTypes.TextureFormat.RGBA8Unorm:
+				return 4;
+			case RendererTypes.TextureFormat.RGBA32Float:
+				return 16;
+			case RendererTypes.TextureFormat.Depth32Float:
+				return 4;
+			case RendererTypes.TextureFormat.R32Uint:
+				return 4;
 		}
 
 		return 4;

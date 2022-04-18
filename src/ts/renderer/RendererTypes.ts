@@ -25,7 +25,8 @@ export namespace RendererTypes {
 		RGB8Unorm,
 		RGBA8Unorm,
 		RGBA32Float,
-		Depth32Float
+		Depth32Float,
+		R32Uint
 	}
 
 	export enum AttachmentLoadOp {

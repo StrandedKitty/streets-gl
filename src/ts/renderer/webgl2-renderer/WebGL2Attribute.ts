@@ -123,6 +123,8 @@ export default class WebGL2Attribute implements AbstractAttribute {
 				return WebGL2Constants.UNSIGNED_BYTE;
 			case RendererTypes.AttributeType.Float32:
 				return WebGL2Constants.FLOAT;
+			case RendererTypes.AttributeType.UnsignedInt:
+				return WebGL2Constants.UNSIGNED_INT;
 		}
 
 		return WebGL2Constants.UNSIGNED_BYTE;

@@ -217,22 +217,22 @@ export default class WebGL2Material implements AbstractMaterial {
 				this.gl.uniform4iv(location, uniform.value);
 				break;
 			case RendererTypes.UniformType.Uint1:
-				this.gl.uniform1uiv(location, uniform.value as Uint32Array);
+				this.gl.uniform1uiv(location, uniform.value);
 				break;
 			case RendererTypes.UniformType.Uint2:
-				this.gl.uniform2uiv(location, uniform.value as Uint32Array);
+				this.gl.uniform2uiv(location, uniform.value);
 				break;
 			case RendererTypes.UniformType.Uint3:
-				this.gl.uniform3uiv(location, uniform.value as Uint32Array);
+				this.gl.uniform3uiv(location, uniform.value);
 				break;
 			case RendererTypes.UniformType.Uint4:
-				this.gl.uniform4uiv(location, uniform.value as Uint32Array);
+				this.gl.uniform4uiv(location, uniform.value);
 				break;
 			case RendererTypes.UniformType.Matrix3:
-				this.gl.uniformMatrix3fv(location, false, uniform.value as Float32Array);
+				this.gl.uniformMatrix3fv(location, false, uniform.value);
 				break;
 			case RendererTypes.UniformType.Matrix4:
-				this.gl.uniformMatrix4fv(location, false, uniform.value as Float32Array);
+				this.gl.uniformMatrix4fv(location, false, uniform.value);
 				break;
 			case RendererTypes.UniformType.Texture2D: {
 				const textureUnit = this.getUniformTextureUnit(uniform);

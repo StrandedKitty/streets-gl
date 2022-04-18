@@ -96,7 +96,7 @@ function load(x: number, y: number) {
 	httpRequest.onreadystatechange = function () {
 		if (httpRequest.readyState === XMLHttpRequest.DONE) {
 			if (httpRequest.status === 200) {
-				buildGeometry(x, y, JSON.parse(httpRequest.responseText));
+				buildGeometry(x, y, JSON.parse(httpRequest.responseText).elements);
 			} else {
 				sendMessage({
 					type: WorkerMessageIncomingType.Error,
@@ -108,7 +108,7 @@ function load(x: number, y: number) {
 	};
 
 	httpRequest.timeout = Config.OverpassRequestTimeout;
-	httpRequest.open('GET', 'http://localhost:3000?x=' + x + '&y=' + y);
+	httpRequest.open('GET', url);
 	httpRequest.send();
 }
 

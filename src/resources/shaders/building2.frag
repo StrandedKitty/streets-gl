@@ -6,12 +6,14 @@ in vec2 vUv;
 in vec3 vNormal;
 in vec3 vPosition;
 flat in int vTextureId;
+flat in uint vObjectId;
 in vec4 vClipPos;
 in vec4 vClipPosPrev;
 
 uniform PerMesh {
     mat4 modelViewMatrix;
     mat4 modelViewMatrixPrev;
+    uint tileId;
 };
 
 uniform sampler2DArray tRoofColor;
@@ -67,4 +69,5 @@ void main() {
     outColor.rgb *= fr;
     outPosition = vPosition;
     outMotion = getMotionVector(vClipPos, vClipPosPrev);
+    outObjectId = vObjectId;
 }

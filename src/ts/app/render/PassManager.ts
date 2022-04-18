@@ -122,6 +122,19 @@ export default class PassManager {
 						clearValue: {r: 0, g: 0, b: 0, a: 0},
 						loadOp: RendererTypes.AttachmentLoadOp.Load,
 						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}, {
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: this.renderer.resolution.x,
+							height: this.renderer.resolution.y,
+							format: RendererTypes.TextureFormat.R32Uint,
+							minFilter: RendererTypes.MinFilter.Nearest,
+							magFilter: RendererTypes.MagFilter.Nearest,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
 					}
 				],
 				depthAttachment: {

@@ -176,11 +176,19 @@ export default class Tile extends Object3D {
 				renderer.createAttribute({
 					name: 'textureId',
 					size: 1,
-					type: AttributeType.UnsignedInt,
+					type: AttributeType.UnsignedByte,
 					format: RendererTypes.AttributeFormat.Integer,
 					normalized: false,
 					data: this.staticGeometry.buildings.textureId
 				}),
+				renderer.createAttribute({
+					name: 'localId',
+					size: 1,
+					type: AttributeType.UnsignedInt,
+					format: RendererTypes.AttributeFormat.Integer,
+					normalized: false,
+					data: this.staticGeometry.buildings.localId
+				})
 			]
 		});
 	}

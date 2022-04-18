@@ -83,7 +83,7 @@ export default class WebGL2UBO {
 		const savedValue = this.savedUniformValues.get(uniformName);
 
 		if (savedValue && equal(savedValue, value)) {
-			return;
+			//return;
 		}
 
 		this.bind();

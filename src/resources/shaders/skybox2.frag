@@ -13,4 +13,5 @@ void main() {
     outNormal = packNormal(vNormal);
     outPosition = vec3(0, 0, -1e8);
     outMotion = getMotionVector(vClipPos, vClipPosPrev);
+    outObjectId = 0u;
 }
