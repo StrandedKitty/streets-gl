@@ -1,7 +1,6 @@
-import AbstractMesh from "../../renderer/abstract-renderer/AbstractMesh";
-import AbstractRenderer from "../../renderer/abstract-renderer/AbstractRenderer";
-import {RendererTypes} from "../../renderer/RendererTypes";
-import Object3D from "../../core/Object3D";
+import AbstractMesh from "~/renderer/abstract-renderer/AbstractMesh";
+import AbstractRenderer from "~/renderer/abstract-renderer/AbstractRenderer";
+import {RendererTypes} from "~/renderer/RendererTypes";
 import RenderableObject3D from "./RenderableObject3D";
 
 const vertices: number[] = [

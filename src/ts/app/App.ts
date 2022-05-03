@@ -32,8 +32,8 @@ class App {
 		this.systemManager = new SystemManager();
 
 		this.systemManager.addSystems([
-			SceneSystem,
 			ControlsSystem,
+			SceneSystem,
 			CursorStyleSystem,
 			PickingSystem,
 			MapTimeSystem,

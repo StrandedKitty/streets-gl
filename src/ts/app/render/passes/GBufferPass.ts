@@ -75,6 +75,8 @@ export default class GBufferPass extends Pass<{
 							ResourceManager.get('roofColor3'),
 							ResourceManager.get('roofColor4'),
 						],
+						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
+						magFilter: RendererTypes.MagFilter.Linear,
 						wrap: RendererTypes.TextureWrap.ClampToEdge,
 						format: RendererTypes.TextureFormat.RGBA8Unorm,
 						mipmaps: true
@@ -94,6 +96,8 @@ export default class GBufferPass extends Pass<{
 							ResourceManager.get('roofNormal3'),
 							ResourceManager.get('roofNormal4'),
 						],
+						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
+						magFilter: RendererTypes.MagFilter.Linear,
 						wrap: RendererTypes.TextureWrap.ClampToEdge,
 						format: RendererTypes.TextureFormat.RGBA8Unorm,
 						mipmaps: true

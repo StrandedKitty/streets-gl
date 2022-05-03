@@ -373,10 +373,6 @@ export default class Tile extends Object3D {
 		}
 	}
 
-	public getEncodedPosition(): number {
-		return Tile.encodePosition(this.x, this.y);
-	}
-
 	public static encodePosition(x: number, y: number): number {
 		return x << 16 + y;
 	}

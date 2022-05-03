@@ -20,10 +20,10 @@ export default class TileBuilding {
 
 	public removeParent(tile: Tile) {
 		for(let i = 0; i < this.parents.length; i++) {
-			if(tile.getEncodedPosition() === this.parents[i].getEncodedPosition()) {
+			if(tile === this.parents[i]) {
 				this.parents.splice(i, 1);
 
-				if(tile.getEncodedPosition() === this.holder.getEncodedPosition() && this.parents.length > 0) {
+				if(tile === this.holder && this.parents.length > 0) {
 					this.holder = this.getPotentialHolder();
 
 					if(!this.holder.isBuildingVisible(this.id)) {

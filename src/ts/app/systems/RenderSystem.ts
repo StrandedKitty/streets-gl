@@ -215,7 +215,7 @@ export default class RenderSystem extends System {
 	public update(deltaTime: number) {
 		const sceneSystem = this.systemManager.getSystem(SceneSystem);
 
-		for (const object of sceneSystem.getObjectsToUpdate()) {
+		for (const object of sceneSystem.getObjectsToUpdateMesh()) {
 			object.updateMesh(this.renderer);
 		}
 

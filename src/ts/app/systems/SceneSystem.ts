@@ -61,7 +61,7 @@ export default class SceneSystem extends System {
 
 	}
 
-	public getObjectsToUpdate(): RenderableObject3D[] {
+	public getObjectsToUpdateMesh(): RenderableObject3D[] {
 		const objects: Object3D[] = [this.scene];
 		const result: RenderableObject3D[] = [];
 
@@ -94,9 +94,6 @@ export default class SceneSystem extends System {
 	public update(deltaTime: number) {
 		const cameraPos = this.objects.camera.position;
 
-		this.objects.skybox.position.set(cameraPos.x, cameraPos.y, cameraPos.z);
-		this.objects.skybox.updateMatrix();
-
 		this.pivotDelta = new Vec2(
 			this.objects.wrapper.position.x + cameraPos.x,
 			this.objects.wrapper.position.z + cameraPos.z
@@ -107,8 +104,12 @@ export default class SceneSystem extends System {
 
 		this.objects.wrapper.updateMatrix();
 
+		this.objects.skybox.position.set(cameraPos.x, cameraPos.y, cameraPos.z);
+		this.objects.skybox.updateMatrix();
+
 		this.updateTiles();
 
+		this.scene.updateMatrixRecursively();
 		this.scene.updateMatrixWorldRecursively();
 
 		this.objects.camera.updateMatrixWorldInverse();

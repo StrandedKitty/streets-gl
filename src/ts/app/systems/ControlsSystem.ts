@@ -32,8 +32,9 @@ export default class ControlsSystem extends System {
 	private tick: number = 0;
 	public target: Vec3 = new Vec3();
 	private direction: Vec3 = new Vec3();
-	private distance: number = 1000;
-	private distanceTarget: number = 1000;
+	private normalizedDistance: number = 0.1;
+	private normalizedDistanceTarget: number = 0.1;
+	private distance: number = 0;
 	private pitch: number = MathUtils.toRad(45);
 	private yaw: number = MathUtils.toRad(0);
 	private state: ControlsState;
@@ -77,7 +78,7 @@ export default class ControlsSystem extends System {
 				z: startPosition.y,
 				pitch: this.pitch,
 				yaw: this.yaw,
-				distance: this.distance
+				distance: 2 ** this.normalizedDistance
 			}
 
 			this.updatePositionFromState(this.state);
@@ -98,10 +99,6 @@ export default class ControlsSystem extends System {
 
 	}
 
-	public getCameraRayLength(): number {
-		return this.distance;
-	}
-
 	public getLatLon(): {lat: number, lon: number} {
 		return MathUtils.meters2degrees(this.target.x, this.target.z);
 	}
@@ -111,7 +108,7 @@ export default class ControlsSystem extends System {
 		this.state.z = this.target.z;
 		this.state.pitch = this.pitch;
 		this.state.yaw = this.yaw;
-		this.state.distance = this.distance;
+		this.state.distance = 2 ** this.normalizedDistance;
 	}
 
 	private updatePositionFromState(state: ControlsState) {
@@ -119,12 +116,12 @@ export default class ControlsSystem extends System {
 		this.target.z = state.z;
 		this.pitch = state.pitch;
 		this.yaw = state.yaw;
-		this.distance = state.distance;
-		this.distanceTarget = state.distance;
+		this.normalizedDistance = this.normalizedDistanceTarget = Math.log2(state.distance);
 	}
 
 	private wheelEvent(e: WheelEvent) {
-		this.distanceTarget += 0.5 * e.deltaY;
+		//this.distanceTarget += 0.5 * e.deltaY;
+		this.normalizedDistanceTarget += e.deltaY / 2000.;
 	}
 
 	private mouseDownEvent(e: MouseEvent) {
@@ -233,7 +230,7 @@ export default class ControlsSystem extends System {
 
 	private onDoubleTouchMove(e: DoubleTouchMoveEvent) {
 		if (e.zoomDelta && !this.touchHandlers.get('pitch').active) {
-			this.distanceTarget -= e.zoomDelta * this.distanceTarget;
+			this.normalizedDistanceTarget -= e.zoomDelta * this.normalizedDistanceTarget;
 		}
 
 		if (e.bearingDelta && !this.touchHandlers.get('pitch').active) {
@@ -279,17 +276,18 @@ export default class ControlsSystem extends System {
 	}
 
 	private updateDistance() {
-		this.distanceTarget = MathUtils.clamp(
-			this.distanceTarget,
-			Config.MinCameraDistance,
-			Config.MaxCameraDistance
+		const min = Math.log2(Config.MinCameraDistance);
+		const max = Math.log2(Config.MaxCameraDistance);
+
+		this.normalizedDistanceTarget = MathUtils.clamp(this.normalizedDistanceTarget, min, max);
+
+		this.normalizedDistance = MathUtils.lerp(
+			this.normalizedDistance,
+			this.normalizedDistanceTarget,
+			Config.CameraZoomSmoothing
 		);
 
-		if (Math.abs(this.distance - this.distanceTarget) < 0.01) {
-			this.distance = this.distanceTarget;
-		} else {
-			this.distance = MathUtils.lerp(this.distance, this.distanceTarget, 0.4);
-		}
+		this.distance = 2 ** this.normalizedDistance;
 	}
 
 	private updateTargetHeightFromHeightmap() {
