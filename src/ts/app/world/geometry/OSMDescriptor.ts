@@ -14,9 +14,12 @@ export default class OSMDescriptor {
 	}
 
 	private getProperties(): void {
+		const tags: any = TagsList;
+		const colors: any = ColorsList;
+
 		for (const [key, value] of Object.entries(this.tags)) {
-			if (TagsList[key]) {
-				const props: { [key: string]: string } = TagsList[key][value] || TagsList[key].default || {};
+			if (tags[key]) {
+				const props: { [key: string]: string } = tags[key][value] || tags[key].default || {};
 
 				for (const [propKey, propValue] of Object.entries(props)) {
 					let newValue: any;
@@ -26,7 +29,7 @@ export default class OSMDescriptor {
 						newValue = this.parseUnits(value);
 						break;
 					case '@color':
-						newValue = ColorsList[value.toLowerCase()] || Utils.hexToRgb(value);
+						newValue = colors[value.toLowerCase()] || Utils.hexToRgb(value);
 						break;
 					case '@int':
 						newValue = parseInt(value);

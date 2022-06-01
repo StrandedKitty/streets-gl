@@ -136,3 +136,5 @@ async function buildGeometry(x: number, y: number, data: any): Promise<void> {
 	});
 }
 
+export default null as any;
+

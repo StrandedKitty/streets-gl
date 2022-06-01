@@ -24,7 +24,7 @@
 			"rules": {
 				"indent": ["warn", "tab"],
 				"@typescript-eslint/no-unused-vars": [
-					"warn",
+					"off",
 					{
 						"ignoreRestSiblings": true
 					}
@@ -34,6 +34,7 @@
 				"@typescript-eslint/no-empty-function": "off",
 				"@typescript-eslint/no-loss-of-precision": "off",
 				"@typescript-eslint/no-namespace": "off",
+				"@typescript-eslint/no-explicit-any": "off",
 				"@typescript-eslint/member-delimiter-style": [
 					"warn",
 					{
