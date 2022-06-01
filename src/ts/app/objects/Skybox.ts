@@ -45,17 +45,17 @@ const vertices: number[] = [
 export default class Skybox extends RenderableObject3D {
 	public mesh: AbstractMesh = null;
 
-	constructor() {
+	public constructor() {
 		super();
 
 		this.scale.set(1000, 1000, 1000);
 	}
 
-	isMeshReady(): boolean {
+	public isMeshReady(): boolean {
 		return this.mesh !== null;
 	}
 
-	updateMesh(renderer: AbstractRenderer) {
+	public updateMesh(renderer: AbstractRenderer): void {
 		this.mesh = renderer.createMesh({
 			attributes: [
 				renderer.createAttribute({

@@ -11,7 +11,7 @@ export default class CoCDownscalePass {
 	public material: CoCDownscaleMaterial;
 	public framebuffer: Framebuffer;
 
-	constructor(renderer: Renderer, width: number, height: number) {
+	public constructor(renderer: Renderer, width: number, height: number) {
 		this.renderer = renderer;
 		this.width = width / 2;
 		this.height = height / 2;
@@ -19,7 +19,7 @@ export default class CoCDownscalePass {
 		this.init();
 	}
 
-	private init() {
+	private init(): void {
 		this.material = new CoCDownscaleMaterial(this.renderer);
 
 		this.framebuffer = new Framebuffer(this.renderer, {
@@ -40,7 +40,7 @@ export default class CoCDownscalePass {
 		});
 	}
 
-	public setSize(width: number, height: number) {
+	public setSize(width: number, height: number): void {
 		this.width = width / 2;
 		this.height = height / 2;
 

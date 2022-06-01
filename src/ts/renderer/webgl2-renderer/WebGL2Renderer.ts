@@ -31,19 +31,19 @@ export default class WebGL2Renderer implements AbstractRenderer {
 	public boundMaterial: WebGL2Material = null;
 
 	private frontFaceState: RendererTypes.FrontFace = RendererTypes.FrontFace.CCW;
-	private cullingState: boolean = true;
+	private cullingState = true;
 	private cullingModeState: RendererTypes.CullMode = RendererTypes.CullMode.Back;
-	private depthWriteState: boolean = true;
-	private depthTestState: boolean = false;
+	private depthWriteState = true;
+	private depthTestState = false;
 	private depthFuncState: RendererTypes.DepthCompare = RendererTypes.DepthCompare.LessEqual;
 
-	constructor(context: WebGL2RenderingContext) {
+	public constructor(context: WebGL2RenderingContext) {
 		this.gl = context;
 
 		this.initExtensions();
 	}
 
-	private initExtensions() {
+	private initExtensions(): void {
 		this.extensions = {
 			anisotropy: this.gl.getExtension("EXT_texture_filter_anisotropic"),
 			floatRenderable: this.gl.getExtension("EXT_color_buffer_float"),
@@ -54,7 +54,7 @@ export default class WebGL2Renderer implements AbstractRenderer {
 		};
 	}
 
-	public bindTexture(texture: WebGL2Texture) {
+	public bindTexture(texture: WebGL2Texture): void {
 		if (this.boundTexture !== texture) {
 			texture.bind();
 
@@ -62,7 +62,7 @@ export default class WebGL2Renderer implements AbstractRenderer {
 		}
 	}
 
-	public unbindTexture() {
+	public unbindTexture(): void {
 		if (this.boundTexture) {
 			this.boundTexture.unbind();
 
@@ -102,11 +102,11 @@ export default class WebGL2Renderer implements AbstractRenderer {
 		return new WebGL2RenderPass(this, params);
 	}
 
-	public beginRenderPass(renderPass: WebGL2RenderPass) {
+	public beginRenderPass(renderPass: WebGL2RenderPass): void {
 		renderPass.begin();
 	}
 
-	public useMaterial(material: WebGL2Material) {
+	public useMaterial(material: WebGL2Material): void {
 		if (this.boundMaterial !== material) {
 			material.use();
 
@@ -185,30 +185,30 @@ export default class WebGL2Renderer implements AbstractRenderer {
 		this.depthFuncState = state;
 
 		switch (state) {
-			case RendererTypes.DepthCompare.Never:
-				this.gl.depthFunc(WebGL2Constants.NEVER);
-				return;
-			case RendererTypes.DepthCompare.Less:
-				this.gl.depthFunc(WebGL2Constants.LESS);
-				return;
-			case RendererTypes.DepthCompare.Equal:
-				this.gl.depthFunc(WebGL2Constants.EQUAL);
-				return;
-			case RendererTypes.DepthCompare.LessEqual:
-				this.gl.depthFunc(WebGL2Constants.LEQUAL);
-				return;
-			case RendererTypes.DepthCompare.Greater:
-				this.gl.depthFunc(WebGL2Constants.GREATER);
-				return;
-			case RendererTypes.DepthCompare.NotEqual:
-				this.gl.depthFunc(WebGL2Constants.NOTEQUAL);
-				return;
-			case RendererTypes.DepthCompare.GreaterEqual:
-				this.gl.depthFunc(WebGL2Constants.GEQUAL);
-				return;
-			case RendererTypes.DepthCompare.Always:
-				this.gl.depthFunc(WebGL2Constants.ALWAYS);
-				return;
+		case RendererTypes.DepthCompare.Never:
+			this.gl.depthFunc(WebGL2Constants.NEVER);
+			return;
+		case RendererTypes.DepthCompare.Less:
+			this.gl.depthFunc(WebGL2Constants.LESS);
+			return;
+		case RendererTypes.DepthCompare.Equal:
+			this.gl.depthFunc(WebGL2Constants.EQUAL);
+			return;
+		case RendererTypes.DepthCompare.LessEqual:
+			this.gl.depthFunc(WebGL2Constants.LEQUAL);
+			return;
+		case RendererTypes.DepthCompare.Greater:
+			this.gl.depthFunc(WebGL2Constants.GREATER);
+			return;
+		case RendererTypes.DepthCompare.NotEqual:
+			this.gl.depthFunc(WebGL2Constants.NOTEQUAL);
+			return;
+		case RendererTypes.DepthCompare.GreaterEqual:
+			this.gl.depthFunc(WebGL2Constants.GEQUAL);
+			return;
+		case RendererTypes.DepthCompare.Always:
+			this.gl.depthFunc(WebGL2Constants.ALWAYS);
+			return;
 		}
 	}
 
@@ -222,12 +222,12 @@ export default class WebGL2Renderer implements AbstractRenderer {
 		this.gl.depthMask(state);
 	}
 
-	public setSize(width: number, height: number) {
+	public setSize(width: number, height: number): void {
 		this.gl.canvas.width = width;
 		this.gl.canvas.height = height;
 	}
 
-	public bindFramebuffer(framebuffer: WebGL2Framebuffer | null) {
+	public bindFramebuffer(framebuffer: WebGL2Framebuffer | null): void {
 		if (framebuffer) {
 			framebuffer.bind();
 		} else {
@@ -255,7 +255,7 @@ export default class WebGL2Renderer implements AbstractRenderer {
 
 			this.gl.flush();
 
-			const check = () => {
+			const check = (): void => {
 				const status = this.gl.getSyncParameter(sync, WebGL2Constants.SYNC_STATUS);
 
 				if (status == this.gl.SIGNALED) {
@@ -270,7 +270,7 @@ export default class WebGL2Renderer implements AbstractRenderer {
 		});
 	}
 
-	public get resolution(): {x: number, y: number} {
+	public get resolution(): {x: number; y: number} {
 		return {
 			x: this.gl.canvas.width,
 			y: this.gl.canvas.height

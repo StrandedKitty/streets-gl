@@ -3,9 +3,9 @@ export default class WayAABB {
 	public minY: number;
 	public maxX: number;
 	public maxY: number;
-	private empty: boolean = true;
+	private empty = true;
 
-	public set(minX: number, minY: number, maxX: number, maxY: number) {
+	public set(minX: number, minY: number, maxX: number, maxY: number): void {
 		this.minX = minX;
 		this.minY = minY;
 		this.maxX = maxX;
@@ -16,7 +16,7 @@ export default class WayAABB {
 		}
 	}
 
-	public addPoint(x: number, y: number) {
+	public addPoint(x: number, y: number): void {
 		if(this.empty) {
 			this.minX = x;
 			this.minY = y;

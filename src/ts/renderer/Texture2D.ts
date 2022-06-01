@@ -6,7 +6,7 @@ export default class Texture2D extends Texture {
 	protected textureTypeConstant = GLConstants.TEXTURE_2D;
 	public url: string;
 
-	constructor(renderer: Renderer, {
+	public constructor(renderer: Renderer, {
 		url,
 		anisotropy = 1,
 		minFilter = GLConstants.LINEAR_MIPMAP_LINEAR,
@@ -20,18 +20,18 @@ export default class Texture2D extends Texture {
 		data = null,
 		flipY = false
 	}: {
-		url?: string,
-		anisotropy?: number,
-		minFilter?: number,
-		magFilter?: number,
-		wrap?: number,
-		width?: number,
-		height?: number,
-		format?: number,
-		internalFormat?: number,
-		type?: number,
-		data?: TypedArray,
-		flipY?: boolean
+		url?: string;
+		anisotropy?: number;
+		minFilter?: number;
+		magFilter?: number;
+		wrap?: number;
+		width?: number;
+		height?: number;
+		format?: number;
+		internalFormat?: number;
+		type?: number;
+		data?: TypedArray;
+		flipY?: boolean;
 	}) {
 		super(renderer, {anisotropy, minFilter, magFilter, wrap, width, height, format, internalFormat, type, data, flipY});
 
@@ -54,11 +54,11 @@ export default class Texture2D extends Texture {
 		this.gl.bindTexture(GLConstants.TEXTURE_2D, null);
 	}
 
-	private loadImage() {
+	private loadImage(): void {
 		const image = new Image();
 
 		image.crossOrigin = "anonymous";
-		image.onload = () => {
+		image.onload = (): void => {
 			if(!this.deleted) {
 				this.writeFromImage(image);
 			}
@@ -68,7 +68,7 @@ export default class Texture2D extends Texture {
 		image.src = this.url;
 	}
 
-	private writeFromImage(image: HTMLImageElement) {
+	private writeFromImage(image: HTMLImageElement): void {
 		this.gl.bindTexture(GLConstants.TEXTURE_2D, this.WebGLTexture);
 
 		this.width = image.width;
@@ -82,7 +82,7 @@ export default class Texture2D extends Texture {
 		this.gl.bindTexture(GLConstants.TEXTURE_2D, null);
 	}
 
-	private writeFromBuffer(data: TypedArray) {
+	private writeFromBuffer(data: TypedArray): void {
 		this.gl.bindTexture(GLConstants.TEXTURE_2D, this.WebGLTexture);
 
 		this.updateFlipY();
@@ -95,7 +95,7 @@ export default class Texture2D extends Texture {
 		this.gl.bindTexture(GLConstants.TEXTURE_2D, null);
 	}
 
-	public loadFromTiles(urls: string[], segmentsX: number, segmentsY: number) {
+	public loadFromTiles(urls: string[], segmentsX: number, segmentsY: number): void {
 		const promises: Promise<void>[] = [];
 		const tileWidth = this.width / segmentsX;
 		const tileHeight = this.height / segmentsY;
@@ -108,7 +108,7 @@ export default class Texture2D extends Texture {
 			image.crossOrigin = "anonymous";
 
 			promises.push(new Promise<void>(resolve => {
-				image.onload = () => {
+				image.onload = (): void => {
 					if(!this.deleted) {
 						this.gl.bindTexture(GLConstants.TEXTURE_2D, this.WebGLTexture);
 
@@ -136,13 +136,13 @@ export default class Texture2D extends Texture {
 		});
 	}
 
-	public generateMipmaps() {
+	public generateMipmaps(): void {
 		if (this.format === GLConstants.RGBA) {
 			super.generateMipmaps();
 		}
 	}
 
-	public setSize(width: number, height: number) {
+	public setSize(width: number, height: number): void {
 		this.width = width;
 		this.height = height;
 

@@ -1,9 +1,8 @@
-import AbstractMaterial from "./AbstractMaterial";
 import AbstractAttribute from "~/renderer/abstract-renderer/AbstractAttribute";
 
 export interface AbstractMeshParams {
 	indexed?: boolean;
-	attributes?: AbstractAttribute[]
+	attributes?: AbstractAttribute[];
 }
 
 export default interface AbstractMesh {

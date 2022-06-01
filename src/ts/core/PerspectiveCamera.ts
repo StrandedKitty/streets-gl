@@ -8,7 +8,7 @@ export default class PerspectiveCamera extends Camera {
 	public far: number;
 	public aspect: number;
 
-	constructor({fov, near, far, aspect}: {fov: number, near: number, far: number, aspect: number}) {
+	public constructor({fov, near, far, aspect}: {fov: number; near: number; far: number; aspect: number}) {
 		super();
 
 		this.fov = fov;
@@ -19,7 +19,7 @@ export default class PerspectiveCamera extends Camera {
 		this.updateProjectionMatrix();
 	}
 
-	public updateProjectionMatrix() {
+	public updateProjectionMatrix(): void {
 		this.projectionMatrix = Mat4.perspective(MathUtils.toRad(this.fov), this.aspect, this.near, this.far);
 		this.updateProjectionMatrixInverse();
 	}

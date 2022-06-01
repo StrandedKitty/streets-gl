@@ -8,7 +8,7 @@ export interface OSMRelationMember {
 export default class OSMRelation extends OSMFeature {
 	public members: OSMRelationMember[];
 
-	constructor(id: number, members: OSMRelationMember[], tags: OSMTags) {
+	public constructor(id: number, members: OSMRelationMember[], tags: OSMTags) {
 		super(id, tags);
 
 		this.members = members;

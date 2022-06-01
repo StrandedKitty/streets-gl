@@ -3,7 +3,6 @@ import {RendererTypes} from "~/renderer/RendererTypes";
 import {UniformMatrix4} from "~/renderer/abstract-renderer/Uniform";
 import Tile from "~/app/objects/Tile";
 import Mat4 from "../../../math/Mat4";
-import AbstractRenderPass from "../../../renderer/abstract-renderer/AbstractRenderPass";
 import Shaders from "../shaders/Shaders";
 import Pass from "~/app/render/passes/Pass";
 import RenderPassResource from "~/app/render/render-graph/resources/RenderPassResource";
@@ -13,18 +12,18 @@ import ResourceManager from '~/app/world/ResourceManager';
 
 export default class GBufferPass extends Pass<{
 	GBufferRenderPass: {
-		type: InternalResourceType.Output,
-		resource: RenderPassResource
-	}
+		type: InternalResourceType.Output;
+		resource: RenderPassResource;
+	};
 }> {
 	private material: AbstractMaterial;
 	private materialSkybox: AbstractMaterial;
 	private cameraMatrixWorldInversePrev: Mat4 = null;
 	public objectIdBuffer: Uint32Array = new Uint32Array(1);
-	public objectIdX: number = 0;
-	public objectIdY: number = 0;
+	public objectIdX = 0;
+	public objectIdY = 0;
 
-	constructor(manager: PassManager) {
+	public constructor(manager: PassManager) {
 		super('GBufferPass', manager, {
 			GBufferRenderPass: {type: InternalResourceType.Output, resource: manager.getSharedResource('GBufferRenderPass')}
 		});
@@ -32,11 +31,11 @@ export default class GBufferPass extends Pass<{
 		this.init();
 	}
 
-	private init() {
+	private init(): void {
 		this.createMaterials();
 	}
 
-	private createMaterials() {
+	private createMaterials(): void {
 		this.material = this.renderer.createMaterial({
 			name: 'GBuffer material',
 			uniforms: [
@@ -149,7 +148,7 @@ export default class GBufferPass extends Pass<{
 		});
 	}
 
-	public render() {
+	public render(): void {
 		const camera = this.manager.sceneSystem.objects.camera;
 		const skybox = this.manager.sceneSystem.objects.skybox;
 		const tiles = this.manager.sceneSystem.objects.tiles.children as Tile[];
@@ -216,11 +215,11 @@ export default class GBufferPass extends Pass<{
 		this.saveCameraMatrixWorldInverse();
 	}
 
-	private saveCameraMatrixWorldInverse() {
+	private saveCameraMatrixWorldInverse(): void {
 		this.cameraMatrixWorldInversePrev = this.manager.sceneSystem.objects.camera.matrixWorldInverse;
 	}
 
-	public setSize(width: number, height: number) {
+	public setSize(width: number, height: number): void {
 		this.getResource('GBufferRenderPass').descriptor.setSize(width, height);
 	}
 }

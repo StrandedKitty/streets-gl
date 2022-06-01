@@ -9,16 +9,16 @@ export default class TouchRotateHandler extends DoubleTouchHandler {
 	private startVector: Vec2;
 	private vector: Vec2;
 
-	constructor() {
+	public constructor() {
 		super();
 	}
 
-	start(touchA: Vec2, touchB: Vec2) {
+	public start(touchA: Vec2, touchB: Vec2): void {
 		this.startVector = this.vector = Vec2.sub(touchA, touchB);
 		this.minDiameter = Vec2.distance(touchA, touchB);
 	}
 
-	move(touchA: Vec2, touchB: Vec2, e: TouchEvent): DoubleTouchMoveEvent {
+	public move(touchA: Vec2, touchB: Vec2, e: TouchEvent): DoubleTouchMoveEvent {
 		const lastVector = this.vector;
 		this.vector = Vec2.sub(touchA, touchB);
 

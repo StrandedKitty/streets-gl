@@ -7,17 +7,17 @@ export default class TouchZoomHandler extends DoubleTouchHandler {
 	private distance: number = null;
 	private startDistance: number = null;
 
-	constructor() {
+	public constructor() {
 		super();
 	}
 
-	public reset() {
+	public reset(): void {
 		super.reset();
 		this.distance = null;
 		this.startDistance = null;
 	}
 
-	public start(touchA: Vec2, touchB: Vec2) {
+	public start(touchA: Vec2, touchB: Vec2): void {
 		this.startDistance = this.distance = Vec2.distance(touchA, touchB);
 	}
 

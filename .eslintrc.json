@@ -1,0 +1,53 @@
+{
+	"parser": "@typescript-eslint/parser",
+	"parserOptions": {
+		"ecmaVersion": 2021,
+		"sourceType": "module",
+		"ecmaFeatures": {}
+	},
+	"settings": {},
+	"extends": [],
+	"env": {
+		"browser": true,
+		"es2021": true
+	},
+	"overrides": [
+		{
+			"files": ["**/*.ts", "**/*.tsx"],
+			"extends": [
+				"plugin:@typescript-eslint/recommended"
+			],
+			"parser": "@typescript-eslint/parser",
+			"parserOptions": {
+				"project": ["./tsconfig.json"]
+			},
+			"rules": {
+				"indent": ["warn", "tab"],
+				"@typescript-eslint/no-unused-vars": [
+					"warn",
+					{
+						"ignoreRestSiblings": true
+					}
+				],
+				"@typescript-eslint/explicit-function-return-type": "error",
+				"@typescript-eslint/explicit-member-accessibility": "error",
+				"@typescript-eslint/no-empty-function": "off",
+				"@typescript-eslint/no-loss-of-precision": "off",
+				"@typescript-eslint/no-namespace": "off",
+				"@typescript-eslint/member-delimiter-style": [
+					"warn",
+					{
+						"multiline": {
+							"delimiter": "semi",
+							"requireLast": true
+						},
+						"singleline": {
+							"delimiter": "semi",
+							"requireLast": false
+						}
+					}
+				]
+			}
+		}
+	]
+}

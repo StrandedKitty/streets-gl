@@ -13,7 +13,7 @@ export default class WebGL2Program {
 	private readonly vertexShaderSource: string;
 	public WebGLProgram: WebGLProgram;
 
-	constructor(renderer: WebGL2Renderer, vertexShaderSource: string, fragmentShaderSource: string) {
+	public constructor(renderer: WebGL2Renderer, vertexShaderSource: string, fragmentShaderSource: string) {
 		this.renderer = renderer;
 		this.gl = renderer.gl;
 		this.vertexShaderSource = vertexShaderSource;
@@ -22,7 +22,7 @@ export default class WebGL2Program {
 		this.createProgram();
 	}
 
-	private createProgram() {
+	private createProgram(): void {
 		const vertexShader = this.compileShader(ShaderType.Vertex, this.vertexShaderSource);
 		const fragmentShader = this.compileShader(ShaderType.Fragment, this.fragmentShaderSource);
 

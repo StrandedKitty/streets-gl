@@ -5,21 +5,21 @@ import GLConstants from "./GLConstants";
 export default class MeshInstanced extends Mesh {
 	public instances: number;
 
-	constructor(renderer: Renderer, {
+	public constructor(renderer: Renderer, {
 		vertices,
 		indices = null,
 		instances
 	}: {
-		vertices: TypedArray,
-		indices?: TypedArray,
-		instances: number
+		vertices: TypedArray;
+		indices?: TypedArray;
+		instances: number;
 	}) {
 		super(renderer, {vertices, indices});
 
 		this.instances = instances;
 	}
 
-	public draw() {
+	public draw(): void {
 		const material = this.renderer.currentMaterial;
 
 		this.bindVAO(material);

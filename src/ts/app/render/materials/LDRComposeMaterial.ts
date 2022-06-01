@@ -4,7 +4,7 @@ import Shaders from "../shaders/Shaders";
 import GBuffer from "../../../renderer/GBuffer";
 
 export default class LDRComposeMaterial extends Material {
-	constructor(renderer: Renderer, gBuffer: GBuffer) {
+	public constructor(renderer: Renderer, gBuffer: GBuffer) {
 		super(renderer, {
 			name: 'LDRComposeMaterial',
 			fragmentShader: Shaders.ldrCompose.fragment,

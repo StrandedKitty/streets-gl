@@ -3,6 +3,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const ESLintPlugin = require('eslint-webpack-plugin');
 
 module.exports = [{
 	entry: './src/ts/app/App.ts',
@@ -31,6 +32,10 @@ module.exports = [{
 				//{from: './src/resources/models', to: path.resolve(__dirname, 'build/models')},
 				{from: './src/resources/images', to: path.resolve(__dirname, 'build/images')}
 			]
+		}),
+		new ESLintPlugin({
+			context: './src',
+			extensions: ['ts', 'tsx']
 		})
 	],
 	module: {

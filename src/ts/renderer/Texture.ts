@@ -12,12 +12,12 @@ export default abstract class Texture {
 	public width: number;
 	public height: number;
 	public readonly format: number;
-	public readonly internalFormat: any;
+	public readonly internalFormat: number;
 	public readonly type: number;
 	public data: TypedArray;
 	public flipY: boolean;
 	public readonly WebGLTexture: WebGLTexture;
-	protected deleted: boolean = false;
+	protected deleted = false;
 	public loadingPromise: Promise<void>;
 	protected loadingPromiseResolve: () => void;
 
@@ -36,17 +36,17 @@ export default abstract class Texture {
 		data = null,
 		flipY = false
 	}: {
-		anisotropy?: number,
-		minFilter?: number,
-		magFilter?: number,
-		wrap?: number,
-		width?: number,
-		height?: number,
-		format?: number,
-		internalFormat?: number,
-		type?: number,
-		data?: TypedArray,
-		flipY?: boolean
+		anisotropy?: number;
+		minFilter?: number;
+		magFilter?: number;
+		wrap?: number;
+		width?: number;
+		height?: number;
+		format?: number;
+		internalFormat?: number;
+		type?: number;
+		data?: TypedArray;
+		flipY?: boolean;
 	}) {
 		this.renderer = renderer;
 		this.gl = renderer.gl;
@@ -69,34 +69,34 @@ export default abstract class Texture {
 		});
 	}
 
-	public updateWrapping() {
+	public updateWrapping(): void {
 		this.gl.texParameteri(this.textureTypeConstant, GLConstants.TEXTURE_WRAP_S, this.wrap);
 		this.gl.texParameteri(this.textureTypeConstant, GLConstants.TEXTURE_WRAP_T, this.wrap);
 	}
 
-	public updateFilters() {
+	public updateFilters(): void {
 		this.gl.texParameteri(this.textureTypeConstant, GLConstants.TEXTURE_MIN_FILTER, this.minFilter);
 		this.gl.texParameteri(this.textureTypeConstant, GLConstants.TEXTURE_MAG_FILTER, this.magFilter);
 	}
 
-	public updateFlipY() {
+	public updateFlipY(): void {
 		this.gl.pixelStorei(GLConstants.UNPACK_FLIP_Y_WEBGL, this.flipY);
 	}
 
-	public generateMipmaps() {
+	public generateMipmaps(): void {
 		this.gl.generateMipmap(this.textureTypeConstant);
-	};
+	}
 
-	public updateAnisotropy() {
+	public updateAnisotropy(): void {
 		const extension = this.renderer.extensions.get('EXT_texture_filter_anisotropic').TEXTURE_MAX_ANISOTROPY_EXT;
 		this.gl.texParameterf(this.textureTypeConstant, extension, this.anisotropy);
 	}
 
-	protected resolveLoading() {
+	protected resolveLoading(): void {
 		this.loadingPromiseResolve();
 	}
 
-	public delete() {
+	public delete(): void {
 		this.gl.deleteTexture(this.WebGLTexture);
 		this.deleted = true;
 	}

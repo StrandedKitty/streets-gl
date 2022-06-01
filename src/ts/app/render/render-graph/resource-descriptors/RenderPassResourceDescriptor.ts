@@ -22,7 +22,7 @@ export default class RenderPassResourceDescriptor extends RG.ResourceDescriptor 
 	public colorAttachments: ColorAttachmentDescriptor[];
 	public depthAttachment: DepthAttachmentDescriptor;
 
-	constructor(
+	public constructor(
 		{
 			colorAttachments,
 			depthAttachment = null
@@ -37,12 +37,12 @@ export default class RenderPassResourceDescriptor extends RG.ResourceDescriptor 
 		this.depthAttachment = depthAttachment;
 	}
 
-	private deserializeAttachment(attachment: AttachmentDescriptor) {
+	private deserializeAttachment(attachment: AttachmentDescriptor): string {
 		if (!attachment) {
 			return null;
 		}
 
-		return {...attachment, texture: attachment.texture.deserialize()};
+		return JSON.stringify({...attachment, texture: attachment.texture.deserialize()});
 	}
 
 	public memorySize(): number {
@@ -56,7 +56,7 @@ export default class RenderPassResourceDescriptor extends RG.ResourceDescriptor 
 		return JSON.stringify([color, depth]);
 	}
 
-	public setSize(width: number, height: number) {
+	public setSize(width: number, height: number): void {
 		for (const attachment of this.colorAttachments) {
 			attachment.texture.setSize(width, height);
 		}

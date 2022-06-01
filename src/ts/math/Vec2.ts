@@ -4,12 +4,12 @@ export default class Vec2 {
 	public x: number;
 	public y: number;
 
-	constructor(x: number = 0, y: number = 0) {
+	public constructor(x = 0, y = 0) {
 		this.x = x;
 		this.y = y;
 	}
 
-	public set(x: number, y: number) {
+	public set(x: number, y: number): void {
 		this.x = x;
 		this.y = y;
 	}
@@ -35,7 +35,7 @@ export default class Vec2 {
 	}
 
 	public static normalize(v: Vec2): Vec2 {
-		let dst = new this;
+		const dst = new this;
 		const length = Math.sqrt(v.x ** 2 + v.y ** 2);
 
 		if (length > 0.00001) {

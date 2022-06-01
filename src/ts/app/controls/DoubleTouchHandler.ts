@@ -15,12 +15,12 @@ export default abstract class DoubleTouchHandler {
 
 	}
 
-	protected reset() {
+	protected reset(): void {
 		this.active = false;
 		this.firstTwoTouches = null;
 	}
 
-	public touchStart(e: TouchEvent, touches: Map<number, Vec2>) {
+	public touchStart(e: TouchEvent, touches: Map<number, Vec2>): void {
 		if (this.firstTwoTouches || touches.size < 2) {
 			return;
 		}
@@ -36,7 +36,7 @@ export default abstract class DoubleTouchHandler {
 		this.start(touchesArray[0], touchesArray[1]);
 	}
 
-	public touchMove(e: TouchEvent, touches: Map<number, Vec2>) {
+	public touchMove(e: TouchEvent, touches: Map<number, Vec2>): void {
 		if (!this.firstTwoTouches) {
 			return;
 		}
@@ -49,7 +49,7 @@ export default abstract class DoubleTouchHandler {
 		this.onMove(this.move(a, b, e));
 	}
 
-	public touchEnd(e: TouchEvent, touches: Map<number, Vec2>) {
+	public touchEnd(e: TouchEvent, touches: Map<number, Vec2>): void {
 		if (!this.firstTwoTouches || touches.get(this.firstTwoTouches[0]) && touches.get(this.firstTwoTouches[1])) {
 			return;
 		}
@@ -57,7 +57,7 @@ export default abstract class DoubleTouchHandler {
 		this.reset();
 	}
 
-	public touchCancel() {
+	public touchCancel(): void {
 		this.reset();
 	}
 

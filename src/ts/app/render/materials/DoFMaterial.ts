@@ -3,7 +3,7 @@ import Shaders from "../shaders/Shaders";
 import Renderer from "../../../renderer/Renderer";
 
 export default class DoFMaterial extends Material {
-	constructor(renderer: Renderer) {
+	public constructor(renderer: Renderer) {
 		super(renderer, {
 			name: 'DoFMaterial',
 			fragmentShader: Shaders.dof.fragment,

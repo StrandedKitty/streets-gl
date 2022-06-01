@@ -5,7 +5,7 @@ type AbstractSystemType = { new(s: SystemManager): System };
 export default class SystemManager {
 	private systems: Map<AbstractSystemType, System> = new Map();
 
-	public addSystems(systemTypes: AbstractSystemType[]) {
+	public addSystems(systemTypes: AbstractSystemType[]): void {
 		for (const systemType of systemTypes) {
 			this.systems.set(systemType, new systemType(this));
 		}
@@ -15,7 +15,7 @@ export default class SystemManager {
 		}
 	}
 
-	public updateSystems(deltaTime: number) {
+	public updateSystems(deltaTime: number): void {
 		for (const system of this.systems.values()) {
 			system.update(deltaTime);
 		}

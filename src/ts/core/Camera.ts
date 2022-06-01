@@ -17,17 +17,17 @@ export default abstract class Camera extends Object3D {
 		this.frustumPlanes = null;
 	}
 
-	public updateMatrixWorldInverse() {
+	public updateMatrixWorldInverse(): void {
 		this.matrixWorldInverse = Mat4.inverse(this.matrixWorld);
 	}
 
-	public updateProjectionMatrixInverse() {
+	public updateProjectionMatrixInverse(): void {
 		this.projectionMatrixInverse = Mat4.inverse(this.projectionMatrix);
 	}
 
 	public abstract updateProjectionMatrix(): void;
 
-	public updateFrustum() {
+	public updateFrustum(): void {
 		this.frustumPlanes = Frustum.getPlanes(Mat4.multiply(this.projectionMatrix, this.matrixWorldInverse));
 	}
 }

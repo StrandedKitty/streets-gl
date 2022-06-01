@@ -3,9 +3,9 @@ export type Tags = { [key: string]: string | number | number[] };
 export default class Feature3D {
 	public id: number;
 	public tags: Tags;
-	public visible: boolean = true;
+	public visible = true;
 
-	constructor(id: number, tags: Tags = {}) {
+	public constructor(id: number, tags: Tags = {}) {
 		this.id = id;
 		this.tags = tags;
 	}

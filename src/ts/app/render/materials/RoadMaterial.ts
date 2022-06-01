@@ -5,7 +5,7 @@ import GLConstants from "../../../renderer/GLConstants";
 import Texture2DArray from "../../../renderer/Texture2DArray";
 
 export default class RoadMaterial extends Material {
-	constructor(renderer: Renderer) {
+	public constructor(renderer: Renderer) {
 		super(renderer, {
 			name: 'RoadMaterial',
 			fragmentShader: Shaders.road.fragment,

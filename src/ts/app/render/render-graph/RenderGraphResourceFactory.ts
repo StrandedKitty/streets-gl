@@ -8,15 +8,11 @@ import RenderPassResource from "~/app/render/render-graph/resources/RenderPassRe
 import TextureResourceDescriptor from "~/app/render/render-graph/resource-descriptors/TextureResourceDescriptor";
 import RenderPassResourceDescriptor from "~/app/render/render-graph/resource-descriptors/RenderPassResourceDescriptor";
 
-export interface RenderGraphResourceFactoryParams {
-
-}
-
 export default class RenderGraphResourceFactory {
 	private readonly textureBuilder: TexturePhysicalResourceBuilder;
 	private readonly renderPassBuilder: RenderPassPhysicalResourceBuilder;
 
-	constructor(renderer: AbstractRenderer) {
+	public constructor(renderer: AbstractRenderer) {
 		this.textureBuilder = new TexturePhysicalResourceBuilder(renderer);
 		this.renderPassBuilder = new RenderPassPhysicalResourceBuilder(renderer, this.textureBuilder);
 	}
@@ -28,10 +24,10 @@ export default class RenderGraphResourceFactory {
 			isTransient,
 			isUsedExternally
 		}: {
-			name: string,
-			descriptor: TextureResourceDescriptor,
-			isTransient: boolean,
-			isUsedExternally: boolean
+			name: string;
+			descriptor: TextureResourceDescriptor;
+			isTransient: boolean;
+			isUsedExternally: boolean;
 		}
 	): TextureResource {
 		return new TextureResource(name, descriptor, this.textureBuilder, isTransient, isUsedExternally);
@@ -44,10 +40,10 @@ export default class RenderGraphResourceFactory {
 			isTransient,
 			isUsedExternally
 		}: {
-			name: string,
-			descriptor: RenderPassResourceDescriptor,
-			isTransient: boolean,
-			isUsedExternally: boolean
+			name: string;
+			descriptor: RenderPassResourceDescriptor;
+			isTransient: boolean;
+			isUsedExternally: boolean;
 		}
 	): RenderPassResource {
 		return new RenderPassResource(name, descriptor, this.renderPassBuilder, isTransient, isUsedExternally);

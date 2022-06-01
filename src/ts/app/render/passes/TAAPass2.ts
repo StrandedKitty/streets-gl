@@ -16,7 +16,7 @@ export default class TAAPass {
 	public matrixWorldInversePrev: Mat4;
 	public lastJitterOffset: Float32Array = new Float32Array([0, 0]);
 
-	constructor(renderer: Renderer, width: number, height: number) {
+	public constructor(renderer: Renderer, width: number, height: number) {
 		this.renderer = renderer;
 		this.width = width;
 		this.height = height;
@@ -24,7 +24,7 @@ export default class TAAPass {
 		this.init();
 	}
 
-	private init() {
+	private init(): void {
 		this.material = new TAAMaterial(this.renderer);
 
 		this.framebufferAccum = new Framebuffer(this.renderer, {
@@ -62,7 +62,7 @@ export default class TAAPass {
 		});
 	}
 
-	public jitterProjectionMatrix(projectionMatrix: Mat4, frame: number) {
+	public jitterProjectionMatrix(projectionMatrix: Mat4, frame: number): void {
 		const offsets = [
 			[-7 / 8, 1 / 8],
 			[-5 / 8, -5 / 8],
@@ -83,7 +83,7 @@ export default class TAAPass {
 		projectionMatrix.values[9] = offsetY / this.height;
 	}
 
-	public copyOutputToAccum() {
+	public copyOutputToAccum(): void {
 		this.renderer.blitFramebuffer({
 			source: this.framebufferOutput,
 			destination: this.framebufferAccum,
@@ -94,7 +94,7 @@ export default class TAAPass {
 		});
 	}
 
-	public setSize(width: number, height: number) {
+	public setSize(width: number, height: number): void {
 		this.width = width;
 		this.height = height;
 

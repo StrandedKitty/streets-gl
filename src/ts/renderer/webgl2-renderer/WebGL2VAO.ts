@@ -5,18 +5,18 @@ export default class WebGL2VAO {
 	private readonly gl: WebGL2RenderingContext;
 	private readonly vertexArrayObject: WebGLVertexArrayObject;
 
-	constructor(renderer: WebGL2Renderer) {
+	public constructor(renderer: WebGL2Renderer) {
 		this.renderer = renderer;
 		this.gl = renderer.gl;
 
 		this.vertexArrayObject = this.gl.createVertexArray();
 	}
 
-	public bind() {
+	public bind(): void  {
 		this.gl.bindVertexArray(this.vertexArrayObject);
 	}
 
-	public delete() {
+	public delete(): void  {
 		this.gl.deleteVertexArray(this.vertexArrayObject);
 	}
 }

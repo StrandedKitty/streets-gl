@@ -3,7 +3,7 @@ import Renderer from "../../renderer/Renderer";
 import GLConstants from "../../renderer/GLConstants";
 
 export default class FullScreenQuad extends Mesh {
-	constructor(renderer: Renderer) {
+	public constructor(renderer: Renderer) {
 		super(renderer, {
 			vertices: new Float32Array([
 				-1, 1, 0,

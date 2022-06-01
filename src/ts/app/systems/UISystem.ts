@@ -19,15 +19,15 @@ export default class UISystem extends System {
 		fps: 0,
 		frameTime: 0
 	};
-	private fpsUpdateTimer: number = 0;
+	private fpsUpdateTimer = 0;
 
-	constructor(systemManager: SystemManager) {
+	public constructor(systemManager: SystemManager) {
 		super(systemManager);
 
 		this.init();
 	}
 
-	private init() {
+	private init(): void {
 		document.getElementById('ui').addEventListener('click', event => {
 			event.stopPropagation();
 		});
@@ -35,31 +35,31 @@ export default class UISystem extends System {
 		this.updateDOM();
 	}
 
-	public postInit() {
+	public postInit(): void {
 
 	}
 
-	updateDOM() {
+	private updateDOM(): void {
 		UI.update(this.globalState);
 	}
 
-	public setActiveFeature(type: number, id: number) {
+	public setActiveFeature(type: number, id: number): void {
 		this.globalState.activeFeatureId = id;
 		this.globalState.activeFeatureType = type;
 		this.updateDOM();
 	}
 
-	public clearActiveFeature() {
+	public clearActiveFeature(): void {
 		this.globalState.activeFeatureId = null;
 		this.globalState.activeFeatureType = null;
 		this.updateDOM();
 	}
 
-	public updateFrameTime(frameTime: number) {
+	public updateFrameTime(frameTime: number): void {
 		this.globalState.frameTime = MathUtils.lerp(this.globalState.frameTime, frameTime, 0.1);
 	}
 
-	public update(deltaTime: number) {
+	public update(deltaTime: number): void {
 		const newFps = Math.min(Math.round(1 / deltaTime), 1e3);
 		this.globalState.fps = MathUtils.lerp(this.globalState.fps, newFps, 0.1);
 

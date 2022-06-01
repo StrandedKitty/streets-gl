@@ -5,11 +5,11 @@ import Renderer from "./Renderer";
 export default class TextureCube extends Texture {
 	protected textureTypeConstant = GLConstants.TEXTURE_CUBE_MAP;
 
-	private sidesLoaded: number = 0;
+	private sidesLoaded = 0;
 	public urls: string[];
-	public loaded: boolean = false;
+	public loaded = false;
 
-	constructor(renderer: Renderer, {
+	public constructor(renderer: Renderer, {
 		urls,
 		anisotropy = 1,
 		minFilter = GLConstants.LINEAR_MIPMAP_LINEAR,
@@ -23,18 +23,18 @@ export default class TextureCube extends Texture {
 		data = null,
 		flipY = false
 	}: {
-		urls?: string[],
-		anisotropy?: number,
-		minFilter?: number,
-		magFilter?: number,
-		wrap?: number,
-		width?: number,
-		height?: number,
-		format?: number,
-		internalFormat?: number,
-		type?: number,
-		data?: TypedArray,
-		flipY?: boolean
+		urls?: string[];
+		anisotropy?: number;
+		minFilter?: number;
+		magFilter?: number;
+		wrap?: number;
+		width?: number;
+		height?: number;
+		format?: number;
+		internalFormat?: number;
+		type?: number;
+		data?: TypedArray;
+		flipY?: boolean;
 	}) {
 		super(renderer, {anisotropy, minFilter, magFilter, wrap, width, height, format, internalFormat, type, data, flipY});
 
@@ -53,7 +53,7 @@ export default class TextureCube extends Texture {
 				const image = new Image();
 
 				image.crossOrigin = "anonymous";
-				image.onload = () => this.writeSideImage(image, i);
+				image.onload = (): void => this.writeSideImage(image, i);
 				image.src = this.urls[i];
 			}
 		}
@@ -61,7 +61,7 @@ export default class TextureCube extends Texture {
 		this.gl.bindTexture(GLConstants.TEXTURE_CUBE_MAP, null);
 	}
 
-	private writeSideImage(image: HTMLImageElement, sideId: number) {
+	private writeSideImage(image: HTMLImageElement, sideId: number): void {
 		this.gl.bindTexture(GLConstants.TEXTURE_CUBE_MAP, this.WebGLTexture);
 
 		this.updateFlipY();
@@ -79,7 +79,7 @@ export default class TextureCube extends Texture {
 
 	}
 
-	setSize(width: number, height: number) {
+	public setSize(width: number, height: number): void {
 
 	}
 }

@@ -1,9 +1,8 @@
 import Vec2 from "../../../math/Vec2";
 import Vec3 from "../../../math/Vec3";
-import * as Simplify from 'simplify-js';
 
 export default class RoadPolylineBuilder {
-	static build(sourcePoints: Vec2[], width: number): {positions: Float32Array, uvs: Float32Array} {
+	public static build(sourcePoints: Vec2[], width: number): {positions: Float32Array; uvs: Float32Array} {
 		const extrudedPoints: Vec2[][] = [];
 		const positions: number[] = [];
 		const uvs: number[] = [];

@@ -12,12 +12,12 @@ import Config from "../../Config";
 
 const ctx: Worker = self as any;
 const heightViewer = new HeightViewer();
-heightViewer.requestHeightFunction = (x: number, y: number) => {
+heightViewer.requestHeightFunction = (x: number, y: number): void => {
 	sendMessage({
 		type: WorkerMessageIncomingType.RequestHeight,
 		tile: [x, y]
 	});
-}
+};
 
 ctx.addEventListener('message', event => {
 	const data = event.data as WorkerMessageOutgoing;
@@ -29,7 +29,7 @@ ctx.addEventListener('message', event => {
 	}
 });
 
-function sendMessage(msg: WorkerMessageIncoming) {
+function sendMessage(msg: WorkerMessageIncoming): void {
 	ctx.postMessage(msg,
 		msg.type === WorkerMessageIncomingType.Success ?
 			[
@@ -48,13 +48,13 @@ function sendMessage(msg: WorkerMessageIncoming) {
 				msg.result.roads.position.buffer,
 				msg.result.roads.uv.buffer,
 				msg.result.roads.normal.buffer,
-				msg.result.roads.textureId.buffer,
+				msg.result.roads.textureId.buffer
 			] :
 			[]
 	);
 }
 
-function load(x: number, y: number) {
+function load(x: number, y: number): void {
 	const offset = 0.05;
 	const position = [
 		MathUtils.tile2degrees(x - offset, y + 1 + offset),
@@ -63,8 +63,8 @@ function load(x: number, y: number) {
 	const bbox = position[0].lat + ',' + position[0].lon + ',' + position[1].lat + ',' + position[1].lon;
 
 	const urls = [
-		'http://overpass.openstreetmap.ru/cgi/interpreter?data=',
-		//'https://overpass.kumi.systems/api/interpreter?data=',
+		//'http://overpass.openstreetmap.ru/cgi/interpreter?data=',
+		'https://overpass.kumi.systems/api/interpreter?data='
 		//'https://overpass.nchc.org.tw/api/interpreter?data=',
 		//'https://lz4.overpass-api.de/api/interpreter?data=',
 		//'https://z.overpass-api.de/api/interpreter?data='
@@ -93,7 +93,7 @@ function load(x: number, y: number) {
 
 	const httpRequest = new XMLHttpRequest();
 
-	httpRequest.onreadystatechange = function () {
+	httpRequest.onreadystatechange = function (): void {
 		if (httpRequest.readyState === XMLHttpRequest.DONE) {
 			if (httpRequest.status === 200) {
 				buildGeometry(x, y, JSON.parse(httpRequest.responseText).elements);
@@ -112,7 +112,7 @@ function load(x: number, y: number) {
 	httpRequest.send();
 }
 
-async function buildGeometry(x: number, y: number, data: any) {
+async function buildGeometry(x: number, y: number, data: any): Promise<void> {
 	const builder = new TileGeometryBuilder(x, y, heightViewer);
 	const tilesList = builder.getCoveredTiles(data);
 

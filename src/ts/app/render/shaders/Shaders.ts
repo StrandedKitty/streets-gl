@@ -1,6 +1,6 @@
 import ShaderPrecompiler from "~/app/render/shaders/ShaderPrecompiler";
 
-const Shaders: Record<string, {vertex: string, fragment: string}> = {
+const Shaders: Record<string, {vertex: string; fragment: string}> = {
 	building: {
 		vertex: require('../../../../resources/shaders/building2.vert'),
 		fragment: require('../../../../resources/shaders/building2.frag')

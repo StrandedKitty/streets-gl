@@ -4,7 +4,7 @@ import TexturePhysicalResourceBuilder
 	from "~/app/render/render-graph/physical-resource-builders/TexturePhysicalResourceBuilder";
 
 export default class TextureResource extends RG.Resource<TextureResourceDescriptor, TexturePhysicalResourceBuilder> {
-	constructor(name: string, descriptor: TextureResourceDescriptor, physicalResourceBuilder: TexturePhysicalResourceBuilder, isTransient: boolean, isUsedExternally: boolean) {
+	public constructor(name: string, descriptor: TextureResourceDescriptor, physicalResourceBuilder: TexturePhysicalResourceBuilder, isTransient: boolean, isUsedExternally: boolean) {
 		super({
 			name,
 			descriptor,

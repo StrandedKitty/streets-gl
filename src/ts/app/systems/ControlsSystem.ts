@@ -12,7 +12,6 @@ import Config from "../Config";
 import System from "../System";
 import SystemManager from "../SystemManager";
 import CursorStyleSystem from "./CursorStyleSystem";
-import RenderSystem from "./RenderSystem";
 import SceneSystem from '~/app/systems/SceneSystem';
 
 const touchYawFactor = 4;
@@ -29,19 +28,19 @@ export interface ControlsState {
 export default class ControlsSystem extends System {
 	private element: HTMLElement;
 	private camera: Camera;
-	private tick: number = 0;
+	private tick = 0;
 	public target: Vec3 = new Vec3();
 	private direction: Vec3 = new Vec3();
-	private normalizedDistance: number = 0.1;
-	private normalizedDistanceTarget: number = 0.1;
-	private distance: number = 0;
+	private normalizedDistance = 0.1;
+	private normalizedDistanceTarget = 0.1;
+	private distance = 0;
 	private pitch: number = MathUtils.toRad(45);
 	private yaw: number = MathUtils.toRad(0);
 	private state: ControlsState;
 	private urlHandler: URLControlsStateHandler = new URLControlsStateHandler();
 
-	private isRotationMouseMode: boolean = false;
-	private isMovementMouseMode: boolean = false;
+	private isRotationMouseMode = false;
+	private isMovementMouseMode = false;
 	private mouseDownPosition: Vec2 = null;
 	private touches: Map<number, Vec2> = new Map();
 	private cachedMoveEvent: Vec2 = null;
@@ -50,7 +49,7 @@ export default class ControlsSystem extends System {
 	private readonly rotationSpeed = 0.25;
 	private readonly movementSpeed = 1;
 
-	constructor(systemManager: SystemManager) {
+	public constructor(systemManager: SystemManager) {
 		super(systemManager);
 
 		this.element = <HTMLCanvasElement>document.getElementById('canvas');
@@ -62,7 +61,7 @@ export default class ControlsSystem extends System {
 		]);
 
 		for (const handler of this.touchHandlers.values()) {
-			handler.onMove = (e: DoubleTouchMoveEvent) => this.onDoubleTouchMove(e);
+			handler.onMove = (e: DoubleTouchMoveEvent): void => this.onDoubleTouchMove(e);
 		}
 
 		const [newState] = this.urlHandler.getStateFromHash();
@@ -95,15 +94,15 @@ export default class ControlsSystem extends System {
 		this.element.addEventListener('touchmove', (e: TouchEvent) => this.touchMoveEvent(e));
 	}
 
-	public postInit() {
+	public postInit(): void {
 
 	}
 
-	public getLatLon(): {lat: number, lon: number} {
+	public getLatLon(): {lat: number; lon: number} {
 		return MathUtils.meters2degrees(this.target.x, this.target.z);
 	}
 
-	private updateStateFromPosition() {
+	private updateStateFromPosition(): void {
 		this.state.x = this.target.x;
 		this.state.z = this.target.z;
 		this.state.pitch = this.pitch;
@@ -111,7 +110,7 @@ export default class ControlsSystem extends System {
 		this.state.distance = 2 ** this.normalizedDistance;
 	}
 
-	private updatePositionFromState(state: ControlsState) {
+	private updatePositionFromState(state: ControlsState): void {
 		this.target.x = state.x;
 		this.target.z = state.z;
 		this.pitch = state.pitch;
@@ -119,12 +118,12 @@ export default class ControlsSystem extends System {
 		this.normalizedDistance = this.normalizedDistanceTarget = Math.log2(state.distance);
 	}
 
-	private wheelEvent(e: WheelEvent) {
+	private wheelEvent(e: WheelEvent): void {
 		//this.distanceTarget += 0.5 * e.deltaY;
 		this.normalizedDistanceTarget += e.deltaY / 2000.;
 	}
 
-	private mouseDownEvent(e: MouseEvent) {
+	private mouseDownEvent(e: MouseEvent): void {
 		e.preventDefault();
 
 		if (e.button && e.button == 2) {
@@ -135,7 +134,7 @@ export default class ControlsSystem extends System {
 		}
 	}
 
-	private mouseLeaveEvent(e: MouseEvent) {
+	private mouseLeaveEvent(e: MouseEvent): void {
 		this.systemManager.getSystem(CursorStyleSystem).disableGrabbing();
 
 		this.isRotationMouseMode = false
@@ -144,7 +143,7 @@ export default class ControlsSystem extends System {
 		this.cachedMoveEvent = null;
 	}
 
-	private mouseUpEvent(e: MouseEvent) {
+	private mouseUpEvent(e: MouseEvent): void {
 		this.systemManager.getSystem(CursorStyleSystem).disableGrabbing();
 
 		if (e.button && e.button == 2) {
@@ -156,7 +155,7 @@ export default class ControlsSystem extends System {
 		}
 	}
 
-	private mouseMoveEvent(e: MouseEvent) {
+	private mouseMoveEvent(e: MouseEvent): void {
 		if (this.isRotationMouseMode || this.isMovementMouseMode) {
 			this.systemManager.getSystem(CursorStyleSystem).enableGrabbing();
 		}
@@ -171,7 +170,7 @@ export default class ControlsSystem extends System {
 		}
 	}
 
-	private touchStartEvent(e: TouchEvent) {
+	private touchStartEvent(e: TouchEvent): void {
 		for (let i = 0; i < e.changedTouches.length; i++) {
 			const touch = e.changedTouches[i];
 
@@ -191,7 +190,7 @@ export default class ControlsSystem extends System {
 		}
 	}
 
-	private touchEndEvent(e: TouchEvent) {
+	private touchEndEvent(e: TouchEvent): void {
 		for (let i = 0; i < e.changedTouches.length; i++) {
 			const touch = e.changedTouches[i];
 
@@ -206,7 +205,7 @@ export default class ControlsSystem extends System {
 		}
 	}
 
-	private touchMoveEvent(e: TouchEvent) {
+	private touchMoveEvent(e: TouchEvent): void {
 		for (let i = 0; i < e.changedTouches.length; i++) {
 			const touch = e.changedTouches[i];
 
@@ -228,7 +227,7 @@ export default class ControlsSystem extends System {
 		}
 	}
 
-	private onDoubleTouchMove(e: DoubleTouchMoveEvent) {
+	private onDoubleTouchMove(e: DoubleTouchMoveEvent): void {
 		if (e.zoomDelta && !this.touchHandlers.get('pitch').active) {
 			this.normalizedDistanceTarget -= e.zoomDelta * this.normalizedDistanceTarget;
 		}
@@ -242,7 +241,7 @@ export default class ControlsSystem extends System {
 		}
 	}
 
-	private moveTarget(dx: number, dy: number) {
+	private moveTarget(dx: number, dy: number): void {
 		const v = Vec2.multiplyScalar(new Vec2(dx, dy), this.movementSpeed);
 
 		const v2 = new Vec2();
@@ -275,7 +274,7 @@ export default class ControlsSystem extends System {
 		return new Vec2(positionOnGround.x, positionOnGround.z);
 	}
 
-	private updateDistance() {
+	private updateDistance(): void {
 		const min = Math.log2(Config.MinCameraDistance);
 		const max = Math.log2(Config.MaxCameraDistance);
 
@@ -290,7 +289,7 @@ export default class ControlsSystem extends System {
 		this.distance = 2 ** this.normalizedDistance;
 	}
 
-	private updateTargetHeightFromHeightmap() {
+	private updateTargetHeightFromHeightmap(): void {
 		const tileSpacePosition = MathUtils.meters2tile(this.target.x, this.target.z);
 		const tilePosition = new Vec2(Math.floor(tileSpacePosition.x), Math.floor(tileSpacePosition.y));
 
@@ -299,7 +298,7 @@ export default class ControlsSystem extends System {
 		}
 	}
 
-	private updateHash() {
+	private updateHash(): void {
 		const [newState, changedByUser] = this.urlHandler.getStateFromHash();
 
 		if (newState && changedByUser) {
@@ -314,7 +313,7 @@ export default class ControlsSystem extends System {
 		}
 	}
 
-	public update(deltaTile: number) {
+	public update(deltaTile: number): void {
 		this.camera = this.systemManager.getSystem(SceneSystem).objects.camera;
 
 		this.updateTargetHeightFromHeightmap();

@@ -9,7 +9,7 @@ export default abstract class RenderableObject3D extends Object3D {
 
 	public abstract isMeshReady(): boolean;
 
-	public draw() {
+	public draw(): void {
 		this.mesh.draw();
 	}
 }

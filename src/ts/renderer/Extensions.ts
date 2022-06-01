@@ -2,13 +2,13 @@ export default class Extensions {
 	private readonly gl: WebGL2RenderingContext;
 	private readonly list: Map<string, any> = new Map<string, any>();
 
-	constructor(gl: WebGL2RenderingContext) {
+	public constructor(gl: WebGL2RenderingContext) {
 		this.gl = gl;
 
 		this.init();
 	}
 
-	private init() {
+	private init(): void {
 		const names: string[] = [
 			'EXT_texture_filter_anisotropic',
 			'EXT_color_buffer_float',

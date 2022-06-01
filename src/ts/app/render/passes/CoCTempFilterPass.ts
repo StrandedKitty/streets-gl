@@ -12,7 +12,7 @@ export default class CoCTempFilterPass {
 	public framebuffer: Framebuffer;
 	public framebufferAccum: Framebuffer;
 
-	constructor(renderer: Renderer, width: number, height: number) {
+	public constructor(renderer: Renderer, width: number, height: number) {
 		this.renderer = renderer;
 		this.width = width;
 		this.height = height;
@@ -20,7 +20,7 @@ export default class CoCTempFilterPass {
 		this.init();
 	}
 
-	private init() {
+	private init(): void {
 		this.material = new CoCTempFilterMaterial(this.renderer);
 
 		this.framebuffer = new Framebuffer(this.renderer, {
@@ -58,7 +58,7 @@ export default class CoCTempFilterPass {
 		});
 	}
 
-	public copyOutputToAccum() {
+	public copyOutputToAccum(): void {
 		this.renderer.blitFramebuffer({
 			source: this.framebuffer,
 			destination: this.framebufferAccum,
@@ -69,7 +69,7 @@ export default class CoCTempFilterPass {
 		});
 	}
 
-	public setSize(width: number, height: number) {
+	public setSize(width: number, height: number): void {
 		this.width = width;
 		this.height = height;
 

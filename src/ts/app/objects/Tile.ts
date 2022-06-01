@@ -17,41 +17,41 @@ import AttributeType = RendererTypes.AttributeType;
 import AbstractMesh from "../../renderer/abstract-renderer/AbstractMesh";
 
 export interface GroundGeometryBuffers {
-	position: Float32Array,
-	uv: Float32Array,
-	normal: Float32Array,
-	index: Uint32Array
+	position: Float32Array;
+	uv: Float32Array;
+	normal: Float32Array;
+	index: Uint32Array;
 }
 
 export interface StaticTileGeometry {
 	buildings: {
-		position: Float32Array,
-		uv: Float32Array,
-		normal: Float32Array,
-		textureId: Uint8Array,
-		color: Uint8Array,
-		id: Uint32Array,
-		offset: Uint32Array,
-		localId: Uint32Array
-	},
-	ground: GroundGeometryBuffers,
+		position: Float32Array;
+		uv: Float32Array;
+		normal: Float32Array;
+		textureId: Uint8Array;
+		color: Uint8Array;
+		id: Uint32Array;
+		offset: Uint32Array;
+		localId: Uint32Array;
+	};
+	ground: GroundGeometryBuffers;
 	roads: {
-		position: Float32Array,
-		uv: Float32Array,
-		normal: Float32Array,
-		textureId: Uint8Array
-	},
+		position: Float32Array;
+		uv: Float32Array;
+		normal: Float32Array;
+		textureId: Uint8Array;
+	};
 	bbox: {
-		min: number[],
-		max: number[]
-	},
+		min: number[];
+		max: number[];
+	};
 	bboxGround: {
-		min: number[],
-		max: number[]
-	}
+		min: number[];
+		max: number[];
+	};
 }
 
-let tileCounter: number = 0;
+let tileCounter = 0;
 
 export default class Tile extends Object3D {
 	public ground: Ground;
@@ -61,19 +61,19 @@ export default class Tile extends Object3D {
 	public buildingIdMap: Map<number, number> = new Map();
 	public buildingOffsetMap: Map<number, [number, number]> = new Map();
 	public buildingVisibilityMap: Map<number, boolean> = new Map();
-	public displayBufferNeedsUpdate: boolean = false;
+	public displayBufferNeedsUpdate = false;
 	public x: number;
 	public y: number;
 	public localId: number;
-	public inFrustum: boolean = true;
+	public inFrustum = true;
 	public distanceToCamera: number = null;
 	public colorMap: Texture2D = null;
-	public readyForRendering: boolean = false;
-	public buildingsUpdated: boolean = false;
-	public disposed: boolean = false;
+	public readyForRendering = false;
+	public buildingsUpdated = false;
+	public disposed = false;
 	public buildingsMesh: AbstractMesh;
 
-	constructor(x: number, y: number) {
+	public constructor(x: number, y: number) {
 		super();
 
 		this.x = x;
@@ -88,7 +88,7 @@ export default class Tile extends Object3D {
 		this.updatePosition();
 	}
 
-	private updatePosition() {
+	private updatePosition(): void {
 		const positionInMeters = MathUtils.tile2meters(this.x, this.y + 1);
 
 		this.position.set(positionInMeters.x, 0, positionInMeters.y);
@@ -129,7 +129,7 @@ export default class Tile extends Object3D {
 		return this.colorMap.loadingPromise;
 	}
 
-	public createGround(renderer: Renderer, neighbors: Tile[]) {
+	public createGround(renderer: Renderer, neighbors: Tile[]): void {
 		/*this.ground = new Ground(renderer);
 		this.ground.applyHeightmap(this.x, this.y);
 
@@ -138,7 +138,7 @@ export default class Tile extends Object3D {
 		this.ground.updateBorderNormals(this.x, this.y, neighbors.filter((tile) => tile.ground));*/
 	}
 
-	public createMeshes(renderer: AbstractRenderer) {
+	public createMeshes(renderer: AbstractRenderer): void {
 		this.buildingsMesh = renderer.createMesh({
 			attributes: [
 				renderer.createAttribute({
@@ -193,7 +193,7 @@ export default class Tile extends Object3D {
 		});
 	}
 
-	public generateMeshes(renderer: Renderer) {
+	public generateMeshes(renderer: Renderer): void {
 		const buildings = new Mesh(renderer, {
 			vertices: this.staticGeometry.buildings.position,
 			bboxCulled: true
@@ -297,12 +297,12 @@ export default class Tile extends Object3D {
 		this.ground = ground;
 	}
 
-	public updateDistanceToCamera(camera: Camera) {
+	public updateDistanceToCamera(camera: Camera): void {
 		const worldPosition = MathUtils.tile2meters(this.x + 0.5, this.y + 0.5);
 		this.distanceToCamera = Math.sqrt((worldPosition.x - camera.position.x) ** 2 + (worldPosition.y - camera.position.z) ** 2);
 	}
 
-	private updateStaticGeometryOffsets() {
+	private updateStaticGeometryOffsets(): void {
 		const ids = this.staticGeometry.buildings.id;
 		const offsets = this.staticGeometry.buildings.offset;
 		const vertexCount = this.staticGeometry.buildings.position.length / 3;
@@ -321,7 +321,7 @@ export default class Tile extends Object3D {
 		}
 	}
 
-	public hideBuilding(id: number) {
+	public hideBuilding(id: number): void {
 		const [start, size] = this.buildingOffsetMap.get(id);
 		const displayBuffer = this.buildings.attributes.get('display').buffer;
 
@@ -333,7 +333,7 @@ export default class Tile extends Object3D {
 		this.displayBufferNeedsUpdate = true;
 	}
 
-	public showBuilding(id: number) {
+	public showBuilding(id: number): void  {
 		const [start, size] = this.buildingOffsetMap.get(id);
 		const displayBuffer = this.buildings.attributes.get('display').buffer;
 
@@ -349,19 +349,19 @@ export default class Tile extends Object3D {
 		return this.buildingVisibilityMap.get(id);
 	}
 
-	public updateDisplayBuffer() {
+	public updateDisplayBuffer(): void  {
 		this.buildings.updateAttribute('display');
 	}
 
-	public dispose() {
+	public dispose(): void  {
 		this.disposed = true;
 
 		if (this.ground) {
 			this.ground.delete();
 		}
 
-		if (this.buildings) {
-			this.buildings.delete();
+		if (this.buildingsMesh) {
+			this.buildingsMesh.delete();
 		}
 
 		if (this.colorMap) {

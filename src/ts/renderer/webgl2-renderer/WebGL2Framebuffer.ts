@@ -12,11 +12,11 @@ export default class WebGL2Framebuffer {
 	private readonly gl: WebGL2RenderingContext;
 	private colorAttachments: ColorAttachment[];
 	private depthAttachment: DepthAttachment;
-	private width: number = 0;
-	private height: number = 0;
+	private width = 0;
+	private height = 0;
 	private WebGLFramebuffer: WebGLFramebuffer;
 
-	constructor(renderer: WebGL2Renderer, colorAttachments: ColorAttachment[], depthAttachment: DepthAttachment) {
+	public constructor(renderer: WebGL2Renderer, colorAttachments: ColorAttachment[], depthAttachment: DepthAttachment) {
 		this.renderer = renderer;
 		this.gl = renderer.gl;
 
@@ -28,7 +28,7 @@ export default class WebGL2Framebuffer {
 		this.bindAttachments();
 	}
 
-	public bind() {
+	public bind(): void {
 		if (this.colorAttachments.length !== 0) {
 			this.width = this.colorAttachments[0].texture.width;
 			this.height = this.colorAttachments[0].texture.height;
@@ -40,11 +40,11 @@ export default class WebGL2Framebuffer {
 		this.gl.bindFramebuffer(WebGL2Constants.FRAMEBUFFER, this.WebGLFramebuffer);
 	}
 
-	private createWebGLFramebuffer() {
+	private createWebGLFramebuffer(): void {
 		this.WebGLFramebuffer = this.gl.createFramebuffer();
 	}
 
-	public bindAttachments() {
+	public bindAttachments(): void {
 		this.bind();
 
 		const attachments: number[] = [];
@@ -78,7 +78,7 @@ export default class WebGL2Framebuffer {
 		this.gl.drawBuffers(attachments);
 	}
 
-	public clear() {
+	public clear(): void {
 		for (let i = 0; i < this.colorAttachments.length; i++) {
 			const attachment = this.colorAttachments[i];
 
@@ -92,11 +92,11 @@ export default class WebGL2Framebuffer {
 		}
 	}
 
-	private clearColorBuffer(texture: AbstractTexture, clearValue: ColorClearValue, drawBuffer: number) {
+	private clearColorBuffer(texture: AbstractTexture, clearValue: ColorClearValue, drawBuffer: number): void {
 		switch (texture.format) {
-			case RendererTypes.TextureFormat.RGBA8Unorm:
-				this.gl.clearBufferfv(WebGL2Constants.COLOR, drawBuffer, WebGL2Framebuffer.clearValueToTypedArray(Float32Array, clearValue));
-				return;
+		case RendererTypes.TextureFormat.RGBA8Unorm:
+			this.gl.clearBufferfv(WebGL2Constants.COLOR, drawBuffer, WebGL2Framebuffer.clearValueToTypedArray(Float32Array, clearValue));
+			return;
 		}
 	}
 
@@ -104,7 +104,7 @@ export default class WebGL2Framebuffer {
 		return new type([clearValue.r, clearValue.g, clearValue.b, clearValue.a]);
 	}
 
-	public delete() {
+	public delete(): void {
 		this.renderer.gl.deleteFramebuffer(this.WebGLFramebuffer);
 	}
 }

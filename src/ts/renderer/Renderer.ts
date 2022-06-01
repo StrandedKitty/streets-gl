@@ -14,7 +14,7 @@ export default class Renderer {
 	public gpuTimer: GPUTimer;
 	public currentMaterial: Material;
 
-	constructor(canvas: HTMLCanvasElement) {
+	public constructor(canvas: HTMLCanvasElement) {
 		this.canvas = canvas;
 
 		this.gl = canvas.getContext("webgl2", {antialias: false});
@@ -32,12 +32,12 @@ export default class Renderer {
 		this.gl.clearDepth(1);
 	}
 
-	public setSize(width: number, height: number) {
+	public setSize(width: number, height: number): void {
 		this.canvas.width = width;
 		this.canvas.height = height;
 	}
 
-	public bindFramebuffer(fb: Framebuffer) {
+	public bindFramebuffer(fb: Framebuffer): void {
 		if (fb instanceof Framebuffer) {
 			this.gl.viewport(0, 0, fb.width, fb.height);
 			this.gl.bindFramebuffer(GLConstants.FRAMEBUFFER, fb.WebGLFramebuffer);
@@ -58,16 +58,16 @@ export default class Renderer {
 			filter,
 			depth = false
 		}: {
-			source: Framebuffer,
-			destination: Framebuffer,
-			readAttachment?: number,
-			drawAttachment?: number,
-			destinationWidth: number,
-			destinationHeight: number,
-			filter: number,
-			depth: boolean
+			source: Framebuffer;
+			destination: Framebuffer;
+			readAttachment?: number;
+			drawAttachment?: number;
+			destinationWidth: number;
+			destinationHeight: number;
+			filter: number;
+			depth: boolean;
 		}
-	) {
+	): void {
 		this.gl.bindFramebuffer(GLConstants.READ_FRAMEBUFFER, source.WebGLFramebuffer);
 
 		if (destination === null) this.gl.bindFramebuffer(GLConstants.DRAW_FRAMEBUFFER, null);
@@ -105,13 +105,13 @@ export default class Renderer {
 		return attachments;
 	}
 
-	public copyFramebufferToTexture(fb: Framebuffer, texture: Texture2D, mipLevel: number = 0) {
+	public copyFramebufferToTexture(fb: Framebuffer, texture: Texture2D, mipLevel = 0): void {
 		this.gl.bindFramebuffer(GLConstants.FRAMEBUFFER, fb.WebGLFramebuffer);
 		this.gl.bindTexture(GLConstants.TEXTURE_2D, texture.WebGLTexture);
 		this.gl.copyTexImage2D(GLConstants.TEXTURE_2D, mipLevel, texture.internalFormat, 0, 0, texture.width, texture.height, 0);
 	}
 
-	public clearColor(r: number, g: number, b: number, a: number) {
+	public clearColor(r: number, g: number, b: number, a: number): void {
 		this.gl.clearColor(r, g, b, a);
 	}
 
@@ -122,12 +122,12 @@ export default class Renderer {
 			color = false,
 			depth = false
 		}: {
-			clearColor?: number[],
-			depthValue?: number,
-			color?: boolean,
-			depth?: boolean
+			clearColor?: number[];
+			depthValue?: number;
+			color?: boolean;
+			depth?: boolean;
 		}
-	) {
+	): void {
 		if(color)
 			this.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
 
@@ -145,7 +145,7 @@ export default class Renderer {
 
 			this.gl.flush();
 
-			const check = () => {
+			const check = (): void => {
 				const status = this.gl.getSyncParameter(sync, GLConstants.SYNC_STATUS);
 
 				if (status == this.gl.SIGNALED) {

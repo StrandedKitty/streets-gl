@@ -6,7 +6,7 @@ import Config from "../Config";
 export default class MapWorkerSystem extends System {
 	private workers: MapWorker[] = [];
 
-	constructor(systemManager: SystemManager) {
+	public constructor(systemManager: SystemManager) {
 		super(systemManager);
 
 		for(let i = 0; i < Config.WebWorkersNumber; i++) {
@@ -14,7 +14,7 @@ export default class MapWorkerSystem extends System {
 		}
 	}
 
-	public postInit() {
+	public postInit(): void {
 
 	}
 
@@ -30,7 +30,7 @@ export default class MapWorkerSystem extends System {
 		return null;
 	}
 
-	public update(deltaTime: number) {
+	public update(deltaTime: number): void {
 
 	}
 }

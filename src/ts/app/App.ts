@@ -11,24 +11,22 @@ import MapWorkerSystem from "./systems/MapWorkerSystem";
 import MapTimeSystem from "./systems/MapTimeSystem";
 import UISystem from "./systems/UISystem";
 import SceneSystem from '~/app/systems/SceneSystem';
-import ResourceManager from '~/app/world/ResourceManager';
-
-const ResourcesJSON = require("./../../resources/resources.json");
+import ResourceManager, {ResourceJSON} from '~/app/world/ResourceManager';
+import resourcesList from './../../resources/resources.json';
 
 class App {
-	private loop = (deltaTime: number) => this.update(deltaTime);
-	private time: number = 0;
+	private loop = (deltaTime: number): void => this.update(deltaTime);
+	private time = 0;
 	private systemManager: SystemManager;
 
-	constructor() {
-		ResourceManager.addFromJSON(ResourcesJSON);
-
+	public constructor() {
+		ResourceManager.addFromJSON(resourcesList as ResourceJSON);
 		ResourceManager.load().then(() => {
 			this.init();
 		});
 	}
 
-	private init() {
+	private init(): void {
 		this.systemManager = new SystemManager();
 
 		this.systemManager.addSystems([
@@ -48,7 +46,7 @@ class App {
 		this.update();
 	}
 
-	private update(rafTime: number = 0) {
+	private update(rafTime = 0): void {
 		requestAnimationFrame(this.loop);
 
 		const frameStart = performance.now();

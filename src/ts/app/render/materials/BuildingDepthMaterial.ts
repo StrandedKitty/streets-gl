@@ -3,7 +3,7 @@ import Shaders from "../shaders/Shaders";
 import Renderer from "../../../renderer/Renderer";
 
 export default class BuildingDepthMaterial extends Material {
-	constructor(renderer: Renderer) {
+	public constructor(renderer: Renderer) {
 		super(renderer, {
 			name: 'BuildingDepthMaterial',
 			fragmentShader: Shaders.buildingDepth.fragment,

@@ -5,7 +5,7 @@ export class Queue<T> {
 		return this.store.length;
 	}
 
-	public push(val: T) {
+	public push(val: T): void {
 		this.store.push(val);
 	}
 

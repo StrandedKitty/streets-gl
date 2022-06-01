@@ -5,16 +5,16 @@ import Resource from "./Resource";
 const UnusedResourceLifeTime = 2;
 
 class PhysicalResourceEntry {
-	public frameCount: number = 0;
+	public frameCount = 0;
 
-	constructor(public resource: PhysicalResource) {
+	public constructor(public resource: PhysicalResource) {
 	}
 }
 
 export default class PhysicalResourcePool {
 	private resourcesMap: Map<string, PhysicalResourceEntry[]> = new Map();
 
-	public pushPhysicalResource(descriptor: ResourceDescriptor, physicalResource: PhysicalResource) {
+	public pushPhysicalResource(descriptor: ResourceDescriptor, physicalResource: PhysicalResource): void {
 		const id = descriptor.deserialize();
 
 		if (!this.resourcesMap.get(id)) {
@@ -36,7 +36,7 @@ export default class PhysicalResourcePool {
 		return entries.pop().resource;
 	}
 
-	public update() {
+	public update(): void {
 		for (const [resourceId, resourceArray] of this.resourcesMap.entries()) {
 			for (let i = 0; i < resourceArray.length; i++) {
 				const resourceEntry = resourceArray[i];

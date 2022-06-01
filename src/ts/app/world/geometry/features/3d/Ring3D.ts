@@ -21,10 +21,10 @@ export default class Ring3D extends Feature3D {
 	public maxGroundHeight: number;
 	public closed: boolean;
 	private gaussArea: number;
-	public isMergeable: boolean = false;
-	public deleted: boolean = false;
+	public isMergeable = false;
+	public deleted = false;
 
-	constructor(id: number, type: RingType, nodes: Node3D[], parent: Way3D, tags: Tags) {
+	public constructor(id: number, type: RingType, nodes: Node3D[], parent: Way3D, tags: Tags) {
 		super(id, tags);
 
 		this.type = type;
@@ -41,7 +41,7 @@ export default class Ring3D extends Feature3D {
 		this.fixDirection();*/
 	}
 
-	public build() {
+	public build(): void {
 		this.vertices = [];
 
 		this.buildVerticesFromNodes();
@@ -78,15 +78,15 @@ export default class Ring3D extends Feature3D {
 		return false;
 	}
 
-	get firstNode(): Node3D {
+	public get firstNode(): Node3D {
 		return this.nodes[0];
 	}
 
-	get lastNode(): Node3D {
+	public get lastNode(): Node3D {
 		return this.nodes[this.nodes.length - 1];
 	}
 
-	private buildVerticesFromNodes() {
+	private buildVerticesFromNodes(): void {
 		const nodeVertices: Vec2[] = this.nodes.map(node => Vec2.copy(node.position));
 
 		if (nodeVertices.length <= 3) {
@@ -97,7 +97,7 @@ export default class Ring3D extends Feature3D {
 		this.vertices = Simplify(nodeVertices, 0.1, false).map(p => [p.x, p.y]);
 	}
 
-	public updateFootprintHeight() {
+	public updateFootprintHeight(): void {
 		let maxHeight = -Infinity;
 		let minHeight = Infinity;
 
@@ -121,7 +121,7 @@ export default class Ring3D extends Feature3D {
 		this.maxGroundHeight = maxHeight;
 	}
 
-	private updateGaussArea() {
+	private updateGaussArea(): void {
 		let sum = 0;
 
 		for (let i = 0; i < this.vertices.length; i++) {
@@ -145,7 +145,7 @@ export default class Ring3D extends Feature3D {
 		return this.nodes[0].id === this.nodes[this.nodes.length - 1].id;
 	}
 
-	private fixDirection() {
+	private fixDirection(): void {
 		if (+!this.isClockwise() ^ +(this.type === RingType.Inner)) {
 			this.nodes.reverse();
 			this.vertices.reverse();
@@ -169,7 +169,7 @@ export default class Ring3D extends Feature3D {
 		return length;
 	}
 
-	public triangulateWalls(): { positions: Float32Array, uvs: Float32Array, normals: Float32Array, textureIds: Uint8Array } {
+	public triangulateWalls(): { positions: Float32Array; uvs: Float32Array; normals: Float32Array; textureIds: Uint8Array } {
 		const tags = this.parent.tags;
 		const heightFactor = this.parent.heightFactor;
 

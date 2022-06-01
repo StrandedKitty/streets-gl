@@ -52,7 +52,7 @@ export default class StraightSkeletonBuilder {
 		return copy;
 	}
 
-	private static applyRandomOffsetToRingVertices(vertices: [number, number][]) {
+	private static applyRandomOffsetToRingVertices(vertices: [number, number][]): void {
 		for (let i = 0; i < vertices.length; i++) {
 			vertices[i][0] += (Math.random() - 0.5) * this.RandomOffsetScale;
 			//vertices[i][1] += (Math.random() - 0.5) * this.RandomOffsetScale;

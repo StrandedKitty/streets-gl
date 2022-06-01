@@ -18,7 +18,7 @@ const light = {
 };
 
 export default class HDRComposeMaterial extends Material {
-	constructor(renderer: Renderer, gBuffer: GBuffer) {
+	public constructor(renderer: Renderer, gBuffer: GBuffer) {
 		super(renderer, {
 			name: 'HDRComposeMaterial',
 			fragmentShader: Shaders.hdrCompose.fragment,

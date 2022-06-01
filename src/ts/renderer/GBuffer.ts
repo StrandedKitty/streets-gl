@@ -20,7 +20,7 @@ export default class GBuffer {
 	public width: number;
 	public height: number;
 
-	constructor(renderer: Renderer, width: number, height: number, structure: GBufferTexture[]) {
+	public constructor(renderer: Renderer, width: number, height: number, structure: GBufferTexture[]) {
 		this.renderer = renderer;
 		this.structure = structure;
 		this.width = width;
@@ -30,7 +30,7 @@ export default class GBuffer {
 		this.initFramebuffers();
 	}
 
-	private initTextures() {
+	private initTextures(): void {
 		for (let i = 0; i < this.structure.length; i++) {
 			const element = this.structure[i];
 
@@ -47,7 +47,7 @@ export default class GBuffer {
 		}
 	}
 
-	private initFramebuffers() {
+	private initFramebuffers(): void {
 		const texturesArray: Texture2D[] = [];
 
 		for(const texture of Object.values(this.textures)) {
@@ -81,11 +81,11 @@ export default class GBuffer {
 		});
 	}
 
-	public clearDepth() {
+	public clearDepth(): void {
 		this.renderer.gl.clearBufferfi(GLConstants.DEPTH_STENCIL, 0, 1, 0);
 	}
 
-	public setSize(width: number, height: number) {
+	public setSize(width: number, height: number): void {
 		this.width = width;
 		this.height = height;
 		this.framebuffer.setSize(width, height);

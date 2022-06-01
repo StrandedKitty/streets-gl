@@ -11,40 +11,40 @@ enum CursorStyle {
 
 export default class CursorStyleSystem extends System {
 	private element: HTMLElement;
-	private grabbingEnabled: boolean = false;
-	private pointerEnabled: boolean = false;
+	private grabbingEnabled = false;
+	private pointerEnabled = false;
 
-	constructor(systemManager: SystemManager) {
+	public constructor(systemManager: SystemManager) {
 		super(systemManager);
 
 		this.element = <HTMLCanvasElement>document.getElementById('canvas');
 	}
 
-	public postInit() {
+	public postInit(): void {
 
 	}
 
-	public enableGrabbing() {
+	public enableGrabbing(): void {
 		this.grabbingEnabled = true;
 		this.updateStyle();
 	}
 
-	public disableGrabbing() {
+	public disableGrabbing(): void {
 		this.grabbingEnabled = false;
 		this.updateStyle();
 	}
 
-	public enablePointer() {
+	public enablePointer(): void {
 		this.pointerEnabled = true;
 		this.updateStyle();
 	}
 
-	public disablePointer() {
+	public disablePointer(): void {
 		this.pointerEnabled = false;
 		this.updateStyle();
 	}
 
-	private updateStyle() {
+	private updateStyle(): void {
 		if(Config.IsMobileBrowser) {
 			return;
 		}
@@ -62,7 +62,7 @@ export default class CursorStyleSystem extends System {
 		this.element.style.cursor = CursorStyle.Grab;
 	}
 
-	public update(deltaTime: number) {
+	public update(deltaTime: number): void {
 
 	}
 }

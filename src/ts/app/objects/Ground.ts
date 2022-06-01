@@ -9,7 +9,7 @@ import Tile, {StaticTileGeometry} from "./Tile";
 export default class Ground extends Mesh {
 	public borderVertices: number[];
 
-	constructor(renderer: Renderer, tileGeometry: StaticTileGeometry) {
+	public constructor(renderer: Renderer, tileGeometry: StaticTileGeometry) {
 		super(renderer, {
 			bboxCulled: true
 		});
@@ -43,7 +43,7 @@ export default class Ground extends Mesh {
 		);
 	}
 
-	public applyHeightmap(x: number, y: number) {
+	public applyHeightmap(x: number, y: number): void {
 		const vertices = this.attributes.get('position').buffer;
 		const uvs = this.attributes.get('uv').buffer;
 
@@ -65,7 +65,7 @@ export default class Ground extends Mesh {
 		this.updateBorderVertices();
 	}
 
-	private calculateNormals() {
+	private calculateNormals(): void {
 		const vertices = this.attributes.get('position').buffer;
 		const normalBuffer = new Float32Array(vertices.length);
 
@@ -105,7 +105,7 @@ export default class Ground extends Mesh {
 		this.updateAttribute('normal');
 	}
 
-	private updateBorderVertices() {
+	private updateBorderVertices(): void {
 		const vertices = this.attributes.get('position').buffer;
 		const uvs = this.attributes.get('uv').buffer;
 
@@ -118,7 +118,7 @@ export default class Ground extends Mesh {
 		}
 	}
 
-	public updateBorderNormals(x: number, y: number, neighbors: Tile[]) {
+	public updateBorderNormals(x: number, y: number, neighbors: Tile[]): void {
 		const normals = this.attributes.get('normal').buffer;
 		const uvs = this.attributes.get('uv').buffer;
 

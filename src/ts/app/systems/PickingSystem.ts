@@ -1,7 +1,4 @@
 import Vec2 from "../../math/Vec2";
-import GLConstants from "../../renderer/GLConstants";
-import Renderer from "../../renderer/Renderer";
-import GBuffer from "../../renderer/GBuffer";
 import Tile from "../objects/Tile";
 import System from "../System";
 import SystemManager from "../SystemManager";
@@ -11,14 +8,14 @@ import UISystem from "./UISystem";
 
 export default class PickingSystem extends System {
 	public pointerPosition: Vec2 = new Vec2();
-	private enablePicking: boolean = true;
-	public hoveredObjectId: number = 0;
-	public selectedObjectId: number = 0;
-	public selectedObjectLocalId: number = 0;
+	private enablePicking = true;
+	public hoveredObjectId = 0;
+	public selectedObjectId = 0;
+	public selectedObjectLocalId = 0;
 	public selectedObjectTile: Tile = null;
 	public pointerDownPosition: Vec2 = new Vec2();
 
-	constructor(systemManager: SystemManager) {
+	public constructor(systemManager: SystemManager) {
 		super(systemManager);
 
 		const canvas = document.getElementById('canvas');
@@ -54,11 +51,11 @@ export default class PickingSystem extends System {
 		});
 	}
 
-	public postInit() {
+	public postInit(): void {
 
 	}
 
-	public readObjectId(buffer: Uint32Array) {
+	public readObjectId(buffer: Uint32Array): void {
 		/*if (!this.pixelBuffer) {
 			this.createPixelBuffer(renderer);
 		}
@@ -93,7 +90,7 @@ export default class PickingSystem extends System {
 		this.updatePointer();
 	}
 
-	private updatePointer() {
+	private updatePointer(): void {
 		if (this.hoveredObjectId > 0 && this.enablePicking) {
 			this.systemManager.getSystem(CursorStyleSystem).enablePointer();
 		} else {
@@ -101,7 +98,7 @@ export default class PickingSystem extends System {
 		}
 	}
 
-	private onClick() {
+	private onClick(): void {
 		if (this.hoveredObjectId === 0 || this.hoveredObjectId === this.selectedObjectId) {
 			this.clearSelection();
 			return;
@@ -127,12 +124,12 @@ export default class PickingSystem extends System {
 		}
 	}
 
-	public clearSelection() {
+	public clearSelection(): void {
 		this.selectedObjectId = 0;
 		this.systemManager.getSystem(UISystem).clearActiveFeature();
 	}
 
-	public update(deltaTime: number) {
+	public update(deltaTime: number): void {
 
 	}
 }

@@ -14,7 +14,7 @@ export default class MeshGroundProjector {
 	private heightCache: Map<string, number[]> = new Map();
 	private normalCache: Map<string, number[]> = new Map();
 
-	constructor(tileX: number, tileY: number, heightViewer: HeightViewer, ground: GroundGeometryBuffers) {
+	public constructor(tileX: number, tileY: number, heightViewer: HeightViewer, ground: GroundGeometryBuffers) {
 		this.heightViewer = heightViewer;
 		this.tilePosition = new Vec2(tileX, tileY);
 		this.ground = ground;
@@ -33,7 +33,7 @@ export default class MeshGroundProjector {
 	public project(
 		projectedTri: [number, number][],
 		attributes: {[attributeName: string]: [number, number][]}
-	): {position: Float32Array, normal: Float32Array, attributes: {[name: string]: Float32Array}} {
+	): {position: Float32Array; normal: Float32Array; attributes: {[name: string]: Float32Array}} {
 		const positionTris: number[][] = [];
 		const normalTris: number[][] = [];
 		const coveredTiles = MeshGroundProjector.getTilesUnderTriangle(projectedTri, Config.GroundSegments, Config.GroundSegments);

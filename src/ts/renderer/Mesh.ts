@@ -10,16 +10,16 @@ import Material from "./Material";
 
 interface MeshAttribute {
 	params: {
-		name: string,
-		size: number,
-		type: number,
-		normalized: boolean,
-		instanced: boolean,
-		divisor: number,
-		dataFormat: AttributeFormat,
-		usage: number
+		name: string;
+		size: number;
+		type: number;
+		normalized: boolean;
+		instanced: boolean;
+		divisor: number;
+		dataFormat: AttributeFormat;
+		usage: number;
 	};
-	buffer: TypedArray
+	buffer: TypedArray;
 }
 
 export default class Mesh extends Object3D {
@@ -36,14 +36,14 @@ export default class Mesh extends Object3D {
 	public indexed: boolean;
 	protected indexBuffer: WebGLBuffer;
 
-	constructor(renderer: Renderer, {
+	public constructor(renderer: Renderer, {
 		vertices,
 		indices = null,
 		bboxCulled = false
 	}: {
-		vertices?: TypedArray,
-		indices?: TypedArray,
-		bboxCulled?: boolean
+		vertices?: TypedArray;
+		indices?: TypedArray;
+		bboxCulled?: boolean;
 	} = {}) {
 		super();
 
@@ -65,7 +65,7 @@ export default class Mesh extends Object3D {
 		}
 	}
 
-	public draw() {
+	public draw(): void {
 		const material = this.renderer.currentMaterial;
 
 		this.bindVAO(material);
@@ -81,7 +81,7 @@ export default class Mesh extends Object3D {
 		}
 	}
 
-	protected bindVAO(material: Material) {
+	protected bindVAO(material: Material): void {
 		let vao = this.vaos.get(material.name);
 
 		if (!vao) {
@@ -105,7 +105,7 @@ export default class Mesh extends Object3D {
 		}
 	}
 
-	private createIndexBuffer() {
+	private createIndexBuffer(): void {
 		this.indexBuffer = this.gl.createBuffer();
 		this.gl.bindBuffer(GLConstants.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
 
@@ -118,7 +118,7 @@ export default class Mesh extends Object3D {
 		this.gl.bindBuffer(GLConstants.ELEMENT_ARRAY_BUFFER, null);
 	}
 
-	public updateIndexBuffer() {
+	public updateIndexBuffer(): void {
 		this.createIndexBuffer();
 	}
 
@@ -133,26 +133,26 @@ export default class Mesh extends Object3D {
 			dataFormat = AttributeFormat.Float,
 			usage = GLConstants.DYNAMIC_DRAW
 		}: {
-			name: string,
-			size?: number,
-			type?: number,
-			normalized?: boolean,
-			instanced?: boolean,
-			divisor?: number,
-			dataFormat?: AttributeFormat,
-			usage?: number
-		}) {
+			name: string;
+			size?: number;
+			type?: number;
+			normalized?: boolean;
+			instanced?: boolean;
+			divisor?: number;
+			dataFormat?: AttributeFormat;
+			usage?: number;
+		}): void {
 		this.attributes.set(name, {
 			params: {name, size, type, normalized, instanced, divisor, dataFormat, usage},
 			buffer: null
 		});
 	}
 
-	public setAttributeData(attributeName: string, data: TypedArray) {
+	public setAttributeData(attributeName: string, data: TypedArray): void {
 		this.attributes.get(attributeName).buffer = data;
 	}
 
-	public updateAttribute(attributeName: string) {
+	public updateAttribute(attributeName: string): void {
 		for (const [materialName, attributeList] of this.materialsAttributes.entries()) {
 			if(!this.vaos.get(materialName)) {
 				continue;
@@ -165,7 +165,7 @@ export default class Mesh extends Object3D {
 		}
 	}
 
-	public setBoundingBox(min: Vec3, max: Vec3) {
+	public setBoundingBox(min: Vec3, max: Vec3): void {
 		this.bbox = new AABB(min, max);
 	}
 
@@ -199,7 +199,7 @@ export default class Mesh extends Object3D {
 		}
 	}
 
-	public delete() {
+	public delete(): void {
 		if(this.parent) {
 			this.parent.remove(this);
 		}
@@ -209,7 +209,7 @@ export default class Mesh extends Object3D {
 			this.vaos.delete(name)
 		}
 
-		for (let attributeList of this.materialsAttributes.values()) {
+		for (const attributeList of this.materialsAttributes.values()) {
 			for (const attributeName of this.attributes.keys()) {
 				attributeList.get(attributeName).delete();
 				attributeList.delete(attributeName);

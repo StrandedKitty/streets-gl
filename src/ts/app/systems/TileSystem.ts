@@ -10,7 +10,6 @@ import StaticGeometryLoadingSystem from "./StaticGeometryLoadingSystem";
 import TileObjectsSystem from "./TileObjectsSystem";
 import System from "../System";
 import SystemManager from "../SystemManager";
-import RenderSystem from "./RenderSystem";
 import SceneSystem from '~/app/systems/SceneSystem';
 
 export default class TileSystem extends System {
@@ -19,17 +18,17 @@ export default class TileSystem extends System {
 	private cameraFrustum: Frustum;
 	private objectsManager: TileObjectsSystem;
 
-	constructor(systemManager: SystemManager) {
+	public constructor(systemManager: SystemManager) {
 		super(systemManager);
 
 		this.init();
 	}
 
-	private init() {
+	private init(): void {
 		window.addEventListener('resize', () => this.onResize());
 	}
 
-	public postInit() {
+	public postInit(): void {
 		this.objectsManager = this.systemManager.getSystem(TileObjectsSystem);
 
 		this.camera = this.systemManager.getSystem(SceneSystem).objects.camera;
@@ -38,12 +37,12 @@ export default class TileSystem extends System {
 		this.cameraFrustum.updateViewSpaceVertices();
 	}
 
-	private onResize() {
+	private onResize(): void {
 		this.cameraFrustum.aspect = this.camera.aspect;
 		this.cameraFrustum.updateViewSpaceVertices();
 	}
 
-	public addTile(x: number, y: number) {
+	public addTile(x: number, y: number): void {
 		const tile = new Tile(x, y);
 
 		this.tiles.set(`${x},${y}`, tile);
@@ -59,7 +58,7 @@ export default class TileSystem extends System {
 		return this.tiles.get(`${x},${y}`);
 	}
 
-	public removeTile(x: number, y: number) {
+	public removeTile(x: number, y: number): void {
 		const tile = this.getTile(x, y);
 
 		this.objectsManager.removeTile(tile);
@@ -101,12 +100,12 @@ export default class TileSystem extends System {
 		return null;
 	}
 
-	public update(deltaTime: number) {
+	public update(deltaTime: number): void {
 		this.updateTiles();
 		this.removeCulledTiles();
 	}
 
-	private updateTiles() {
+	private updateTiles(): void {
 		const worldSpaceFrustum = this.cameraFrustum.toSpace(this.camera.matrix);
 		const frustumTiles = this.getTilesInFrustum(worldSpaceFrustum, this.camera.position);
 
@@ -236,7 +235,7 @@ export default class TileSystem extends System {
 	}
 
 	private sortTilesByDistanceToCamera(tiles: Vec2[], cameraPosition: Vec3): Vec2[] {
-		const tilesList: { distance: number, tile: Vec2 }[] = [];
+		const tilesList: { distance: number; tile: Vec2 }[] = [];
 
 		for (let i = 0; i < tiles.length; i++) {
 			const worldPosition = MathUtils.tile2meters(tiles[i].x + 0.5, tiles[i].y + 0.5);
@@ -258,8 +257,8 @@ export default class TileSystem extends System {
 		return result;
 	}
 
-	private removeCulledTiles() {
-		type tileEntry = { tile: Tile, distance: number };
+	private removeCulledTiles(): void {
+		type tileEntry = { tile: Tile; distance: number };
 		const tileList: tileEntry[] = [];
 
 		for (const tile of this.tiles.values()) {

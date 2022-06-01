@@ -2,8 +2,8 @@ import Renderer from "./Renderer";
 import GLConstants from "./GLConstants";
 
 interface ProgramSource {
-	vertex: string,
-	fragment: string
+	vertex: string;
+	fragment: string;
 }
 
 export default class Program {
@@ -13,12 +13,12 @@ export default class Program {
 	private readonly vertexShader: WebGLShader;
 	public WebGLProgram: WebGLProgram;
 
-	constructor(renderer: Renderer, {
+	public constructor(renderer: Renderer, {
 		vertexShader,
 		fragmentShader
 	}: {
-		vertexShader: string,
-		fragmentShader: string
+		vertexShader: string;
+		fragmentShader: string;
 	}) {
 		this.gl = renderer.gl;
 

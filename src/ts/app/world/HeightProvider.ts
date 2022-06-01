@@ -3,7 +3,7 @@ export default new class HeightProvider {
 	private requests: Map<string, Promise<void>> = new Map();
 	private ctx: CanvasRenderingContext2D;
 
-	constructor() {
+	public constructor() {
 		const canvas = document.createElement('canvas');
 		canvas.width = 256;
 		canvas.height = 256;
@@ -78,7 +78,7 @@ export default new class HeightProvider {
 		promise = new Promise<void>(resolve => {
 			const image = new Image();
 
-			image.onload = () => {
+			image.onload = (): void => {
 				this.ctx.drawImage(image, 0, 0);
 
 				const data = this.ctx.getImageData(0, 0, 256, 256).data;
@@ -89,7 +89,7 @@ export default new class HeightProvider {
 				resolve();
 			}
 
-			image.onerror = () => {
+			image.onerror = (): void => {
 				this.tiles.set(`${x},${y}`, new Uint8ClampedArray(256 * 256 * 4));
 				this.requests.delete(`${x},${y}`);
 

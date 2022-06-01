@@ -7,16 +7,15 @@ import WebGL2Renderer from "~/renderer/webgl2-renderer/WebGL2Renderer";
 import WebGL2Framebuffer from "~/renderer/webgl2-renderer/WebGL2Framebuffer";
 import WebGL2Constants from '~/renderer/webgl2-renderer/WebGL2Constants';
 import WebGL2Texture from '~/renderer/webgl2-renderer/WebGL2Texture';
-import GLConstants from '~/renderer/GLConstants';
 
 export default class WebGL2RenderPass implements AbstractRenderPass {
 	private readonly renderer: WebGL2Renderer;
 	public readonly colorAttachments: ColorAttachment[];
 	public readonly depthAttachment: DepthAttachment;
 	private framebuffer: WebGL2Framebuffer = null;
-	private framebufferNeedsUpdate: boolean = false;
+	private framebufferNeedsUpdate = false;
 
-	constructor(
+	public constructor(
 		renderer: WebGL2Renderer,
 		{
 			colorAttachments,
@@ -33,15 +32,15 @@ export default class WebGL2RenderPass implements AbstractRenderPass {
 		}
 	}
 
-	private createFramebuffer() {
+	private createFramebuffer(): void {
 		this.framebuffer = new WebGL2Framebuffer(this.renderer, this.colorAttachments, this.depthAttachment);
 	}
 
-	public needsUpdate() {
+	public needsUpdate(): void {
 		this.framebufferNeedsUpdate = true;
 	}
 
-	public begin() {
+	public begin(): void {
 		this.renderer.bindFramebuffer(this.framebuffer);
 
 		if (this.framebufferNeedsUpdate && this.framebuffer) {
@@ -55,11 +54,11 @@ export default class WebGL2RenderPass implements AbstractRenderPass {
 		}
 	}
 
-	public setSize(width: number, height: number) {
+	public setSize(width: number, height: number): void {
 		throw new Error("Method not implemented.");
 	}
 
-	public copyColorAttachmentToTexture(attachmentId: number, texture: WebGL2Texture) {
+	public copyColorAttachmentToTexture(attachmentId: number, texture: WebGL2Texture): void {
 		this.renderer.bindFramebuffer(this.framebuffer);
 
 		const {internalFormat} = WebGL2Texture.convertFormatToWebGLConstants(texture.format);
@@ -74,8 +73,8 @@ export default class WebGL2RenderPass implements AbstractRenderPass {
 		buffer: T,
 		x: number,
 		y: number,
-		width: number = 1,
-		height: number = 1
+		width = 1,
+		height = 1
 	): Promise<void> {
 		const texture = this.colorAttachments[attachmentId].texture as WebGL2Texture;
 		const pixelBuffer = texture.getPixelPackBuffer();
@@ -96,7 +95,7 @@ export default class WebGL2RenderPass implements AbstractRenderPass {
 		this.renderer.gl.bindBuffer(WebGL2Constants.PIXEL_PACK_BUFFER, null);
 	}
 
-	public delete() {
+	public delete(): void {
 		for (const attachment of this.colorAttachments) {
 			attachment.texture.delete();
 		}

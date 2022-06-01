@@ -9,31 +9,30 @@ import Shaders from '~/app/render/shaders/Shaders';
 import AbstractMaterial from '~/renderer/abstract-renderer/AbstractMaterial';
 import AbstractTexture2D from '~/renderer/abstract-renderer/AbstractTexture2D';
 import FullScreenTriangle from '~/app/objects/FullScreenTriangle';
-import Mat4 from '~/math/Mat4';
 
 export default class TAAPass extends Pass<{
 	GBuffer: {
-		type: RG.InternalResourceType.Input,
-		resource: RenderPassResource
-	},
+		type: RG.InternalResourceType.Input;
+		resource: RenderPassResource;
+	};
 	TAAAccum: {
-		type: RG.InternalResourceType.Input,
-		resource: RenderPassResource
-	},
+		type: RG.InternalResourceType.Input;
+		resource: RenderPassResource;
+	};
 	TAAOutput: {
-		type: RG.InternalResourceType.Input,
-		resource: RenderPassResource
-	},
+		type: RG.InternalResourceType.Input;
+		resource: RenderPassResource;
+	};
 	Output: {
-		type: RG.InternalResourceType.Output,
-		resource: RenderPassResource
-	}
+		type: RG.InternalResourceType.Output;
+		resource: RenderPassResource;
+	};
 }> {
 	private backbufferMaterial: AbstractMaterial;
 	private taaMaterial: AbstractMaterial;
 	private fullScreenTriangle: FullScreenTriangle;
 
-	constructor(manager: PassManager) {
+	public constructor(manager: PassManager) {
 		super('TAAPass', manager, {
 			GBuffer: {type: RG.InternalResourceType.Input, resource: manager.getSharedResource('GBufferRenderPass')},
 			TAAAccum: {
@@ -94,7 +93,7 @@ export default class TAAPass extends Pass<{
 		this.init();
 	}
 
-	private init() {
+	private init(): void {
 		this.backbufferMaterial = this.renderer.createMaterial({
 			name: 'Backbuffer material',
 			uniforms: [
@@ -152,7 +151,7 @@ export default class TAAPass extends Pass<{
 		this.fullScreenTriangle = new FullScreenTriangle(this.renderer);
 	}
 
-	public render() {
+	public render(): void {
 		const colorTexture = <AbstractTexture2D>this.getPhysicalResource('GBuffer').colorAttachments[0].texture;
 		const motionTexture = <AbstractTexture2D>this.getPhysicalResource('GBuffer').colorAttachments[3].texture;
 		const accumTexture = <AbstractTexture2D>this.getPhysicalResource('TAAAccum').colorAttachments[0].texture;
@@ -177,7 +176,7 @@ export default class TAAPass extends Pass<{
 		this.fullScreenTriangle.mesh.draw();
 	}
 
-	public setSize(width: number, height: number) {
+	public setSize(width: number, height: number): void {
 		this.getResource('TAAAccum').descriptor.setSize(width, height);
 		this.getResource('TAAOutput').descriptor.setSize(width, height);
 	}

@@ -4,8 +4,8 @@ import Vec3 from "../math/Vec3";
 import Mat4 from "../math/Mat4";
 
 interface FrustumVertices {
-	near: Vec3[],
-	far: Vec3[]
+	near: Vec3[];
+	far: Vec3[];
 }
 
 export default class Frustum {
@@ -15,7 +15,7 @@ export default class Frustum {
 	public far: number;
 	public vertices: FrustumVertices;
 
-	constructor(fov?: number, aspect?: number, near?: number, far?: number) {
+	public constructor(fov?: number, aspect?: number, near?: number, far?: number) {
 		this.fov = fov;
 		this.aspect = aspect;
 		this.near = near;
@@ -27,11 +27,11 @@ export default class Frustum {
 		};
 	}
 
-	public setVertices(vertices: FrustumVertices) {
+	public setVertices(vertices: FrustumVertices): void {
 		this.vertices = vertices;
 	}
 
-	public updateViewSpaceVertices() {
+	public updateViewSpaceVertices(): void {
 		const nearPlaneY = this.near * Math.tan(MathUtils.toRad(this.fov / 2));
 		const nearPlaneX = this.aspect * nearPlaneY;
 
@@ -57,7 +57,7 @@ export default class Frustum {
 		];
 	}
 
-	public toSpace(matrix: Mat4) {
+	public toSpace(matrix: Mat4): Frustum {
 		const result = new Frustum(this.fov, this.aspect, this.near, this.far);
 
 		for(let i = 0; i < 4; i++) {

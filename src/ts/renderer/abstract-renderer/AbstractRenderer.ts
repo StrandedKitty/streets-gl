@@ -21,5 +21,5 @@ export default interface AbstractRenderer {
 	useMaterial(material: AbstractMaterial): void;
 	fence(): Promise<void>;
 	readonly rendererInfo: [string, string];
-	readonly resolution: { x: number, y: number };
+	readonly resolution: { x: number; y: number };
 }

@@ -6,9 +6,9 @@ export default class Texture2DArray extends Texture {
 	protected textureTypeConstant = GLConstants.TEXTURE_2D_ARRAY;
 	public depth: number;
 	public urls: string[];
-	private imagesLoaded: number = 0;
+	private imagesLoaded = 0;
 
-	constructor(renderer: Renderer, {
+	public constructor(renderer: Renderer, {
 		urls,
 		anisotropy = 1,
 		minFilter = GLConstants.LINEAR_MIPMAP_LINEAR,
@@ -23,19 +23,19 @@ export default class Texture2DArray extends Texture {
 		flipY = false,
 		depth
 	}: {
-		urls?: string[],
-		anisotropy?: number,
-		minFilter?: number,
-		magFilter?: number,
-		wrap?: number,
-		width?: number,
-		height?: number,
-		format?: number,
-		internalFormat?: number,
-		type?: number,
-		data?: TypedArray,
-		flipY?: boolean,
-		depth: number
+		urls?: string[];
+		anisotropy?: number;
+		minFilter?: number;
+		magFilter?: number;
+		wrap?: number;
+		width?: number;
+		height?: number;
+		format?: number;
+		internalFormat?: number;
+		type?: number;
+		data?: TypedArray;
+		flipY?: boolean;
+		depth: number;
 	}) {
 		super(renderer, {anisotropy, minFilter, magFilter, wrap, width, height, format, internalFormat, type, data, flipY});
 
@@ -63,11 +63,11 @@ export default class Texture2DArray extends Texture {
 		this.gl.bindTexture(this.gl.TEXTURE_2D_ARRAY, null);
 	}
 
-	private loadImage(slice: number) {
+	private loadImage(slice: number): void {
 		const image = new Image();
 
 		image.crossOrigin = "anonymous";
-		image.onload = () => {
+		image.onload = (): void => {
 			this.writeFromImage(image, slice);
 
 			if(++this.imagesLoaded === this.urls.length) {
@@ -77,7 +77,7 @@ export default class Texture2DArray extends Texture {
 		image.src = this.urls[slice];
 	}
 
-	private writeFromImage(image: HTMLImageElement, slice: number) {
+	private writeFromImage(image: HTMLImageElement, slice: number): void {
 		this.gl.bindTexture(GLConstants.TEXTURE_2D_ARRAY, this.WebGLTexture);
 
 		this.updateFlipY();
@@ -86,7 +86,7 @@ export default class Texture2DArray extends Texture {
 		this.generateMipmaps();
 	}
 
-	private writeFromBuffer(data: TypedArray) {
+	private writeFromBuffer(data: TypedArray): void {
 		this.gl.bindTexture(GLConstants.TEXTURE_2D_ARRAY, this.WebGLTexture);
 
 		this.updateFlipY();
@@ -97,7 +97,7 @@ export default class Texture2DArray extends Texture {
 		}
 	}
 
-	public setSize(width: number, height: number) {
+	public setSize(width: number, height: number): void {
 		this.width = width;
 		this.height = height;
 

@@ -17,7 +17,7 @@ function resolveIncludes(str: string): string {
 }
 
 export default class ShaderPrecompiler {
-	static resolveIncludes(shaderSource: string): string {
+	public static resolveIncludes(shaderSource: string): string {
 		return resolveIncludes(shaderSource);
 	}
 }

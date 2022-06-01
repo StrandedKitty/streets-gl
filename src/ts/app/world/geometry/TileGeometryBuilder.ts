@@ -15,14 +15,14 @@ import Config from "../../Config";
 import Vec3 from "../../../math/Vec3";
 
 interface OSMSource {
-	nodes: Map<number, OSMNode>,
-	ways: Map<number, OSMWay>,
-	relations: Map<number, OSMRelation>
+	nodes: Map<number, OSMNode>;
+	ways: Map<number, OSMWay>;
+	relations: Map<number, OSMRelation>;
 }
 
 interface Features3D {
-	nodes: Map<number, Node3D>,
-	ways: Map<number, Way3D>
+	nodes: Map<number, Node3D>;
+	ways: Map<number, Way3D>;
 }
 
 export default class TileGeometryBuilder {
@@ -33,7 +33,7 @@ export default class TileGeometryBuilder {
 	private osmFeatures: OSMSource;
 	private features: Features3D;
 
-	constructor(x: number, y: number, heightViewer: HeightViewer) {
+	public constructor(x: number, y: number, heightViewer: HeightViewer) {
 		this.x = x;
 		this.y = y;
 		this.pivot = MathUtils.tile2meters(this.x, this.y + 1);
@@ -188,7 +188,7 @@ export default class TileGeometryBuilder {
 		const projectedTextureIds: Uint8Array[] = [];
 
 		for (let ii = 0; ii < roadPositionArrays.length * 2; ii++) {
-			let i = ii % roadPositionArrays.length;
+			const i = ii % roadPositionArrays.length;
 
 			const roadPositions = roadPositionArrays[i];
 			const roadUvs = roadUvArrays[i];
@@ -253,7 +253,11 @@ export default class TileGeometryBuilder {
 		};
 	}
 
-	static createPlane(x: number, z: number, segmentsX: number, segmentsZ: number) {
+	public static createPlane(x: number, z: number, segmentsX: number, segmentsZ: number): {
+		vertices: Float32Array;
+		uvs: Float32Array;
+		indices: Uint32Array;
+	} {
 		const vertices: number[] = [];
 		const indices: number[] = [];
 		const uvs: number[] = [];
@@ -296,12 +300,12 @@ export default class TileGeometryBuilder {
 		}
 
 		return {vertices: new Float32Array(vertices), uvs: new Float32Array(uvs), indices: new Uint32Array(indices)};
-	};
+	}
 
 	private getGroundGeometry(): {
-		geometry: GroundGeometryBuffers,
-		bbox: { min: number[], max: number[] }
-	} {
+		geometry: GroundGeometryBuffers;
+		bbox: { min: number[]; max: number[] };
+		} {
 		const plane = TileGeometryBuilder.createPlane(
 			Config.TileSize,
 			Config.TileSize,
@@ -496,15 +500,15 @@ export default class TileGeometryBuilder {
 					let memberFeature = null;
 
 					switch (member.type) {
-						case 'node':
-							memberFeature = nodes.get(member.ref);
-							break;
-						case 'way':
-							memberFeature = ways.get(member.ref);
-							break;
-						case 'relation':
-							memberFeature = relations.get(member.ref);
-							break;
+					case 'node':
+						memberFeature = nodes.get(member.ref);
+						break;
+					case 'way':
+						memberFeature = ways.get(member.ref);
+						break;
+					case 'relation':
+						memberFeature = relations.get(member.ref);
+						break;
 					}
 
 					if (memberFeature) {
@@ -612,7 +616,7 @@ export default class TileGeometryBuilder {
 		return {nodes, ways} as Features3D;
 	}
 
-	private removeBuildingOutlines(ways: Map<number, Way3D>, partsRelations: Map<number, number>) {
+	private removeBuildingOutlines(ways: Map<number, Way3D>, partsRelations: Map<number, number>): void {
 		for (const part of ways.values()) {
 			if (!part.tags.buildingPart || part.tags.type === 'none') {
 				continue;
@@ -663,7 +667,7 @@ export default class TileGeometryBuilder {
 		return sum;
 	}
 
-	private getBoundingBoxFromVertices(vertices: TypedArray): { min: number[], max: number[] } {
+	private getBoundingBoxFromVertices(vertices: TypedArray): { min: number[]; max: number[] } {
 		const min = [Infinity, Infinity, Infinity];
 		const max = [-Infinity, -Infinity, -Infinity];
 

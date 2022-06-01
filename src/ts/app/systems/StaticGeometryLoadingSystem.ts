@@ -1,23 +1,21 @@
 import Tile, {StaticTileGeometry} from "../objects/Tile";
-import Renderer from "../../renderer/Renderer";
 import System from "../System";
 import SystemManager from "../SystemManager";
-import RenderSystem from "./RenderSystem";
 import MapWorkerSystem from "./MapWorkerSystem";
 
 interface queueEntry {
-	tile: Tile,
-	onLoad: (...args: any[]) => any
+	tile: Tile;
+	onLoad: (...args: any[]) => any;
 }
 
 export default class StaticGeometryLoadingSystem extends System {
 	private queue: queueEntry[] = [];
 
-	constructor(systemManager: SystemManager) {
+	public constructor(systemManager: SystemManager) {
 		super(systemManager);
 	}
 
-	public postInit() {
+	public postInit(): void {
 
 	}
 
@@ -32,7 +30,7 @@ export default class StaticGeometryLoadingSystem extends System {
 		});
 	}
 
-	public update(deltaTime: number) {
+	public update(deltaTime: number): void {
 		this.removeDisposedTiles();
 
 		const mapWorkerSystem = this.systemManager.getSystem(MapWorkerSystem);
@@ -50,7 +48,7 @@ export default class StaticGeometryLoadingSystem extends System {
 		}
 	}
 
-	private removeDisposedTiles() {
+	private removeDisposedTiles(): void {
 		this.queue.filter((entry: queueEntry) => {
 			return !entry.tile.disposed;
 		});

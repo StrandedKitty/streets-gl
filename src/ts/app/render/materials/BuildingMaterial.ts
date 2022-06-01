@@ -5,7 +5,7 @@ import Texture2DArray from "../../../renderer/Texture2DArray";
 import GLConstants from "../../../renderer/GLConstants";
 
 export default class BuildingMaterial extends Material {
-	constructor(renderer: Renderer) {
+	public constructor(renderer: Renderer) {
 		super(renderer, {
 			name: 'BuildingMaterial',
 			fragmentShader: Shaders.building.fragment,

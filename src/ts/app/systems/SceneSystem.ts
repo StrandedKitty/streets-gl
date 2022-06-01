@@ -6,7 +6,6 @@ import Skybox from '~/app/objects/Skybox';
 import RenderableObject3D from '~/app/objects/RenderableObject3D';
 import Vec2 from '~/math/Vec2';
 import TileSystem from '~/app/systems/TileSystem';
-import Mat4 from '~/math/Mat4';
 
 interface SceneObjects {
 	wrapper: Object3D;
@@ -20,7 +19,7 @@ export default class SceneSystem extends System {
 	public objects: SceneObjects;
 	public pivotDelta: Vec2 = new Vec2();
 
-	constructor(systemManager: SystemManager) {
+	public constructor(systemManager: SystemManager) {
 		super(systemManager);
 
 		this.init();
@@ -28,7 +27,7 @@ export default class SceneSystem extends System {
 		window.addEventListener('resize', () => this.resize());
 	}
 
-	private init() {
+	private init(): void {
 		this.scene = new Object3D();
 
 		const wrapper = new Object3D();
@@ -57,7 +56,7 @@ export default class SceneSystem extends System {
 		wrapper.add(tiles);
 	}
 
-	public postInit() {
+	public postInit(): void {
 
 	}
 
@@ -78,7 +77,7 @@ export default class SceneSystem extends System {
 		return result;
 	}
 
-	private updateTiles() {
+	private updateTiles(): void {
 		const tiles = this.systemManager.getSystem(TileSystem).tiles;
 
 		for (const tile of tiles.values()) {
@@ -91,7 +90,7 @@ export default class SceneSystem extends System {
 		}
 	}
 
-	public update(deltaTime: number) {
+	public update(deltaTime: number): void {
 		const cameraPos = this.objects.camera.position;
 
 		this.pivotDelta = new Vec2(
@@ -116,7 +115,7 @@ export default class SceneSystem extends System {
 		this.objects.camera.updateFrustum();
 	}
 
-	private resize() {
+	private resize(): void {
 		const width = window.innerWidth;
 		const height = window.innerHeight;
 

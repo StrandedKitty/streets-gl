@@ -7,7 +7,7 @@ export default class OSMFeature {
 	public tags: OSMTags;
 	public descriptor: OSMDescriptor;
 
-	constructor(id: number, tags: OSMTags = {}) {
+	public constructor(id: number, tags: OSMTags = {}) {
 		this.id = id;
 		this.tags = tags;
 		this.descriptor = new OSMDescriptor(this);

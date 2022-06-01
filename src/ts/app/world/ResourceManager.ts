@@ -3,18 +3,18 @@ export enum ResourceType {
 	Text
 }
 
-type ResourceJSONTypes = "image" | "text";
-type ResourceJSON = Record<string, {url: string, type: ResourceJSONTypes}>
+export type ResourceJSONTypes = "image" | "text";
+export type ResourceJSON = Record<string, {url: string; type: ResourceJSONTypes}>
 
 export default new class ResourceManager {
 	private resources: Map<string, any> = new Map();
 	private requests: Map<string, string> = new Map();
 
-	public add(name: string, url: string, type: ResourceType) {
+	public add(name: string, url: string, type: ResourceType): void {
 		this.requests.set(name, url);
 	}
 
-	public addFromJSON(resources: ResourceJSON) {
+	public addFromJSON(resources: ResourceJSON): void {
 		for (const [name, record] of Object.entries(resources)) {
 			const type = ResourceManager.getResourceTypeFromString(record.type);
 
@@ -26,7 +26,7 @@ export default new class ResourceManager {
 		return this.resources.get(name);
 	}
 
-	public async load() {
+	public async load(): Promise<void> {
 		let loaded = 0;
 		const total = this.requests.size;
 
@@ -35,7 +35,7 @@ export default new class ResourceManager {
 				const image = new Image();
 
 				image.crossOrigin = "anonymous";
-				image.onload = () => {
+				image.onload = (): void => {
 					this.resources.set(name, image);
 
 					if (++loaded === total) {
@@ -48,12 +48,12 @@ export default new class ResourceManager {
 		});
 	}
 
-	static getResourceTypeFromString(str: string): ResourceType {
+	private static getResourceTypeFromString(str: string): ResourceType {
 		switch (str) {
-			case 'image':
-				return ResourceType.Image;
-			case 'text':
-				return ResourceType.Text;
+		case 'image':
+			return ResourceType.Image;
+		case 'text':
+			return ResourceType.Text;
 		}
 
 		return ResourceType.Text;

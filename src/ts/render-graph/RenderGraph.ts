@@ -8,7 +8,7 @@ export default class RenderGraph {
 	public passes: Set<Pass> = new Set();
 	private resourcePool: ResourcePool = new ResourcePool();
 
-	public addPass(pass: Pass) {
+	public addPass(pass: Pass): void {
 		this.passes.add(pass);
 	}
 
@@ -98,7 +98,7 @@ export default class RenderGraph {
 		return graph;
 	}
 
-	public updateAllNodesVertices() {
+	public updateAllNodesVertices(): void {
 		const allResources: Set<Resource<any, any>> = new Set();
 
 		for (const pass of this.passes) {
@@ -129,7 +129,7 @@ export default class RenderGraph {
 		}
 	}
 
-	public render() {
+	public render(): void {
 		this.updateAllNodesVertices();
 
 		const graph = this.buildGraphWithCulling(this.passes);

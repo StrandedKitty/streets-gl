@@ -6,7 +6,7 @@ export default class Plane {
 	public z: number;
 	public w: number;
 
-	constructor(x: number = 0, y: number = 1, z: number = 0, w: number = 0) {
+	public constructor(x = 0, y = 1, z = 0, w = 0) {
 		this.x = x;
 		this.y = y;
 		this.z = z;

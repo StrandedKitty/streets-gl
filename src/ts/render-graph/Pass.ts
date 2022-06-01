@@ -8,7 +8,7 @@ export enum InternalResourceType {
 }
 
 export interface InternalResource {
-	type: InternalResourceType,
+	type: InternalResourceType;
 	resource: Resource;
 }
 
@@ -33,7 +33,7 @@ export default abstract class Pass<T extends ResourcePropMap = ResourcePropMap> 
 		this.physicalResources = new Map();
 	}
 
-	public fetchPhysicalResources(pool: PhysicalResourcePool) {
+	public fetchPhysicalResources(pool: PhysicalResourcePool): void {
 		for (const [name, internalResource] of this.internalResources.entries()) {
 			if (internalResource.resource === null) {
 				continue;
@@ -51,7 +51,7 @@ export default abstract class Pass<T extends ResourcePropMap = ResourcePropMap> 
 		}
 	}
 
-	public freePhysicalResources(pool: PhysicalResourcePool) {
+	public freePhysicalResources(pool: PhysicalResourcePool): void {
 		for (const [name, physicalResource] of this.physicalResources.entries()) {
 			const internalResource = this.internalResources.get(name);
 
@@ -66,7 +66,7 @@ export default abstract class Pass<T extends ResourcePropMap = ResourcePropMap> 
 		}
 	}
 
-	public setResource<K extends keyof T>(name: K, resource: T[K]['resource']) {
+	public setResource<K extends keyof T>(name: K, resource: T[K]['resource']): void {
 		this.internalResources.get(name).resource = resource;
 	}
 

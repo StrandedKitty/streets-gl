@@ -13,7 +13,7 @@ export default class SelectionMaskPass {
 	public groundMaterial: GroundMaskMaterial;
 	public framebuffer: Framebuffer;
 
-	constructor(renderer: Renderer, width: number, height: number) {
+	public constructor(renderer: Renderer, width: number, height: number) {
 		this.renderer = renderer;
 		this.width = width;
 		this.height = height;
@@ -21,7 +21,7 @@ export default class SelectionMaskPass {
 		this.init();
 	}
 
-	private init() {
+	private init(): void {
 		this.buildingMaterial = new BuildingMaskMaterial(this.renderer);
 		this.groundMaterial = new GroundMaskMaterial(this.renderer);
 
@@ -44,7 +44,7 @@ export default class SelectionMaskPass {
 		});
 	}
 
-	public clear() {
+	public clear(): void {
 		this.renderer.bindFramebuffer(this.framebuffer);
 
 		this.renderer.clearFramebuffer({
@@ -55,7 +55,7 @@ export default class SelectionMaskPass {
 		});
 	}
 
-	public setSize(width: number, height: number) {
+	public setSize(width: number, height: number): void {
 		this.width = width;
 		this.height = height;
 

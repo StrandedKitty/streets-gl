@@ -6,7 +6,7 @@ export default class AABB {
 	public min: Vec3;
 	public max: Vec3;
 
-	constructor(min: Vec3 = new Vec3(0, 0, 0), max: Vec3 = new Vec3(0, 0, 0)) {
+	public constructor(min: Vec3 = new Vec3(0, 0, 0), max: Vec3 = new Vec3(0, 0, 0)) {
 		this.min = min;
 		this.max = max;
 	}

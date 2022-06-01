@@ -1,18 +1,18 @@
 import React from "react";
 
 export default class SelectionInfo extends React.Component<{
-	activeFeatureId: number,
-	activeFeatureType: number
+	activeFeatureId: number;
+	activeFeatureType: number;
 }> {
-	private getActiveFeatureTitle() {
+	private getActiveFeatureTitle(): string {
 		return `${this.props.activeFeatureType === 0 ? 'Way' : 'Relation'} ${this.props.activeFeatureId}`;
 	}
 
-	private getActiveFeatureLink() {
+	private getActiveFeatureLink(): string {
 		return `https://www.openstreetmap.org/${this.props.activeFeatureType === 0 ? 'way' : 'relation'}/${this.props.activeFeatureId}`;
 	}
 
-	public render() {
+	public render(): JSX.Element {
 		return (
 			<div className='selection-info-wrapper'>
 				<div className='selection-info' id='selected-feature-container'>

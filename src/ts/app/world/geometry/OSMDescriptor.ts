@@ -1,20 +1,19 @@
 import OSMFeature, {OSMTags} from "./features/osm/OSMFeature";
 import Utils from "../../Utils";
-
-const TagsList = require("./../../../../resources/tags.json");
-const ColorsList = require("./../../../../resources/colors.json");
+import TagsList from './../../../../resources/tags.json';
+import ColorsList from './../../../../resources/colors.json';
 
 export default class OSMDescriptor {
 	private readonly tags: OSMTags;
 	public properties: { [key: string]: any } = {};
 
-	constructor(feature: OSMFeature) {
+	public constructor(feature: OSMFeature) {
 		this.tags = feature.tags;
 
 		this.getProperties();
 	}
 
-	private getProperties() {
+	private getProperties(): void {
 		for (const [key, value] of Object.entries(this.tags)) {
 			if (TagsList[key]) {
 				const props: { [key: string]: string } = TagsList[key][value] || TagsList[key].default || {};
@@ -23,21 +22,21 @@ export default class OSMDescriptor {
 					let newValue: any;
 
 					switch (propValue) {
-						case '@units':
-							newValue = this.parseUnits(value);
-							break;
-						case '@color':
-							newValue = ColorsList[value.toLowerCase()] || Utils.hexToRgb(value);
-							break;
-						case '@int':
-							newValue = parseInt(value);
-							break;
-						case '@self':
-							newValue = value;
-							break;
-						default:
-							newValue = propValue;
-							break;
+					case '@units':
+						newValue = this.parseUnits(value);
+						break;
+					case '@color':
+						newValue = ColorsList[value.toLowerCase()] || Utils.hexToRgb(value);
+						break;
+					case '@int':
+						newValue = parseInt(value);
+						break;
+					case '@self':
+						newValue = value;
+						break;
+					default:
+						newValue = propValue;
+						break;
 					}
 
 					this.properties[propKey] = newValue;

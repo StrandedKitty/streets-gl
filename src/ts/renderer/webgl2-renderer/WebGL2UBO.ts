@@ -25,7 +25,7 @@ export default class WebGL2UBO {
 	private uniformsOffsets: Map<string, number> = new Map();
 	private savedUniformValues: Map<string, TypedArray> = new Map();
 
-	constructor(renderer: WebGL2Renderer, program: WebGL2Program, blockName: string, uniforms: Uniform[]) {
+	public constructor(renderer: WebGL2Renderer, program: WebGL2Program, blockName: string, uniforms: Uniform[]) {
 		this.renderer = renderer;
 		this.gl = renderer.gl;
 		this.program = program;
@@ -35,7 +35,7 @@ export default class WebGL2UBO {
 		this.createBuffer();
 	}
 
-	private createBuffer() {
+	private createBuffer(): void  {
 		const blockIndex = this.gl.getUniformBlockIndex(this.program.WebGLProgram, this.blockName);
 
 		const blockSize = this.gl.getActiveUniformBlockParameter(
@@ -69,17 +69,17 @@ export default class WebGL2UBO {
 		}
 	}
 
-	private bind() {
+	private bind(): void  {
 		this.gl.bindBuffer(WebGL2Constants.UNIFORM_BUFFER, this.buffer);
 	}
 
-	public bindToBindingPoint(bindingPoint: number) {
+	public bindToBindingPoint(bindingPoint: number): void  {
 		this.gl.bindBufferBase(WebGL2Constants.UNIFORM_BUFFER, bindingPoint, this.buffer);
 
 		this.gl.uniformBlockBinding(this.program.WebGLProgram, this.blockIndex, bindingPoint);
 	}
 
-	public setUniformValue(uniformName: string, value: TypedArray) {
+	public setUniformValue(uniformName: string, value: TypedArray): void  {
 		const savedValue = this.savedUniformValues.get(uniformName);
 
 		if (savedValue && equal(savedValue, value)) {

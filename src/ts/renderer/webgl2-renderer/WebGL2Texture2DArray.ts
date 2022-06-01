@@ -4,11 +4,11 @@ import GLConstants from "~/renderer/GLConstants";
 import AbstractTexture2DArray, {AbstractTexture2DArrayParams} from "~/renderer/abstract-renderer/AbstractTexture2DArray";
 
 export default class WebGL2Texture2DArray extends WebGL2Texture implements AbstractTexture2DArray {
-    protected textureTypeConstant: number = GLConstants.TEXTURE_2D_ARRAY;
+	protected textureTypeConstant: number = GLConstants.TEXTURE_2D_ARRAY;
 	public depth: number;
 	public data: TypedArray[] | HTMLImageElement[];
 
-	constructor(renderer: WebGL2Renderer, params: AbstractTexture2DArrayParams) {
+	public constructor(renderer: WebGL2Renderer, params: AbstractTexture2DArrayParams) {
 		super(renderer, params);
 
 		this.depth = params.depth;
@@ -21,7 +21,7 @@ export default class WebGL2Texture2DArray extends WebGL2Texture implements Abstr
 		this.updateFromData();
 	}
 
-	public updateFromData() {
+	public updateFromData(): void {
 		this.renderer.bindTexture(this);
 		this.updateFlipY();
 
@@ -48,7 +48,7 @@ export default class WebGL2Texture2DArray extends WebGL2Texture implements Abstr
 		this.renderer.unbindTexture();
 	}
 
-	private writeFromBuffer(data: TypedArray) {
+	private writeFromBuffer(data: TypedArray): void {
 		const {format, internalFormat, type} = WebGL2Texture.convertFormatToWebGLConstants(this.format);
 
 		this.gl.texImage3D(
@@ -65,7 +65,7 @@ export default class WebGL2Texture2DArray extends WebGL2Texture implements Abstr
 		);
 	}
 
-	private writeSliceFromImage(image: HTMLImageElement, slice: number) {
+	private writeSliceFromImage(image: HTMLImageElement, slice: number): void {
 		this.width = image.width;
 		this.height = image.height;
 
@@ -86,7 +86,7 @@ export default class WebGL2Texture2DArray extends WebGL2Texture implements Abstr
 		);
 	}
 
-	private writeSliceFromBuffer(data: TypedArray, slice: number) {
+	private writeSliceFromBuffer(data: TypedArray, slice: number): void {
 		const {format, type} = WebGL2Texture.convertFormatToWebGLConstants(this.format);
 
 		this.gl.texSubImage3D(

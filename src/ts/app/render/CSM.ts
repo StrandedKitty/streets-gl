@@ -9,8 +9,8 @@ import Material, {UniformType} from "../../renderer/Material";
 import Texture2DArray from "../../renderer/Texture2DArray";
 import GLConstants from "../../renderer/GLConstants";
 
-const ShadowCameraTopOffset: number = 2000;
-const FadeOffsetFactor: number = 250;
+const ShadowCameraTopOffset = 2000;
+const FadeOffsetFactor = 250;
 
 export default class CSM extends Object3D {
 	private readonly renderer: Renderer;
@@ -22,8 +22,8 @@ export default class CSM extends Object3D {
 	private shadowBias: number;
 	private shadowNormalBias: number;
 	public direction: Vec3;
-	public lightIntensity: number = 0;
-	public ambientLightIntensity: number = 0;
+	public lightIntensity = 0;
+	public ambientLightIntensity = 0;
 
 	public lights: DirectionalLightShadow[] = [];
 	private texture: Texture2DArray;
@@ -32,7 +32,7 @@ export default class CSM extends Object3D {
 	private breaks: number[][];
 	private fadeOffsets: number[];
 
-	constructor(renderer: Renderer, {
+	public constructor(renderer: Renderer, {
 		camera,
 		parent,
 		near,
@@ -43,15 +43,15 @@ export default class CSM extends Object3D {
 		shadowNormalBias,
 		direction = new Vec3(-1, -1, -1)
 	}: {
-		camera: PerspectiveCamera,
-		parent: Object3D,
-		near: number,
-		far: number,
-		cascades: number,
-		resolution: number,
-		shadowBias: number,
-		shadowNormalBias: number,
-		direction?: Vec3
+		camera: PerspectiveCamera;
+		parent: Object3D;
+		near: number;
+		far: number;
+		cascades: number;
+		resolution: number;
+		shadowBias: number;
+		shadowNormalBias: number;
+		direction?: Vec3;
 	}) {
 		super();
 
@@ -72,7 +72,7 @@ export default class CSM extends Object3D {
 		this.createFrustums();
 	}
 
-	private createLights() {
+	private createLights(): void {
 		this.texture = new Texture2DArray(this.renderer, {
 			width: this.resolution,
 			height: this.resolution,
@@ -100,7 +100,7 @@ export default class CSM extends Object3D {
 		}
 	}
 
-	private createFrustums() {
+	private createFrustums(): void {
 		this.mainFrustum = new Frustum(this.camera.fov, this.camera.aspect, this.near, this.far);
 
 		this.mainFrustum.updateViewSpaceVertices();
@@ -117,7 +117,7 @@ export default class CSM extends Object3D {
 		}
 	}
 
-	private updateBreaks() {
+	private updateBreaks(): void {
 		const breaks = CSM.practicalSplit(this.cascades, this.near, this.far, 0.5);
 
 		this.breaks = [];
@@ -131,7 +131,7 @@ export default class CSM extends Object3D {
 		}
 	}
 
-	public update() {
+	public update(): void {
 		this.direction = Vec3.normalize(this.direction);
 
 		for (let i = 0; i < this.frustums.length; i++) {
@@ -169,7 +169,7 @@ export default class CSM extends Object3D {
 		}
 	}
 
-	public updateFrustums() {
+	public updateFrustums(): void {
 		this.createFrustums();
 	}
 
@@ -184,7 +184,7 @@ export default class CSM extends Object3D {
 		return new Float32Array(worldSpaceBreaks);
 	}
 
-	public applyUniformsToMaterial(material: Material) {
+	public applyUniformsToMaterial(material: Material): void {
 		material.uniforms[`shadowMap`] = {
 			type: UniformType.Texture2DArray,
 			value: this.texture

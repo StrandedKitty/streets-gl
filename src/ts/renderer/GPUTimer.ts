@@ -7,17 +7,17 @@ export default class GPUTimer {
 	private query: WebGLQuery = null;
 	private results: Map<string, number> = new Map();
 
-	constructor(renderer: Renderer) {
+	public constructor(renderer: Renderer) {
 		this.renderer = renderer;
 		this.ext = this.renderer.extensions.get('EXT_disjoint_timer_query_webgl2');
 	}
 
-	public start() {
+	public start(): void {
 		this.query = this.renderer.gl.createQuery();
 		this.renderer.gl.beginQuery(this.ext.TIME_ELAPSED_EXT, this.query);
 	}
 
-	public stop(timerName: string) {
+	public stop(timerName: string): void {
 		this.renderer.gl.endQuery(this.ext.TIME_ELAPSED_EXT);
 
 		setTimeout(() => {

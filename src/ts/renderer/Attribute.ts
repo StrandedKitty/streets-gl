@@ -22,7 +22,7 @@ export default class Attribute {
 	private readonly buffer: WebGLBuffer;
 	private program: Program;
 
-	constructor(renderer: Renderer, {
+	public constructor(renderer: Renderer, {
 		name,
 		size = 3,
 		type = GLConstants.FLOAT,
@@ -32,14 +32,14 @@ export default class Attribute {
 		dataFormat = AttributeFormat.Float,
 		usage = GLConstants.DYNAMIC_DRAW
 	}: {
-		name: string,
-		size?: number,
-		type?: number,
-		normalized?: boolean,
-		instanced?: boolean,
-		divisor?: number,
-		dataFormat?: AttributeFormat,
-		usage?: number
+		name: string;
+		size?: number;
+		type?: number;
+		normalized?: boolean;
+		instanced?: boolean;
+		divisor?: number;
+		dataFormat?: AttributeFormat;
+		usage?: number;
 	}) {
 		this.gl = renderer.gl;
 		this.name = name;
@@ -56,7 +56,7 @@ export default class Attribute {
 		this.buffer = this.gl.createBuffer();
 	}
 
-	public locate(program: Program) {
+	public locate(program: Program): void {
 		this.program = program;
 
 		this.gl.bindBuffer(GLConstants.ARRAY_BUFFER, this.buffer);
@@ -65,12 +65,12 @@ export default class Attribute {
 
 		if (this.location !== -1) {
 			switch (this.dataFormat) {
-				case AttributeFormat.Integer:
-					this.gl.vertexAttribIPointer(this.location, this.size, this.type, 0, 0);
-					break;
-				case AttributeFormat.Float:
-					this.gl.vertexAttribPointer(this.location, this.size, this.type, this.normalized, 0, 0);
-					break;
+			case AttributeFormat.Integer:
+				this.gl.vertexAttribIPointer(this.location, this.size, this.type, 0, 0);
+				break;
+			case AttributeFormat.Float:
+				this.gl.vertexAttribPointer(this.location, this.size, this.type, this.normalized, 0, 0);
+				break;
 			}
 
 			if (this.instanced) {
@@ -83,7 +83,7 @@ export default class Attribute {
 		this.gl.bindBuffer(GLConstants.ARRAY_BUFFER, null);
 	}
 
-	public setData(data: TypedArray) {
+	public setData(data: TypedArray): void {
 		this.gl.bindBuffer(GLConstants.ARRAY_BUFFER, this.buffer);
 		this.gl.bufferData(GLConstants.ARRAY_BUFFER, data, this.usage);
 		this.gl.bindBuffer(GLConstants.ARRAY_BUFFER, null);
@@ -91,7 +91,7 @@ export default class Attribute {
 		this.data = data;
 	}
 
-	public delete() {
+	public delete(): void {
 		this.gl.deleteBuffer(this.buffer);
 	}
 }

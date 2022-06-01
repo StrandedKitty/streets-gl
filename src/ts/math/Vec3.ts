@@ -7,7 +7,7 @@ export default class Vec3 {
 	public y: number;
 	public z: number;
 
-	constructor(x: number = 0, y: number = 0, z: number = 0) {
+	public constructor(x = 0, y = 0, z = 0) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
@@ -21,7 +21,7 @@ export default class Vec3 {
 		return new Vec2(this.x, this.y);
 	}
 
-	public set(x: number, y: number, z: number) {
+	public set(x: number, y: number, z: number): void {
 		this.x = x;
 		this.y = y;
 		this.z = z;
@@ -31,7 +31,7 @@ export default class Vec3 {
 		return this.x === v.x && this.y === v.y && this.z === v.z;
 	}
 
-	public normalize() {
+	public normalize(): Vec3 {
 		const length = Vec3.getLength(this);
 
 		if (length > 1e-10) {
@@ -117,7 +117,7 @@ export default class Vec3 {
 		return Vec3.applyMatrix4(cameraSpace, camera.projectionMatrix);
 	}
 
-	public static unproject(v: Vec3, camera: Camera, useWorldMatrix: boolean = true): Vec3 {
+	public static unproject(v: Vec3, camera: Camera, useWorldMatrix = true): Vec3 {
 		const cameraSpace = Vec3.applyMatrix4(v, camera.projectionMatrixInverse);
 		return Vec3.applyMatrix4(cameraSpace, useWorldMatrix ? camera.matrixWorld : camera.matrix);
 	}

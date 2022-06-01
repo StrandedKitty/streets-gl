@@ -8,7 +8,7 @@ export default class Node3D extends Feature3D {
 	public position: Vec2;
 	public tile: Vec2;
 
-	constructor(id: number, lat: number, lon: number, tags: Tags, tileX: number, tileY: number) {
+	public constructor(id: number, lat: number, lon: number, tags: Tags, tileX: number, tileY: number) {
 		super(id, tags);
 
 		this.lat = lat;

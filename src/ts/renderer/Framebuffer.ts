@@ -14,16 +14,16 @@ export default class Framebuffer {
 	public depthTexture: Texture2D | Texture2DArray | Texture3D;
 	public readonly WebGLFramebuffer: WebGLFramebuffer;
 
-	constructor(renderer: Renderer, {
+	public constructor(renderer: Renderer, {
 		textures,
 		width,
 		height,
 		usesDepth = false
 	}: {
-		textures: Texture2D[],
-		width: number,
-		height: number,
-		usesDepth?: boolean
+		textures: Texture2D[];
+		width: number;
+		height: number;
+		usesDepth?: boolean;
 	}) {
 		this.renderer = renderer;
 		this.gl = renderer.gl;
@@ -64,7 +64,7 @@ export default class Framebuffer {
 		this.renderer.bindFramebuffer(null);
 	}
 
-	public attachTexture3DLayer(texture: Texture3D | Texture2DArray, layer: number) {
+	public attachTexture3DLayer(texture: Texture3D | Texture2DArray, layer: number): void {
 		this.renderer.bindFramebuffer(this);
 
 		this.renderer.gl.framebufferTextureLayer(GLConstants.FRAMEBUFFER, GLConstants.COLOR_ATTACHMENT0, texture.WebGLTexture, 0, layer);
@@ -73,7 +73,7 @@ export default class Framebuffer {
 		this.renderer.bindFramebuffer(null);
 	}
 
-	public attachTexture3DLayerToDepth(texture: Texture3D | Texture2DArray, layer: number) {
+	public attachTexture3DLayerToDepth(texture: Texture3D | Texture2DArray, layer: number): void {
 		this.renderer.bindFramebuffer(this);
 
 		this.renderer.gl.framebufferTextureLayer(GLConstants.FRAMEBUFFER, GLConstants.DEPTH_ATTACHMENT, texture.WebGLTexture, 0, layer);
@@ -82,7 +82,7 @@ export default class Framebuffer {
 		this.renderer.bindFramebuffer(null);
 	}
 
-	public setSize(width: number, height: number) {
+	public setSize(width: number, height: number): void {
 		this.width = width;
 		this.height = height;
 

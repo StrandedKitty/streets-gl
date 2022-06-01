@@ -1,43 +1,15 @@
-import Renderer from "../../renderer/Renderer";
-import PerspectiveCamera from "../../core/PerspectiveCamera";
-import Object3D from "../../core/Object3D";
-import GroundMaterial from "../render/materials/GroundMaterial";
 import Mat4 from "../../math/Mat4";
-import GBuffer from "../../renderer/GBuffer";
-import GLConstants from "../../renderer/GLConstants";
 import Vec2 from "../../math/Vec2";
-import BuildingMaterial from "../render/materials/BuildingMaterial";
-import FullScreenQuad from "../objects/FullScreenQuad";
-import HDRComposeMaterial from "../render/materials/HDRComposeMaterial";
-import SkyboxMaterial from "../render/materials/SkyboxMaterial";
-import Skybox from "../objects/Skybox";
-import LDRComposeMaterial from "../render/materials/LDRComposeMaterial";
-import CSM from "../render/CSM";
 import Config from "../Config";
-import GroundDepthMaterial from "../render/materials/GroundDepthMaterial";
-import BuildingDepthMaterial from "../render/materials/BuildingDepthMaterial";
-import GaussianBlurPass from "../render/passes/GaussianBlurPass";
-import SSAOPass from "../render/passes/SSAOPass";
-import BilateralBlurPass from "../render/passes/BilateralBlurPass";
-import SelectionMaskPass from "../render/passes/SelectionMaskPass";
 import System from "../System";
 import SystemManager from "../SystemManager";
 import TileSystem from "./TileSystem";
 import PickingSystem from "./PickingSystem";
-import MapTimeSystem from "./MapTimeSystem";
-import RoadMaterial from "../render/materials/RoadMaterial";
-import ControlsSystem from "./ControlsSystem";
-import CoCPass from "../render/passes/CoCPass";
-import CoCDownscalePass from "../render/passes/CoCDownscalePass";
-import DoFTentPass from "../render/passes/DoFTentPass";
-import DoFPass from "../render/passes/DoFPass";
-import CoCTempFilterPass from "../render/passes/CoCTempFilterPass";
 import GBufferPass from "~/app/render/passes/GBufferPass";
 import WebGL2Renderer from "../../renderer/webgl2-renderer/WebGL2Renderer";
 import AbstractRenderer from "../../renderer/abstract-renderer/AbstractRenderer";
 import * as RG from "~/render-graph";
 import RenderGraphResourceFactory from "~/app/render/render-graph/RenderGraphResourceFactory";
-import Pass from '~/app/render/passes/Pass';
 import PassManager from '~/app/render/PassManager';
 import SceneSystem from '~/app/systems/SceneSystem';
 import TAAPass from '~/app/render/passes/TAAPass';
@@ -55,19 +27,19 @@ const jitterOffsets: [number, number][] = [
 
 export default class RenderSystem extends System {
 	public renderer: AbstractRenderer;
-	private frameCount: number = 0;
+	private frameCount = 0;
 
 	private renderGraph: RG.RenderGraph;
 	private renderGraphResourceFactory: RenderGraphResourceFactory;
 	private passManager: PassManager;
 
-	constructor(systemManager: SystemManager) {
+	public constructor(systemManager: SystemManager) {
 		super(systemManager);
 
 		this.init();
 	}
 
-	private init() {
+	private init(): void {
 		const canvas = <HTMLCanvasElement>document.getElementById('canvas');
 
 		this.renderer = new WebGL2Renderer(canvas.getContext('webgl2', {powerPreference: "high-performance"}));
@@ -141,11 +113,11 @@ export default class RenderSystem extends System {
 		window.addEventListener('resize', () => this.resize());
 	}
 
-	public postInit() {
+	public postInit(): void {
 
 	}
 
-	private initScene() {
+	private initScene(): void {
 		this.renderGraph = new RG.RenderGraph();
 		this.renderGraphResourceFactory = new RenderGraphResourceFactory(this.renderer);
 		this.passManager = new PassManager(this.systemManager, this.renderer, this.renderGraphResourceFactory, this.renderGraph);
@@ -179,7 +151,7 @@ export default class RenderSystem extends System {
 		this.skyboxMaterial = new SkyboxMaterial(this.renderer);*/
 	}
 
-	private resize() {
+	private resize(): void {
 		const {x: width, y: height} = this.resolution;
 
 		//this.camera.aspect = width / height;
@@ -204,7 +176,7 @@ export default class RenderSystem extends System {
 		}
 	}
 
-	public jitterProjectionMatrix(projectionMatrix: Mat4, frame: number) {
+	public jitterProjectionMatrix(projectionMatrix: Mat4, frame: number): void {
 		const offsetX = jitterOffsets[frame % jitterOffsets.length][0];
 		const offsetY = jitterOffsets[frame % jitterOffsets.length][1];
 
@@ -212,7 +184,7 @@ export default class RenderSystem extends System {
 		projectionMatrix.values[9] = offsetY / this.resolution.y;
 	}
 
-	public update(deltaTime: number) {
+	public update(deltaTime: number): void {
 		const sceneSystem = this.systemManager.getSystem(SceneSystem);
 
 		for (const object of sceneSystem.getObjectsToUpdateMesh()) {
@@ -263,7 +235,7 @@ export default class RenderSystem extends System {
 		++this.frameCount;
 	}
 
-	private updateTiles() {
+	private updateTiles(): void {
 		const tiles = this.systemManager.getSystem(TileSystem).tiles;
 
 		for (const tile of tiles.values()) {

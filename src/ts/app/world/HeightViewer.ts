@@ -5,7 +5,7 @@ export default class HeightViewer {
 	private readonly queue: Map<string, (() => void)[]> = new Map();
 	public requestHeightFunction: (x: number, y: number) => void;
 
-	constructor() {
+	public constructor() {
 
 	}
 
@@ -69,7 +69,7 @@ export default class HeightViewer {
 		return Promise.all<void>(promises);
 	}
 
-	public pushHeightTile(x: number, y: number, data: Uint8ClampedArray) {
+	public pushHeightTile(x: number, y: number, data: Uint8ClampedArray): void {
 		const tileName = `${x},${y}`;
 		const queueEntry = this.queue.get(tileName);
 

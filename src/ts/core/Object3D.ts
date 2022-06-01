@@ -14,7 +14,7 @@ export default class Object3D {
 	public rotation: Vec3 = new Vec3();
 	public scale: Vec3 = new Vec3(1, 1, 1);
 
-	constructor() {
+	public constructor() {
 		this.matrix = Mat4.identity();
 		this.matrixWorld = Mat4.identity();
 		this.id = Math.floor(Math.random() * 1e9);
@@ -42,7 +42,7 @@ export default class Object3D {
 		return this.matrixWorld;
 	}
 
-	public updateMatrixWorldRecursively() {
+	public updateMatrixWorldRecursively(): void {
 		if(this.parent) {
 			this.matrixWorld = Mat4.multiply(this.parent.matrixWorld, this.matrix);
 		} else {
@@ -54,7 +54,7 @@ export default class Object3D {
 		}
 	}
 
-	public updateMatrixRecursively() {
+	public updateMatrixRecursively(): void {
 		if(this.matrixOverwrite) {
 			this.updateMatrix();
 		}
@@ -64,7 +64,7 @@ export default class Object3D {
 		}
 	}
 
-	public add(object: Object3D) {
+	public add(object: Object3D): void {
 		if (this.children.includes(object)) {
 			return;
 		}
@@ -74,7 +74,7 @@ export default class Object3D {
 		object.updateMatrixWorld();
 	}
 
-	public remove(object: Object3D) {
+	public remove(object: Object3D): void {
 		for(let i = 0; i < this.children.length; i++) {
 			if(this.children[i].id === object.id)  {
 				this.children.splice(i, 1);
@@ -83,7 +83,7 @@ export default class Object3D {
 		}
 	}
 
-	public lookAt(target: Vec3, isWorldPosition: boolean = false) {
+	public lookAt(target: Vec3, isWorldPosition = false): void {
 		const targetPosition = isWorldPosition ? Vec3.applyMatrix4(target, this.updateMatrixWorld()) : target;
 		this.matrix = Mat4.lookAt(this.position, targetPosition, new Vec3(0, 1, 0));
 	}

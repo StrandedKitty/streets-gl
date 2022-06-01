@@ -3,7 +3,7 @@ import Shaders from "../shaders/Shaders";
 import Renderer from "../../../renderer/Renderer";
 
 export default class CoCTempFilterMaterial extends Material {
-	constructor(renderer: Renderer) {
+	public constructor(renderer: Renderer) {
 		super(renderer, {
 			name: 'CoCTempFilterMaterial',
 			fragmentShader: Shaders.cocTempFilter.fragment,

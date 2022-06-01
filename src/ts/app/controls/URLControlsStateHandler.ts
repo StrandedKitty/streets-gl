@@ -5,11 +5,11 @@ import Config from "../Config";
 export default class URLControlsStateHandler {
 	private hash: string;
 
-	constructor() {
+	public constructor() {
 
 	}
 
-	private serializeControlsState(state: ControlsState) {
+	private serializeControlsState(state: ControlsState): string {
 		const position = MathUtils.meters2degrees(state.x, state.z);
 
 		const lat = position.lat.toFixed(5);
@@ -21,7 +21,7 @@ export default class URLControlsStateHandler {
 		return `#${lat},${lon},${pitch},${yaw},${distance}`;
 	}
 
-	public setHashFromState(state: ControlsState) {
+	public setHashFromState(state: ControlsState): void {
 		const hashString = this.serializeControlsState(state);
 		history.replaceState(undefined, undefined, hashString);
 		this.hash = hashString;
@@ -30,7 +30,7 @@ export default class URLControlsStateHandler {
 	public getStateFromHash(): [ControlsState, boolean] {
 		const hashString = window.location.hash;
 
-		let hashData = hashString.slice(1).split(',');
+		const hashData = hashString.slice(1).split(',');
 		let newState: ControlsState = null;
 
 		const changedByUser = hashString !== this.hash && hashData.length === 5;

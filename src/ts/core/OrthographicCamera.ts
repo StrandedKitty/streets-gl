@@ -9,7 +9,7 @@ export default class OrthographicCamera extends Camera {
 	public near: number;
 	public far: number;
 
-	constructor(
+	public constructor(
 		{
 			left = -1,
 			right = 1,
@@ -18,12 +18,12 @@ export default class OrthographicCamera extends Camera {
 			near = 0.1,
 			far = 1000
 		}: {
-			left: number,
-			right: number,
-			bottom: number,
-			top: number,
-			near: number,
-			far: number
+			left: number;
+			right: number;
+			bottom: number;
+			top: number;
+			near: number;
+			far: number;
 		}
 	) {
 		super();
@@ -38,7 +38,7 @@ export default class OrthographicCamera extends Camera {
 		this.updateProjectionMatrix();
 	}
 
-	public updateProjectionMatrix() {
+	public updateProjectionMatrix(): void {
 		this.projectionMatrix = Mat4.orthographic(this.left, this.right, this.bottom, this.top, this.near, this.far);
 		this.updateProjectionMatrixInverse();
 	}

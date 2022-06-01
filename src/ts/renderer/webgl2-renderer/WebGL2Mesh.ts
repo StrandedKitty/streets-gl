@@ -1,5 +1,4 @@
 import AbstractMesh, {AbstractMeshParams} from "~/renderer/abstract-renderer/AbstractMesh";
-import AbstractRenderPass from "~/renderer/abstract-renderer/AbstractRenderPass";
 import WebGL2Renderer from "~/renderer/webgl2-renderer/WebGL2Renderer";
 import WebGL2Material from "~/renderer/webgl2-renderer/WebGL2Material";
 import WebGL2Constants from "~/renderer/webgl2-renderer/WebGL2Constants";
@@ -14,7 +13,7 @@ export default class WebGL2Mesh implements AbstractMesh {
 	private materialsAttributes: Map<string, Map<string, WebGL2Attribute>> = new Map();
 	private vaos: Map<string, WebGL2VAO> = new Map();
 
-	constructor(
+	public constructor(
 		renderer: WebGL2Renderer, {
 			indexed = false,
 			attributes = []
@@ -29,7 +28,7 @@ export default class WebGL2Mesh implements AbstractMesh {
 		}
 	}
 
-	private bindVAO(material: WebGL2Material) {
+	private bindVAO(material: WebGL2Material): void {
 		let vao = this.vaos.get(material.name);
 
 		if (!vao) {
@@ -50,7 +49,7 @@ export default class WebGL2Mesh implements AbstractMesh {
 		}
 	}
 
-	public draw() {
+	public draw(): void {
 		this.bindVAO(this.renderer.boundMaterial);
 
 		this.gl.drawArrays(WebGL2Constants.TRIANGLES, 0, this.attributes.get('position').data.length / 3);
@@ -60,11 +59,11 @@ export default class WebGL2Mesh implements AbstractMesh {
 		return this.attributes.get(name);
 	}
 
-	public addAttribute(attribute: WebGL2Attribute) {
+	public addAttribute(attribute: WebGL2Attribute): void {
 		this.attributes.set(attribute.name, attribute);
 	}
 
-	public delete() {
+	public delete(): void {
 		for (const vao of this.vaos.values()) {
 			vao.delete();
 		}

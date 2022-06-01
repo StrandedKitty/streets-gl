@@ -7,7 +7,7 @@ export default class FullScreenTriangle extends Object3D {
 	private renderer: AbstractRenderer;
 	public mesh: AbstractMesh;
 
-	constructor(renderer: AbstractRenderer) {
+	public constructor(renderer: AbstractRenderer) {
 		super();
 
 		this.renderer = renderer;
@@ -15,7 +15,7 @@ export default class FullScreenTriangle extends Object3D {
 		this.createMesh();
 	}
 
-	private createMesh() {
+	private createMesh(): void {
 		this.mesh = this.renderer.createMesh({
 			attributes: [
 				this.renderer.createAttribute({

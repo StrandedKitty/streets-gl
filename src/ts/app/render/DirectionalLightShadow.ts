@@ -20,7 +20,7 @@ export default class DirectionalLightShadow extends Object3D {
 	private textureArray: Texture2DArray;
 	private textureLayer: number;
 
-	constructor(renderer: Renderer, {
+	public constructor(renderer: Renderer, {
 		resolution,
 		size,
 		near,
@@ -28,12 +28,12 @@ export default class DirectionalLightShadow extends Object3D {
 		textureArray,
 		textureLayer
 	}: {
-		resolution: number,
-		size: number,
-		near: number,
-		far: number,
-		textureArray: Texture2DArray,
-		textureLayer: number
+		resolution: number;
+		size: number;
+		near: number;
+		far: number;
+		textureArray: Texture2DArray;
+		textureLayer: number;
 	}) {
 		super();
 
@@ -78,7 +78,7 @@ export default class DirectionalLightShadow extends Object3D {
 		return <Texture2DArray>this.framebuffer.depthTexture;
 	}
 
-	public setSize(resolution: number) {
+	public setSize(resolution: number): void {
 		this.resolution = resolution;
 
 		this.framebuffer.setSize(resolution, resolution);

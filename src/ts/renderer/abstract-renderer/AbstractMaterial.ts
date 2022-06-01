@@ -16,8 +16,8 @@ export interface AbstractMaterialParams {
 	vertexShaderSource: string;
 	fragmentShaderSource: string;
 	uniforms: Uniform[];
-	primitive: AbstractMaterialPrimitiveParams,
-	depth: AbstractMaterialDepthParams
+	primitive: AbstractMaterialPrimitiveParams;
+	depth: AbstractMaterialDepthParams;
 }
 
 export default interface AbstractMaterial {

@@ -7,15 +7,15 @@ import SystemManager from "../SystemManager";
 export default class TileObjectsSystem extends System {
 	private buildingsList: Map<number, TileBuilding> = new Map();
 
-	constructor(systemManager: SystemManager) {
+	public constructor(systemManager: SystemManager) {
 		super(systemManager);
 	}
 
-	public postInit() {
+	public postInit(): void {
 
 	}
 
-	public addTile(tile: Tile) {
+	public addTile(tile: Tile): void {
 		for (const packedId of tile.buildingOffsetMap.keys()) {
 			const object = this.buildingsList.get(packedId);
 
@@ -29,7 +29,7 @@ export default class TileObjectsSystem extends System {
 		}
 	}
 
-	public removeTile(tile: Tile) {
+	public removeTile(tile: Tile): void {
 		if (!tile.buildingOffsetMap) {
 			return;
 		}
@@ -43,7 +43,7 @@ export default class TileObjectsSystem extends System {
 		}
 	}
 
-	public update(deltaTime: number) {
+	public update(deltaTime: number): void {
 		for (const tile of this.systemManager.getSystem(TileSystem).tiles.values()) {
 			if (tile.buildings && !tile.buildingsUpdated) {
 				this.addTile(tile);

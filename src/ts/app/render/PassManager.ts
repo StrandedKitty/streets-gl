@@ -12,8 +12,8 @@ import * as RG from '~/render-graph';
 type PassConstructor<T> = { new(manager: PassManager): T };
 
 type SharedResources = {
-	BackbufferRenderPass: RenderPassResource,
-	GBufferRenderPass: RenderPassResource
+	BackbufferRenderPass: RenderPassResource;
+	GBufferRenderPass: RenderPassResource;
 };
 
 export default class PassManager {
@@ -25,7 +25,7 @@ export default class PassManager {
 	private passMap: Map<{ new(manager: PassManager): Pass }, Pass> = new Map();
 	public sharedResources: Map<keyof SharedResources, SharedResources[keyof SharedResources]> = new Map();
 
-	constructor(systemManager: SystemManager, renderer: AbstractRenderer, resourceFactory: RenderGraphResourceFactory, renderGraph: RG.RenderGraph) {
+	public constructor(systemManager: SystemManager, renderer: AbstractRenderer, resourceFactory: RenderGraphResourceFactory, renderGraph: RG.RenderGraph) {
 		this.systemManager = systemManager;
 		this.renderer = renderer;
 		this.resourceFactory = resourceFactory;
@@ -34,7 +34,7 @@ export default class PassManager {
 		this.initSharedResources();
 	}
 
-	public addPass<T extends Pass>(passConstructor: PassConstructor<T>) {
+	public addPass<T extends Pass>(passConstructor: PassConstructor<T>): void {
 		const pass = new passConstructor(this);
 
 		this.passes.add(pass);
@@ -54,7 +54,7 @@ export default class PassManager {
 		return this.systemManager.getSystem(SceneSystem);
 	}
 
-	private initSharedResources() {
+	private initSharedResources(): void {
 		this.sharedResources.set('BackbufferRenderPass', this.resourceFactory.createRenderPassResource({
 			name: 'BackbufferRenderPass',
 			isTransient: true,

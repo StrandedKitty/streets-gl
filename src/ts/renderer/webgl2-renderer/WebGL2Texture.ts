@@ -18,7 +18,7 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 	protected gl: WebGL2RenderingContext;
 	public WebGLTexture: WebGLTexture;
 	private pixelPackBuffer: WebGLBuffer = null;
-	protected deleted: boolean = false;
+	protected deleted = false;
 
 	protected constructor(
 		renderer: WebGL2Renderer,
@@ -50,19 +50,19 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 		this.createWebGLTexture();
 	}
 
-	private createWebGLTexture() {
+	private createWebGLTexture(): void {
 		this.WebGLTexture = this.gl.createTexture();
 	}
 
-	public bind() {
+	public bind(): void {
 		this.gl.bindTexture(this.textureTypeConstant, this.WebGLTexture);
 	}
 
-	public unbind() {
+	public unbind(): void {
 		this.gl.bindTexture(this.textureTypeConstant, null);
 	}
 
-	public updateWrapping() {
+	public updateWrapping(): void {
 		const wrapConstant = WebGL2Texture.convertWrapToWebGLConstant(this.wrap);
 
 		this.renderer.bindTexture(this);
@@ -70,7 +70,7 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 		this.gl.texParameteri(this.textureTypeConstant, WebGL2Constants.TEXTURE_WRAP_T, wrapConstant);
 	}
 
-	public updateFilters() {
+	public updateFilters(): void {
 		const minFilterConstant = WebGL2Texture.convertMinFilterToWebGLConstant(this.minFilter);
 		const magFilterConstant = WebGL2Texture.convertMagFilterToWebGLConstant(this.magFilter);
 
@@ -79,18 +79,18 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 		this.gl.texParameteri(this.textureTypeConstant, WebGL2Constants.TEXTURE_MAG_FILTER, magFilterConstant);
 	}
 
-	public updateFlipY() {
+	public updateFlipY(): void {
 		this.gl.pixelStorei(WebGL2Constants.UNPACK_FLIP_Y_WEBGL, this.flipY);
 	}
 
-	public generateMipmaps() {
+	public generateMipmaps(): void {
 		if (this.mipmaps) {
 			this.renderer.bindTexture(this);
 			this.gl.generateMipmap(this.textureTypeConstant);
 		}
 	}
 
-	public updateAnisotropy() {
+	public updateAnisotropy(): void {
 		const extension = this.renderer.extensions.anisotropy.TEXTURE_MAX_ANISOTROPY_EXT;
 
 		this.renderer.bindTexture(this);
@@ -115,102 +115,102 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 		return buffer;
 	}
 
-	public delete() {
+	public delete(): void {
 		this.gl.deleteTexture(this.WebGLTexture);
 		this.deleted = true;
 	}
 
-	static convertWrapToWebGLConstant(wrap: RendererTypes.TextureWrap): number {
+	public static convertWrapToWebGLConstant(wrap: RendererTypes.TextureWrap): number {
 		switch (wrap) {
-			case RendererTypes.TextureWrap.ClampToEdge:
-				return WebGL2Constants.CLAMP_TO_EDGE;
-			case RendererTypes.TextureWrap.Repeat:
-				return WebGL2Constants.REPEAT;
-			case RendererTypes.TextureWrap.MirroredRepeat:
-				return WebGL2Constants.MIRRORED_REPEAT;
+		case RendererTypes.TextureWrap.ClampToEdge:
+			return WebGL2Constants.CLAMP_TO_EDGE;
+		case RendererTypes.TextureWrap.Repeat:
+			return WebGL2Constants.REPEAT;
+		case RendererTypes.TextureWrap.MirroredRepeat:
+			return WebGL2Constants.MIRRORED_REPEAT;
 		}
 
 		return WebGL2Constants.CLAMP_TO_EDGE;
 	}
 
-	static convertMinFilterToWebGLConstant(minFilter: RendererTypes.MinFilter): number {
+	public static convertMinFilterToWebGLConstant(minFilter: RendererTypes.MinFilter): number {
 		switch (minFilter) {
-			case RendererTypes.MinFilter.Nearest:
-				return WebGL2Constants.NEAREST;
-			case RendererTypes.MinFilter.Linear:
-				return WebGL2Constants.LINEAR;
-			case RendererTypes.MinFilter.NearestMipmapNearest:
-				return WebGL2Constants.NEAREST_MIPMAP_NEAREST;
-			case RendererTypes.MinFilter.LinearMipmapNearest:
-				return WebGL2Constants.LINEAR_MIPMAP_NEAREST;
-			case RendererTypes.MinFilter.NearestMipmapLinear:
-				return WebGL2Constants.NEAREST_MIPMAP_LINEAR;
-			case RendererTypes.MinFilter.LinearMipmapLinear:
-				return WebGL2Constants.LINEAR_MIPMAP_LINEAR;
+		case RendererTypes.MinFilter.Nearest:
+			return WebGL2Constants.NEAREST;
+		case RendererTypes.MinFilter.Linear:
+			return WebGL2Constants.LINEAR;
+		case RendererTypes.MinFilter.NearestMipmapNearest:
+			return WebGL2Constants.NEAREST_MIPMAP_NEAREST;
+		case RendererTypes.MinFilter.LinearMipmapNearest:
+			return WebGL2Constants.LINEAR_MIPMAP_NEAREST;
+		case RendererTypes.MinFilter.NearestMipmapLinear:
+			return WebGL2Constants.NEAREST_MIPMAP_LINEAR;
+		case RendererTypes.MinFilter.LinearMipmapLinear:
+			return WebGL2Constants.LINEAR_MIPMAP_LINEAR;
 		}
 
 		return WebGL2Constants.NEAREST;
 	}
 
-	static convertMagFilterToWebGLConstant(magFilter: RendererTypes.MagFilter): number {
+	public static convertMagFilterToWebGLConstant(magFilter: RendererTypes.MagFilter): number {
 		switch (magFilter) {
-			case RendererTypes.MagFilter.Nearest:
-				return WebGL2Constants.NEAREST;
-			case RendererTypes.MagFilter.Linear:
-				return WebGL2Constants.LINEAR;
+		case RendererTypes.MagFilter.Nearest:
+			return WebGL2Constants.NEAREST;
+		case RendererTypes.MagFilter.Linear:
+			return WebGL2Constants.LINEAR;
 		}
 
 		return WebGL2Constants.NEAREST;
 	}
 
-	static convertFormatToWebGLConstants(format: RendererTypes.TextureFormat): {
-		format: number,
-		internalFormat: number,
-		type: number
+	public static convertFormatToWebGLConstants(format: RendererTypes.TextureFormat): {
+		format: number;
+		internalFormat: number;
+		type: number;
 	} {
 		switch (format) {
-			case RendererTypes.TextureFormat.R8Unorm:
-				return {
-					format: WebGL2Constants.RED,
-					internalFormat: WebGL2Constants.R8,
-					type: WebGL2Constants.UNSIGNED_BYTE
-				};
-			case RendererTypes.TextureFormat.RG8Unorm:
-				return {
-					format: WebGL2Constants.RG,
-					internalFormat: WebGL2Constants.RG8,
-					type: WebGL2Constants.UNSIGNED_BYTE
-				};
-			case RendererTypes.TextureFormat.RGB8Unorm:
-				return {
-					format: WebGL2Constants.RGB,
-					internalFormat: WebGL2Constants.RGB8,
-					type: WebGL2Constants.UNSIGNED_BYTE
-				};
-			case RendererTypes.TextureFormat.RGBA8Unorm:
-				return {
-					format: WebGL2Constants.RGBA,
-					internalFormat: WebGL2Constants.RGBA8,
-					type: WebGL2Constants.UNSIGNED_BYTE
-				};
-			case RendererTypes.TextureFormat.RGBA32Float:
-				return {
-					format: WebGL2Constants.RGBA,
-					internalFormat: WebGL2Constants.RGBA32F,
-					type: WebGL2Constants.FLOAT
-				};
-			case RendererTypes.TextureFormat.Depth32Float:
-				return {
-					format: WebGL2Constants.DEPTH_COMPONENT,
-					internalFormat: WebGL2Constants.DEPTH_COMPONENT32F,
-					type: WebGL2Constants.FLOAT
-				};
-			case RendererTypes.TextureFormat.R32Uint:
-				return {
-					format: WebGL2Constants.RED_INTEGER,
-					internalFormat: WebGL2Constants.R32UI,
-					type: WebGL2Constants.UNSIGNED_INT
-				};
+		case RendererTypes.TextureFormat.R8Unorm:
+			return {
+				format: WebGL2Constants.RED,
+				internalFormat: WebGL2Constants.R8,
+				type: WebGL2Constants.UNSIGNED_BYTE
+			};
+		case RendererTypes.TextureFormat.RG8Unorm:
+			return {
+				format: WebGL2Constants.RG,
+				internalFormat: WebGL2Constants.RG8,
+				type: WebGL2Constants.UNSIGNED_BYTE
+			};
+		case RendererTypes.TextureFormat.RGB8Unorm:
+			return {
+				format: WebGL2Constants.RGB,
+				internalFormat: WebGL2Constants.RGB8,
+				type: WebGL2Constants.UNSIGNED_BYTE
+			};
+		case RendererTypes.TextureFormat.RGBA8Unorm:
+			return {
+				format: WebGL2Constants.RGBA,
+				internalFormat: WebGL2Constants.RGBA8,
+				type: WebGL2Constants.UNSIGNED_BYTE
+			};
+		case RendererTypes.TextureFormat.RGBA32Float:
+			return {
+				format: WebGL2Constants.RGBA,
+				internalFormat: WebGL2Constants.RGBA32F,
+				type: WebGL2Constants.FLOAT
+			};
+		case RendererTypes.TextureFormat.Depth32Float:
+			return {
+				format: WebGL2Constants.DEPTH_COMPONENT,
+				internalFormat: WebGL2Constants.DEPTH_COMPONENT32F,
+				type: WebGL2Constants.FLOAT
+			};
+		case RendererTypes.TextureFormat.R32Uint:
+			return {
+				format: WebGL2Constants.RED_INTEGER,
+				internalFormat: WebGL2Constants.R32UI,
+				type: WebGL2Constants.UNSIGNED_INT
+			};
 		}
 
 		return {
@@ -220,22 +220,22 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 		};
 	}
 
-	static getFormatByteSize(format: RendererTypes.TextureFormat): number {
+	public static getFormatByteSize(format: RendererTypes.TextureFormat): number {
 		switch (format) {
-			case RendererTypes.TextureFormat.R8Unorm:
-				return 1;
-			case RendererTypes.TextureFormat.RG8Unorm:
-				return 2;
-			case RendererTypes.TextureFormat.RGB8Unorm:
-				return 3;
-			case RendererTypes.TextureFormat.RGBA8Unorm:
-				return 4;
-			case RendererTypes.TextureFormat.RGBA32Float:
-				return 16;
-			case RendererTypes.TextureFormat.Depth32Float:
-				return 4;
-			case RendererTypes.TextureFormat.R32Uint:
-				return 4;
+		case RendererTypes.TextureFormat.R8Unorm:
+			return 1;
+		case RendererTypes.TextureFormat.RG8Unorm:
+			return 2;
+		case RendererTypes.TextureFormat.RGB8Unorm:
+			return 3;
+		case RendererTypes.TextureFormat.RGBA8Unorm:
+			return 4;
+		case RendererTypes.TextureFormat.RGBA32Float:
+			return 16;
+		case RendererTypes.TextureFormat.Depth32Float:
+			return 4;
+		case RendererTypes.TextureFormat.R32Uint:
+			return 4;
 		}
 
 		return 4;

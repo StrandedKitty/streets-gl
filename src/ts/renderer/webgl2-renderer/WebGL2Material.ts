@@ -29,7 +29,7 @@ export default class WebGL2Material implements AbstractMaterial {
 	private uniformTextureUnits: Map<string, number> = new Map();
 	private uniformsToUpdate: Set<Uniform> = new Set();
 
-	constructor(
+	public constructor(
 		renderer: WebGL2Renderer,
 		{
 			name,
@@ -54,11 +54,11 @@ export default class WebGL2Material implements AbstractMaterial {
 		this.createUBOs();
 	}
 
-	private createProgram() {
+	private createProgram(): void {
 		this.program = new WebGL2Program(this.renderer, this.vertexShaderSource, this.fragmentShaderSource);
 	}
 
-	private createUBOs() {
+	private createUBOs(): void {
 		let i = 0;
 
 		for (const blockName of this.getUsedUniformBlocks()) {
@@ -97,7 +97,7 @@ export default class WebGL2Material implements AbstractMaterial {
 		return this.uniforms.filter(u => u.block === block);
 	}
 
-	public use() {
+	public use(): void {
 		this.gl.useProgram(this.program.WebGLProgram);
 
 		const basicUniforms = this.getUniformsInBlock(null);
@@ -113,7 +113,7 @@ export default class WebGL2Material implements AbstractMaterial {
 		}
 	}
 
-	public uniformNeedsUpdate(uniformName: string, block: string = null) {
+	public uniformNeedsUpdate(uniformName: string, block: string = null): void {
 		const uniform = this.getUniform(uniformName, block);
 
 		if (uniform) {
@@ -121,13 +121,13 @@ export default class WebGL2Material implements AbstractMaterial {
 		}
 	}
 
-	public applyAllUniformsUpdates() {
+	public applyAllUniformsUpdates(): void {
 		for (const uniform of this.uniformsToUpdate) {
 			this.applyUniformUpdates(uniform.name, uniform.block);
 		}
 	}
 
-	public applyUniformUpdates(uniformName: string, block: string = null) {
+	public applyUniformUpdates(uniformName: string, block: string = null): void {
 		this.renderer.useMaterial(this);
 
 		const uniform = this.getUniform(uniformName, block);
@@ -141,7 +141,7 @@ export default class WebGL2Material implements AbstractMaterial {
 		this.uniformsToUpdate.delete(uniform);
 	}
 
-	private applyUBOUniformChanges(block: string, uniformName: string) {
+	private applyUBOUniformChanges(block: string, uniformName: string): void {
 		const ubo = this.ubos.get(block);
 
 		if (!ubo) {
@@ -151,7 +151,7 @@ export default class WebGL2Material implements AbstractMaterial {
 		ubo.setUniformValue(uniformName, <TypedArray>this.getUniform(uniformName, block).value);
 	}
 
-	private applyBasicUniformChanges(uniformName: string) {
+	private applyBasicUniformChanges(uniformName: string): void {
 		const uniform = this.getUniform(uniformName);
 
 		this.setUniformValueAtLocation(uniform);
@@ -184,7 +184,7 @@ export default class WebGL2Material implements AbstractMaterial {
 		return textureUnit;
 	}
 
-	private setUniformValueAtLocation(uniform: Uniform) {
+	private setUniformValueAtLocation(uniform: Uniform): void {
 		const location = this.getUniformLocation(uniform);
 
 		if (location === null) {
@@ -192,76 +192,76 @@ export default class WebGL2Material implements AbstractMaterial {
 		}
 
 		switch (uniform.type) {
-			case RendererTypes.UniformType.Float1:
-				this.gl.uniform1fv(location, uniform.value);
-				break;
-			case RendererTypes.UniformType.Float2:
-				this.gl.uniform2fv(location, uniform.value);
-				break;
-			case RendererTypes.UniformType.Float3:
-				this.gl.uniform3fv(location, uniform.value);
-				break;
-			case RendererTypes.UniformType.Float4:
-				this.gl.uniform3fv(location, uniform.value);
-				break;
-			case RendererTypes.UniformType.Int1:
-				this.gl.uniform1iv(location, uniform.value);
-				break;
-			case RendererTypes.UniformType.Int2:
-				this.gl.uniform2iv(location, uniform.value);
-				break;
-			case RendererTypes.UniformType.Int3:
-				this.gl.uniform3iv(location, uniform.value);
-				break;
-			case RendererTypes.UniformType.Int4:
-				this.gl.uniform4iv(location, uniform.value);
-				break;
-			case RendererTypes.UniformType.Uint1:
-				this.gl.uniform1uiv(location, uniform.value);
-				break;
-			case RendererTypes.UniformType.Uint2:
-				this.gl.uniform2uiv(location, uniform.value);
-				break;
-			case RendererTypes.UniformType.Uint3:
-				this.gl.uniform3uiv(location, uniform.value);
-				break;
-			case RendererTypes.UniformType.Uint4:
-				this.gl.uniform4uiv(location, uniform.value);
-				break;
-			case RendererTypes.UniformType.Matrix3:
-				this.gl.uniformMatrix3fv(location, false, uniform.value);
-				break;
-			case RendererTypes.UniformType.Matrix4:
-				this.gl.uniformMatrix4fv(location, false, uniform.value);
-				break;
-			case RendererTypes.UniformType.Texture2D: {
-				const textureUnit = this.getUniformTextureUnit(uniform);
-				this.gl.activeTexture(WebGL2Constants.TEXTURE0 + textureUnit);
-				this.gl.bindTexture(WebGL2Constants.TEXTURE_2D, (uniform.value as WebGL2Texture2D)?.WebGLTexture);
-				this.gl.uniform1i(location, textureUnit);
-				break;
-			}
-			case RendererTypes.UniformType.TextureCube: {
-				const textureUnit = this.getUniformTextureUnit(uniform);
-				this.gl.activeTexture(WebGL2Constants.TEXTURE0 + textureUnit);
-				this.gl.bindTexture(WebGL2Constants.TEXTURE_CUBE_MAP, (uniform.value as WebGL2TextureCube)?.WebGLTexture);
-				this.gl.uniform1i(location, textureUnit);
-				break;
-			}
-			case RendererTypes.UniformType.Texture2DArray: {
-				const textureUnit = this.getUniformTextureUnit(uniform);
-				this.gl.activeTexture(WebGL2Constants.TEXTURE0 + textureUnit);
-				this.gl.bindTexture(WebGL2Constants.TEXTURE_2D_ARRAY, (uniform.value as WebGL2Texture2DArray)?.WebGLTexture);
-				this.gl.uniform1i(location, textureUnit);
-				break;
-			}
-			case RendererTypes.UniformType.Texture3D: {
-				const textureUnit = this.getUniformTextureUnit(uniform);
-				this.gl.activeTexture(WebGL2Constants.TEXTURE0 + textureUnit);
-				this.gl.bindTexture(WebGL2Constants.TEXTURE_3D, (uniform.value as WebGL2Texture3D)?.WebGLTexture);
-				this.gl.uniform1i(location, textureUnit);
-				break;
-			}
+		case RendererTypes.UniformType.Float1:
+			this.gl.uniform1fv(location, uniform.value);
+			break;
+		case RendererTypes.UniformType.Float2:
+			this.gl.uniform2fv(location, uniform.value);
+			break;
+		case RendererTypes.UniformType.Float3:
+			this.gl.uniform3fv(location, uniform.value);
+			break;
+		case RendererTypes.UniformType.Float4:
+			this.gl.uniform3fv(location, uniform.value);
+			break;
+		case RendererTypes.UniformType.Int1:
+			this.gl.uniform1iv(location, uniform.value);
+			break;
+		case RendererTypes.UniformType.Int2:
+			this.gl.uniform2iv(location, uniform.value);
+			break;
+		case RendererTypes.UniformType.Int3:
+			this.gl.uniform3iv(location, uniform.value);
+			break;
+		case RendererTypes.UniformType.Int4:
+			this.gl.uniform4iv(location, uniform.value);
+			break;
+		case RendererTypes.UniformType.Uint1:
+			this.gl.uniform1uiv(location, uniform.value);
+			break;
+		case RendererTypes.UniformType.Uint2:
+			this.gl.uniform2uiv(location, uniform.value);
+			break;
+		case RendererTypes.UniformType.Uint3:
+			this.gl.uniform3uiv(location, uniform.value);
+			break;
+		case RendererTypes.UniformType.Uint4:
+			this.gl.uniform4uiv(location, uniform.value);
+			break;
+		case RendererTypes.UniformType.Matrix3:
+			this.gl.uniformMatrix3fv(location, false, uniform.value);
+			break;
+		case RendererTypes.UniformType.Matrix4:
+			this.gl.uniformMatrix4fv(location, false, uniform.value);
+			break;
+		case RendererTypes.UniformType.Texture2D: {
+			const textureUnit = this.getUniformTextureUnit(uniform);
+			this.gl.activeTexture(WebGL2Constants.TEXTURE0 + textureUnit);
+			this.gl.bindTexture(WebGL2Constants.TEXTURE_2D, (uniform.value as WebGL2Texture2D)?.WebGLTexture);
+			this.gl.uniform1i(location, textureUnit);
+			break;
+		}
+		case RendererTypes.UniformType.TextureCube: {
+			const textureUnit = this.getUniformTextureUnit(uniform);
+			this.gl.activeTexture(WebGL2Constants.TEXTURE0 + textureUnit);
+			this.gl.bindTexture(WebGL2Constants.TEXTURE_CUBE_MAP, (uniform.value as WebGL2TextureCube)?.WebGLTexture);
+			this.gl.uniform1i(location, textureUnit);
+			break;
+		}
+		case RendererTypes.UniformType.Texture2DArray: {
+			const textureUnit = this.getUniformTextureUnit(uniform);
+			this.gl.activeTexture(WebGL2Constants.TEXTURE0 + textureUnit);
+			this.gl.bindTexture(WebGL2Constants.TEXTURE_2D_ARRAY, (uniform.value as WebGL2Texture2DArray)?.WebGLTexture);
+			this.gl.uniform1i(location, textureUnit);
+			break;
+		}
+		case RendererTypes.UniformType.Texture3D: {
+			const textureUnit = this.getUniformTextureUnit(uniform);
+			this.gl.activeTexture(WebGL2Constants.TEXTURE0 + textureUnit);
+			this.gl.bindTexture(WebGL2Constants.TEXTURE_3D, (uniform.value as WebGL2Texture3D)?.WebGLTexture);
+			this.gl.uniform1i(location, textureUnit);
+			break;
+		}
 		}
 	}
 }

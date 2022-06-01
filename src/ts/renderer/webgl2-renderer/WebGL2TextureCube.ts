@@ -1,15 +1,14 @@
 import WebGL2Renderer from "~/renderer/webgl2-renderer/WebGL2Renderer";
-import AbstractTexture2D, {AbstractTexture2DParams} from "~/renderer/abstract-renderer/AbstractTexture2D";
 import WebGL2Texture from "~/renderer/webgl2-renderer/WebGL2Texture";
 import GLConstants from "~/renderer/GLConstants";
 import AbstractTextureCube, {AbstractTextureCubeParams} from "~/renderer/abstract-renderer/AbstractTextureCube";
 import WebGL2Constants from "~/renderer/webgl2-renderer/WebGL2Constants";
 
 export default class WebGL2TextureCube extends WebGL2Texture implements AbstractTextureCube {
-    protected textureTypeConstant: number = GLConstants.TEXTURE_CUBE_MAP;
+	protected textureTypeConstant: number = GLConstants.TEXTURE_CUBE_MAP;
 	public data: TypedArray[] | HTMLImageElement[];
 
-	constructor(renderer: WebGL2Renderer, params: AbstractTextureCubeParams) {
+	public constructor(renderer: WebGL2Renderer, params: AbstractTextureCubeParams) {
 		super(renderer, params);
 
 		this.data = params.data ?? [];
@@ -21,7 +20,7 @@ export default class WebGL2TextureCube extends WebGL2Texture implements Abstract
 		this.updateFromData();
 	}
 
-	public updateFromData() {
+	public updateFromData(): void {
 		this.renderer.bindTexture(this);
 		this.updateFlipY();
 
@@ -41,7 +40,7 @@ export default class WebGL2TextureCube extends WebGL2Texture implements Abstract
 		this.renderer.unbindTexture();
 	}
 
-	private writeSideFromImage(image: HTMLImageElement, side: number) {
+	private writeSideFromImage(image: HTMLImageElement, side: number): void {
 		this.width = image.width;
 		this.height = image.height;
 
@@ -60,7 +59,7 @@ export default class WebGL2TextureCube extends WebGL2Texture implements Abstract
 		);
 	}
 
-	private writeSideFromBuffer(data: TypedArray, side: number) {
+	private writeSideFromBuffer(data: TypedArray, side: number): void {
 		const {format, internalFormat, type} = WebGL2Texture.convertFormatToWebGLConstants(this.format);
 
 		this.gl.texImage2D(

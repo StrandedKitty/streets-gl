@@ -19,7 +19,7 @@ const Config = {
 	MaxTexturedRoofAABBArea: 2e6,
 	BuildingSmoothNormalsThreshold: 30,
 	LightTransitionDuration: 1,
-	OverpassRequestTimeout: 10000,
+	OverpassRequestTimeout: 30000,
 	DoFCoCScale: 4,
 	DoFFocusScale: 2,
 	DoFBokehRadius: 5,

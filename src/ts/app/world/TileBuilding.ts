@@ -5,11 +5,11 @@ export default class TileBuilding {
 	private parents: Tile[] = [];
 	private holder: Tile = null;
 
-	constructor(id: number) {
+	public constructor(id: number) {
 		this.id = id;
 	}
 
-	public addParent(tile: Tile) {
+	public addParent(tile: Tile): void {
 		if(this.holder && this.holder.isBuildingVisible(this.id)) {
 			this.holder.hideBuilding(this.id);
 		}
@@ -18,7 +18,7 @@ export default class TileBuilding {
 		this.parents.push(this.holder);
 	}
 
-	public removeParent(tile: Tile) {
+	public removeParent(tile: Tile): void {
 		for(let i = 0; i < this.parents.length; i++) {
 			if(tile === this.parents[i]) {
 				this.parents.splice(i, 1);
@@ -40,7 +40,7 @@ export default class TileBuilding {
 		}
 	}
 
-	private getPotentialHolder() {
+	private getPotentialHolder(): Tile {
 		return this.parents[this.parents.length - 1];
 	}
 }

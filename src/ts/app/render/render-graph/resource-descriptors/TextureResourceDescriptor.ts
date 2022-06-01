@@ -20,9 +20,8 @@ export default class TextureResourceDescriptor extends ResourceDescriptor {
 	public format: RendererTypes.TextureFormat;
 	public flipY: boolean;
 	public mipmaps: boolean;
-	public data: null = null;
 
-	constructor(
+	public constructor(
 		{
 			type,
 			width,
@@ -36,17 +35,17 @@ export default class TextureResourceDescriptor extends ResourceDescriptor {
 			flipY = false,
 			mipmaps = false,
 		}: {
-			type: TextureResourceType,
-			width: number,
-			height: number,
-			depth?: number,
-			anisotropy?: number,
-			minFilter?: RendererTypes.MinFilter,
-			magFilter?: RendererTypes.MagFilter,
-			wrap?: RendererTypes.TextureWrap,
-			format?: RendererTypes.TextureFormat,
-			flipY?: boolean,
-			mipmaps?: boolean,
+			type: TextureResourceType;
+			width: number;
+			height: number;
+			depth?: number;
+			anisotropy?: number;
+			minFilter?: RendererTypes.MinFilter;
+			magFilter?: RendererTypes.MagFilter;
+			wrap?: RendererTypes.TextureWrap;
+			format?: RendererTypes.TextureFormat;
+			flipY?: boolean;
+			mipmaps?: boolean;
 		}
 	) {
 		super();
@@ -64,7 +63,7 @@ export default class TextureResourceDescriptor extends ResourceDescriptor {
 		this.mipmaps = mipmaps;
 	}
 
-	public setSize(width: number, height: number, depth?: number) {
+	public setSize(width: number, height: number, depth?: number): void {
 		this.width = width;
 		this.height = height;
 

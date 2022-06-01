@@ -5,7 +5,7 @@ import Texture2D from "../../../renderer/Texture2D";
 import GLConstants from "../../../renderer/GLConstants";
 
 export default class GroundMaterial extends Material {
-	constructor(renderer: Renderer) {
+	public constructor(renderer: Renderer) {
 		super(renderer, {
 			name: 'GroundMaterial',
 			fragmentShader: Shaders.ground.fragment,

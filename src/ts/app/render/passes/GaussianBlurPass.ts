@@ -17,7 +17,7 @@ export default class GaussianBlurPass {
 		new Float32Array([0, 1]),
 	];
 
-	constructor(renderer: Renderer, width: number, height: number) {
+	public constructor(renderer: Renderer, width: number, height: number) {
 		this.renderer = renderer;
 		this.width = width;
 		this.height = height;
@@ -25,7 +25,7 @@ export default class GaussianBlurPass {
 		this.init();
 	}
 
-	private init() {
+	private init(): void {
 		this.material = new GaussianBlurMaterial(this.renderer);
 
 		this.framebufferTemp = new Framebuffer(this.renderer, {
@@ -63,7 +63,7 @@ export default class GaussianBlurPass {
 		});
 	}
 
-	public render(quad: FullScreenQuad, texture: Texture2D) {
+	public render(quad: FullScreenQuad, texture: Texture2D): void {
 		this.renderer.bindFramebuffer(this.framebufferTemp);
 
 		this.material.uniforms.tColor.value = texture;
@@ -80,7 +80,7 @@ export default class GaussianBlurPass {
 		quad.draw();
 	}
 
-	public setSize(width: number, height: number) {
+	public setSize(width: number, height: number): void {
 		this.width = width;
 		this.height = height;
 

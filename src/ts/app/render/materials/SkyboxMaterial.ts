@@ -4,7 +4,7 @@ import Renderer from "../../../renderer/Renderer";
 import TextureCube from "../../../renderer/TextureCube";
 
 export default class SkyboxMaterial extends Material {
-	constructor(renderer: Renderer) {
+	public constructor(renderer: Renderer) {
 		super(renderer, {
 			name: 'SkyboxMaterial',
 			fragmentShader: Shaders.skybox.fragment,

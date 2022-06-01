@@ -18,11 +18,11 @@ export default class MathUtils {
 		return radians * 180 / Math.PI;
 	}
 
-	public static normalizeAngle(angle: number) {
+	public static normalizeAngle(angle: number): number {
 		return (angle %= 2 * Math.PI) >= 0 ? angle : (angle + 2 * Math.PI);
 	}
 
-	public static sphericalToCartesian(azimuth: number, altitude: number) {
+	public static sphericalToCartesian(azimuth: number, altitude: number): Vec3 {
 		return new Vec3(
 			-Math.cos(altitude) * Math.cos(azimuth),
 			-Math.sin(altitude),
@@ -31,39 +31,39 @@ export default class MathUtils {
 	}
 
 	public static degrees2meters(lat: number, lon: number): Vec2 {
-		let z = lon * 20037508.34 / 180;
-		let x = Math.log(Math.tan((90 + lat) * Math.PI / 360)) * 20037508.34 / Math.PI;
+		const z = lon * 20037508.34 / 180;
+		const x = Math.log(Math.tan((90 + lat) * Math.PI / 360)) * 20037508.34 / Math.PI;
 		return new Vec2(x, z);
 	}
 
-	public static meters2degrees(x: number, z: number): {lat: number, lon: number} {
-		let lon = z * 180 / 20037508.34;
-		let lat = Math.atan(Math.exp(x * Math.PI / 20037508.34)) * 360 / Math.PI - 90;
+	public static meters2degrees(x: number, z: number): {lat: number; lon: number} {
+		const lon = z * 180 / 20037508.34;
+		const lat = Math.atan(Math.exp(x * Math.PI / 20037508.34)) * 360 / Math.PI - 90;
 		return {lat, lon};
 	}
 
-	public static degrees2tile(lat: number, lon: number, zoom: number = 16): Vec2 {
-		let x = (lon + 180) / 360 * (1 << zoom);
-		let y = (1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * (1 << zoom);
+	public static degrees2tile(lat: number, lon: number, zoom = 16): Vec2 {
+		const x = (lon + 180) / 360 * (1 << zoom);
+		const y = (1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * (1 << zoom);
 		return new Vec2(x, y);
 	}
 
-	public static tile2degrees(x: number, y: number, zoom: number = 16): {lat: number, lon: number} {
-		let n = Math.PI - 2 * Math.PI * y / (1 << zoom);
-		let lat = 180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
-		let lon = x / (1 << zoom) * 360 - 180;
+	public static tile2degrees(x: number, y: number, zoom = 16): {lat: number; lon: number} {
+		const n = Math.PI - 2 * Math.PI * y / (1 << zoom);
+		const lat = 180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
+		const lon = x / (1 << zoom) * 360 - 180;
 		return {lat, lon};
 	}
 
-	public static meters2tile(x: number, z: number, zoom: number = 16): Vec2 {
-		let rx = (z + 20037508.34) / (2 * 20037508.34) * (1 << zoom);
-		let ry = (1 - (x + 20037508.34) / (2 * 20037508.34)) * (1 << zoom);
+	public static meters2tile(x: number, z: number, zoom = 16): Vec2 {
+		const rx = (z + 20037508.34) / (2 * 20037508.34) * (1 << zoom);
+		const ry = (1 - (x + 20037508.34) / (2 * 20037508.34)) * (1 << zoom);
 		return new Vec2(rx, ry);
 	}
 
-	public static tile2meters(x: number, y: number, zoom: number = 16): Vec2 {
-		let rz = (2 * 20037508.34 * x) / (1 << zoom) - 20037508.34;
-		let rx = 20037508.34 - (2 * 20037508.34 * y) / (1 << zoom);
+	public static tile2meters(x: number, y: number, zoom = 16): Vec2 {
+		const rz = (2 * 20037508.34 * x) / (1 << zoom) - 20037508.34;
+		const rx = 20037508.34 - (2 * 20037508.34 * y) / (1 << zoom);
 		return new Vec2(rx, rz);
 	}
 
@@ -123,7 +123,7 @@ export default class MathUtils {
 
 	public static calculateNormal(vA: Vec3, vB: Vec3, vC: Vec3): Vec3 {
 		let cb = Vec3.sub(vC, vB);
-		let ab = Vec3.sub(vA, vB);
+		const ab = Vec3.sub(vA, vB);
 		cb = Vec3.cross(cb, ab);
 		return Vec3.normalize(cb);
 	}
@@ -242,7 +242,7 @@ export default class MathUtils {
 	public static findIntersectionTriangleTriangle(tri1: [number, number][], tri2: [number, number][]): [number, number][] {
 		const clippedCorners: [number, number][] = [];
 
-		const addPoint = (p1: [number, number]) => {
+		const addPoint = (p1: [number, number]): void => {
 			if(clippedCorners.some(p2 => p1[0] === p2[0] && p1[1] === p2[1])) {
 				return;
 			}

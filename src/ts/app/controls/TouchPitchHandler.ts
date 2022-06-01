@@ -4,21 +4,21 @@ import DoubleTouchHandler, {DoubleTouchMoveEvent} from "./DoubleTouchHandler";
 const singleTouchTime = 100;
 
 export class TouchPitchHandler extends DoubleTouchHandler {
-	valid: boolean = null;
-	firstMove: number = null;
-	lastPoints: [Vec2, Vec2] = null;
+	public valid: boolean = null;
+	public firstMove: number = null;
+	public lastPoints: [Vec2, Vec2] = null;
 
-	constructor() {
+	public constructor() {
 		super();
 	}
 
-	public reset() {
+	public reset(): void {
 		super.reset();
 
 		this.valid = null;
 	}
 
-	public start(touchA: Vec2, touchB: Vec2) {
+	public start(touchA: Vec2, touchB: Vec2): void {
 		this.lastPoints = [Vec2.copy(touchA), Vec2.copy(touchB)];
 
 		if (TouchPitchHandler.isVectorVertical(Vec2.sub(touchA, touchB))) {

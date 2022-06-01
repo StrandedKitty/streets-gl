@@ -11,7 +11,7 @@ export default class CoCPass {
 	public material: CoCMaterial;
 	public framebuffer: Framebuffer;
 
-	constructor(renderer: Renderer, width: number, height: number) {
+	public constructor(renderer: Renderer, width: number, height: number) {
 		this.renderer = renderer;
 		this.width = width;
 		this.height = height;
@@ -19,7 +19,7 @@ export default class CoCPass {
 		this.init();
 	}
 
-	private init() {
+	private init(): void {
 		this.material = new CoCMaterial(this.renderer);
 
 		this.framebuffer = new Framebuffer(this.renderer, {
@@ -40,7 +40,7 @@ export default class CoCPass {
 		});
 	}
 
-	public setSize(width: number, height: number) {
+	public setSize(width: number, height: number): void {
 		this.width = width;
 		this.height = height;
 
