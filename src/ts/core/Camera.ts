@@ -8,6 +8,7 @@ export default abstract class Camera extends Object3D {
 	public projectionMatrixInverse: Mat4;
 	public matrixWorldInverse: Mat4;
 	public frustumPlanes: Plane[] = null;
+	public zoomFactor: number = 1;
 
 	protected constructor() {
 		super();
@@ -29,5 +30,10 @@ export default abstract class Camera extends Object3D {
 
 	public updateFrustum(): void {
 		this.frustumPlanes = Frustum.getPlanes(Mat4.multiply(this.projectionMatrix, this.matrixWorldInverse));
+	}
+
+	public zoom(factor: number): void {
+		this.zoomFactor = factor;
+		this.updateProjectionMatrix();
 	}
 }

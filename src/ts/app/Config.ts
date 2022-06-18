@@ -23,7 +23,9 @@ const Config = {
 	DoFCoCScale: 4,
 	DoFFocusScale: 2,
 	DoFBokehRadius: 5,
-	devicePixelRatio: 1
+	devicePixelRatio: 1,
+	CameraFOV: 40,
+	CameraFOVZoomed: 20
 };
 
 export default Config;

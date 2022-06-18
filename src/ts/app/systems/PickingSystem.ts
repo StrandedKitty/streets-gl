@@ -21,6 +21,10 @@ export default class PickingSystem extends System {
 		const canvas = document.getElementById('canvas');
 
 		canvas.addEventListener('pointerdown', e => {
+			if (e.button !== 0) {
+				return;
+			}
+
 			this.pointerPosition.x = e.clientX;
 			this.pointerPosition.y = e.clientY;
 
@@ -34,6 +38,10 @@ export default class PickingSystem extends System {
 		});
 
 		canvas.addEventListener('pointerup', e => {
+			if (e.button !== 0) {
+				return;
+			}
+
 			this.pointerPosition.x = e.clientX;
 			this.pointerPosition.y = e.clientY;
 

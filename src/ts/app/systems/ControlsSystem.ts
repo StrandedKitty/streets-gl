@@ -13,6 +13,8 @@ import System from "../System";
 import SystemManager from "../SystemManager";
 import CursorStyleSystem from "./CursorStyleSystem";
 import SceneSystem from '~/app/systems/SceneSystem';
+import PerspectiveCamera from "../../core/PerspectiveCamera";
+import Easing from "../../math/Easing";
 
 const touchYawFactor = 4;
 const touchPitchFactor = 2;
@@ -38,6 +40,8 @@ export default class ControlsSystem extends System {
 	private yaw: number = MathUtils.toRad(0);
 	private state: ControlsState;
 	private urlHandler: URLControlsStateHandler = new URLControlsStateHandler();
+	private wheelZoomScale: number = 0;
+	private wheelZoomScaleTarget: number = 0;
 
 	private isRotationMouseMode = false;
 	private isMovementMouseMode = false;
@@ -126,7 +130,12 @@ export default class ControlsSystem extends System {
 	private mouseDownEvent(e: MouseEvent): void {
 		e.preventDefault();
 
-		if (e.button && e.button == 2) {
+		if (e.button === 1) {
+			this.wheelZoomScaleTarget = 1;
+			return;
+		}
+
+		if (e.button === 2) {
 			this.isRotationMouseMode = true
 		} else {
 			this.isMovementMouseMode = true;
@@ -146,7 +155,12 @@ export default class ControlsSystem extends System {
 	private mouseUpEvent(e: MouseEvent): void {
 		this.systemManager.getSystem(CursorStyleSystem).disableGrabbing();
 
-		if (e.button && e.button == 2) {
+		if (e.button === 1) {
+			this.wheelZoomScaleTarget = 0;
+			return;
+		}
+
+		if (e.button === 2) {
 			this.isRotationMouseMode = false
 		} else {
 			this.isMovementMouseMode = false;
@@ -313,7 +327,7 @@ export default class ControlsSystem extends System {
 		}
 	}
 
-	public update(deltaTile: number): void {
+	public update(deltaTime: number): void {
 		this.camera = this.systemManager.getSystem(SceneSystem).objects.camera;
 
 		this.updateTargetHeightFromHeightmap();
@@ -347,6 +361,17 @@ export default class ControlsSystem extends System {
 
 			this.camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
 			this.camera.lookAt(this.target, false);
+		}
+
+		if (this.wheelZoomScaleTarget !== this.wheelZoomScale) {
+			const sign = Math.sign(this.wheelZoomScaleTarget - this.wheelZoomScale);
+
+			this.wheelZoomScale += sign * deltaTime * 12.;
+			this.wheelZoomScale = MathUtils.clamp(this.wheelZoomScale, 0, 1);
+
+			const alpha = Easing.easeOutCubic(this.wheelZoomScale);
+
+			this.camera.zoom(MathUtils.lerp(1, Config.CameraFOV / Config.CameraFOVZoomed, alpha));
 		}
 
 		this.updateHash();

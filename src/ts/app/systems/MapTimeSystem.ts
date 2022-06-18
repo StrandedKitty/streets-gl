@@ -5,6 +5,7 @@ import MathUtils from "../../math/MathUtils";
 import Vec3 from "../../math/Vec3";
 import Config from "../Config";
 import SunCalc from 'suncalc';
+import Easing from "../../math/Easing";
 
 const PredefinedLightStates: [Vec3, Vec3][] = [
 	[new Vec3(-1, -1, -1).normalize(), new Vec3(0, 1, 0).normalize()],
@@ -12,10 +13,6 @@ const PredefinedLightStates: [Vec3, Vec3][] = [
 	[new Vec3(1, -0.4, 1).normalize(), new Vec3(0, 1, 0).normalize()],
 	[new Vec3(0, 1, 0).normalize(), new Vec3(-1, -1, -1).normalize()]
 ];
-
-const easeOutQuart = (x: number): number => {
-	return 1 - Math.pow(1 - x, 4);
-};
 
 export default class MapTimeSystem extends System {
 	private stateId = -1;
@@ -107,7 +104,7 @@ export default class MapTimeSystem extends System {
 	}
 
 	private getSmoothedTransitionProgress(): number {
-		return easeOutQuart(this.transitionProgress);
+		return Easing.easeOutQuart(this.transitionProgress);
 	}
 
 	public update(deltaTime: number): void {

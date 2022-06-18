@@ -20,7 +20,12 @@ export default class PerspectiveCamera extends Camera {
 	}
 
 	public updateProjectionMatrix(): void {
-		this.projectionMatrix = Mat4.perspective(MathUtils.toRad(this.fov), this.aspect, this.near, this.far);
+		this.projectionMatrix = Mat4.perspective(
+			MathUtils.toRad(this.fov / this.zoomFactor),
+			this.aspect,
+			this.near,
+			this.far
+		);
 		this.updateProjectionMatrixInverse();
 	}
 }
