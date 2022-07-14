@@ -2,7 +2,7 @@ import Vec2 from "../../math/Vec2";
 
 export interface DoubleTouchMoveEvent {
 	zoomDelta?: number;
-	pitchDelta?: number;
+	pinchDelta?: number;
 	bearingDelta?: number;
 }
 

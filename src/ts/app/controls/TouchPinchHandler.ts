@@ -3,7 +3,7 @@ import DoubleTouchHandler, {DoubleTouchMoveEvent} from "./DoubleTouchHandler";
 
 const singleTouchTime = 100;
 
-export class TouchPitchHandler extends DoubleTouchHandler {
+export class TouchPinchHandler extends DoubleTouchHandler {
 	public valid: boolean = null;
 	public firstMove: number = null;
 	public lastPoints: [Vec2, Vec2] = null;
@@ -21,7 +21,7 @@ export class TouchPitchHandler extends DoubleTouchHandler {
 	public start(touchA: Vec2, touchB: Vec2): void {
 		this.lastPoints = [Vec2.copy(touchA), Vec2.copy(touchB)];
 
-		if (TouchPitchHandler.isVectorVertical(Vec2.sub(touchA, touchB))) {
+		if (TouchPinchHandler.isVectorVertical(Vec2.sub(touchA, touchB))) {
 			this.valid = false;
 		}
 	}
@@ -49,7 +49,7 @@ export class TouchPitchHandler extends DoubleTouchHandler {
 		const degreesPerPixel = -0.5;
 
 		return {
-			pitchDelta: yDeltaAverage * degreesPerPixel
+			pinchDelta: yDeltaAverage * degreesPerPixel
 		};
 	}
 
@@ -76,7 +76,7 @@ export class TouchPitchHandler extends DoubleTouchHandler {
 		}
 
 		const isSameDirection = vectorA.y > 0 === vectorB.y > 0;
-		return TouchPitchHandler.isVectorVertical(vectorA) && TouchPitchHandler.isVectorVertical(vectorB) && isSameDirection;
+		return TouchPinchHandler.isVectorVertical(vectorA) && TouchPinchHandler.isVectorVertical(vectorB) && isSameDirection;
 	}
 
 	private static isVectorVertical(v: Vec2): boolean {

@@ -6,7 +6,7 @@ import HeightProvider from "../world/HeightProvider";
 import DoubleTouchHandler, {DoubleTouchMoveEvent} from "../controls/DoubleTouchHandler";
 import TouchZoomHandler from "../controls/TouchZoomHandler";
 import TouchRotateHandler from "../controls/TouchRotateHandler";
-import {TouchPitchHandler} from "../controls/TouchPitchHandler";
+import {TouchPinchHandler} from "../controls/TouchPinchHandler";
 import URLControlsStateHandler from "../controls/URLControlsStateHandler";
 import Config from "../Config";
 import System from "../System";
@@ -61,7 +61,7 @@ export default class ControlsSystem extends System {
 		this.touchHandlers = new Map<string, DoubleTouchHandler>([
 			['zoom', new TouchZoomHandler()],
 			['rotate', new TouchRotateHandler()],
-			['pitch', new TouchPitchHandler()]
+			['pinch', new TouchPinchHandler()]
 		]);
 
 		for (const handler of this.touchHandlers.values()) {
@@ -123,7 +123,13 @@ export default class ControlsSystem extends System {
 	}
 
 	private wheelEvent(e: WheelEvent): void {
-		//this.distanceTarget += 0.5 * e.deltaY;
+		e.preventDefault();
+
+		if (e.ctrlKey) {
+			this.normalizedDistanceTarget += e.deltaY / 200.;
+			return;
+		}
+
 		this.normalizedDistanceTarget += e.deltaY / 2000.;
 	}
 
@@ -242,16 +248,16 @@ export default class ControlsSystem extends System {
 	}
 
 	private onDoubleTouchMove(e: DoubleTouchMoveEvent): void {
-		if (e.zoomDelta && !this.touchHandlers.get('pitch').active) {
+		if (e.zoomDelta && !this.touchHandlers.get('pinch').active) {
 			this.normalizedDistanceTarget -= e.zoomDelta * this.normalizedDistanceTarget;
 		}
 
-		if (e.bearingDelta && !this.touchHandlers.get('pitch').active) {
+		if (e.bearingDelta && !this.touchHandlers.get('pinch').active) {
 			this.yaw += MathUtils.toRad(e.bearingDelta) * this.rotationSpeed * touchYawFactor;
 		}
 
-		if (e.pitchDelta) {
-			this.pitch -= MathUtils.toRad(e.pitchDelta) * this.rotationSpeed * touchPitchFactor;
+		if (e.pinchDelta) {
+			this.pitch -= MathUtils.toRad(e.pinchDelta) * this.rotationSpeed * touchPitchFactor;
 		}
 	}
 
@@ -348,7 +354,7 @@ export default class ControlsSystem extends System {
 		this.camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
 		this.camera.lookAt(this.target, false);
 
-		if (this.cachedMoveEvent && this.mouseDownPosition && !this.touchHandlers.get('pitch').active) {
+		if (this.cachedMoveEvent && this.mouseDownPosition && !this.touchHandlers.get('pinch').active) {
 			this.camera.updateMatrixWorld();
 
 			const positionOnGround = this.projectOnGround(this.cachedMoveEvent.x, this.cachedMoveEvent.y);
