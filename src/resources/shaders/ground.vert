@@ -1,5 +1,4 @@
-#version 300 es
-precision highp float;
+#include <versionPrecision>
 
 in vec3 position;
 in vec2 uv;
@@ -11,13 +10,18 @@ out vec2 vUv;
 out vec3 vNormal;
 out vec3 vPosition;
 
-uniform mat4 projectionMatrix;
-uniform mat4 modelViewMatrix;
-uniform mat4 modelViewMatrixPrev;
+uniform PerMesh {
+	mat4 modelViewMatrix;
+	mat4 modelViewMatrixPrev;
+};
+
+uniform PerMaterial {
+	mat4 projectionMatrix;
+};
 
 void main() {
 	vUv = uv;
-	vNormal = (modelViewMatrix * vec4(normal, 0)).xyz;
+	vNormal = vec3(modelViewMatrix * vec4(normal, 0));
 
 	vec3 transformedPosition = position;
 	vec4 cameraSpacePosition = modelViewMatrix * vec4(transformedPosition, 1.0);

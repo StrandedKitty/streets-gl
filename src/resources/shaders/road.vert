@@ -18,9 +18,14 @@ out vec4 vClipPosPrev;
 out vec3 vCenter;
 flat out int vTextureId;
 
-uniform mat4 projectionMatrix;
-uniform mat4 modelViewMatrix;
-uniform mat4 modelViewMatrixPrev;
+uniform PerMesh {
+	mat4 modelViewMatrix;
+	mat4 modelViewMatrixPrev;
+};
+
+uniform PerMaterial {
+	mat4 projectionMatrix;
+};
 
 void main() {
 	vCenter = vec3(0);

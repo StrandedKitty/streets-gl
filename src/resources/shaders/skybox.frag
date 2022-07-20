@@ -1,27 +1,17 @@
-#version 300 es
-precision highp float;
-precision highp int;
-
-layout(location = 0) out vec4 outColor;
-layout(location = 1) out vec3 outNormal;
-layout(location = 2) out vec3 outPosition;
-layout(location = 3) out vec4 outMetallicRoughness;
-layout(location = 4) out vec4 outEmission;
-layout(location = 5) out vec3 outMotion;
-layout(location = 6) out uint outObjectId;
+#include <versionPrecision>
+#include <gBufferOut>
 
 in vec3 vNormal;
 in vec4 vClipPos;
 in vec4 vClipPosPrev;
 
-uniform samplerCube tSky;
+#include <packNormal>
+#include <getMotionVector>
 
 void main() {
-	outColor = vec4(texture(tSky, vNormal).rgb, 0);
-	outNormal = vNormal * 0.5 + 0.5;
-	outPosition = vec3(0, 0, -1e8);
-	outMetallicRoughness = vec4(0);
-	outEmission = vec4(0);
-	outMotion = 0.5 * vec3(vClipPos / vClipPos.w - vClipPosPrev / vClipPosPrev.w);
-	outObjectId = 0u;
+    outColor = vec4(109. / 255., 213. / 255., 1., 1);
+    outNormal = packNormal(vNormal);
+    outPosition = vec3(0, 0, -1e8);
+    outMotion = getMotionVector(vClipPos, vClipPosPrev);
+    outObjectId = 0u;
 }

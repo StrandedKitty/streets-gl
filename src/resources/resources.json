@@ -30,5 +30,49 @@
 	"roofNormal4": {
 		"url": "/textures/buildings/roofs/4_normal.png",
 		"type": "image"
+	},
+	"grass": {
+		"url": "/textures/surfaces/grass_color.png",
+		"type": "image"
+	},
+	"grassNoise": {
+		"url": "/textures/noise.png",
+		"type": "image"
+	},
+	"pavementDiffuse": {
+		"url": "/textures/surfaces/pavement_diffuse.png",
+		"type": "image"
+	},
+	"pavementNormal": {
+		"url": "/textures/surfaces/pavement_normal.png",
+		"type": "image"
+	},
+	"pavementMask": {
+		"url": "/textures/surfaces/pavement_mask.png",
+		"type": "image"
+	},
+	"asphaltDiffuse": {
+		"url": "/textures/surfaces/asphalt_diffuse.png",
+		"type": "image"
+	},
+	"asphaltNormal": {
+		"url": "/textures/surfaces/asphalt_normal.png",
+		"type": "image"
+	},
+	"asphaltMask": {
+		"url": "/textures/surfaces/asphalt_mask.png",
+		"type": "image"
+	},
+	"cobblestoneDiffuse": {
+		"url": "/textures/surfaces/cobblestone_diffuse.png",
+		"type": "image"
+	},
+	"cobblestoneNormal": {
+		"url": "/textures/surfaces/cobblestone_normal.png",
+		"type": "image"
+	},
+	"cobblestoneMask": {
+		"url": "/textures/surfaces/cobblestone_mask.png",
+		"type": "image"
 	}
 }

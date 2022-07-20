@@ -33,8 +33,8 @@ export default class ControlsSystem extends System {
 	private tick = 0;
 	public target: Vec3 = new Vec3();
 	private direction: Vec3 = new Vec3();
-	private normalizedDistance = 0.1;
-	private normalizedDistanceTarget = 0.1;
+	private normalizedDistance = 10;
+	private normalizedDistanceTarget = 10;
 	private distance = 0;
 	private pitch: number = MathUtils.toRad(45);
 	private yaw: number = MathUtils.toRad(0);

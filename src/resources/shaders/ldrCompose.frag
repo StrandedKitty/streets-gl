@@ -11,12 +11,7 @@ uniform sampler2D tHDR;
 uniform sampler2D tDoF;
 uniform sampler2D tCoC;
 
-const float GAMMA = 2.2;
-const float INV_GAMMA = 1.0 / GAMMA;
-
-vec3 LINEARtoSRGB(vec3 color) {
-	return pow(color, vec3(INV_GAMMA));
-}
+#include <gamma>
 
 void main() {
 	vec4 source = texture(tHDR, vUv);

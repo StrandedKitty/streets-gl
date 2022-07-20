@@ -235,7 +235,7 @@ export default class RenderSystem extends System {
 		++this.frameCount;
 	}
 
-	private updateTiles(): void {
+	/*private updateTiles(): void {
 		const tiles = this.systemManager.getSystem(TileSystem).tiles;
 
 		for (const tile of tiles.values()) {
@@ -246,7 +246,7 @@ export default class RenderSystem extends System {
 				this.systemManager.getSystem(SceneSystem).objects.tiles.add(tile);
 			}
 		}
-	}
+	}*/
 
 	/*private renderTiles() {
 		const tiles = this.systemManager.getSystem(TileSystem).tiles;

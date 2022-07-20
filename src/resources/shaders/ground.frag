@@ -1,14 +1,5 @@
-#version 300 es
-precision highp float;
-precision highp int;
-
-layout(location = 0) out vec4 outColor;
-layout(location = 1) out vec3 outNormal;
-layout(location = 2) out vec3 outPosition;
-layout(location = 3) out vec4 outMetallicRoughness;
-layout(location = 4) out vec4 outEmission;
-layout(location = 5) out vec3 outMotion;
-layout(location = 6) out uint outObjectId;
+#include <versionPrecision>
+#include <gBufferOut>
 
 in vec2 vUv;
 in vec3 vNormal;
@@ -16,9 +7,16 @@ in vec3 vPosition;
 in vec4 vClipPos;
 in vec4 vClipPosPrev;
 
-uniform sampler2D map;
+uniform PerMesh {
+    mat4 modelViewMatrix;
+    mat4 modelViewMatrixPrev;
+};
+
 uniform sampler2D grass;
-uniform sampler2D noise;
+uniform sampler2D grassNoise;
+
+#include <packNormal>
+#include <getMotionVector>
 
 float sum(vec3 v) { return v.x + v.y + v.z; }
 
@@ -48,17 +46,15 @@ vec3 textureNoTile(sampler2D noiseSamp, sampler2D colorSamp, vec2 uv, float uvSc
 }
 
 void main() {
-    outColor = vec4(textureNoTile(noise, grass, vUv, 4.), 1);
+    outColor = vec4(textureNoTile(grassNoise, grass, vUv, 6.), 1);
 
     float borderSize = 0.005;
     if(vUv.x > 1. - borderSize || vUv.y > 1. - borderSize || vUv.x < borderSize || vUv.y < borderSize) {
         //outColor = vec4(1, 0, 0, 1);
     }
 
-    outNormal = vNormal * 0.5 + 0.5;
+    outNormal = packNormal(vNormal);
     outPosition = vPosition;
-    outMetallicRoughness = vec4(0);
-    outEmission = vec4(0);
-    outMotion = 0.5 * vec3(vClipPos / vClipPos.w - vClipPosPrev / vClipPosPrev.w);
+    outMotion = getMotionVector(vClipPos, vClipPosPrev);
     outObjectId = 0u;
 }

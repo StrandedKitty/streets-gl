@@ -31,11 +31,14 @@ export default class WebGL2Renderer implements AbstractRenderer {
 	public boundMaterial: WebGL2Material = null;
 
 	private frontFaceState: RendererTypes.FrontFace = RendererTypes.FrontFace.CCW;
-	private cullingState = true;
+	private cullingState: boolean = true;
 	private cullingModeState: RendererTypes.CullMode = RendererTypes.CullMode.Back;
-	private depthWriteState = true;
-	private depthTestState = false;
+	private depthWriteState: boolean = true;
+	private depthTestState: boolean = false;
 	private depthFuncState: RendererTypes.DepthCompare = RendererTypes.DepthCompare.LessEqual;
+	private depthBiasEnabled: boolean = false;
+	private depthBiasConstant: number = 0;
+	private depthBiasSlopeScale: number = 0;
 
 	public constructor(context: WebGL2RenderingContext) {
 		this.gl = context;
@@ -116,6 +119,7 @@ export default class WebGL2Renderer implements AbstractRenderer {
 			this.depthTest = material.depth.depthCompare !== RendererTypes.DepthCompare.Always;
 			this.depthFunc = material.depth.depthCompare;
 			this.depthWrite = material.depth.depthWrite;
+			this.setDepthBias(material.depth.depthBiasSlopeScale, material.depth.depthBiasConstant);
 
 			this.boundMaterial = material;
 		}
@@ -220,6 +224,27 @@ export default class WebGL2Renderer implements AbstractRenderer {
 		this.depthWriteState = state;
 
 		this.gl.depthMask(state);
+	}
+
+	public setDepthBias(depthBiasSlopeScale: number, depthBiasConstant: number): void {
+		const depthBiasEnabled = depthBiasSlopeScale !== undefined || depthBiasConstant !== undefined;
+
+		if (depthBiasEnabled !== this.depthBiasEnabled) {
+			if (depthBiasEnabled) {
+				this.gl.enable(WebGL2Constants.POLYGON_OFFSET_FILL);
+			} else {
+				this.gl.disable(WebGL2Constants.POLYGON_OFFSET_FILL);
+			}
+
+			this.depthBiasEnabled = depthBiasEnabled;
+		}
+
+		if (depthBiasSlopeScale !== this.depthBiasSlopeScale || depthBiasConstant !== this.depthBiasConstant) {
+			this.gl.polygonOffset(depthBiasConstant, depthBiasSlopeScale);
+
+			this.depthBiasSlopeScale = depthBiasSlopeScale;
+			this.depthBiasConstant = depthBiasConstant;
+		}
 	}
 
 	public setSize(width: number, height: number): void {

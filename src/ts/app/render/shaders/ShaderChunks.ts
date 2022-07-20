@@ -1,9 +1,17 @@
-const ShaderChunks: Record<string, string> = {
-	versionPrecision: require('../../../../resources/shaders/chunks/versionPrecision.glsl'),
-	gBufferOut: require('../../../../resources/shaders/chunks/gBufferOut.glsl'),
-	packNormal: require('../../../../resources/shaders/chunks/packNormal.glsl'),
-	unpackNormal: require('../../../../resources/shaders/chunks/unpackNormal.glsl'),
-	getMotionVector: require('../../../../resources/shaders/chunks/getMotionVector.glsl'),
-};
+const mapFiles = (context: __WebpackModuleApi.RequireContext): Record<string, string> => {
+	const keys: string[] = context.keys();
+	const values: string[] = <string[]>keys.map(context);
+
+	return keys.reduce((accumulator: Record<string, string>, key: string, index: number) => {
+		key = key.slice(2).replace('.glsl', '');
+
+		return {
+			...accumulator,
+			[key]: values[index],
+		};
+	}, {});
+}
+
+const ShaderChunks = mapFiles(require.context('../../../../resources/shaders/chunks', true, /\.glsl$/));
 
 export default ShaderChunks;

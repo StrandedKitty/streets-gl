@@ -2,8 +2,8 @@ import ShaderPrecompiler from "~/app/render/shaders/ShaderPrecompiler";
 
 const Shaders: Record<string, {vertex: string; fragment: string}> = {
 	building: {
-		vertex: require('../../../../resources/shaders/building2.vert'),
-		fragment: require('../../../../resources/shaders/building2.frag')
+		vertex: require('../../../../resources/shaders/building.vert'),
+		fragment: require('../../../../resources/shaders/building.frag')
 	},
 	buildingDepth: {
 		vertex: require('../../../../resources/shaders/buildingDepth.vert'),
@@ -22,8 +22,8 @@ const Shaders: Record<string, {vertex: string; fragment: string}> = {
 		fragment: require('../../../../resources/shaders/groundDepth.frag')
 	},
 	skybox: {
-		vertex: require('../../../../resources/shaders/skybox2.vert'),
-		fragment: require('../../../../resources/shaders/skybox2.frag')
+		vertex: require('../../../../resources/shaders/skybox.vert'),
+		fragment: require('../../../../resources/shaders/skybox.frag')
 	},
 	hdrCompose: {
 		vertex: require('../../../../resources/shaders/hdrCompose.vert'),

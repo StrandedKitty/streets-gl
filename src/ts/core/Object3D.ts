@@ -33,7 +33,7 @@ export default class Object3D {
 	}
 
 	public updateMatrixWorld(): Mat4 {
-		if(this.parent) {
+		if (this.parent) {
 			this.matrixWorld = Mat4.multiply(this.parent.updateMatrixWorld(), this.matrix);
 		} else {
 			this.matrixWorld = Mat4.copy(this.matrix);
@@ -43,42 +43,43 @@ export default class Object3D {
 	}
 
 	public updateMatrixWorldRecursively(): void {
-		if(this.parent) {
+		if (this.parent) {
 			this.matrixWorld = Mat4.multiply(this.parent.matrixWorld, this.matrix);
 		} else {
 			this.matrixWorld = Mat4.copy(this.matrix);
 		}
 
-		for(let i = 0; i < this.children.length; ++i) {
+		for (let i = 0; i < this.children.length; ++i) {
 			this.children[i].updateMatrixWorldRecursively();
 		}
 	}
 
 	public updateMatrixRecursively(): void {
-		if(this.matrixOverwrite) {
+		if (this.matrixOverwrite) {
 			this.updateMatrix();
 		}
 
-		for(let i = 0; i < this.children.length; ++i) {
+		for (let i = 0; i < this.children.length; ++i) {
 			this.children[i].updateMatrixRecursively();
 		}
 	}
 
-	public add(object: Object3D): void {
-		if (this.children.includes(object)) {
-			return;
-		}
+	public add(...objects: Object3D[]): void {
+		for (const object of objects) {
+			if (this.children.includes(object)) {
+				return;
+			}
 
-		this.children.push(object);
-		object.parent = this;
-		object.updateMatrixWorld();
+			this.children.push(object);
+			object.parent = this;
+			object.updateMatrixWorld();
+		}
 	}
 
-	public remove(object: Object3D): void {
-		for(let i = 0; i < this.children.length; i++) {
-			if(this.children[i].id === object.id)  {
+	public remove(...objects: Object3D[]): void {
+		for (let i = 0; i < this.children.length; i++) {
+			if (objects.includes(this.children[i])) {
 				this.children.splice(i, 1);
-				return;
 			}
 		}
 	}

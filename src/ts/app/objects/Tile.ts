@@ -1,20 +1,12 @@
 import Object3D from "../../core/Object3D";
-import Ground from "./Ground";
-import Renderer from "../../renderer/Renderer";
 import MathUtils from "../../math/MathUtils";
-import Texture2D from "../../renderer/Texture2D";
-import GLConstants from "../../renderer/GLConstants";
 import HeightProvider from "../world/HeightProvider";
 import StaticGeometryLoadingSystem from "../systems/StaticGeometryLoadingSystem";
 import Camera from "../../core/Camera";
-import Mesh from "../../renderer/Mesh";
-import Vec3 from "../../math/Vec3";
 import Vec2 from "../../math/Vec2";
-import {AttributeFormat} from "../../renderer/Attribute";
-import AbstractRenderer from "../../renderer/abstract-renderer/AbstractRenderer";
-import {RendererTypes} from "../../renderer/RendererTypes";
-import AttributeType = RendererTypes.AttributeType;
-import AbstractMesh from "../../renderer/abstract-renderer/AbstractMesh";
+import TileBuildings from "~/app/objects/TileBuildings";
+import TileGround from "~/app/objects/TileGround";
+import TileRoads from "~/app/objects/TileRoads";
 
 export interface GroundGeometryBuffers {
 	position: Float32Array;
@@ -54,24 +46,20 @@ export interface StaticTileGeometry {
 let tileCounter = 0;
 
 export default class Tile extends Object3D {
-	public ground: Ground;
-	public buildings: Mesh;
-	public roads: Mesh;
 	public staticGeometry: StaticTileGeometry;
 	public buildingIdMap: Map<number, number> = new Map();
 	public buildingOffsetMap: Map<number, [number, number]> = new Map();
 	public buildingVisibilityMap: Map<number, boolean> = new Map();
-	public displayBufferNeedsUpdate = false;
 	public x: number;
 	public y: number;
 	public localId: number;
 	public inFrustum = true;
 	public distanceToCamera: number = null;
-	public colorMap: Texture2D = null;
-	public readyForRendering = false;
-	public buildingsUpdated = false;
 	public disposed = false;
-	public buildingsMesh: AbstractMesh;
+	public buildings: TileBuildings;
+	public ground: TileGround;
+	public roads: TileRoads;
+	public buildingsNeedFiltering: boolean = true;
 
 	public constructor(x: number, y: number) {
 		super();
@@ -97,204 +85,18 @@ export default class Tile extends Object3D {
 
 	public async load(tileProvider: StaticGeometryLoadingSystem): Promise<void> {
 		return Promise.all([
-			//this.loadTextures(renderer),
 			HeightProvider.prepareDataForTile(this.x, this.y),
 			tileProvider.getTileObjects(this),
 		]).then(([a, objects]: [void[], StaticTileGeometry]) => {
 			this.staticGeometry = objects;
 			this.updateStaticGeometryOffsets();
-			this.readyForRendering = true;
+
+			this.buildings = new TileBuildings(this.staticGeometry);
+			this.ground = new TileGround(this.staticGeometry);
+			this.roads = new TileRoads(this.staticGeometry);
+
+			this.add(this.buildings, this.ground, this.roads);
 		});
-	}
-
-	private async loadTextures(renderer: Renderer): Promise<void> {
-		this.colorMap = new Texture2D(renderer, {
-			anisotropy: 16,
-			flipY: true,
-			wrap: GLConstants.CLAMP_TO_EDGE,
-			width: 512,
-			height: 512
-		});
-
-		const hdTileX = this.x * 2;
-		const hdTileY = this.y * 2;
-
-		this.colorMap.loadFromTiles([
-			`https://a.tile.openstreetmap.org/17/${hdTileX}/${hdTileY + 1}.png`,
-			`https://b.tile.openstreetmap.org/17/${hdTileX + 1}/${hdTileY + 1}.png`,
-			`https://c.tile.openstreetmap.org/17/${hdTileX}/${hdTileY}.png`,
-			`https://a.tile.openstreetmap.org/17/${hdTileX + 1}/${hdTileY}.png`
-		], 2, 2);
-
-		return this.colorMap.loadingPromise;
-	}
-
-	public createGround(renderer: Renderer, neighbors: Tile[]): void {
-		/*this.ground = new Ground(renderer);
-		this.ground.applyHeightmap(this.x, this.y);
-
-		this.add(this.ground);
-
-		this.ground.updateBorderNormals(this.x, this.y, neighbors.filter((tile) => tile.ground));*/
-	}
-
-	public createMeshes(renderer: AbstractRenderer): void {
-		this.buildingsMesh = renderer.createMesh({
-			attributes: [
-				renderer.createAttribute({
-					name: 'position',
-					size: 3,
-					type: AttributeType.Float32,
-					format: RendererTypes.AttributeFormat.Float,
-					normalized: false,
-					data: this.staticGeometry.buildings.position
-				}),
-				renderer.createAttribute({
-					name: 'normal',
-					size: 3,
-					type: AttributeType.Float32,
-					format: RendererTypes.AttributeFormat.Float,
-					normalized: false,
-					data: this.staticGeometry.buildings.normal
-				}),
-				renderer.createAttribute({
-					name: 'color',
-					size: 3,
-					type: AttributeType.UnsignedByte,
-					format: RendererTypes.AttributeFormat.Float,
-					normalized: true,
-					data: this.staticGeometry.buildings.color
-				}),
-				renderer.createAttribute({
-					name: 'uv',
-					size: 2,
-					type: AttributeType.Float32,
-					format: RendererTypes.AttributeFormat.Float,
-					normalized: false,
-					data: this.staticGeometry.buildings.uv
-				}),
-				renderer.createAttribute({
-					name: 'textureId',
-					size: 1,
-					type: AttributeType.UnsignedByte,
-					format: RendererTypes.AttributeFormat.Integer,
-					normalized: false,
-					data: this.staticGeometry.buildings.textureId
-				}),
-				renderer.createAttribute({
-					name: 'localId',
-					size: 1,
-					type: AttributeType.UnsignedInt,
-					format: RendererTypes.AttributeFormat.Integer,
-					normalized: false,
-					data: this.staticGeometry.buildings.localId
-				})
-			]
-		});
-	}
-
-	public generateMeshes(renderer: Renderer): void {
-		const buildings = new Mesh(renderer, {
-			vertices: this.staticGeometry.buildings.position,
-			bboxCulled: true
-		});
-
-		const roads = new Mesh(renderer, {
-			vertices: this.staticGeometry.roads.position
-		});
-
-		const ground = new Ground(renderer, this.staticGeometry);
-
-		this.add(ground);
-
-		buildings.addAttribute({
-			name: 'uv',
-			size: 2,
-			type: GLConstants.FLOAT,
-			normalized: false
-		});
-		buildings.setAttributeData('uv', this.staticGeometry.buildings.uv);
-
-		buildings.addAttribute({
-			name: 'normal',
-			size: 3,
-			type: GLConstants.FLOAT,
-			normalized: false
-		});
-		buildings.setAttributeData('normal', this.staticGeometry.buildings.normal);
-
-		buildings.addAttribute({
-			name: 'textureId',
-			size: 1,
-			dataFormat: AttributeFormat.Integer,
-			type: GLConstants.UNSIGNED_BYTE,
-			normalized: false
-		});
-		buildings.setAttributeData('textureId', this.staticGeometry.buildings.textureId);
-
-		buildings.addAttribute({
-			name: 'color',
-			size: 3,
-			type: GLConstants.UNSIGNED_BYTE,
-			normalized: true
-		});
-		buildings.setAttributeData('color', this.staticGeometry.buildings.color);
-
-		buildings.addAttribute({
-			name: 'display',
-			size: 1,
-			dataFormat: AttributeFormat.Integer,
-			type: GLConstants.UNSIGNED_BYTE,
-			normalized: false
-		});
-		buildings.setAttributeData('display', new Uint8Array(buildings.vertices.length / 3));
-
-		buildings.addAttribute({
-			name: 'localId',
-			size: 1,
-			dataFormat: AttributeFormat.Integer,
-			type: GLConstants.UNSIGNED_INT,
-			normalized: false
-		});
-		buildings.setAttributeData('localId', this.staticGeometry.buildings.localId);
-
-		buildings.setBoundingBox(
-			new Vec3(...this.staticGeometry.bbox.min),
-			new Vec3(...this.staticGeometry.bbox.max)
-		);
-
-		this.add(buildings);
-
-		roads.addAttribute({
-			name: 'uv',
-			size: 2,
-			type: GLConstants.FLOAT,
-			normalized: false
-		});
-		roads.setAttributeData('uv', this.staticGeometry.roads.uv);
-
-		roads.addAttribute({
-			name: 'normal',
-			size: 3,
-			type: GLConstants.FLOAT,
-			normalized: false
-		});
-		roads.setAttributeData('normal', this.staticGeometry.roads.normal);
-
-		roads.addAttribute({
-			name: 'textureId',
-			size: 1,
-			dataFormat: AttributeFormat.Integer,
-			type: GLConstants.UNSIGNED_BYTE,
-			normalized: false
-		});
-		roads.setAttributeData('textureId', this.staticGeometry.roads.textureId);
-
-		this.add(roads);
-
-		this.buildings = buildings;
-		this.roads = roads;
-		this.ground = ground;
 	}
 
 	public updateDistanceToCamera(camera: Camera): void {
@@ -323,49 +125,31 @@ export default class Tile extends Object3D {
 
 	public hideBuilding(id: number): void {
 		const [start, size] = this.buildingOffsetMap.get(id);
-		const displayBuffer = this.buildings.attributes.get('display').buffer;
 
-		for (let i = start; i < start + size; i++) {
-			displayBuffer[i] = 255;
-		}
-
+		this.buildings.addDisplayBufferPatch({start, size, value: 255});
 		this.buildingVisibilityMap.set(id, false);
-		this.displayBufferNeedsUpdate = true;
 	}
 
 	public showBuilding(id: number): void  {
 		const [start, size] = this.buildingOffsetMap.get(id);
-		const displayBuffer = this.buildings.attributes.get('display').buffer;
 
-		for (let i = start; i < start + size; i++) {
-			displayBuffer[i] = 0;
-		}
-
+		this.buildings.addDisplayBufferPatch({start, size, value: 0});
 		this.buildingVisibilityMap.set(id, true);
-		this.displayBufferNeedsUpdate = true;
 	}
 
 	public isBuildingVisible(id: number): boolean {
 		return this.buildingVisibilityMap.get(id);
 	}
 
-	public updateDisplayBuffer(): void  {
-		this.buildings.updateAttribute('display');
-	}
-
 	public dispose(): void  {
 		this.disposed = true;
 
+		if (this.buildings) {
+			this.buildings.dispose();
+		}
+
 		if (this.ground) {
-			this.ground.delete();
-		}
-
-		if (this.buildingsMesh) {
-			this.buildingsMesh.delete();
-		}
-
-		if (this.colorMap) {
-			this.colorMap.delete();
+			this.ground.dispose();
 		}
 
 		if (this.parent) {

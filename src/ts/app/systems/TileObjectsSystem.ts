@@ -45,9 +45,9 @@ export default class TileObjectsSystem extends System {
 
 	public update(deltaTime: number): void {
 		for (const tile of this.systemManager.getSystem(TileSystem).tiles.values()) {
-			if (tile.buildings && !tile.buildingsUpdated) {
+			if (tile.buildings && tile.buildingsNeedFiltering) {
 				this.addTile(tile);
-				tile.buildingsUpdated = true;
+				tile.buildingsNeedFiltering = false;
 			}
 		}
 	}

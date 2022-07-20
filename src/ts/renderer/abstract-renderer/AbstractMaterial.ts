@@ -9,6 +9,8 @@ export interface AbstractMaterialPrimitiveParams {
 export interface AbstractMaterialDepthParams {
 	depthWrite: boolean;
 	depthCompare: RendererTypes.DepthCompare;
+	depthBiasSlopeScale?: number;
+	depthBiasConstant?: number;
 }
 
 export interface AbstractMaterialParams {

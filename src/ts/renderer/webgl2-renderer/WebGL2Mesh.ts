@@ -9,6 +9,8 @@ export default class WebGL2Mesh implements AbstractMesh {
 	private readonly renderer: WebGL2Renderer;
 	private readonly gl: WebGL2RenderingContext;
 	public indexed: boolean;
+	public indices: Uint32Array;
+	private indexBuffer: WebGLBuffer;
 	private attributes: Map<string, WebGL2Attribute> = new Map();
 	private materialsAttributes: Map<string, Map<string, WebGL2Attribute>> = new Map();
 	private vaos: Map<string, WebGL2VAO> = new Map();
@@ -16,16 +18,41 @@ export default class WebGL2Mesh implements AbstractMesh {
 	public constructor(
 		renderer: WebGL2Renderer, {
 			indexed = false,
+			indices,
 			attributes = []
 		}: AbstractMeshParams
 	) {
 		this.renderer = renderer;
 		this.gl = renderer.gl;
 		this.indexed = indexed;
+		this.indices = indices;
+
+		if (this.indexed) {
+			this.createIndexBuffer();
+		}
 
 		for (const attribute of attributes) {
 			this.addAttribute(<WebGL2Attribute>attribute);
 		}
+	}
+
+	private createIndexBuffer(): void {
+		this.indexBuffer = this.gl.createBuffer();
+		this.gl.bindBuffer(WebGL2Constants.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+
+		this.gl.bufferData(
+			WebGL2Constants.ELEMENT_ARRAY_BUFFER,
+			this.indices,
+			WebGL2Constants.STATIC_DRAW
+		);
+
+		this.gl.bindBuffer(WebGL2Constants.ELEMENT_ARRAY_BUFFER, null);
+	}
+
+	public setIndices(indices: Uint32Array): void {
+		this.indices = indices;
+
+		this.createIndexBuffer();
 	}
 
 	private bindVAO(material: WebGL2Material): void {
@@ -52,7 +79,13 @@ export default class WebGL2Mesh implements AbstractMesh {
 	public draw(): void {
 		this.bindVAO(this.renderer.boundMaterial);
 
-		this.gl.drawArrays(WebGL2Constants.TRIANGLES, 0, this.attributes.get('position').data.length / 3);
+		if (this.indexed) {
+			this.gl.bindBuffer(WebGL2Constants.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+			this.gl.drawElements(WebGL2Constants.TRIANGLES, this.indices.length, WebGL2Constants.UNSIGNED_INT, 0);
+			this.gl.bindBuffer(WebGL2Constants.ELEMENT_ARRAY_BUFFER, null);
+		} else {
+			this.gl.drawArrays(WebGL2Constants.TRIANGLES, 0, this.attributes.get('position').data.length / 3);
+		}
 	}
 
 	public getAttribute(name: string): WebGL2Attribute {

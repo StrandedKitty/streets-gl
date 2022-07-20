@@ -118,7 +118,7 @@ export default class Ground extends Mesh {
 		}
 	}
 
-	public updateBorderNormals(x: number, y: number, neighbors: Tile[]): void {
+	/*public updateBorderNormals(x: number, y: number, neighbors: Tile[]): void {
 		const normals = this.attributes.get('normal').buffer;
 		const uvs = this.attributes.get('uv').buffer;
 
@@ -160,5 +160,5 @@ export default class Ground extends Mesh {
 		}
 
 		this.updateAttribute('normal');
-	}
+	}*/
 }

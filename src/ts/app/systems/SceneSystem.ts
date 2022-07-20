@@ -81,7 +81,7 @@ export default class SceneSystem extends System {
 		const tiles = this.systemManager.getSystem(TileSystem).tiles;
 
 		for (const tile of tiles.values()) {
-			if (!tile.ground && tile.readyForRendering && !tile.parent) {
+			if (!tile.parent) {
 				//tile.createGround(this.renderer, this.systemManager.getSystem(TileSystem).getTileNeighbors(tile.x, tile.y));
 				//tile.generateMeshes(this.renderer);
 				//this.wrapper.add(tile);

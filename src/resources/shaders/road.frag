@@ -1,16 +1,5 @@
-#version 300 es
-precision highp float;
-precision highp int;
-precision highp sampler2D;
-precision highp sampler2DArray;
-
-layout(location = 0) out vec4 outColor;
-layout(location = 1) out vec3 outNormal;
-layout(location = 2) out vec3 outPosition;
-layout(location = 3) out vec4 outMetallicRoughness;
-layout(location = 4) out vec4 outEmission;
-layout(location = 5) out vec3 outMotion;
-layout(location = 6) out uint outObjectId;
+#include <versionPrecision>
+#include <gBufferOut>
 
 in vec2 vUv;
 in vec3 vPosition;
@@ -23,6 +12,9 @@ in vec3 vCenter;
 flat in int vTextureId;
 
 uniform sampler2DArray tMap;
+
+#include <packNormal>
+#include <getMotionVector>
 
 float edgeFactor() {
 	float widthFactor = 1.;
@@ -61,8 +53,6 @@ vec3 getNormal(vec3 normalMapValue) {
 }
 
 void main() {
-	//if (edgeFactor() > 0.99) discard;
-
 	vec2 mapUV = vLocalPosition.xz * 0.1;
 
 	vec4 color = texture(tMap, vec3(mapUV, vTextureId * 3));
@@ -70,10 +60,8 @@ void main() {
 	vec3 mask = texture(tMap, vec3(mapUV, vTextureId * 3 + 2)).rgb;
 
 	outColor = color;
-	outNormal = normal * 0.5 + 0.5;
+	outNormal = packNormal(vNormal);
 	outPosition = vPosition;
-	outMetallicRoughness = vec4(0);
-	outEmission = vec4(0);
-	outMotion = 0.5 * vec3(vClipPos / vClipPos.w - vClipPosPrev / vClipPosPrev.w);
+	outMotion = getMotionVector(vClipPos, vClipPosPrev);
 	outObjectId = 0u;
 }
