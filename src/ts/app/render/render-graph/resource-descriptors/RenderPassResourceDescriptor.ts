@@ -56,13 +56,13 @@ export default class RenderPassResourceDescriptor extends RG.ResourceDescriptor 
 		return JSON.stringify([color, depth]);
 	}
 
-	public setSize(width: number, height: number): void {
+	public setSize(width: number, height: number, depth: number = 1): void {
 		for (const attachment of this.colorAttachments) {
-			attachment.texture.setSize(width, height);
+			attachment.texture.setSize(width, height, depth);
 		}
 
 		if (this.depthAttachment) {
-			this.depthAttachment.texture.setSize(width, height);
+			this.depthAttachment.texture.setSize(width, height, depth);
 		}
 	}
 }

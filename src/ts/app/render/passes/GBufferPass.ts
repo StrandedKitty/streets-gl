@@ -1,9 +1,7 @@
 import AbstractMaterial from "~/renderer/abstract-renderer/AbstractMaterial";
-import {RendererTypes} from "~/renderer/RendererTypes";
 import {UniformMatrix4} from "~/renderer/abstract-renderer/Uniform";
 import Tile from "~/app/objects/Tile";
 import Mat4 from "../../../math/Mat4";
-import Shaders from "../shaders/Shaders";
 import Pass from "~/app/render/passes/Pass";
 import RenderPassResource from "~/app/render/render-graph/resources/RenderPassResource";
 import {InternalResourceType} from '~/render-graph/Pass';
@@ -33,10 +31,6 @@ export default class GBufferPass extends Pass<{
 			GBufferRenderPass: {type: InternalResourceType.Output, resource: manager.getSharedResource('GBufferRenderPass')}
 		});
 
-		this.init();
-	}
-
-	private init(): void {
 		this.createMaterials();
 	}
 
@@ -71,12 +65,6 @@ export default class GBufferPass extends Pass<{
 				pivotDelta.y
 			);
 		}
-
-		/*for (const tile of tiles) {
-			if (!tile.buildingsMesh && tile.readyForRendering) {
-				tile.createMeshes(this.renderer);
-			}
-		}*/
 
 		const testRenderPass = this.getPhysicalResource('GBufferRenderPass');
 
@@ -158,7 +146,7 @@ export default class GBufferPass extends Pass<{
 			tile.roads.draw();
 		}
 
-		testRenderPass.readColorAttachmentPixel(4, this.objectIdBuffer, this.objectIdX, this.objectIdY);
+		//testRenderPass.readColorAttachmentPixel(4, this.objectIdBuffer, this.objectIdX, this.objectIdY);
 
 		this.saveCameraMatrixWorldInverse();
 	}
@@ -168,6 +156,6 @@ export default class GBufferPass extends Pass<{
 	}
 
 	public setSize(width: number, height: number): void {
-		this.getResource('GBufferRenderPass').descriptor.setSize(width, height);
+
 	}
 }

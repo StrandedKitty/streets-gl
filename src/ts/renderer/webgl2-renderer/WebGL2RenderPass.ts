@@ -27,17 +27,13 @@ export default class WebGL2RenderPass implements AbstractRenderPass {
 		this.colorAttachments = colorAttachments;
 		this.depthAttachment = depthAttachment;
 
-		if (this.colorAttachments.length !== 0) {
+		if (this.colorAttachments.length !== 0 || this.depthAttachment) {
 			this.createFramebuffer();
 		}
 	}
 
 	private createFramebuffer(): void {
 		this.framebuffer = new WebGL2Framebuffer(this.renderer, this.colorAttachments, this.depthAttachment);
-	}
-
-	public needsUpdate(): void {
-		this.framebufferNeedsUpdate = true;
 	}
 
 	public begin(): void {

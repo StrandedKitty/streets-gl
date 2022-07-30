@@ -55,9 +55,6 @@ vec3 getRoofNormal() {
 }
 
 void main() {
-    vec3 n = vec3(modelViewMatrix * vec4(vNormal, 0));
-    float fr = dot(n, vec3(0, 0, 1)) * 0.5 + 0.5;
-
     if(vTextureId == 0) {
         outColor = vec4(vColor, 1);
         outNormal = packNormal(vNormal);
@@ -66,7 +63,6 @@ void main() {
         outNormal = packNormal(getRoofNormal());
     }
 
-    outColor.rgb *= fr;
     outPosition = vPosition;
     outMotion = getMotionVector(vClipPos, vClipPosPrev);
     outObjectId = vObjectId;

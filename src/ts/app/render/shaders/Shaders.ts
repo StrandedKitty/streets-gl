@@ -29,9 +29,13 @@ const Shaders: Record<string, {vertex: string; fragment: string}> = {
 		vertex: require('../../../../resources/shaders/hdrCompose.vert'),
 		fragment: require('../../../../resources/shaders/hdrCompose.frag')
 	},
-	ldrCompose: {
-		vertex: require('../../../../resources/shaders/ldrCompose2.vert'),
-		fragment: require('../../../../resources/shaders/ldrCompose2.frag')
+	screen: {
+		vertex: require('../../../../resources/shaders/screen.vert'),
+		fragment: require('../../../../resources/shaders/screen.frag')
+	},
+	shading: {
+		vertex: require('../../../../resources/shaders/shading.vert'),
+		fragment: require('../../../../resources/shaders/shading.frag')
 	},
 	taa: {
 		vertex: require('../../../../resources/shaders/taa.vert'),

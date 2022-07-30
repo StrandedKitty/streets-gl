@@ -14,11 +14,9 @@ export interface InternalResource {
 
 export type ResourcePropMap = Record<string, InternalResource>;
 
-export default abstract class Pass<T extends ResourcePropMap = ResourcePropMap> extends Node {
+export default abstract class Pass<T extends ResourcePropMap> extends Node {
 	public readonly isRenderable: boolean = true;
 	protected readonly internalResources: Map<keyof T, T[keyof T]>;
-	protected readonly physicalResources: Map<keyof T, T[keyof T]['resource']['physicalResourceBuilder']['type']>;
-	private readonly physicalResourcesIds: Map<keyof T, string> = new Map();
 
 	protected constructor(name: string, initialResources: T) {
 		super(name);
@@ -30,40 +28,6 @@ export default abstract class Pass<T extends ResourcePropMap = ResourcePropMap> 
 		}
 
 		this.internalResources = internalResourcesMap;
-		this.physicalResources = new Map();
-	}
-
-	public fetchPhysicalResources(pool: PhysicalResourcePool): void {
-		for (const [name, internalResource] of this.internalResources.entries()) {
-			if (internalResource.resource === null) {
-				continue;
-			}
-
-			const resourceId = internalResource.resource.descriptor.deserialize();
-			const idChanged = this.physicalResourcesIds.get(name) !== resourceId;
-
-			if (!idChanged && this.physicalResources.has(name)) {
-				continue;
-			}
-
-			this.physicalResources.set(name, pool.getPhysicalResource(internalResource.resource));
-			this.physicalResourcesIds.set(name, resourceId);
-		}
-	}
-
-	public freePhysicalResources(pool: PhysicalResourcePool): void {
-		for (const [name, physicalResource] of this.physicalResources.entries()) {
-			const internalResource = this.internalResources.get(name);
-
-			if (!internalResource.resource.isTransient) {
-				continue;
-			}
-
-			pool.pushPhysicalResource(internalResource.resource.descriptor, physicalResource);
-
-			this.physicalResources.delete(name);
-			this.physicalResourcesIds.delete(name);
-		}
 	}
 
 	public setResource<K extends keyof T>(name: K, resource: T[K]['resource']): void {
@@ -75,7 +39,7 @@ export default abstract class Pass<T extends ResourcePropMap = ResourcePropMap> 
 	}
 
 	public getPhysicalResource<K extends keyof T>(name: K): T[K]['resource']['physicalResourceBuilder']['type'] {
-		return this.physicalResources.get(name);
+		return this.getResource(name).attachedPhysicalResource;
 	}
 
 	public getOutputResourcesUsedExternally(): Set<Resource> {
@@ -88,6 +52,10 @@ export default abstract class Pass<T extends ResourcePropMap = ResourcePropMap> 
 		}
 
 		return resources;
+	}
+
+	public getAllResources(): Resource[] {
+		return Array.from(this.internalResources.values()).map(r => r.resource);
 	}
 
 	public getAllResourcesOfType(type: InternalResourceType): Set<Resource> {

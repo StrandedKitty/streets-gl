@@ -1,61 +1,57 @@
 import Object3D from "../../core/Object3D";
-import Renderer from "../../renderer/Renderer";
 import PerspectiveCamera from "../../core/PerspectiveCamera";
 import Vec3 from "../../math/Vec3";
-import DirectionalLightShadow from "./DirectionalLightShadow";
 import Frustum from "../../core/Frustum";
 import AABB from "../../core/AABB";
 import Material, {UniformType} from "../../renderer/Material";
 import Texture2DArray from "../../renderer/Texture2DArray";
-import GLConstants from "../../renderer/GLConstants";
+import CSMCascadeCamera from "~/app/render/CSMCascadeCamera";
 
 const ShadowCameraTopOffset = 2000;
 const FadeOffsetFactor = 250;
 
 export default class CSM extends Object3D {
-	private readonly renderer: Renderer;
-	private camera: PerspectiveCamera;
-	private near: number;
-	private far: number;
-	private cascades: number;
-	private resolution: number;
-	private shadowBias: number;
-	private shadowNormalBias: number;
+	private readonly camera: PerspectiveCamera;
+	private readonly near: number;
+	private readonly far: number;
+	public readonly cascades: number;
+	public readonly resolution: number;
+	private readonly shadowBias: number;
+	private readonly shadowNormalBias: number;
 	public direction: Vec3;
 	public lightIntensity = 0;
 	public ambientLightIntensity = 0;
 
-	public lights: DirectionalLightShadow[] = [];
+	public cascadeCameras: CSMCascadeCamera[] = [];
 	private texture: Texture2DArray;
 	private mainFrustum: Frustum;
 	private frustums: Frustum[];
 	private breaks: number[][];
 	private fadeOffsets: number[];
 
-	public constructor(renderer: Renderer, {
-		camera,
-		parent,
-		near,
-		far,
-		cascades,
-		resolution,
-		shadowBias,
-		shadowNormalBias,
-		direction = new Vec3(-1, -1, -1)
-	}: {
-		camera: PerspectiveCamera;
-		parent: Object3D;
-		near: number;
-		far: number;
-		cascades: number;
-		resolution: number;
-		shadowBias: number;
-		shadowNormalBias: number;
-		direction?: Vec3;
-	}) {
+	public constructor(
+		{
+			camera,
+			near,
+			far,
+			cascades,
+			resolution,
+			shadowBias,
+			shadowNormalBias,
+			direction = new Vec3(-1, -1, -1)
+		}: {
+			camera: PerspectiveCamera;
+			near: number;
+			far: number;
+			cascades: number;
+			resolution: number;
+			shadowBias: number;
+			shadowNormalBias: number;
+			direction?: Vec3;
+		}
+	) {
 		super();
 
-		this.renderer = renderer;
 		this.camera = camera;
 		this.near = near;
 		this.far = far;
@@ -65,42 +61,25 @@ export default class CSM extends Object3D {
 		this.shadowNormalBias = shadowNormalBias;
 		this.direction = direction;
 
-		parent.add(this);
-
-		this.createLights();
+		this.createCameras();
 		this.updateBreaks();
-		this.createFrustums();
+		this.updateFrustums();
 	}
 
-	private createLights(): void {
-		this.texture = new Texture2DArray(this.renderer, {
-			width: this.resolution,
-			height: this.resolution,
-			depth: this.cascades,
-			minFilter: GLConstants.NEAREST,
-			magFilter: GLConstants.NEAREST,
-			wrap: GLConstants.CLAMP_TO_EDGE,
-			internalFormat: GLConstants.DEPTH_COMPONENT32F,
-			format: GLConstants.DEPTH_COMPONENT,
-			type: GLConstants.FLOAT
-		});
-
+	private createCameras(): void {
 		for (let i = 0; i < this.cascades; i++) {
-			const light = new DirectionalLightShadow(this.renderer, {
-				resolution: this.resolution,
+			const camera = new CSMCascadeCamera({
 				size: 0,
 				near: 1,
-				far: 10000,
-				textureArray: this.texture,
-				textureLayer: i
+				far: 10000
 			});
 
-			this.add(light);
-			this.lights.push(light);
+			this.add(camera);
+			this.cascadeCameras.push(camera);
 		}
 	}
 
-	private createFrustums(): void {
+	public updateFrustums(): void {
 		this.mainFrustum = new Frustum(this.camera.fov, this.camera.aspect, this.near, this.far);
 
 		this.mainFrustum.updateViewSpaceVertices();
@@ -136,11 +115,11 @@ export default class CSM extends Object3D {
 
 		for (let i = 0; i < this.frustums.length; i++) {
 			const worldSpaceFrustum = this.frustums[i].toSpace(this.camera.matrix);
-			const light = this.lights[i];
+			const cascadeCamera = this.cascadeCameras[i];
 
-			light.camera.updateMatrixWorldInverse();
+			cascadeCamera.updateMatrixWorldInverse();
 
-			const lightSpaceFrustum = worldSpaceFrustum.toSpace(light.camera.matrixWorldInverse);
+			const lightSpaceFrustum = worldSpaceFrustum.toSpace(cascadeCamera.matrixWorldInverse);
 			const bbox = (new AABB()).fromFrustum(lightSpaceFrustum);
 
 			const bboxDims = bbox.getSize();
@@ -149,28 +128,23 @@ export default class CSM extends Object3D {
 
 			bboxCenter.z = bbox.max.z + ShadowCameraTopOffset;
 
-			bboxCenter = Vec3.applyMatrix4(bboxCenter, light.camera.matrixWorld);
+			bboxCenter = Vec3.applyMatrix4(bboxCenter, cascadeCamera.matrixWorld);
 
-			light.camera.left = -bboxSideSize / 2;
-			light.camera.right = bboxSideSize / 2;
-			light.camera.top = bboxSideSize / 2;
-			light.camera.bottom = -bboxSideSize / 2;
+			cascadeCamera.left = -bboxSideSize / 2;
+			cascadeCamera.right = bboxSideSize / 2;
+			cascadeCamera.top = bboxSideSize / 2;
+			cascadeCamera.bottom = -bboxSideSize / 2;
 
-			light.camera.updateProjectionMatrix();
+			cascadeCamera.updateProjectionMatrix();
 
-			light.position.set(bboxCenter.x, bboxCenter.y, bboxCenter.z);
+			cascadeCamera.position.set(bboxCenter.x, bboxCenter.y, bboxCenter.z);
 
 			const target = Vec3.add(bboxCenter, this.direction);
-			light.lookAt(target);
+			cascadeCamera.lookAt(target);
 
-			light.updateMatrixWorld();
-			light.camera.updateMatrixWorld();
-			light.camera.updateMatrixWorldInverse();
+			cascadeCamera.updateMatrixWorld();
+			cascadeCamera.updateMatrixWorldInverse();
 		}
-	}
-
-	public updateFrustums(): void {
-		this.createFrustums();
 	}
 
 	private getBreaksForUniform(): Float32Array {
@@ -179,13 +153,44 @@ export default class CSM extends Object3D {
 		for (let i = 0; i < this.breaks.length; i++) {
 			worldSpaceBreaks.push(this.breaks[i][0] * (this.far - this.near));
 			worldSpaceBreaks.push(this.breaks[i][1] * (this.far - this.near));
+			worldSpaceBreaks.push(0, 0)
 		}
 
 		return new Float32Array(worldSpaceBreaks);
 	}
 
+	public getUniformsBuffers(): Record<string, Float32Array> {
+		const arrays: Record<string, number[]> = {
+			CSMSplits: [],
+			CSMResolution: [],
+			CSMSize: [],
+			CSMBias: [],
+			CSMMatrixWorldInverse: [],
+			CSMFadeOffset: []
+		};
+
+		for (let i = 0; i < this.cascades; i++) {
+			arrays.CSMMatrixWorldInverse.push(...this.cascadeCameras[i].matrixWorldInverse.values);
+			arrays.CSMResolution.push(this.resolution, 0, 0, 0);
+			arrays.CSMSize.push(this.cascadeCameras[i].top, 0, 0, 0);
+			arrays.CSMBias.push(this.shadowBias * this.cascadeCameras[i].top, this.shadowNormalBias * this.cascadeCameras[i].top, 0, 0);
+			arrays.CSMFadeOffset.push(this.fadeOffsets[i], 0, 0, 0);
+		}
+
+		arrays.CSMSplits.push(...this.getBreaksForUniform());
+
+		return {
+			CSMSplits: new Float32Array(arrays.CSMSplits),
+			CSMResolution: new Float32Array(arrays.CSMResolution),
+			CSMSize: new Float32Array(arrays.CSMSize),
+			CSMBias: new Float32Array(arrays.CSMBias),
+			CSMMatrixWorldInverse: new Float32Array(arrays.CSMMatrixWorldInverse),
+			CSMFadeOffset: new Float32Array(arrays.CSMFadeOffset)
+		};
+	}
+
 	public applyUniformsToMaterial(material: Material): void {
-		material.uniforms[`shadowMap`] = {
+		material.uniforms.shadowMap = {
 			type: UniformType.Texture2DArray,
 			value: this.texture
 		};
@@ -197,21 +202,21 @@ export default class CSM extends Object3D {
 		for (let i = 0; i < this.cascades; i++) {
 			material.uniforms[`cascades[${i}].matrixWorldInverse`] = {
 				type: UniformType.Matrix4,
-				value: this.lights[i].camera.matrixWorldInverse
+				value: this.cascadeCameras[i].matrixWorldInverse
 			};
 			material.uniforms[`cascades[${i}].resolution`] = {
 				type: UniformType.Float1,
-				value: this.lights[i].resolution
+				value: this.resolution
 			};
 			material.uniforms[`cascades[${i}].size`] = {
 				type: UniformType.Float1,
-				value: this.lights[i].camera.top
+				value: this.cascadeCameras[i].top
 			};
 			material.uniforms[`cascades[${i}].bias`] = {
 				type: UniformType.Float2,
 				value: new Float32Array([
-					this.shadowBias * this.lights[i].camera.top,
-					this.shadowNormalBias * this.lights[i].camera.top
+					this.shadowBias * this.cascadeCameras[i].top,
+					this.shadowNormalBias * this.cascadeCameras[i].top
 				])
 			};
 			material.uniforms[`cascades[${i}].fadeOffset`] = {

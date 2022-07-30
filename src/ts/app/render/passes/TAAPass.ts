@@ -11,6 +11,10 @@ import AbstractTexture2D from '~/renderer/abstract-renderer/AbstractTexture2D';
 import FullScreenTriangle from '~/app/objects/FullScreenTriangle';
 
 export default class TAAPass extends Pass<{
+	Source: {
+		type: RG.InternalResourceType.Input;
+		resource: RenderPassResource;
+	};
 	GBuffer: {
 		type: RG.InternalResourceType.Input;
 		resource: RenderPassResource;
@@ -19,21 +23,17 @@ export default class TAAPass extends Pass<{
 		type: RG.InternalResourceType.Input;
 		resource: RenderPassResource;
 	};
-	TAAOutput: {
-		type: RG.InternalResourceType.Input;
-		resource: RenderPassResource;
-	};
 	Output: {
 		type: RG.InternalResourceType.Output;
 		resource: RenderPassResource;
 	};
 }> {
-	private backbufferMaterial: AbstractMaterial;
 	private taaMaterial: AbstractMaterial;
 	private fullScreenTriangle: FullScreenTriangle;
 
 	public constructor(manager: PassManager) {
 		super('TAAPass', manager, {
+			Source: {type: RG.InternalResourceType.Input, resource: manager.getSharedResource('HDR')},
 			GBuffer: {type: RG.InternalResourceType.Input, resource: manager.getSharedResource('GBufferRenderPass')},
 			TAAAccum: {
 				type: RG.InternalResourceType.Input,
@@ -61,61 +61,13 @@ export default class TAAPass extends Pass<{
 					})
 				})
 			},
-			TAAOutput: {
-				type: RG.InternalResourceType.Input,
-				resource: manager.resourceFactory.createRenderPassResource({
-					name: 'TAA output',
-					isTransient: true,
-					isUsedExternally: false,
-					descriptor: new RenderPassResourceDescriptor({
-						colorAttachments: [
-							{
-								texture: new TextureResourceDescriptor({
-									type: TextureResourceType.Texture2D,
-									width: manager.renderer.resolution.x,
-									height: manager.renderer.resolution.y,
-									format: RendererTypes.TextureFormat.RGBA32Float,
-									minFilter: RendererTypes.MinFilter.Linear,
-									magFilter: RendererTypes.MagFilter.Linear,
-									mipmaps: false
-								}),
-								clearValue: {r: 0, g: 0, b: 0, a: 1},
-								loadOp: RendererTypes.AttachmentLoadOp.Load,
-								storeOp: RendererTypes.AttachmentStoreOp.Store
-							}
-						]
-					})
-				})
-			},
-			Output: {type: RG.InternalResourceType.Output, resource: manager.getSharedResource('BackbufferRenderPass')},
+			Output: {type: RG.InternalResourceType.Output, resource: manager.getSharedResource('HDRAntialiased')}
 		});
 
 		this.init();
 	}
 
 	private init(): void {
-		this.backbufferMaterial = this.renderer.createMaterial({
-			name: 'Backbuffer material',
-			uniforms: [
-				{
-					name: 'map',
-					block: null,
-					type: RendererTypes.UniformType.Texture2D,
-					value: null
-				}
-			],
-			primitive: {
-				frontFace: RendererTypes.FrontFace.CCW,
-				cullMode: RendererTypes.CullMode.None
-			},
-			depth: {
-				depthWrite: true,
-				depthCompare: RendererTypes.DepthCompare.LessEqual
-			},
-			vertexShaderSource: Shaders.ldrCompose.vertex,
-			fragmentShaderSource: Shaders.ldrCompose.fragment
-		});
-
 		this.taaMaterial = this.renderer.createMaterial({
 			name: 'TAA material',
 			uniforms: [
@@ -141,7 +93,7 @@ export default class TAAPass extends Pass<{
 				cullMode: RendererTypes.CullMode.None
 			},
 			depth: {
-				depthWrite: true,
+				depthWrite: false,
 				depthCompare: RendererTypes.DepthCompare.LessEqual
 			},
 			vertexShaderSource: Shaders.taa.vertex,
@@ -152,32 +104,23 @@ export default class TAAPass extends Pass<{
 	}
 
 	public render(): void {
-		const colorTexture = <AbstractTexture2D>this.getPhysicalResource('GBuffer').colorAttachments[0].texture;
+		const colorTexture = <AbstractTexture2D>this.getPhysicalResource('Source').colorAttachments[0].texture;
 		const motionTexture = <AbstractTexture2D>this.getPhysicalResource('GBuffer').colorAttachments[3].texture;
 		const accumTexture = <AbstractTexture2D>this.getPhysicalResource('TAAAccum').colorAttachments[0].texture;
-		const outputTexture = <AbstractTexture2D>this.getPhysicalResource('TAAOutput').colorAttachments[0].texture;
 
 		this.taaMaterial.getUniform('tNew').value = colorTexture;
 		this.taaMaterial.getUniform('tAccum').value = accumTexture;
 		this.taaMaterial.getUniform('tMotion').value = motionTexture;
 
-		this.renderer.beginRenderPass(this.getPhysicalResource('TAAOutput'));
+		this.renderer.beginRenderPass(this.getPhysicalResource('Output'));
 		this.renderer.useMaterial(this.taaMaterial);
 
 		this.fullScreenTriangle.mesh.draw();
 
-		this.getPhysicalResource('TAAOutput').copyColorAttachmentToTexture(0, accumTexture);
-
-		this.backbufferMaterial.getUniform('map').value = outputTexture;
-
-		this.renderer.beginRenderPass(this.getPhysicalResource('Output'));
-		this.renderer.useMaterial(this.backbufferMaterial);
-
-		this.fullScreenTriangle.mesh.draw();
+		this.getPhysicalResource('Output').copyColorAttachmentToTexture(0, accumTexture);
 	}
 
 	public setSize(width: number, height: number): void {
 		this.getResource('TAAAccum').descriptor.setSize(width, height);
-		this.getResource('TAAOutput').descriptor.setSize(width, height);
 	}
 }

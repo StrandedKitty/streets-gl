@@ -9,7 +9,7 @@ in vec4 vClipPosPrev;
 #include <getMotionVector>
 
 void main() {
-    outColor = vec4(109. / 255., 213. / 255., 1., 1);
+    outColor = vec4(109. / 255., 213. / 255., 1., 0);
     outNormal = packNormal(vNormal);
     outPosition = vec3(0, 0, -1e8);
     outMotion = getMotionVector(vClipPos, vClipPosPrev);

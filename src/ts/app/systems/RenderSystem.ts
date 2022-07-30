@@ -13,6 +13,9 @@ import RenderGraphResourceFactory from "~/app/render/render-graph/RenderGraphRes
 import PassManager from '~/app/render/PassManager';
 import SceneSystem from '~/app/systems/SceneSystem';
 import TAAPass from '~/app/render/passes/TAAPass';
+import ShadowMappingPass from "~/app/render/passes/ShadowMappingPass";
+import ShadingPass from "~/app/render/passes/ShadingPass";
+import ScreenPass from "~/app/render/passes/ScreenPass";
 
 const jitterOffsets: [number, number][] = [
 	[-7 / 8, 1 / 8],
@@ -124,13 +127,9 @@ export default class RenderSystem extends System {
 
 		this.passManager.addPass(GBufferPass);
 		this.passManager.addPass(TAAPass);
-
-		//gBufferPass.setTilesMap(this.systemManager.getSystem(TileSystem).tiles);
-		//gBufferPass.setSkybox(this.skybox);
-		//gBufferPass.setCamera(this.camera);
-
-		//this.skybox = new Skybox(this.renderer);
-		//this.wrapper.add(this.skybox);
+		this.passManager.addPass(ShadowMappingPass);
+		this.passManager.addPass(ShadingPass);
+		this.passManager.addPass(ScreenPass);
 
 		/*this.csm = new CSM(this.renderer, {
 			camera: this.camera,
@@ -170,6 +169,8 @@ export default class RenderSystem extends System {
 		this.dofTentPass.setSize(this.resolution.x, this.resolution.y);
 		this.dofPass.setSize(this.resolution.x, this.resolution.y);*/
 		//this.csm.updateFrustums();
+
+		this.passManager.setSize(width, height);
 
 		for (const pass of this.passManager.passes) {
 			pass.setSize(width, height);

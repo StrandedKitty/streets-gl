@@ -10,6 +10,8 @@ export default abstract class Resource<TDescriptor extends ResourceDescriptor = 
 	public physicalResourceBuilder: TBuilder;
 	public isTransient: boolean;
 	public isUsedExternally: boolean;
+	public attachedPhysicalResource: PhysicalResource = null;
+	public attachedPhysicalResourceId: string = '';
 
 	protected constructor(
 		{

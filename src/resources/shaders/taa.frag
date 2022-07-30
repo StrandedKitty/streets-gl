@@ -93,4 +93,6 @@ void main() {
     #ifdef USE_YCOCG
         FragColor.rgb = YCoCg_RGB(FragColor.rgb);
     #endif
+
+	//FragColor = vec4(newSample.rgb, 1);
 }

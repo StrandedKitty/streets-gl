@@ -14,6 +14,9 @@ type PassConstructor<T> = { new(manager: PassManager): T };
 type SharedResources = {
 	BackbufferRenderPass: RenderPassResource;
 	GBufferRenderPass: RenderPassResource;
+	ShadowMaps: RenderPassResource;
+	HDR: RenderPassResource;
+	HDRAntialiased: RenderPassResource;
 };
 
 export default class PassManager {
@@ -153,5 +156,84 @@ export default class PassManager {
 				}
 			})
 		}));
+
+		this.sharedResources.set('ShadowMaps', this.resourceFactory.createRenderPassResource({
+			name: 'Shadow maps',
+			isTransient: true,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [],
+				depthAttachment: {
+					texture: new TextureResourceDescriptor({
+						type: TextureResourceType.Texture2DArray,
+						width: 1,
+						height: 1,
+						depth: 1,
+						format: RendererTypes.TextureFormat.Depth32Float,
+						minFilter: RendererTypes.MinFilter.Nearest,
+						magFilter: RendererTypes.MagFilter.Nearest,
+						mipmaps: false
+					}),
+					slice: 0,
+					clearValue: 1,
+					loadOp: RendererTypes.AttachmentLoadOp.Clear,
+					storeOp: RendererTypes.AttachmentStoreOp.Store
+				}
+			})
+		}));
+
+		this.sharedResources.set('HDR', this.resourceFactory.createRenderPassResource({
+			name: 'HDR',
+			isTransient: true,
+			isUsedExternally: true,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: this.renderer.resolution.x,
+							height: this.renderer.resolution.y,
+							format: RendererTypes.TextureFormat.RGBA32Float,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 1},
+						loadOp: RendererTypes.AttachmentLoadOp.Clear,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
+
+		this.sharedResources.set('HDRAntialiased', this.resourceFactory.createRenderPassResource({
+			name: 'HDRAntialiased',
+			isTransient: true,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: this.renderer.resolution.x,
+							height: this.renderer.resolution.y,
+							format: RendererTypes.TextureFormat.RGBA32Float,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 1},
+						loadOp: RendererTypes.AttachmentLoadOp.Clear,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
+	}
+
+	public setSize(width: number, height: number): void {
+		this.sharedResources.get('GBufferRenderPass').descriptor.setSize(width, height);
+		this.sharedResources.get('HDR').descriptor.setSize(width, height);
+		this.sharedResources.get('HDRAntialiased').descriptor.setSize(width, height);
 	}
 }

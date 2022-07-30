@@ -14,9 +14,7 @@ class PhysicalResourceEntry {
 export default class PhysicalResourcePool {
 	private resourcesMap: Map<string, PhysicalResourceEntry[]> = new Map();
 
-	public pushPhysicalResource(descriptor: ResourceDescriptor, physicalResource: PhysicalResource): void {
-		const id = descriptor.deserialize();
-
+	public pushPhysicalResource(id: string, physicalResource: PhysicalResource): void {
 		if (!this.resourcesMap.get(id)) {
 			this.resourcesMap.set(id, []);
 		}

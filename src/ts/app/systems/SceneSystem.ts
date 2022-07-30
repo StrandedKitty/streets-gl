@@ -6,12 +6,15 @@ import Skybox from '~/app/objects/Skybox';
 import RenderableObject3D from '~/app/objects/RenderableObject3D';
 import Vec2 from '~/math/Vec2';
 import TileSystem from '~/app/systems/TileSystem';
+import CSM from "~/app/render/CSM";
+import Config from "~/app/Config";
 
 interface SceneObjects {
 	wrapper: Object3D;
 	camera: PerspectiveCamera;
 	skybox: Skybox;
 	tiles: Object3D;
+	csm: CSM;
 }
 
 export default class SceneSystem extends System {
@@ -31,29 +34,34 @@ export default class SceneSystem extends System {
 		this.scene = new Object3D();
 
 		const wrapper = new Object3D();
-
 		const camera = new PerspectiveCamera({
 			fov: 40,
 			near: 10,
 			far: 25000,
 			aspect: window.innerWidth / window.innerHeight
 		});
-
 		const skybox = new Skybox();
 		const tiles = new Object3D();
+		const csm = new CSM({
+			camera,
+			near: camera.near,
+			far: 4000,
+			resolution: 2048,
+			cascades: Config.ShadowCascades,
+			shadowBias: -0.003,
+			shadowNormalBias: 0.002,
+		});
 
 		this.objects = {
 			wrapper,
 			camera,
 			skybox,
-			tiles
+			tiles,
+			csm
 		};
 
 		this.scene.add(wrapper);
-
-		wrapper.add(camera);
-		wrapper.add(skybox);
-		wrapper.add(tiles);
+		wrapper.add(camera, csm, skybox, tiles);
 	}
 
 	public postInit(): void {
@@ -82,9 +90,6 @@ export default class SceneSystem extends System {
 
 		for (const tile of tiles.values()) {
 			if (!tile.parent) {
-				//tile.createGround(this.renderer, this.systemManager.getSystem(TileSystem).getTileNeighbors(tile.x, tile.y));
-				//tile.generateMeshes(this.renderer);
-				//this.wrapper.add(tile);
 				this.objects.tiles.add(tile);
 			}
 		}
@@ -106,6 +111,8 @@ export default class SceneSystem extends System {
 		this.objects.skybox.position.set(cameraPos.x, cameraPos.y, cameraPos.z);
 		this.objects.skybox.updateMatrix();
 
+		this.objects.csm.update();
+
 		this.updateTiles();
 
 		this.scene.updateMatrixRecursively();
@@ -121,5 +128,6 @@ export default class SceneSystem extends System {
 
 		this.objects.camera.aspect = width / height;
 		this.objects.camera.updateProjectionMatrix();
+		this.objects.csm.updateFrustums();
 	}
 }

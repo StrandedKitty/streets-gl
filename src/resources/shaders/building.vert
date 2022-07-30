@@ -34,7 +34,7 @@ void main() {
     }
 
     vColor = color;
-    vNormal = normal;
+    vNormal = vec3(modelViewMatrix * vec4(normal, 0));
     vUv = uv;
     vTextureId = int(textureId);
     vObjectId = (tileId << 16u) + localId + 1u;

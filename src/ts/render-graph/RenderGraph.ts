@@ -5,10 +5,10 @@ import {Queue} from "./Utils";
 import ResourcePool from "./PhysicalResourcePool";
 
 export default class RenderGraph {
-	public passes: Set<Pass> = new Set();
+	public passes: Set<Pass<any>> = new Set();
 	private resourcePool: ResourcePool = new ResourcePool();
 
-	public addPass(pass: Pass): void {
+	public addPass(pass: Pass<any>): void {
 		this.passes.add(pass);
 	}
 
@@ -52,7 +52,7 @@ export default class RenderGraph {
 		return topOrder;
 	}
 
-	private getResourcesUsedExternally(passes: Set<Pass>): Set<Resource> {
+	private getResourcesUsedExternally(passes: Set<Pass<any>>): Set<Resource> {
 		const result: Set<Resource> = new Set();
 
 		for (const pass of passes) {
@@ -66,7 +66,7 @@ export default class RenderGraph {
 		return result;
 	}
 
-	private buildGraphWithCulling(passes: Set<Pass>): Set<Node> {
+	private buildGraphWithCulling(passes: Set<Pass<any>>): Set<Node> {
 		const nodes: Node[] = Array.from(this.getResourcesUsedExternally(passes));
 		const graph: Set<Node> = new Set();
 
@@ -133,17 +133,46 @@ export default class RenderGraph {
 		this.updateAllNodesVertices();
 
 		const graph = this.buildGraphWithCulling(this.passes);
-		const sorted = <Pass[]>this.sortRenderableNodes(graph);
+		const sorted = <Pass<any>[]>this.sortRenderableNodes(graph);
+
+		const allResources: Set<Resource> = new Set();
 
 		for (const pass of sorted) {
-			pass.fetchPhysicalResources(this.resourcePool);
+			const resources = pass.getAllResources();
+
+			for (const resource of resources) {
+				allResources.add(resource);
+			}
+		}
+
+		for (const resource of allResources) {
+			const currentResourceId = resource.attachedPhysicalResourceId;
+			const newResourceId = resource.descriptor.deserialize();
+
+			if (resource.attachedPhysicalResource && currentResourceId === newResourceId) {
+				continue;
+			}
+
+			if (resource.attachedPhysicalResource) {
+				this.resourcePool.pushPhysicalResource(currentResourceId, resource.attachedPhysicalResource);
+			}
+
+			resource.attachedPhysicalResource = this.resourcePool.getPhysicalResource(resource);
+			resource.attachedPhysicalResourceId = newResourceId;
+		}
+
+		for (const pass of sorted) {
 			pass.render();
 		}
 
-		for (const pass of sorted) {
-			pass.freePhysicalResources(this.resourcePool);
-		}
-
 		this.resourcePool.update();
+
+		for (const resource of allResources) {
+			if (resource.isTransient && resource.attachedPhysicalResource) {
+				this.resourcePool.pushPhysicalResource(resource.attachedPhysicalResourceId, resource.attachedPhysicalResource);
+				resource.attachedPhysicalResource = null;
+				resource.attachedPhysicalResourceId = '';
+			}
+		}
 	}
 }

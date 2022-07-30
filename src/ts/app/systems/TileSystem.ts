@@ -48,10 +48,7 @@ export default class TileSystem extends System {
 		this.tiles.set(`${x},${y}`, tile);
 
 		tile.updateDistanceToCamera(this.camera);
-
-		tile.load(
-			this.systemManager.getSystem(StaticGeometryLoadingSystem)
-		);
+		tile.load(this.systemManager.getSystem(StaticGeometryLoadingSystem));
 	}
 
 	public getTile(x: number, y: number): Tile {
