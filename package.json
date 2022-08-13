@@ -43,6 +43,7 @@
 		"martinez-polygon-clipping": "^0.7.0",
 		"react": "^17.0.1",
 		"react-dom": "^17.0.1",
+		"react-icons": "^4.4.0",
 		"simplify-js": "^1.2.4",
 		"straight-skeleton": "^1.0.1",
 		"suncalc": "^1.8.0"

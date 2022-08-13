@@ -3,6 +3,7 @@ import AbstractMesh from "~/renderer/abstract-renderer/AbstractMesh";
 import AbstractRenderer from "~/renderer/abstract-renderer/AbstractRenderer";
 import {RendererTypes} from "~/renderer/RendererTypes";
 import {StaticTileGeometry} from "~/app/objects/Tile";
+import Vec3 from "~/math/Vec3";
 
 interface MeshDisplayBufferPatch {
 	start: number;
@@ -16,6 +17,11 @@ export default class TileBuildings extends RenderableObject3D {
 
 	public constructor(private staticTileGeometry: StaticTileGeometry) {
 		super();
+
+		this.setBoundingBox(
+			new Vec3(...staticTileGeometry.bbox.min),
+			new Vec3(...staticTileGeometry.bbox.max)
+		);
 	}
 
 	public addDisplayBufferPatch(patch: MeshDisplayBufferPatch): void {

@@ -4,7 +4,7 @@ export enum ResourceType {
 }
 
 export type ResourceJSONTypes = "image" | "text";
-export type ResourceJSON = Record<string, {url: string; type: ResourceJSONTypes}>
+export type ResourceJSON = Record<string, { url: string; type: ResourceJSONTypes }>
 
 export default new class ResourceManager {
 	private resources: Map<string, any> = new Map();
@@ -50,10 +50,10 @@ export default new class ResourceManager {
 
 	private static getResourceTypeFromString(str: string): ResourceType {
 		switch (str) {
-		case 'image':
-			return ResourceType.Image;
-		case 'text':
-			return ResourceType.Text;
+			case 'image':
+				return ResourceType.Image;
+			case 'text':
+				return ResourceType.Text;
 		}
 
 		return ResourceType.Text;

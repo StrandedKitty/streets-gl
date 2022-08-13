@@ -92,7 +92,7 @@ export default class Material {
 
 			if (location !== null) {
 				if (uniform.type === UniformType.Texture2D) {
-					if(uniform.value !== null) {
+					if (uniform.value !== null) {
 						this.gl.activeTexture(GLConstants.TEXTURE0 + texturesUsed);
 						this.gl.bindTexture(GLConstants.TEXTURE_2D, uniform.value?.WebGLTexture);
 						this.gl.uniform1i(this.uniformsLocations[name], texturesUsed);
@@ -102,7 +102,7 @@ export default class Material {
 
 					++texturesUsed;
 				} else if (uniform.type === UniformType.TextureCube) {
-					if(uniform.value !== null) {
+					if (uniform.value !== null) {
 						this.gl.activeTexture(GLConstants.TEXTURE0 + texturesUsed);
 						if (uniform.value.loaded) {
 							this.gl.bindTexture(GLConstants.TEXTURE_CUBE_MAP, uniform.value?.WebGLTexture);
@@ -114,7 +114,7 @@ export default class Material {
 
 					++texturesUsed;
 				} else if (uniform.type === UniformType.Texture2DArray) {
-					if(uniform.value !== null) {
+					if (uniform.value !== null) {
 						this.gl.activeTexture(GLConstants.TEXTURE0 + texturesUsed);
 						this.gl.bindTexture(GLConstants.TEXTURE_2D_ARRAY, uniform.value?.WebGLTexture);
 						this.gl.uniform1i(this.uniformsLocations[name], texturesUsed);
@@ -124,7 +124,7 @@ export default class Material {
 
 					++texturesUsed;
 				} else if (uniform.type === UniformType.Texture3D) {
-					if(uniform.value !== null) {
+					if (uniform.value !== null) {
 						this.gl.activeTexture(GLConstants.TEXTURE0 + texturesUsed);
 						this.gl.bindTexture(GLConstants.TEXTURE_3D, uniform.value?.WebGLTexture);
 						this.gl.uniform1i(this.uniformsLocations[name], texturesUsed);
@@ -150,68 +150,68 @@ export default class Material {
 		const textureUnit = this.textureUnits.get(location);
 
 		switch (uniform.type) {
-		case UniformType.Float1:
-			this.gl.uniform1f(location, uniform.value);
-			break;
-		case UniformType.Float1Array:
-			this.gl.uniform1fv(location, uniform.value);
-			break;
-		case UniformType.Float2:
-			this.gl.uniform2fv(location, uniform.value);
-			break;
-		case UniformType.Float3:
-			this.gl.uniform3fv(location, uniform.value);
-			break;
-		case UniformType.Float4:
-			this.gl.uniform3fv(location, uniform.value);
-			break;
-		case UniformType.Int1:
-			this.gl.uniform1i(location, uniform.value);
-			break;
-		case UniformType.Int1Array:
-			this.gl.uniform1iv(location, uniform.value);
-			break;
-		case UniformType.Int2:
-			this.gl.uniform2iv(location, uniform.value);
-			break;
-		case UniformType.Int3:
-			this.gl.uniform3iv(location, uniform.value);
-			break;
-		case UniformType.Int4:
-			this.gl.uniform4iv(location, uniform.value);
-			break;
-		case UniformType.Uint1:
-			this.gl.uniform1ui(location, uniform.value);
-			break;
-		case UniformType.Uint2:
-			this.gl.uniform2uiv(location, uniform.value);
-			break;
-		case UniformType.Uint3:
-			this.gl.uniform3uiv(location, uniform.value);
-			break;
-		case UniformType.Uint4:
-			this.gl.uniform4uiv(location, uniform.value);
-			break;
-		case UniformType.Matrix3:
-			this.gl.uniformMatrix3fv(location, false, new Float32Array(uniform.value.values));
-			break;
-		case UniformType.Matrix4:
-			this.gl.uniformMatrix4fv(location, false, new Float32Array(uniform.value.values));
-			break;
-		case UniformType.Texture2D:
-			if (textureUnit) {
-				this.gl.activeTexture(textureUnit);
-				this.gl.bindTexture(GLConstants.TEXTURE_2D, uniform.value.WebGLTexture);
-			}
+			case UniformType.Float1:
+				this.gl.uniform1f(location, uniform.value);
+				break;
+			case UniformType.Float1Array:
+				this.gl.uniform1fv(location, uniform.value);
+				break;
+			case UniformType.Float2:
+				this.gl.uniform2fv(location, uniform.value);
+				break;
+			case UniformType.Float3:
+				this.gl.uniform3fv(location, uniform.value);
+				break;
+			case UniformType.Float4:
+				this.gl.uniform3fv(location, uniform.value);
+				break;
+			case UniformType.Int1:
+				this.gl.uniform1i(location, uniform.value);
+				break;
+			case UniformType.Int1Array:
+				this.gl.uniform1iv(location, uniform.value);
+				break;
+			case UniformType.Int2:
+				this.gl.uniform2iv(location, uniform.value);
+				break;
+			case UniformType.Int3:
+				this.gl.uniform3iv(location, uniform.value);
+				break;
+			case UniformType.Int4:
+				this.gl.uniform4iv(location, uniform.value);
+				break;
+			case UniformType.Uint1:
+				this.gl.uniform1ui(location, uniform.value);
+				break;
+			case UniformType.Uint2:
+				this.gl.uniform2uiv(location, uniform.value);
+				break;
+			case UniformType.Uint3:
+				this.gl.uniform3uiv(location, uniform.value);
+				break;
+			case UniformType.Uint4:
+				this.gl.uniform4uiv(location, uniform.value);
+				break;
+			case UniformType.Matrix3:
+				this.gl.uniformMatrix3fv(location, false, new Float32Array(uniform.value.values));
+				break;
+			case UniformType.Matrix4:
+				this.gl.uniformMatrix4fv(location, false, new Float32Array(uniform.value.values));
+				break;
+			case UniformType.Texture2D:
+				if (textureUnit) {
+					this.gl.activeTexture(textureUnit);
+					this.gl.bindTexture(GLConstants.TEXTURE_2D, uniform.value.WebGLTexture);
+				}
 
-			break;
-		case UniformType.Texture2DArray:
-			if (textureUnit) {
-				this.gl.activeTexture(textureUnit);
-				this.gl.bindTexture(GLConstants.TEXTURE_2D_ARRAY, uniform.value.WebGLTexture);
-			}
+				break;
+			case UniformType.Texture2DArray:
+				if (textureUnit) {
+					this.gl.activeTexture(textureUnit);
+					this.gl.bindTexture(GLConstants.TEXTURE_2D_ARRAY, uniform.value.WebGLTexture);
+				}
 
-			break;
+				break;
 
 		}
 	}

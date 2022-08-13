@@ -41,6 +41,11 @@ export default class ShadingMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Float2,
 					value: new Float32Array()
 				}, {
+					name: 'CSMLightDirectionAndIntensity',
+					block: 'CSM',
+					type: RendererTypes.UniformType.Float4,
+					value: new Float32Array()
+				}, {
 					name: 'CSMResolution',
 					block: 'CSM',
 					type: RendererTypes.UniformType.Float4,

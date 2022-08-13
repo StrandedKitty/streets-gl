@@ -22,7 +22,7 @@
 				"project": ["./tsconfig.json"]
 			},
 			"rules": {
-				"indent": ["warn", "tab"],
+				"indent": ["warn", "tab", {"SwitchCase": 1}],
 				"@typescript-eslint/no-unused-vars": [
 					"off",
 					{

@@ -130,13 +130,13 @@ export default class WebGL2Framebuffer {
 
 	private clearColorBuffer(texture: AbstractTexture, clearValue: ColorClearValue, drawBuffer: number): void {
 		switch (texture.format) {
-		case RendererTypes.TextureFormat.RGBA8Unorm:
-			this.gl.clearBufferfv(WebGL2Constants.COLOR, drawBuffer, WebGL2Framebuffer.clearValueToTypedArray(Float32Array, clearValue));
-			return;
+			case RendererTypes.TextureFormat.RGBA8Unorm:
+				this.gl.clearBufferfv(WebGL2Constants.COLOR, drawBuffer, WebGL2Framebuffer.clearValueToTypedArray(Float32Array, clearValue));
+				return;
 		}
 	}
 
-	private static clearValueToTypedArray<T extends TypedArray>(type: { new(arr: number[]): T }, clearValue: ColorClearValue): T {
+	private static clearValueToTypedArray<T extends TypedArray>(type: {new(arr: number[]): T}, clearValue: ColorClearValue): T {
 		return new type([clearValue.r, clearValue.g, clearValue.b, clearValue.a]);
 	}
 

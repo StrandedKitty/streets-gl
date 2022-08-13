@@ -4,7 +4,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 
 export default new class UI {
-	public update(state: UIGlobalState): void {
-		ReactDOM.render(<UIRoot {...state}/>, document.getElementById('ui'));
+	public update(state: UIGlobalState, setGlobalState: (k: keyof UIGlobalState, v: any) => void): void {
+		ReactDOM.render(<UIRoot {...state} setGlobalState={setGlobalState}/>, document.getElementById('ui'));
 	}
 }

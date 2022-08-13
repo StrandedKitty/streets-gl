@@ -6,6 +6,7 @@ import Vec3 from "../../math/Vec3";
 import Config from "../Config";
 import SunCalc from 'suncalc';
 import Easing from "../../math/Easing";
+import UISystem from "~/app/systems/UISystem";
 
 const PredefinedLightStates: [Vec3, Vec3][] = [
 	[new Vec3(-1, -1, -1).normalize(), new Vec3(0, 1, 0).normalize()],
@@ -14,8 +15,17 @@ const PredefinedLightStates: [Vec3, Vec3][] = [
 	[new Vec3(0, 1, 0).normalize(), new Vec3(-1, -1, -1).normalize()]
 ];
 
+enum MapTimeState {
+	Dynamic,
+	Static
+}
+
 export default class MapTimeSystem extends System {
-	private stateId = -1;
+	private state: MapTimeState = MapTimeState.Dynamic;
+
+	private staticLights: [Vec3, Vec3] = PredefinedLightStates[0];
+
+	private time: number = 0;
 	public lightDirection: Vec3 = new Vec3();
 	public lightIntensity = 0;
 	public ambientIntensity = 0;
@@ -50,32 +60,31 @@ export default class MapTimeSystem extends System {
 	}
 
 	public setState(state: number): void {
-		this.stateId = state;
+		this.staticLights = PredefinedLightStates[state];
 		this.transitionProgress = 0;
 		this.sunTransitionStart = Vec3.clone(this.sunDirection);
 		this.moonTransitionStart = Vec3.clone(this.moonDirection);
 	}
 
-	private getSunDirection(): Vec3 {
-		if (this.stateId !== -1) {
-			return PredefinedLightStates[this.stateId][0];
+	private getTargetSunAndMoonDirection(): [Vec3, Vec3] {
+		switch (this.state) {
+			case MapTimeState.Dynamic: {
+				const latLon = this.systemManager.getSystem(ControlsSystem).getLatLon();
+				const date = new Date(this.time);
+				const sunPosition = SunCalc.getPosition(date, latLon.lat, latLon.lon);
+				const moonPosition = SunCalc.getMoonPosition(date, latLon.lat, latLon.lon);
+
+				return [
+					MathUtils.sphericalToCartesian(sunPosition.azimuth + Math.PI, sunPosition.altitude),
+					MathUtils.sphericalToCartesian(moonPosition.azimuth + Math.PI, moonPosition.altitude)
+				];
+			}
+			case MapTimeState.Static: {
+				return this.staticLights;
+			}
 		}
 
-		const latLon = this.systemManager.getSystem(ControlsSystem).getLatLon();
-		const sunPosition = SunCalc.getPosition(new Date(Date.now()), latLon.lat, latLon.lon);
-
-		return MathUtils.sphericalToCartesian(sunPosition.azimuth + Math.PI, sunPosition.altitude);
-	}
-
-	private getMoonDirection(): Vec3 {
-		if (this.stateId !== -1) {
-			return PredefinedLightStates[this.stateId][1];
-		}
-
-		const latLon = this.systemManager.getSystem(ControlsSystem).getLatLon();
-		const moonPosition = SunCalc.getMoonPosition(new Date(Date.now()), latLon.lat, latLon.lon);
-
-		return MathUtils.sphericalToCartesian(moonPosition.azimuth + Math.PI, moonPosition.altitude);
+		return [new Vec3(), new Vec3()];
 	}
 
 	private doTransition(targetSunDirection: Vec3, targetMoonDirection: Vec3, deltaTime: number): void {
@@ -107,9 +116,23 @@ export default class MapTimeSystem extends System {
 		return Easing.easeOutQuart(this.transitionProgress);
 	}
 
+	private updateTime(): void {
+		const newTime = this.systemManager.getSystem(UISystem).mapTime;
+		const diff = Math.abs(newTime - this.time);
+
+		if (diff > 1e6 && this.sunDirection && this.moonDirection) {
+			this.sunTransitionStart = Vec3.clone(this.sunDirection);
+			this.moonTransitionStart = Vec3.clone(this.moonDirection);
+			this.transitionProgress = 0;
+		}
+
+		this.time = newTime;
+	}
+
 	public update(deltaTime: number): void {
-		const targetSunDirection = this.getSunDirection();
-		const targetMoonDirection = this.getMoonDirection();
+		this.updateTime();
+
+		const [targetSunDirection, targetMoonDirection] = this.getTargetSunAndMoonDirection();
 
 		this.doTransition(targetSunDirection, targetMoonDirection, deltaTime);
 

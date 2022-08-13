@@ -7,6 +7,8 @@ export default class Vec3 {
 	public y: number;
 	public z: number;
 
+	public static Empty: Vec3 = new Vec3();
+
 	public constructor(x = 0, y = 0, z = 0) {
 		this.x = x;
 		this.y = y;

@@ -3,12 +3,18 @@ import AbstractMesh from "~/renderer/abstract-renderer/AbstractMesh";
 import AbstractRenderer from "~/renderer/abstract-renderer/AbstractRenderer";
 import {RendererTypes} from "~/renderer/RendererTypes";
 import {StaticTileGeometry} from "~/app/objects/Tile";
+import Vec3 from "~/math/Vec3";
 
 export default class TileGround extends RenderableObject3D {
 	public mesh: AbstractMesh = null;
 
 	public constructor(private staticTileGeometry: StaticTileGeometry) {
 		super();
+
+		this.setBoundingBox(
+			new Vec3(...staticTileGeometry.bboxGround.min),
+			new Vec3(...staticTileGeometry.bboxGround.max)
+		);
 	}
 
 	public isMeshReady(): boolean {

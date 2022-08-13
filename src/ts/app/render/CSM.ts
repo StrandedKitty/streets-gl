@@ -113,6 +113,10 @@ export default class CSM extends Object3D {
 	public update(): void {
 		this.direction = Vec3.normalize(this.direction);
 
+		if (this.direction.equals(Vec3.Empty)) {
+			this.direction.x = 1;
+		}
+
 		for (let i = 0; i < this.frustums.length; i++) {
 			const worldSpaceFrustum = this.frustums[i].toSpace(this.camera.matrix);
 			const cascadeCamera = this.cascadeCameras[i];
@@ -140,10 +144,12 @@ export default class CSM extends Object3D {
 			cascadeCamera.position.set(bboxCenter.x, bboxCenter.y, bboxCenter.z);
 
 			const target = Vec3.add(bboxCenter, this.direction);
+
 			cascadeCamera.lookAt(target);
 
 			cascadeCamera.updateMatrixWorld();
 			cascadeCamera.updateMatrixWorldInverse();
+			cascadeCamera.updateFrustum();
 		}
 	}
 
@@ -180,6 +186,7 @@ export default class CSM extends Object3D {
 		arrays.CSMSplits.push(...this.getBreaksForUniform());
 
 		return {
+			CSMLightDirectionAndIntensity: new Float32Array([...Vec3.toArray(this.direction), this.lightIntensity]),
 			CSMSplits: new Float32Array(arrays.CSMSplits),
 			CSMResolution: new Float32Array(arrays.CSMResolution),
 			CSMSize: new Float32Array(arrays.CSMSize),
@@ -187,47 +194,6 @@ export default class CSM extends Object3D {
 			CSMMatrixWorldInverse: new Float32Array(arrays.CSMMatrixWorldInverse),
 			CSMFadeOffset: new Float32Array(arrays.CSMFadeOffset)
 		};
-	}
-
-	public applyUniformsToMaterial(material: Material): void {
-		material.uniforms.shadowMap = {
-			type: UniformType.Texture2DArray,
-			value: this.texture
-		};
-
-		material.uniforms[`uLight.direction`].value = Vec3.toArray(this.direction);
-		material.uniforms[`uLight.intensity`].value = this.lightIntensity;
-		material.uniforms.ambientLightIntensity.value = this.ambientLightIntensity;
-
-		for (let i = 0; i < this.cascades; i++) {
-			material.uniforms[`cascades[${i}].matrixWorldInverse`] = {
-				type: UniformType.Matrix4,
-				value: this.cascadeCameras[i].matrixWorldInverse
-			};
-			material.uniforms[`cascades[${i}].resolution`] = {
-				type: UniformType.Float1,
-				value: this.resolution
-			};
-			material.uniforms[`cascades[${i}].size`] = {
-				type: UniformType.Float1,
-				value: this.cascadeCameras[i].top
-			};
-			material.uniforms[`cascades[${i}].bias`] = {
-				type: UniformType.Float2,
-				value: new Float32Array([
-					this.shadowBias * this.cascadeCameras[i].top,
-					this.shadowNormalBias * this.cascadeCameras[i].top
-				])
-			};
-			material.uniforms[`cascades[${i}].fadeOffset`] = {
-				type: UniformType.Float1,
-				value: this.fadeOffsets[i]
-			};
-			material.uniforms[`shadowSplits`] = {
-				type: UniformType.Float2,
-				value: this.getBreaksForUniform()
-			};
-		}
 	}
 
 	private static uniformSplit(splits: number, near: number, far: number): number[] {

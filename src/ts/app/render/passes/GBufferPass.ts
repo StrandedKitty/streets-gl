@@ -87,7 +87,7 @@ export default class GBufferPass extends Pass<{
 		this.buildingMaterial.applyUniformUpdates('projectionMatrix', 'PerMaterial');
 
 		for (const tile of tiles) {
-			if (!tile.buildings) {
+			if (!tile.buildings || !tile.buildings.inCameraFrustum(camera)) {
 				continue;
 			}
 
@@ -110,7 +110,7 @@ export default class GBufferPass extends Pass<{
 		this.groundMaterial.applyUniformUpdates('projectionMatrix', 'PerMaterial');
 
 		for (const tile of tiles) {
-			if (!tile.ground) {
+			if (!tile.ground || !tile.ground.inCameraFrustum(camera)) {
 				continue;
 			}
 
@@ -131,7 +131,7 @@ export default class GBufferPass extends Pass<{
 		this.roadMaterial.applyUniformUpdates('projectionMatrix', 'PerMaterial');
 
 		for (const tile of tiles) {
-			if (!tile.roads) {
+			if (!tile.roads || !tile.roads.inCameraFrustum(camera)) {
 				continue;
 			}
 
@@ -146,7 +146,7 @@ export default class GBufferPass extends Pass<{
 			tile.roads.draw();
 		}
 
-		//testRenderPass.readColorAttachmentPixel(4, this.objectIdBuffer, this.objectIdX, this.objectIdY);
+		testRenderPass.readColorAttachmentPixel(4, this.objectIdBuffer, this.objectIdX, this.objectIdY);
 
 		this.saveCameraMatrixWorldInverse();
 	}

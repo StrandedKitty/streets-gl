@@ -30,7 +30,7 @@ export default class TextureResourceDescriptor extends ResourceDescriptor {
 			anisotropy = 1,
 			minFilter = RendererTypes.MinFilter.LinearMipmapLinear,
 			magFilter = RendererTypes.MagFilter.Linear,
-			wrap = RendererTypes.TextureWrap.Repeat,
+			wrap = RendererTypes.TextureWrap.ClampToEdge,
 			format = RendererTypes.TextureFormat.RGBA8Unorm,
 			flipY = false,
 			mipmaps = false,

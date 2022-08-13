@@ -66,12 +66,12 @@ export default class WebGL2Attribute implements AbstractAttribute {
 			//this.gl.vertexAttribPointer(location, this.size, typeConstant, this.normalized, 0, 0);
 
 			switch (this.format) {
-			case RendererTypes.AttributeFormat.Integer:
-				this.gl.vertexAttribIPointer(location, this.size, typeConstant, 0, 0);
-				break;
-			case RendererTypes.AttributeFormat.Float:
-				this.gl.vertexAttribPointer(location, this.size, typeConstant, this.normalized, 0, 0);
-				break;
+				case RendererTypes.AttributeFormat.Integer:
+					this.gl.vertexAttribIPointer(location, this.size, typeConstant, 0, 0);
+					break;
+				case RendererTypes.AttributeFormat.Float:
+					this.gl.vertexAttribPointer(location, this.size, typeConstant, this.normalized, 0, 0);
+					break;
 			}
 
 			if (this.instanced) {
@@ -96,35 +96,35 @@ export default class WebGL2Attribute implements AbstractAttribute {
 
 	public static convertUsageToWebGLConstant(usage: RendererTypes.BufferUsage): number {
 		switch (usage) {
-		case RendererTypes.BufferUsage.StaticDraw:
-			return WebGL2Constants.STATIC_DRAW;
-		case RendererTypes.BufferUsage.DynamicDraw:
-			return WebGL2Constants.DYNAMIC_DRAW;
-		case RendererTypes.BufferUsage.StreamDraw:
-			return WebGL2Constants.STREAM_DRAW;
-		case RendererTypes.BufferUsage.StaticRead:
-			return WebGL2Constants.STATIC_READ;
-		case RendererTypes.BufferUsage.DynamicRead:
-			return WebGL2Constants.DYNAMIC_READ;
-		case RendererTypes.BufferUsage.StreamRead:
-			return WebGL2Constants.STREAM_READ;
-		case RendererTypes.BufferUsage.StaticCopy:
-			return WebGL2Constants.STATIC_COPY;
-		case RendererTypes.BufferUsage.DynamicCopy:
-			return WebGL2Constants.DYNAMIC_COPY;
-		case RendererTypes.BufferUsage.StreamCopy:
-			return WebGL2Constants.STREAM_COPY;
+			case RendererTypes.BufferUsage.StaticDraw:
+				return WebGL2Constants.STATIC_DRAW;
+			case RendererTypes.BufferUsage.DynamicDraw:
+				return WebGL2Constants.DYNAMIC_DRAW;
+			case RendererTypes.BufferUsage.StreamDraw:
+				return WebGL2Constants.STREAM_DRAW;
+			case RendererTypes.BufferUsage.StaticRead:
+				return WebGL2Constants.STATIC_READ;
+			case RendererTypes.BufferUsage.DynamicRead:
+				return WebGL2Constants.DYNAMIC_READ;
+			case RendererTypes.BufferUsage.StreamRead:
+				return WebGL2Constants.STREAM_READ;
+			case RendererTypes.BufferUsage.StaticCopy:
+				return WebGL2Constants.STATIC_COPY;
+			case RendererTypes.BufferUsage.DynamicCopy:
+				return WebGL2Constants.DYNAMIC_COPY;
+			case RendererTypes.BufferUsage.StreamCopy:
+				return WebGL2Constants.STREAM_COPY;
 		}
 	}
 
 	public static convertTypeToWebGLConstant(type: RendererTypes.AttributeType): number {
 		switch (type) {
-		case RendererTypes.AttributeType.UnsignedByte:
-			return WebGL2Constants.UNSIGNED_BYTE;
-		case RendererTypes.AttributeType.Float32:
-			return WebGL2Constants.FLOAT;
-		case RendererTypes.AttributeType.UnsignedInt:
-			return WebGL2Constants.UNSIGNED_INT;
+			case RendererTypes.AttributeType.UnsignedByte:
+				return WebGL2Constants.UNSIGNED_BYTE;
+			case RendererTypes.AttributeType.Float32:
+				return WebGL2Constants.FLOAT;
+			case RendererTypes.AttributeType.UnsignedInt:
+				return WebGL2Constants.UNSIGNED_INT;
 		}
 
 		return WebGL2Constants.UNSIGNED_BYTE;

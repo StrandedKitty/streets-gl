@@ -189,30 +189,30 @@ export default class WebGL2Renderer implements AbstractRenderer {
 		this.depthFuncState = state;
 
 		switch (state) {
-		case RendererTypes.DepthCompare.Never:
-			this.gl.depthFunc(WebGL2Constants.NEVER);
-			return;
-		case RendererTypes.DepthCompare.Less:
-			this.gl.depthFunc(WebGL2Constants.LESS);
-			return;
-		case RendererTypes.DepthCompare.Equal:
-			this.gl.depthFunc(WebGL2Constants.EQUAL);
-			return;
-		case RendererTypes.DepthCompare.LessEqual:
-			this.gl.depthFunc(WebGL2Constants.LEQUAL);
-			return;
-		case RendererTypes.DepthCompare.Greater:
-			this.gl.depthFunc(WebGL2Constants.GREATER);
-			return;
-		case RendererTypes.DepthCompare.NotEqual:
-			this.gl.depthFunc(WebGL2Constants.NOTEQUAL);
-			return;
-		case RendererTypes.DepthCompare.GreaterEqual:
-			this.gl.depthFunc(WebGL2Constants.GEQUAL);
-			return;
-		case RendererTypes.DepthCompare.Always:
-			this.gl.depthFunc(WebGL2Constants.ALWAYS);
-			return;
+			case RendererTypes.DepthCompare.Never:
+				this.gl.depthFunc(WebGL2Constants.NEVER);
+				return;
+			case RendererTypes.DepthCompare.Less:
+				this.gl.depthFunc(WebGL2Constants.LESS);
+				return;
+			case RendererTypes.DepthCompare.Equal:
+				this.gl.depthFunc(WebGL2Constants.EQUAL);
+				return;
+			case RendererTypes.DepthCompare.LessEqual:
+				this.gl.depthFunc(WebGL2Constants.LEQUAL);
+				return;
+			case RendererTypes.DepthCompare.Greater:
+				this.gl.depthFunc(WebGL2Constants.GREATER);
+				return;
+			case RendererTypes.DepthCompare.NotEqual:
+				this.gl.depthFunc(WebGL2Constants.NOTEQUAL);
+				return;
+			case RendererTypes.DepthCompare.GreaterEqual:
+				this.gl.depthFunc(WebGL2Constants.GEQUAL);
+				return;
+			case RendererTypes.DepthCompare.Always:
+				this.gl.depthFunc(WebGL2Constants.ALWAYS);
+				return;
 		}
 	}
 

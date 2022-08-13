@@ -12,7 +12,7 @@ import {StaticTileGeometry} from "../../objects/Tile";
 export default class MapWorker {
 	private worker: Worker;
 	public queueLength = 0;
-	private tilesInProgress: Map<string, { resolve: {(a: any): void}; reject: {(a: any): void} }> = new Map();
+	private tilesInProgress: Map<string, {resolve: {(a: any): void}; reject: {(a: any): void}}> = new Map();
 
 	public constructor() {
 		this.worker = new Worker();
@@ -47,22 +47,22 @@ export default class MapWorker {
 		const tileInProgress = this.tilesInProgress.get(`${tilePosition.x},${tilePosition.y}`);
 
 		switch (data.type) {
-		case WorkerMessageIncomingType.Success:
-			this.queueLength--;
-			tileInProgress.resolve(data.result);
-			break;
-		case WorkerMessageIncomingType.Error:
-			this.queueLength--;
-			tileInProgress.reject(data.result);
-			break;
-		case WorkerMessageIncomingType.RequestHeight:
-			const height = await HeightProvider.getTileAsync(data.tile[0], data.tile[1]);
-			this.sendMessage({
-				type: WorkerMessageOutgoingType.SendHeightData,
-				tile: data.tile,
-				heightArray: height
-			});
-			break;
+			case WorkerMessageIncomingType.Success:
+				this.queueLength--;
+				tileInProgress.resolve(data.result);
+				break;
+			case WorkerMessageIncomingType.Error:
+				this.queueLength--;
+				tileInProgress.reject(data.result);
+				break;
+			case WorkerMessageIncomingType.RequestHeight:
+				const height = await HeightProvider.getTileAsync(data.tile[0], data.tile[1]);
+				this.sendMessage({
+					type: WorkerMessageOutgoingType.SendHeightData,
+					tile: data.tile,
+					heightArray: height
+				});
+				break;
 		}
 	}
 }

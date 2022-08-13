@@ -8,6 +8,8 @@ import Vec2 from '~/math/Vec2';
 import TileSystem from '~/app/systems/TileSystem';
 import CSM from "~/app/render/CSM";
 import Config from "~/app/Config";
+import MapTimeSystem from "~/app/systems/MapTimeSystem";
+import Vec3 from "~/math/Vec3";
 
 interface SceneObjects {
 	wrapper: Object3D;
@@ -111,6 +113,11 @@ export default class SceneSystem extends System {
 		this.objects.skybox.position.set(cameraPos.x, cameraPos.y, cameraPos.z);
 		this.objects.skybox.updateMatrix();
 
+		const lightDirection = this.systemManager.getSystem(MapTimeSystem).lightDirection;
+		const lightIntensity = this.systemManager.getSystem(MapTimeSystem).lightIntensity;
+		//console.log(lightDirection, lightIntensity)
+		this.objects.csm.direction = Vec3.clone(lightDirection);
+		this.objects.csm.lightIntensity = lightIntensity;
 		this.objects.csm.update();
 
 		this.updateTiles();

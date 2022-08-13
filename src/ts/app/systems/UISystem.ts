@@ -7,7 +7,10 @@ export interface UIGlobalState {
 	activeFeatureType: number;
 	activeFeatureId: number;
 	fps: number;
+	fpsSmooth: number;
 	frameTime: number;
+	mapTime: number;
+	mapTimeMultiplier: number;
 }
 
 const FPSUpdateInterval = 0.4;
@@ -17,7 +20,10 @@ export default class UISystem extends System {
 		activeFeatureType: null,
 		activeFeatureId: null,
 		fps: 0,
-		frameTime: 0
+		fpsSmooth: 0,
+		frameTime: 0,
+		mapTime: Date.now(),
+		mapTimeMultiplier: 1
 	};
 	private fpsUpdateTimer = 0;
 
@@ -40,7 +46,9 @@ export default class UISystem extends System {
 	}
 
 	private updateDOM(): void {
-		UI.update(this.globalState);
+		UI.update(this.globalState, (k: keyof UIGlobalState, v: any) => {
+			this.globalState[k] = v;
+		});
 	}
 
 	public setActiveFeature(type: number, id: number): void {
@@ -59,15 +67,23 @@ export default class UISystem extends System {
 		this.globalState.frameTime = MathUtils.lerp(this.globalState.frameTime, frameTime, 0.1);
 	}
 
+	public get mapTime(): number {
+		return this.globalState.mapTime;
+	}
+
 	public update(deltaTime: number): void {
 		const newFps = Math.min(Math.round(1 / deltaTime), 1e3);
 		this.globalState.fps = MathUtils.lerp(this.globalState.fps, newFps, 0.1);
 
-		if(this.fpsUpdateTimer >= FPSUpdateInterval) {
+		if (this.fpsUpdateTimer >= FPSUpdateInterval) {
 			this.fpsUpdateTimer = 0;
-			this.updateDOM();
+			this.globalState.fpsSmooth = this.globalState.fps;
 		}
 
 		this.fpsUpdateTimer += deltaTime;
+
+		this.globalState.mapTime += deltaTime * 1000 * this.globalState.mapTimeMultiplier;
+
+		this.updateDOM();
 	}
 }
