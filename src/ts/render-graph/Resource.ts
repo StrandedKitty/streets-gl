@@ -3,8 +3,7 @@ import ResourceDescriptor from "./ResourceDescriptor";
 import PhysicalResourceBuilder from "./PhysicalResourceBuilder";
 import PhysicalResource from "./PhysicalResource";
 
-export default abstract class Resource<TDescriptor extends ResourceDescriptor = ResourceDescriptor,
-	TBuilder extends PhysicalResourceBuilder = PhysicalResourceBuilder> extends Node {
+export default abstract class Resource<TDescriptor extends ResourceDescriptor, TBuilder extends PhysicalResourceBuilder<any>> extends Node {
 	public isRenderable = false;
 	public descriptor: TDescriptor;
 	public physicalResourceBuilder: TBuilder;

@@ -5,8 +5,10 @@ import {Queue} from "./Utils";
 import ResourcePool from "./PhysicalResourcePool";
 
 export default class RenderGraph {
-	public passes: Set<Pass<any>> = new Set();
 	private resourcePool: ResourcePool = new ResourcePool();
+	public passes: Set<Pass<any>> = new Set();
+	public lastGraph: Set<Node> = null;
+	public lastSortedPassList: Pass<any>[] = null;
 
 	public addPass(pass: Pass<any>): void {
 		this.passes.add(pass);
@@ -52,8 +54,8 @@ export default class RenderGraph {
 		return topOrder;
 	}
 
-	private getResourcesUsedExternally(passes: Set<Pass<any>>): Set<Resource> {
-		const result: Set<Resource> = new Set();
+	private getResourcesUsedExternally(passes: Set<Pass<any>>): Set<Resource<any, any>> {
+		const result: Set<Resource<any, any>> = new Set();
 
 		for (const pass of passes) {
 			const resources = pass.getOutputResourcesUsedExternally();
@@ -135,7 +137,10 @@ export default class RenderGraph {
 		const graph = this.buildGraphWithCulling(this.passes);
 		const sorted = <Pass<any>[]>this.sortRenderableNodes(graph);
 
-		const allResources: Set<Resource> = new Set();
+		this.lastGraph = graph;
+		this.lastSortedPassList = sorted;
+
+		const allResources: Set<Resource<any, any>> = new Set();
 
 		for (const pass of sorted) {
 			const resources = pass.getAllResources();

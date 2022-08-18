@@ -137,7 +137,7 @@ export default class MapTimeSystem extends System {
 		this.doTransition(targetSunDirection, targetMoonDirection, deltaTime);
 
 		if (this.sunDirection.y < 0) {
-			this.lightIntensity = 3.5;
+			this.lightIntensity = 6;
 			this.ambientIntensity = 0.2;
 			this.lightDirection = this.sunDirection;
 		} else {

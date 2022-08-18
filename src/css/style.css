@@ -45,6 +45,10 @@ body {
     text-align: right;
 }
 
+.debug-info-item-small {
+    width: 25px;
+}
+
 .selection-info-wrapper {
     pointer-events: none;
     position: absolute;
@@ -216,4 +220,85 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     padding: 8px 8px;
     font-size: 20px;
     width: 300px;
+}
+
+.render-graph-viewer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+}
+
+.render-graph-viewer-header {
+    padding: 16px;
+}
+
+.render-graph-viewer-title {
+    font-size: 24px;
+    margin: 0 0 12px 0;
+    color: #fff;
+}
+
+.render-graph-viewer-nav > button {
+    cursor: pointer;
+    margin: 0 12px 0 0;
+    font-size: 16px;
+    background: transparent;
+    color: #fff;
+    border: 1px solid white;
+    border-radius: 4px;
+    padding: 4px 8px;
+}
+
+.render-graph-viewer-body {
+    width: 100%;
+    flex: 1 1;
+}
+
+#graph-svg {
+    width: 100%;
+    height: 100%;
+}
+
+g.type-TK > rect {
+    fill: #00ffd0;
+}
+
+.node rect {
+    stroke: #fff;
+    fill: rgba(0, 0, 0, 0.7);
+    stroke-width: 1.5px;
+}
+
+.node text {
+    font-size: 14px;
+    fill: white;
+}
+
+.node-pass rect {
+    stroke: #ff0090;
+    fill: rgba(194, 0, 109, 0.7);
+}
+
+.node-pass text {
+    fill: #fff;
+}
+
+.node-resource rect {
+    stroke: #00d3ff;
+    fill: rgba(0, 121, 148, 0.7);
+}
+
+.node-resource text {
+    fill: #fff;
+    font-size: 10px;
+}
+
+.edgePath path {
+    stroke: #eee;
+    stroke-width: 1.5px;
 }

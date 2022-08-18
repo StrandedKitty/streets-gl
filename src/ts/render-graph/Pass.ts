@@ -1,6 +1,5 @@
 import Resource from "./Resource";
 import Node from "./Node";
-import PhysicalResourcePool from "./PhysicalResourcePool";
 
 export enum InternalResourceType {
 	Input,
@@ -9,7 +8,7 @@ export enum InternalResourceType {
 
 export interface InternalResource {
 	type: InternalResourceType;
-	resource: Resource;
+	resource: Resource<any, any>;
 }
 
 export type ResourcePropMap = Record<string, InternalResource>;
@@ -42,8 +41,8 @@ export default abstract class Pass<T extends ResourcePropMap> extends Node {
 		return this.getResource(name).attachedPhysicalResource;
 	}
 
-	public getOutputResourcesUsedExternally(): Set<Resource> {
-		const resources: Set<Resource> = new Set();
+	public getOutputResourcesUsedExternally(): Set<Resource<any, any>> {
+		const resources: Set<Resource<any, any>> = new Set();
 
 		for (const internalResource of this.internalResources.values()) {
 			if (internalResource.type === InternalResourceType.Output && internalResource.resource.isUsedExternally) {
@@ -54,11 +53,11 @@ export default abstract class Pass<T extends ResourcePropMap> extends Node {
 		return resources;
 	}
 
-	public getAllResources(): Resource[] {
+	public getAllResources(): Resource<any, any>[] {
 		return Array.from(this.internalResources.values()).map(r => r.resource);
 	}
 
-	public getAllResourcesOfType(type: InternalResourceType): Set<Resource> {
+	public getAllResourcesOfType(type: InternalResourceType): Set<Resource<any, any>> {
 		const filtered = Array.from(this.internalResources.values()).filter(r => r.type === type);
 
 		return new Set(filtered.map(r => r.resource));

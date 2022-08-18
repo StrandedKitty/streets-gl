@@ -3,7 +3,6 @@ import Vec2 from "../../math/Vec2";
 import Config from "../Config";
 import System from "../System";
 import SystemManager from "../SystemManager";
-import TileSystem from "./TileSystem";
 import PickingSystem from "./PickingSystem";
 import GBufferPass from "~/app/render/passes/GBufferPass";
 import WebGL2Renderer from "../../renderer/webgl2-renderer/WebGL2Renderer";
@@ -50,68 +49,7 @@ export default class RenderSystem extends System {
 
 		console.log(`Vendor: ${this.renderer.rendererInfo[0]} \nRenderer: ${this.renderer.rendererInfo[1]}`);
 
-		/*this.gBuffer = new GBuffer(this.renderer, this.resolution.x, this.resolution.y, [
-			{
-				name: 'color',
-				internalFormat: GLConstants.RGBA8,
-				format: GLConstants.RGBA,
-				type: GLConstants.UNSIGNED_BYTE,
-				mipmaps: false
-			}, {
-				name: 'normal',
-				internalFormat: GLConstants.RGB8,
-				format: GLConstants.RGB,
-				type: GLConstants.UNSIGNED_BYTE,
-				mipmaps: false
-			}, {
-				name: 'position',
-				internalFormat: GLConstants.RGBA32F,
-				format: GLConstants.RGBA,
-				type: GLConstants.FLOAT,
-				mipmaps: false
-			}, {
-				name: 'metallicRoughness',
-				internalFormat: GLConstants.RGBA8,
-				format: GLConstants.RGBA,
-				type: GLConstants.UNSIGNED_BYTE,
-				mipmaps: false
-			}, {
-				name: 'emission',
-				internalFormat: GLConstants.RGB8,
-				format: GLConstants.RGB,
-				type: GLConstants.UNSIGNED_BYTE,
-				mipmaps: false
-			}, {
-				name: 'motion',
-				internalFormat: GLConstants.RGBA32F,
-				format: GLConstants.RGBA,
-				type: GLConstants.FLOAT,
-				mipmaps: false
-			}, {
-				name: 'objectId',
-				internalFormat: GLConstants.R32UI,
-				format: GLConstants.RED_INTEGER,
-				type: GLConstants.UNSIGNED_INT,
-				mipmaps: false
-			}
-		]);
-		this.hdrComposeMaterial = new HDRComposeMaterial(this.renderer, this.gBuffer);
-		this.ldrComposeMaterial = new LDRComposeMaterial(this.renderer, this.gBuffer);
-
-		this.taaPass = new TAAPass(this.renderer, this.resolution.x, this.resolution.y);
-		this.ssaoPass = new SSAOPass(this.renderer, this.resolution.x, this.resolution.y);
-		this.selectionMaskPass = new SelectionMaskPass(this.renderer, this.resolution.x, this.resolution.y);
-		this.gaussianBlurPass = new GaussianBlurPass(this.renderer, this.resolution.x, this.resolution.y);
-		this.bilateralBlurPass = new BilateralBlurPass(this.renderer, this.resolution.x, this.resolution.y);
-		this.cocPass = new CoCPass(this.renderer, this.resolution.x, this.resolution.y);
-		this.cocTempFilterPass = new CoCTempFilterPass(this.renderer, this.resolution.x, this.resolution.y);
-		this.cocDownscalePass = new CoCDownscalePass(this.renderer, this.resolution.x, this.resolution.y);
-		this.dofTentPass = new DoFTentPass(this.renderer, this.resolution.x, this.resolution.y);
-		this.dofPass = new DoFPass(this.renderer, this.resolution.x, this.resolution.y);*/
-
 		this.initScene();
-
-		//console.log(`Vendor: ${this.renderer.rendererInfo[0]}\nRenderer: ${this.renderer.rendererInfo[1]}`);
 
 		window.addEventListener('resize', () => this.resize());
 	}
@@ -130,46 +68,12 @@ export default class RenderSystem extends System {
 		this.passManager.addPass(ShadowMappingPass);
 		this.passManager.addPass(ShadingPass);
 		this.passManager.addPass(ScreenPass);
-
-		/*this.csm = new CSM(this.renderer, {
-			camera: this.camera,
-			parent: this.wrapper,
-			near: this.camera.near,
-			far: 4000,
-			resolution: 2048,
-			cascades: Config.ShadowCascades,
-			shadowBias: -0.003,
-			shadowNormalBias: 0.002,
-		});*/
-
-		/*this.groundMaterial = new GroundMaterial(this.renderer);
-		this.groundDepthMaterial = new GroundDepthMaterial(this.renderer);
-		this.buildingMaterial = new BuildingMaterial(this.renderer);
-		this.buildingDepthMaterial = new BuildingDepthMaterial(this.renderer);
-		this.roadMaterial = new RoadMaterial(this.renderer);
-		this.skyboxMaterial = new SkyboxMaterial(this.renderer);*/
 	}
 
 	private resize(): void {
 		const {x: width, y: height} = this.resolution;
 
-		//this.camera.aspect = width / height;
-		//this.camera.updateProjectionMatrix();
-
 		this.renderer.setSize(width, height);
-		/*this.gBuffer.setSize(this.resolution.x, this.resolution.y);
-		this.taaPass.setSize(this.resolution.x, this.resolution.y);
-		this.ssaoPass.setSize(this.resolution.x, this.resolution.y);
-		this.selectionMaskPass.setSize(this.resolution.x, this.resolution.y);
-		this.gaussianBlurPass.setSize(this.resolution.x, this.resolution.y);
-		this.bilateralBlurPass.setSize(this.resolution.x, this.resolution.y);
-		this.cocPass.setSize(this.resolution.x, this.resolution.y);
-		this.cocTempFilterPass.setSize(this.resolution.x, this.resolution.y);
-		this.cocDownscalePass.setSize(this.resolution.x, this.resolution.y);
-		this.dofTentPass.setSize(this.resolution.x, this.resolution.y);
-		this.dofPass.setSize(this.resolution.x, this.resolution.y);*/
-		//this.csm.updateFrustums();
-
 		this.passManager.setSize(width, height);
 
 		for (const pass of this.passManager.passes) {
@@ -194,46 +98,19 @@ export default class RenderSystem extends System {
 
 		this.jitterProjectionMatrix(sceneSystem.objects.camera.projectionMatrix, this.frameCount);
 
-		/*this.skybox.position.set(this.camera.position.x, this.camera.position.y, this.camera.position.z);
-		this.skybox.updateMatrix();
-
-		const pivotDelta = new Vec2(
-			this.wrapper.position.x + this.camera.position.x,
-			this.wrapper.position.z + this.camera.position.z
-		);
-
-		this.wrapper.position.x = -this.camera.position.x;
-		this.wrapper.position.z = -this.camera.position.z;
-
-		this.wrapper.updateMatrix();
-
-		this.updateTiles();
-
-		this.scene.updateMatrixWorldRecursively();
-
-		this.camera.updateMatrixWorldInverse();
-		this.camera.updateFrustum();*/
-
-		/*this.taaPass.jitterProjectionMatrix(this.camera.projectionMatrix, this.frameCount);
-		this.taaPass.matrixWorldInverse = this.camera.matrixWorldInverse;
-
-		if (this.taaPass.matrixWorldInversePrev) {
-			this.taaPass.matrixWorldInversePrev = Mat4.translate(
-				this.taaPass.matrixWorldInversePrev,
-				pivotDelta.x,
-				0,
-				pivotDelta.y
-			);
-		}*/
-
-		//this.renderShadowMaps();
-		//this.renderTiles();
-
 		this.renderGraph.render();
 
 		this.pickObjectId();
 
 		++this.frameCount;
+	}
+
+	public getLastRenderGraph(): Set<RG.Node> {
+		return this.renderGraph.lastGraph;
+	}
+
+	public getLastRenderGraphPassList(): RG.Pass<any>[] {
+		return this.renderGraph.lastSortedPassList;
 	}
 
 	/*private updateTiles(): void {
@@ -473,64 +350,6 @@ export default class RenderSystem extends System {
 		this.ldrComposeMaterial.uniforms.tCoC.value = this.cocTempFilterPass.framebuffer.textures[0];
 		this.ldrComposeMaterial.use();
 		this.quad.draw();
-	}
-
-	private renderShadowMaps() {
-		const timeSystem = this.systemManager.getSystem(MapTimeSystem);
-
-		this.csm.direction = timeSystem.lightDirection;
-		this.csm.lightIntensity = timeSystem.lightIntensity;
-		this.csm.ambientLightIntensity = timeSystem.ambientIntensity;
-		this.csm.update();
-
-		for (let i = 0; i < this.csm.lights.length; i++) {
-			const directionalShadow = this.csm.lights[i];
-			const camera = directionalShadow.camera;
-
-			camera.updateFrustum();
-
-			this.renderer.bindFramebuffer(directionalShadow.framebuffer);
-
-			this.renderer.depthTest = true;
-			this.renderer.depthWrite = true;
-
-			this.renderer.clearFramebuffer({
-				clearColor: [0, 0, 0, 0],
-				depthValue: 1,
-				color: true,
-				depth: true
-			});
-
-			this.groundDepthMaterial.uniforms.projectionMatrix.value = camera.projectionMatrix;
-			this.groundDepthMaterial.use();
-
-			const tiles = this.systemManager.getSystem(TileSystem).tiles;
-
-			for (const tile of tiles.values()) {
-				if (!tile.ground || !tile.ground.inCameraFrustum(camera)) {
-					continue;
-				}
-
-				this.groundDepthMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(camera.matrixWorldInverse, tile.ground.matrixWorld);
-				this.groundDepthMaterial.updateUniform('modelViewMatrix');
-
-				tile.ground.draw();
-			}
-
-			this.buildingDepthMaterial.uniforms.projectionMatrix.value = camera.projectionMatrix;
-			this.buildingDepthMaterial.use();
-
-			for (const tile of tiles.values()) {
-				if (!tile.buildings || !tile.buildings.inCameraFrustum(camera)) {
-					continue;
-				}
-
-				this.buildingDepthMaterial.uniforms.modelViewMatrix.value = Mat4.multiply(camera.matrixWorldInverse, tile.buildings.matrixWorld);
-				this.buildingDepthMaterial.updateUniform('modelViewMatrix');
-
-				tile.buildings.draw();
-			}
-		}
 	}*/
 
 	private pickObjectId(): number {

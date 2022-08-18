@@ -19,11 +19,8 @@ export default class CSM extends Object3D {
 	private readonly shadowBias: number;
 	private readonly shadowNormalBias: number;
 	public direction: Vec3;
-	public lightIntensity = 0;
-	public ambientLightIntensity = 0;
-
+	public intensity: number = 0;
 	public cascadeCameras: CSMCascadeCamera[] = [];
-	private texture: Texture2DArray;
 	private mainFrustum: Frustum;
 	private frustums: Frustum[];
 	private breaks: number[][];
@@ -159,7 +156,7 @@ export default class CSM extends Object3D {
 		for (let i = 0; i < this.breaks.length; i++) {
 			worldSpaceBreaks.push(this.breaks[i][0] * (this.far - this.near));
 			worldSpaceBreaks.push(this.breaks[i][1] * (this.far - this.near));
-			worldSpaceBreaks.push(0, 0)
+			worldSpaceBreaks.push(0, 0);
 		}
 
 		return new Float32Array(worldSpaceBreaks);
@@ -186,7 +183,7 @@ export default class CSM extends Object3D {
 		arrays.CSMSplits.push(...this.getBreaksForUniform());
 
 		return {
-			CSMLightDirectionAndIntensity: new Float32Array([...Vec3.toArray(this.direction), this.lightIntensity]),
+			CSMLightDirectionAndIntensity: new Float32Array([...Vec3.toArray(this.direction), this.intensity]),
 			CSMSplits: new Float32Array(arrays.CSMSplits),
 			CSMResolution: new Float32Array(arrays.CSMResolution),
 			CSMSize: new Float32Array(arrays.CSMSize),

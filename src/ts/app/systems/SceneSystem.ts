@@ -115,9 +115,9 @@ export default class SceneSystem extends System {
 
 		const lightDirection = this.systemManager.getSystem(MapTimeSystem).lightDirection;
 		const lightIntensity = this.systemManager.getSystem(MapTimeSystem).lightIntensity;
-		//console.log(lightDirection, lightIntensity)
+
 		this.objects.csm.direction = Vec3.clone(lightDirection);
-		this.objects.csm.lightIntensity = lightIntensity;
+		this.objects.csm.intensity = lightIntensity;
 		this.objects.csm.update();
 
 		this.updateTiles();

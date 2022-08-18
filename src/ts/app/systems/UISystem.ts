@@ -2,6 +2,19 @@ import System from "../System";
 import SystemManager from "../SystemManager";
 import MathUtils from "../../math/MathUtils";
 import UI from "../ui/UI";
+import RenderSystem from "~/app/systems/RenderSystem";
+import * as RG from "~/render-graph";
+
+export interface RenderGraphSnapshot {
+	graph: {
+		type: 'resource' | 'pass';
+		name: string;
+		metadata: Record<string, string>;
+		prev: string[];
+		next: string[];
+	}[];
+	passOrder: string[];
+}
 
 export interface UIGlobalState {
 	activeFeatureType: number;
@@ -11,6 +24,7 @@ export interface UIGlobalState {
 	frameTime: number;
 	mapTime: number;
 	mapTimeMultiplier: number;
+	renderGraph: RenderGraphSnapshot;
 }
 
 const FPSUpdateInterval = 0.4;
@@ -23,7 +37,8 @@ export default class UISystem extends System {
 		fpsSmooth: 0,
 		frameTime: 0,
 		mapTime: Date.now(),
-		mapTimeMultiplier: 1
+		mapTimeMultiplier: 1,
+		renderGraph: null
 	};
 	private fpsUpdateTimer = 0;
 
@@ -48,7 +63,7 @@ export default class UISystem extends System {
 	private updateDOM(): void {
 		UI.update(this.globalState, (k: keyof UIGlobalState, v: any) => {
 			this.globalState[k] = v;
-		});
+		}, () => this.updateRenderGraph());
 	}
 
 	public setActiveFeature(type: number, id: number): void {
@@ -69,6 +84,47 @@ export default class UISystem extends System {
 
 	public get mapTime(): number {
 		return this.globalState.mapTime;
+	}
+
+	private getRenderGraph(): RenderGraphSnapshot {
+		const renderSystem = this.systemManager.getSystem(RenderSystem);
+		const sourceGraph = renderSystem.getLastRenderGraph();
+		const sourcePassList = renderSystem.getLastRenderGraphPassList();
+
+		if (!sourceGraph || !sourcePassList) {
+			return null;
+		}
+
+		return <RenderGraphSnapshot>{
+			graph: Array.from(sourceGraph).map(node => {
+				const prev = Array.from(node.previousNodes).map(n => n.name);
+				const next = Array.from(node.nextNodes).map(n => n.name);
+				const metadata: Record<string, string> = {};
+				let type: string = '';
+
+				if (node instanceof RG.Pass) {
+					type = 'pass';
+				} else if (node instanceof RG.Resource) {
+					type = 'resource';
+					metadata.isTransient = node.isTransient.toString();
+					metadata.isUsedExternally = node.isUsedExternally.toString();
+				}
+
+				return {
+					type,
+					name: node.name,
+					prev,
+					next,
+					metadata
+				};
+			}),
+			passOrder: sourcePassList.map(p => p.name)
+		}
+	}
+
+	public updateRenderGraph(): void {
+		this.globalState.renderGraph = this.getRenderGraph();
+		console.log(this.globalState.renderGraph)
 	}
 
 	public update(deltaTime: number): void {

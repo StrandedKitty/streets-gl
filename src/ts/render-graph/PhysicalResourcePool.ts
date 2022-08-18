@@ -1,5 +1,4 @@
 import PhysicalResource from "./PhysicalResource";
-import ResourceDescriptor from "./ResourceDescriptor";
 import Resource from "./Resource";
 
 const UnusedResourceLifeTime = 2;
@@ -22,7 +21,7 @@ export default class PhysicalResourcePool {
 		this.resourcesMap.get(id).push(new PhysicalResourceEntry(physicalResource));
 	}
 
-	public getPhysicalResource(resource: Resource): PhysicalResource {
+	public getPhysicalResource(resource: Resource<any, any>): PhysicalResource {
 		const id = resource.descriptor.deserialize();
 
 		if (!this.resourcesMap.get(id)) {

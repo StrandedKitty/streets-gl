@@ -303,7 +303,7 @@ void main() {
 
 	float shadowFactor = 1.;
 
-	for(int i = 0; i < 3; i++) {
+	for(int i = 0; i < SHADOW_CASCADES; i++) {
 		if(-position.z > CSMSplits[i].x && -position.z <= CSMSplits[i].y) {
 			float shadowValue = 1. - getShadowFactorForCascade(i, worldPosition + worldNormal * CSMBias[i].y);
 			float fadeOffset = CSMFadeOffset[i];
@@ -323,7 +323,7 @@ void main() {
 	Light light = Light(
 		CSMLightDirectionAndIntensity.xyz,
 		vec3(1),
-		CSMLightDirectionAndIntensity.w * 2.
+		CSMLightDirectionAndIntensity.w
 	);
 
 	vec3 color = vec3(0);
