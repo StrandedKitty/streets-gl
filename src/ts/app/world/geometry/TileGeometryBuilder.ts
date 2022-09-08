@@ -103,7 +103,6 @@ export default class TileGeometryBuilder {
 			normalArrays.push(normal);
 			textureIdArrays.push(textureId);
 			localIdArrays.push(Utils.fillTypedArraySequence(
-				Uint32Array,
 				new Uint32Array(position.length / 3),
 				new Uint32Array([localIdArrays.length])
 			));
@@ -129,7 +128,6 @@ export default class TileGeometryBuilder {
 				relationNormalArrays.push(normal);
 				relationTextureIdArrays.push(textureId);
 				relationLocalIdArrays.push(Utils.fillTypedArraySequence(
-					Uint32Array,
 					new Uint32Array(position.length / 3),
 					new Uint32Array([localIdArrays.length])
 				));

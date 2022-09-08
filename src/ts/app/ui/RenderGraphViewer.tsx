@@ -1,8 +1,18 @@
-import React, {useEffect, useRef} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {RenderGraphSnapshot} from "~/app/systems/UISystem";
 import dagre from "dagre";
 import dagreD3 from "dagre-d3";
 import * as d3 from "d3";
+
+const stringifyRecord = <K extends string, V>(record: Record<K, V>): string => {
+	let result = '';
+
+	for (const [k, v] of Object.entries(record)) {
+		result += `${k}: ${v}\n`;
+	}
+
+	return result;
+}
 
 const constructGraphFromData = (data: RenderGraphSnapshot): dagre.graphlib.Graph => {
 	const g = new dagre.graphlib.Graph({ compound: true });
@@ -11,14 +21,24 @@ const constructGraphFromData = (data: RenderGraphSnapshot): dagre.graphlib.Graph
 	g.setDefaultEdgeLabel('');
 
 	for (const node of data.graph) {
-		let formattedMetadata = '';
+		const formattedMetadata = stringifyRecord(node.metadata);
+		let formattedLocalResources: string[] = [];
 
-		for (const [k, v] of Object.entries(node.metadata)) {
-			formattedMetadata += `\n${k}: ${v}`;
+		if (node.localResources) {
+			formattedLocalResources = node.localResources.map(r => `<div class="local-resource">${stringifyRecord(r)}</div>`)
 		}
 
+		const labelHtml = `
+			<header>${node.name}</header>
+			<main>
+				<div class="metadata">${formattedMetadata}</div>
+				${formattedLocalResources ? `<div class="local-resources">${formattedLocalResources.join('')}</div>` : ``}
+			</main>
+		`;
+
 		g.setNode(node.name, {
-			label: node.name + formattedMetadata,
+			label: labelHtml,
+			labelType: 'html',
 			rx: 10,
 			ry: 10,
 			class: node.type === 'pass' ? 'node-pass' : 'node-resource'
@@ -42,6 +62,7 @@ const RenderGraphViewer: React.FC<{
 	close: () => void;
 }> = ({data, update, close}) => {
 	const svgRef = useRef();
+	const [zoomHandler, setZoomHandler] = useState<d3.ZoomBehavior<Element, unknown>>(null);
 
 	useEffect(() => {
 		if (!data) {
@@ -53,13 +74,23 @@ const RenderGraphViewer: React.FC<{
 
 		const svg = d3.select(svgRef.current);
 		const svgGroup = svg.select("g");
+		const lastTransform = svgGroup.attr("transform");
 
+		svgGroup.attr("transform", d3.zoomIdentity as any);
 		render(svgGroup as any, g);
 
-		const zoom = d3.zoom().on("zoom", (e) => {
-			svgGroup.attr("transform", e.transform);
-		});
-		svg.call(zoom as any);
+		if (lastTransform) {
+			svgGroup.attr("transform", lastTransform);
+		}
+
+		if (!zoomHandler) {
+			const zoom = d3.zoom().on("zoom", (e) => {
+				svgGroup.attr("transform", e.transform);
+			});
+			svg.call(zoom as any);
+
+			setZoomHandler(zoomHandler);
+		}
 	}, [data]);
 
 	return (

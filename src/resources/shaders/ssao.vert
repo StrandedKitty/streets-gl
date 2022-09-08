@@ -1,11 +1,15 @@
-#version 300 es
-precision highp float;
+#include <versionPrecision>
+
 in vec3 position;
-in vec2 uv;
 
 out vec2 vUv;
 
+vec2 getFullScreenTriangleUV(vec2 position) {
+	return position * 0.5 + 0.5;
+}
+
 void main() {
-	vUv = uv;
-	gl_Position = vec4(position, 1);
+	vUv = getFullScreenTriangleUV(position.xy);
+
+	gl_Position = vec4(position, 1.);
 }

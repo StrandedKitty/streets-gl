@@ -1,11 +1,10 @@
 import WebGL2Renderer from "~/renderer/webgl2-renderer/WebGL2Renderer";
 import WebGL2Texture from "~/renderer/webgl2-renderer/WebGL2Texture";
-import GLConstants from "~/renderer/GLConstants";
 import AbstractTextureCube, {AbstractTextureCubeParams} from "~/renderer/abstract-renderer/AbstractTextureCube";
 import WebGL2Constants from "~/renderer/webgl2-renderer/WebGL2Constants";
 
 export default class WebGL2TextureCube extends WebGL2Texture implements AbstractTextureCube {
-	protected textureTypeConstant: number = GLConstants.TEXTURE_CUBE_MAP;
+	protected textureTypeConstant: number = WebGL2Constants.TEXTURE_CUBE_MAP;
 	public data: TypedArray[] | HTMLImageElement[];
 
 	public constructor(renderer: WebGL2Renderer, params: AbstractTextureCubeParams) {

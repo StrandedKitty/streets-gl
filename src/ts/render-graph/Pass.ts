@@ -3,7 +3,8 @@ import Node from "./Node";
 
 export enum InternalResourceType {
 	Input,
-	Output
+	Output,
+	Local
 }
 
 export interface InternalResource {

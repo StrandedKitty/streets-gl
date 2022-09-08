@@ -27,7 +27,6 @@ export default class WebGL2Material implements AbstractMaterial {
 	private ubos: Map<string, WebGL2UBO> = new Map();
 	private uniformLocations: Map<string, WebGLUniformLocation> = new Map();
 	private uniformTextureUnits: Map<string, number> = new Map();
-	private uniformsToUpdate: Set<Uniform> = new Set();
 
 	public constructor(
 		renderer: WebGL2Renderer,
@@ -59,34 +58,30 @@ export default class WebGL2Material implements AbstractMaterial {
 	}
 
 	private createUBOs(): void {
-		let i = 0;
+		const blocksCount = this.gl.getProgramParameter(this.program.WebGLProgram, WebGL2Constants.ACTIVE_UNIFORM_BLOCKS);
 
-		for (const blockName of this.getUsedUniformBlocks()) {
-			const blockUniforms = this.getUniformsInBlock(blockName);
-
-			if (blockUniforms.length === 0) {
-				continue;
-			}
-
-			const ubo = new WebGL2UBO(this.renderer, this.program, blockName, blockUniforms);
+		for (let i = 0; i < blocksCount; i++) {
+			const ubo = new WebGL2UBO(this.renderer, this.program, i);
 
 			ubo.bindToBindingPoint(i);
-			this.ubos.set(blockName, ubo);
-
-			++i;
+			this.ubos.set(ubo.blockName, ubo);
 		}
-	}
-
-	private getUsedUniformBlocks(): Set<string> {
-		const uniformBlocks = new Set<string>();
 
 		for (const uniform of this.uniforms) {
 			if (uniform.block !== null) {
-				uniformBlocks.add(uniform.block);
+				const ubo = this.ubos.get(uniform.block);
+
+				if (!ubo) {
+					throw new Error();
+				}
+
+				ubo.setUniformValue(uniform.name, uniform.value as TypedArray);
 			}
 		}
 
-		return uniformBlocks;
+		for (const ubo of this.ubos.values()) {
+			ubo.applyUpdates();
+		}
 	}
 
 	public getUniform<T extends Uniform>(name: string, block: string = null): T {
@@ -113,48 +108,26 @@ export default class WebGL2Material implements AbstractMaterial {
 		}
 	}
 
-	public uniformNeedsUpdate(uniformName: string, block: string = null): void {
-		const uniform = this.getUniform(uniformName, block);
-
-		if (uniform) {
-			this.uniformsToUpdate.add(uniform);
-		}
-	}
-
-	public applyAllUniformsUpdates(): void {
-		for (const uniform of this.uniformsToUpdate) {
-			this.applyUniformUpdates(uniform.name, uniform.block);
-		}
-	}
-
-	public applyUniformUpdates(uniformName: string, block: string = null): void {
+	public updateUniform(name: string): void {
 		this.renderer.useMaterial(this);
 
-		const uniform = this.getUniform(uniformName, block);
-
-		if (block === null) {
-			this.applyBasicUniformChanges(uniformName);
-		} else {
-			this.applyUBOUniformChanges(block, uniformName);
-		}
-
-		this.uniformsToUpdate.delete(uniform);
-	}
-
-	private applyUBOUniformChanges(block: string, uniformName: string): void {
-		const ubo = this.ubos.get(block);
-
-		if (!ubo) {
-			return;
-		}
-
-		ubo.setUniformValue(uniformName, <TypedArray>this.getUniform(uniformName, block).value);
-	}
-
-	private applyBasicUniformChanges(uniformName: string): void {
-		const uniform = this.getUniform(uniformName);
+		const uniform = this.getUniform(name);
 
 		this.setUniformValueAtLocation(uniform);
+	}
+
+	public updateUniformBlock(blockName: string): void {
+		this.renderer.useMaterial(this);
+
+		const ubo = this.ubos.get(blockName);
+
+		for (const uniform of this.uniforms) {
+			if (uniform.block === blockName) {
+				ubo.setUniformValue(uniform.name, uniform.value as TypedArray);
+			}
+		}
+
+		ubo.applyUpdates();
 	}
 
 	private getUniformLocation(uniform: Uniform): WebGLUniformLocation {

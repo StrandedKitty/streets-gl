@@ -8,7 +8,7 @@ export default class Utils {
 		] : null;
 	}
 
-	public static fillTypedArraySequence<T extends TypedArray>(type: { new(l: number): T }, typedArray: T, sequence: T): T {
+	public static fillTypedArraySequence<T extends TypedArray>(typedArray: T, sequence: T): T {
 		const length = typedArray.length;
 		let sequenceLength = sequence.length;
 		let position = sequenceLength;

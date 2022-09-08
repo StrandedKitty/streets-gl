@@ -1,7 +1,4 @@
-#version 300 es
-precision highp float;
-precision highp int;
-precision highp sampler3D;
+#include <versionPrecision>
 
 //#define USE_YCOCG
 #define REPROJECTION_SHARPNESS 0.5
@@ -65,7 +62,6 @@ vec4 sampleCatmullRom(sampler2D sampler, vec2 uv, vec2 textureSize) {
 		texture(sampler, vec2(tc3.x, tc12.y)) * (w3.x  * w12.y) +
 		texture(sampler, vec2(tc12.x, tc3.y)) * (w12.x * w3.y);
 }
-
 
 const vec2 offsets[] = vec2[](
 	vec2(1, 0),

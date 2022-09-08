@@ -15,6 +15,7 @@ import TAAPass from '~/app/render/passes/TAAPass';
 import ShadowMappingPass from "~/app/render/passes/ShadowMappingPass";
 import ShadingPass from "~/app/render/passes/ShadingPass";
 import ScreenPass from "~/app/render/passes/ScreenPass";
+import SSAOPass from "~/app/render/passes/SSAOPass";
 
 const jitterOffsets: [number, number][] = [
 	[-7 / 8, 1 / 8],
@@ -59,15 +60,16 @@ export default class RenderSystem extends System {
 	}
 
 	private initScene(): void {
-		this.renderGraph = new RG.RenderGraph();
+		this.renderGraph = new RG.RenderGraph(this.renderer);
 		this.renderGraphResourceFactory = new RenderGraphResourceFactory(this.renderer);
 		this.passManager = new PassManager(this.systemManager, this.renderer, this.renderGraphResourceFactory, this.renderGraph);
 
-		this.passManager.addPass(GBufferPass);
-		this.passManager.addPass(TAAPass);
-		this.passManager.addPass(ShadowMappingPass);
-		this.passManager.addPass(ShadingPass);
-		this.passManager.addPass(ScreenPass);
+		this.passManager.addPass(new GBufferPass(this.passManager));
+		this.passManager.addPass(new TAAPass(this.passManager));
+		this.passManager.addPass(new ShadowMappingPass(this.passManager));
+		this.passManager.addPass(new ShadingPass(this.passManager));
+		this.passManager.addPass(new ScreenPass(this.passManager));
+		this.passManager.addPass(new SSAOPass(this.passManager));
 	}
 
 	private resize(): void {
@@ -97,6 +99,7 @@ export default class RenderSystem extends System {
 		}
 
 		this.jitterProjectionMatrix(sceneSystem.objects.camera.projectionMatrix, this.frameCount);
+		//sceneSystem.objects.camera.updateProjectionMatrixInverse();
 
 		this.renderGraph.render();
 
@@ -354,7 +357,7 @@ export default class RenderSystem extends System {
 
 	private pickObjectId(): number {
 		const picking = this.systemManager.getSystem(PickingSystem);
-		const pass = this.passManager.getPass(GBufferPass);
+		const pass = <GBufferPass>this.passManager.getPass('GBufferPass');
 
 		pass.objectIdX = picking.pointerPosition.x;
 		pass.objectIdY = picking.pointerPosition.y;

@@ -19,8 +19,8 @@ export default class TAAPass extends Pass<{
 		type: RG.InternalResourceType.Input;
 		resource: RenderPassResource;
 	};
-	TAAAccum: {
-		type: RG.InternalResourceType.Input;
+	History: {
+		type: RG.InternalResourceType.Local;
 		resource: RenderPassResource;
 	};
 	Output: {
@@ -35,32 +35,7 @@ export default class TAAPass extends Pass<{
 		super('TAAPass', manager, {
 			Source: {type: RG.InternalResourceType.Input, resource: manager.getSharedResource('HDR')},
 			GBuffer: {type: RG.InternalResourceType.Input, resource: manager.getSharedResource('GBufferRenderPass')},
-			TAAAccum: {
-				type: RG.InternalResourceType.Input,
-				resource: manager.resourceFactory.createRenderPassResource({
-					name: 'TAA accum',
-					isTransient: false,
-					isUsedExternally: false,
-					descriptor: new RenderPassResourceDescriptor({
-						colorAttachments: [
-							{
-								texture: new TextureResourceDescriptor({
-									type: TextureResourceType.Texture2D,
-									width: manager.renderer.resolution.x,
-									height: manager.renderer.resolution.y,
-									format: RendererTypes.TextureFormat.RGBA32Float,
-									minFilter: RendererTypes.MinFilter.Linear,
-									magFilter: RendererTypes.MagFilter.Linear,
-									mipmaps: false
-								}),
-								clearValue: {r: 0, g: 0, b: 0, a: 1},
-								loadOp: RendererTypes.AttachmentLoadOp.Load,
-								storeOp: RendererTypes.AttachmentStoreOp.Store
-							}
-						]
-					})
-				})
-			},
+			History: {type: RG.InternalResourceType.Local, resource: manager.getSharedResource('TAAHistory')},
 			Output: {type: RG.InternalResourceType.Output, resource: manager.getSharedResource('HDRAntialiased')}
 		});
 
@@ -106,7 +81,7 @@ export default class TAAPass extends Pass<{
 	public render(): void {
 		const colorTexture = <AbstractTexture2D>this.getPhysicalResource('Source').colorAttachments[0].texture;
 		const motionTexture = <AbstractTexture2D>this.getPhysicalResource('GBuffer').colorAttachments[3].texture;
-		const accumTexture = <AbstractTexture2D>this.getPhysicalResource('TAAAccum').colorAttachments[0].texture;
+		const accumTexture = <AbstractTexture2D>this.getPhysicalResource('History').colorAttachments[0].texture;
 
 		this.taaMaterial.getUniform('tNew').value = colorTexture;
 		this.taaMaterial.getUniform('tAccum').value = accumTexture;
@@ -121,6 +96,6 @@ export default class TAAPass extends Pass<{
 	}
 
 	public setSize(width: number, height: number): void {
-		this.getResource('TAAAccum').descriptor.setSize(width, height);
+
 	}
 }

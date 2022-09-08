@@ -12,8 +12,8 @@ export default class TileRoads extends RenderableObject3D {
 		super();
 
 		this.setBoundingBox(
-			new Vec3(...staticTileGeometry.bbox.min),
-			new Vec3(...staticTileGeometry.bbox.max)
+			new Vec3(...staticTileGeometry.bboxGround.min),
+			new Vec3(...staticTileGeometry.bboxGround.max)
 		);
 	}
 

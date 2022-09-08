@@ -30,7 +30,6 @@ export default interface AbstractMaterial {
 	readonly primitive: AbstractMaterialPrimitiveParams;
 	readonly depth: AbstractMaterialDepthParams;
 	getUniform<T extends Uniform>(name: string, block?: string): T;
-	uniformNeedsUpdate(name: string, block?: string): void;
-	applyUniformUpdates(name: string, block?: string): void;
-	applyAllUniformsUpdates(): void;
+	updateUniform(name: string): void;
+	updateUniformBlock(name: string): void;
 }

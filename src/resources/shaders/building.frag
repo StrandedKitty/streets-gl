@@ -59,7 +59,7 @@ void main() {
         outColor = vec4(vColor, 1);
         outNormal = packNormal(vNormal);
     } else {
-        outColor = texture(tRoofColor, vec3(vUv, vTextureId - 1));
+        outColor = texture(tRoofColor, vec3(vUv, vTextureId - 1)) * vec4(vColor, 1);
         outNormal = packNormal(getRoofNormal());
     }
 

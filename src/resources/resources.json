@@ -74,5 +74,9 @@
 	"cobblestoneMask": {
 		"url": "/textures/surfaces/cobblestone_mask.png",
 		"type": "image"
+	},
+	"blue_noise_rgba": {
+		"url": "/textures/blue_noise_rgba.png",
+		"type": "image"
 	}
 }

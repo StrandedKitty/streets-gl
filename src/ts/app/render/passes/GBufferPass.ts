@@ -66,25 +66,23 @@ export default class GBufferPass extends Pass<{
 			);
 		}
 
-		const testRenderPass = this.getPhysicalResource('GBufferRenderPass');
+		const mainRenderPass = this.getPhysicalResource('GBufferRenderPass');
 
-		this.renderer.beginRenderPass(testRenderPass);
+		this.renderer.beginRenderPass(mainRenderPass);
 
 		this.renderer.useMaterial(this.skyboxMaterial);
 
 		this.skyboxMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'Uniforms').value = new Float32Array(camera.projectionMatrix.values);
 		this.skyboxMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'Uniforms').value = new Float32Array(Mat4.multiply(camera.matrixWorldInverse, skybox.matrixWorld).values);
 		this.skyboxMaterial.getUniform<UniformMatrix4>('modelViewMatrixPrev', 'Uniforms').value = new Float32Array(Mat4.multiply(this.cameraMatrixWorldInversePrev, skybox.matrixWorld).values);
-		this.skyboxMaterial.applyUniformUpdates('projectionMatrix', 'Uniforms');
-		this.skyboxMaterial.applyUniformUpdates('modelViewMatrix', 'Uniforms');
-		this.skyboxMaterial.applyUniformUpdates('modelViewMatrixPrev', 'Uniforms');
+		this.skyboxMaterial.updateUniformBlock('Uniforms');
 
 		skybox.draw();
 
 		this.renderer.useMaterial(this.buildingMaterial);
 
 		this.buildingMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.projectionMatrix.values);
-		this.buildingMaterial.applyUniformUpdates('projectionMatrix', 'PerMaterial');
+		this.buildingMaterial.updateUniformBlock('PerMaterial');
 
 		for (const tile of tiles) {
 			if (!tile.buildings || !tile.buildings.inCameraFrustum(camera)) {
@@ -97,9 +95,7 @@ export default class GBufferPass extends Pass<{
 			this.buildingMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
 			this.buildingMaterial.getUniform<UniformMatrix4>('modelViewMatrixPrev', 'PerMesh').value = new Float32Array(mvMatrixPrev.values);
 			this.buildingMaterial.getUniform<UniformMatrix4>('tileId', 'PerMesh').value[0] = tile.localId;
-			this.buildingMaterial.applyUniformUpdates('modelViewMatrix', 'PerMesh');
-			this.buildingMaterial.applyUniformUpdates('modelViewMatrixPrev', 'PerMesh');
-			this.buildingMaterial.applyUniformUpdates('tileId', 'PerMesh');
+			this.buildingMaterial.updateUniformBlock('PerMesh');
 
 			tile.buildings.draw();
 		}
@@ -107,7 +103,7 @@ export default class GBufferPass extends Pass<{
 		this.renderer.useMaterial(this.groundMaterial);
 
 		this.groundMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.projectionMatrix.values);
-		this.groundMaterial.applyUniformUpdates('projectionMatrix', 'PerMaterial');
+		this.groundMaterial.updateUniformBlock('PerMaterial');
 
 		for (const tile of tiles) {
 			if (!tile.ground || !tile.ground.inCameraFrustum(camera)) {
@@ -119,8 +115,7 @@ export default class GBufferPass extends Pass<{
 
 			this.groundMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
 			this.groundMaterial.getUniform<UniformMatrix4>('modelViewMatrixPrev', 'PerMesh').value = new Float32Array(mvMatrixPrev.values);
-			this.groundMaterial.applyUniformUpdates('modelViewMatrix', 'PerMesh');
-			this.groundMaterial.applyUniformUpdates('modelViewMatrixPrev', 'PerMesh');
+			this.groundMaterial.updateUniformBlock('PerMesh');
 
 			tile.ground.draw();
 		}
@@ -128,7 +123,7 @@ export default class GBufferPass extends Pass<{
 		this.renderer.useMaterial(this.roadMaterial);
 
 		this.roadMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.projectionMatrix.values);
-		this.roadMaterial.applyUniformUpdates('projectionMatrix', 'PerMaterial');
+		this.roadMaterial.updateUniformBlock('PerMaterial');
 
 		for (const tile of tiles) {
 			if (!tile.roads || !tile.roads.inCameraFrustum(camera)) {
@@ -140,13 +135,12 @@ export default class GBufferPass extends Pass<{
 
 			this.roadMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
 			this.roadMaterial.getUniform<UniformMatrix4>('modelViewMatrixPrev', 'PerMesh').value = new Float32Array(mvMatrixPrev.values);
-			this.roadMaterial.applyUniformUpdates('modelViewMatrix', 'PerMesh');
-			this.roadMaterial.applyUniformUpdates('modelViewMatrixPrev', 'PerMesh');
+			this.roadMaterial.updateUniformBlock('PerMesh');
 
 			tile.roads.draw();
 		}
 
-		testRenderPass.readColorAttachmentPixel(4, this.objectIdBuffer, this.objectIdX, this.objectIdY);
+		mainRenderPass.readColorAttachmentPixel(4, this.objectIdBuffer, this.objectIdX, this.objectIdY);
 
 		this.saveCameraMatrixWorldInverse();
 	}

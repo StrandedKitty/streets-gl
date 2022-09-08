@@ -40,6 +40,8 @@ export default class WebGL2Renderer implements AbstractRenderer {
 	private depthBiasConstant: number = 0;
 	private depthBiasSlopeScale: number = 0;
 
+	private timerQuery: WebGLQuery = null;
+
 	public constructor(context: WebGL2RenderingContext) {
 		this.gl = context;
 
@@ -226,6 +228,10 @@ export default class WebGL2Renderer implements AbstractRenderer {
 		this.gl.depthMask(state);
 	}
 
+	public get depthWrite(): boolean {
+		return this.depthWriteState;
+	}
+
 	public setDepthBias(depthBiasSlopeScale: number, depthBiasConstant: number): void {
 		const depthBiasEnabled = depthBiasSlopeScale !== undefined || depthBiasConstant !== undefined;
 
@@ -292,6 +298,36 @@ export default class WebGL2Renderer implements AbstractRenderer {
 			};
 
 			setTimeout(check, 0);
+		});
+	}
+
+	public startTimer(): void {
+		this.timerQuery = this.gl.createQuery();
+		this.gl.beginQuery(this.extensions.timerQuery.TIME_ELAPSED_EXT, this.timerQuery);
+	}
+
+	public finishTimer(): Promise<number> {
+		this.gl.endQuery(this.extensions.timerQuery.TIME_ELAPSED_EXT);
+
+		const query = this.timerQuery;
+
+		return new Promise<number>(resolve => {
+			setTimeout(() => {
+				const available = this.gl.getQueryParameter(query, WebGL2Constants.QUERY_RESULT_AVAILABLE);
+				const disjoint = this.gl.getParameter(this.extensions.timerQuery.GPU_DISJOINT_EXT);
+				let result = 0;
+
+				if (available && !disjoint) {
+					const timeElapsed = this.gl.getQueryParameter(query, WebGL2Constants.QUERY_RESULT);
+					result = +(timeElapsed / 1e6).toFixed(3);
+				}
+
+				if (available || disjoint) {
+					this.gl.deleteQuery(query);
+				}
+
+				resolve(result);
+			}, 1000);
 		});
 	}
 

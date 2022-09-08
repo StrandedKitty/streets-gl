@@ -274,9 +274,33 @@ g.type-TK > rect {
     stroke-width: 1.5px;
 }
 
-.node text {
-    font-size: 14px;
-    fill: white;
+.node {
+    font-size: 12px;
+    color: #fff;
+}
+
+.node header {
+    font-size: 16px;
+    color: #fff;
+    margin: 0 0 4px 0;
+}
+
+.node main {
+
+}
+
+.node main > .metadata {
+    margin: 0 0 4px 0;
+    white-space: pre-line;
+}
+
+.node main > .local-resources > .local-resource {
+    white-space: pre-line;
+    border: 1px solid rgb(255, 255, 255, 0.7);
+    border-radius: 6px;
+    padding: 4px;
+    font-size: 10px;
+    margin: 4px 0 0 0;
 }
 
 .node-pass rect {

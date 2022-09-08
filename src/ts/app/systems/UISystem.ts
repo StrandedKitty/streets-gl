@@ -10,6 +10,7 @@ export interface RenderGraphSnapshot {
 		type: 'resource' | 'pass';
 		name: string;
 		metadata: Record<string, string>;
+		localResources?: Record<string, string>[];
 		prev: string[];
 		next: string[];
 	}[];
@@ -97,13 +98,21 @@ export default class UISystem extends System {
 
 		return <RenderGraphSnapshot>{
 			graph: Array.from(sourceGraph).map(node => {
-				const prev = Array.from(node.previousNodes).map(n => n.name);
-				const next = Array.from(node.nextNodes).map(n => n.name);
+				const prev = Array.from(node.tempIndegreeSet).map(n => n.name);
+				const next = Array.from(node.tempOutdegreeSet).map(n => n.name);
 				const metadata: Record<string, string> = {};
+				let localResources: Record<string, string>[] = null;
 				let type: string = '';
 
 				if (node instanceof RG.Pass) {
 					type = 'pass';
+					metadata.index = sourcePassList.indexOf(node).toString();
+					const localResourcesSet = node.getAllResourcesOfType(RG.InternalResourceType.Local);
+					localResources = Array.from(localResourcesSet).map(r => ({
+						name: r.name,
+						isTransient: r.isTransient.toString(),
+						isUsedExternally: r.isUsedExternally.toString()
+					}));
 				} else if (node instanceof RG.Resource) {
 					type = 'resource';
 					metadata.isTransient = node.isTransient.toString();
@@ -115,7 +124,8 @@ export default class UISystem extends System {
 					name: node.name,
 					prev,
 					next,
-					metadata
+					metadata,
+					localResources
 				};
 			}),
 			passOrder: sourcePassList.map(p => p.name)
@@ -124,7 +134,6 @@ export default class UISystem extends System {
 
 	public updateRenderGraph(): void {
 		this.globalState.renderGraph = this.getRenderGraph();
-		console.log(this.globalState.renderGraph)
 	}
 
 	public update(deltaTime: number): void {

@@ -1,10 +1,10 @@
 import WebGL2Renderer from "~/renderer/webgl2-renderer/WebGL2Renderer";
 import AbstractTexture2D, {AbstractTexture2DParams} from "~/renderer/abstract-renderer/AbstractTexture2D";
 import WebGL2Texture from "~/renderer/webgl2-renderer/WebGL2Texture";
-import GLConstants from "~/renderer/GLConstants";
+import WebGL2Constants from "~/renderer/webgl2-renderer/WebGL2Constants";
 
 export default class WebGL2Texture2D extends WebGL2Texture implements AbstractTexture2D {
-	protected textureTypeConstant: number = GLConstants.TEXTURE_2D;
+	protected textureTypeConstant: number = WebGL2Constants.TEXTURE_2D;
 	public data: TypedArray | HTMLImageElement;
 
 	public constructor(renderer: WebGL2Renderer, params: AbstractTexture2DParams) {

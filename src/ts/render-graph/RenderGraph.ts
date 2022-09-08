@@ -3,12 +3,16 @@ import Resource from "./Resource";
 import Node from "./Node";
 import {Queue} from "./Utils";
 import ResourcePool from "./PhysicalResourcePool";
+import AbstractRenderer from "~/renderer/abstract-renderer/AbstractRenderer";
 
 export default class RenderGraph {
 	private resourcePool: ResourcePool = new ResourcePool();
 	public passes: Set<Pass<any>> = new Set();
 	public lastGraph: Set<Node> = null;
 	public lastSortedPassList: Pass<any>[] = null;
+
+	public constructor(private renderer: AbstractRenderer) {
+	}
 
 	public addPass(pass: Pass<any>): void {
 		this.passes.add(pass);

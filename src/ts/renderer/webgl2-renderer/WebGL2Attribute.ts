@@ -1,7 +1,6 @@
 import AbstractAttribute, {AbstractAttributeParams} from "~/renderer/abstract-renderer/AbstractAttribute";
 import {RendererTypes} from "~/renderer/RendererTypes";
 import WebGL2Renderer from "~/renderer/webgl2-renderer/WebGL2Renderer";
-import GLConstants from "~/renderer/GLConstants";
 import WebGL2Constants from "~/renderer/webgl2-renderer/WebGL2Constants";
 import WebGL2Program from "./WebGL2Program";
 
@@ -63,8 +62,6 @@ export default class WebGL2Attribute implements AbstractAttribute {
 			const typeConstant = WebGL2Attribute.convertTypeToWebGLConstant(this.type);
 			this.gl.enableVertexAttribArray(location);
 
-			//this.gl.vertexAttribPointer(location, this.size, typeConstant, this.normalized, 0, 0);
-
 			switch (this.format) {
 				case RendererTypes.AttributeFormat.Integer:
 					this.gl.vertexAttribIPointer(location, this.size, typeConstant, 0, 0);
@@ -80,7 +77,7 @@ export default class WebGL2Attribute implements AbstractAttribute {
 
 			this.gl.enableVertexAttribArray(location);
 
-			this.gl.bindBuffer(GLConstants.ARRAY_BUFFER, null);
+			this.gl.bindBuffer(WebGL2Constants.ARRAY_BUFFER, null);
 		}
 	}
 

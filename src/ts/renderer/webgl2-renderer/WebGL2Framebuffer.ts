@@ -6,7 +6,6 @@ import WebGL2Texture3D from "~/renderer/webgl2-renderer/WebGL2Texture3D";
 import WebGL2Texture2D from "~/renderer/webgl2-renderer/WebGL2Texture2D";
 import {RendererTypes} from "~/renderer/RendererTypes";
 import AbstractTexture from "~/renderer/abstract-renderer/AbstractTexture";
-import GLConstants from "~/renderer/GLConstants";
 
 export default class WebGL2Framebuffer {
 	private readonly renderer: WebGL2Renderer;
@@ -28,12 +27,14 @@ export default class WebGL2Framebuffer {
 		this.colorAttachments = colorAttachments;
 		this.depthAttachment = depthAttachment;
 
+		this.updateDimensionsFromAttachments();
+
 		this.createWebGLFramebuffer();
 
 		this.bindAttachments();
 	}
 
-	public bind(): void {
+	private updateDimensionsFromAttachments(): void {
 		if (this.colorAttachments.length !== 0) {
 			this.width = this.colorAttachments[0].texture.width;
 			this.height = this.colorAttachments[0].texture.height;
@@ -41,6 +42,10 @@ export default class WebGL2Framebuffer {
 			this.width = this.depthAttachment.texture.width;
 			this.height = this.depthAttachment.texture.height;
 		}
+	}
+
+	public bind(): void {
+		this.updateDimensionsFromAttachments();
 
 		let shouldUpdateAttachments: boolean = false;
 
@@ -114,6 +119,60 @@ export default class WebGL2Framebuffer {
 		this.gl.drawBuffers(attachments);
 	}
 
+	private buildAttachmentsArray(index: number): number[] {
+		const attachments: number[] = [];
+
+		for (let i = 0; i <= index; i++) {
+			if (i === index)
+				attachments.push(WebGL2Constants.COLOR_ATTACHMENT0 + i);
+			else
+				attachments.push(WebGL2Constants.NONE);
+		}
+
+		return attachments;
+	}
+
+	public copyAttachmentsToFramebuffer(
+		{
+			destination,
+			sourceColorAttachment = 0,
+			targetColorAttachment = 0,
+			copyColor = false,
+			copyDepth = false
+		}: {
+			destination: WebGL2Framebuffer;
+			sourceColorAttachment?: number;
+			targetColorAttachment?: number;
+			copyColor?: boolean;
+			copyDepth?: boolean;
+		}
+	): void {
+		this.gl.bindFramebuffer(WebGL2Constants.READ_FRAMEBUFFER, this.WebGLFramebuffer);
+		this.gl.bindFramebuffer(WebGL2Constants.DRAW_FRAMEBUFFER, destination.WebGLFramebuffer);
+
+		this.gl.readBuffer(WebGL2Constants.COLOR_ATTACHMENT0 + sourceColorAttachment);
+		this.gl.drawBuffers(this.buildAttachmentsArray(targetColorAttachment));
+
+		if (copyColor) {
+			this.gl.blitFramebuffer(
+				0, 0, this.width, this.height,
+				0, 0, destination.width, destination.height,
+				WebGL2Constants.COLOR_BUFFER_BIT, WebGL2Constants.NEAREST
+			);
+		}
+
+		if (copyDepth) {
+			this.gl.blitFramebuffer(
+				0, 0, this.width, this.height,
+				0, 0, destination.width, destination.height,
+				WebGL2Constants.DEPTH_BUFFER_BIT, WebGL2Constants.NEAREST
+			);
+		}
+
+		this.gl.bindFramebuffer(WebGL2Constants.READ_FRAMEBUFFER, null);
+		this.gl.bindFramebuffer(WebGL2Constants.DRAW_FRAMEBUFFER, null);
+	}
+
 	public clear(): void {
 		for (let i = 0; i < this.colorAttachments.length; i++) {
 			const attachment = this.colorAttachments[i];
@@ -124,7 +183,17 @@ export default class WebGL2Framebuffer {
 		}
 
 		if (this.depthAttachment && this.depthAttachment.loadOp === RendererTypes.AttachmentLoadOp.Clear) {
+			const depthWriteEnabled = this.renderer.depthWrite;
+
+			if (!depthWriteEnabled) {
+				this.renderer.depthWrite = true;
+			}
+
 			this.gl.clearBufferfi(WebGL2Constants.DEPTH_STENCIL, 0, this.depthAttachment.clearValue, 0);
+
+			if (!depthWriteEnabled) {
+				this.renderer.depthWrite = false;
+			}
 		}
 	}
 

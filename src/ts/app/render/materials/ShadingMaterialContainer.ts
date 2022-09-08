@@ -31,42 +31,47 @@ export default class ShadingMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Texture2DArray,
 					value: null
 				}, {
+					name: 'tSSAO',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: null
+				}, {
 					name: 'viewMatrix',
 					block: null,
 					type: RendererTypes.UniformType.Matrix4,
 					value: null
 				}, {
-					name: 'CSMSplits',
+					name: 'CSMSplits[0]',
 					block: 'CSM',
 					type: RendererTypes.UniformType.Float2,
 					value: new Float32Array()
 				}, {
-					name: 'CSMLightDirectionAndIntensity',
+					name: 'CSMLightDirectionAndIntensity[0]',
 					block: 'CSM',
 					type: RendererTypes.UniformType.Float4,
 					value: new Float32Array()
 				}, {
-					name: 'CSMResolution',
+					name: 'CSMResolution[0]',
 					block: 'CSM',
 					type: RendererTypes.UniformType.Float4,
 					value: new Float32Array()
 				}, {
-					name: 'CSMSize',
+					name: 'CSMSize[0]',
 					block: 'CSM',
 					type: RendererTypes.UniformType.Float4,
 					value: new Float32Array()
 				}, {
-					name: 'CSMBias',
+					name: 'CSMBias[0]',
 					block: 'CSM',
 					type: RendererTypes.UniformType.Float4,
 					value: new Float32Array()
 				}, {
-					name: 'CSMMatrixWorldInverse',
+					name: 'CSMMatrixWorldInverse[0]',
 					block: 'CSM',
 					type: RendererTypes.UniformType.Float4,
 					value: new Float32Array()
 				}, {
-					name: 'CSMFadeOffset',
+					name: 'CSMFadeOffset[0]',
 					block: 'CSM',
 					type: RendererTypes.UniformType.Float4,
 					value: new Float32Array()

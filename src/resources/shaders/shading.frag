@@ -15,6 +15,7 @@ uniform sampler2D tColor;
 uniform sampler2D tNormal;
 uniform sampler2D tPosition;
 uniform sampler2DArray tShadowMaps;
+uniform sampler2D tSSAO;
 uniform mat4 viewMatrix;
 
 uniform CSM {
@@ -329,7 +330,8 @@ void main() {
 	vec3 color = vec3(0);
 
 	color += applyDirectionalLight(light, materialInfo, worldNormal, worldView) * shadowFactor;
-	color += materialInfo.diffuseColor * 0.2;
+	color += materialInfo.diffuseColor * 0.2 * texture(tSSAO, vUv).r;
 
 	FragColor = vec4(color, 1);
+	//FragColor = vec4(vec3(1) * texture(tSSAO, vUv).r, 1);
 }

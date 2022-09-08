@@ -3,69 +3,76 @@ import WebGL2Renderer from "~/renderer/webgl2-renderer/WebGL2Renderer";
 import WebGL2Constants from "~/renderer/webgl2-renderer/WebGL2Constants";
 import {Uniform} from "~/renderer/abstract-renderer/Uniform";
 
-function equal (buf1: TypedArray, buf2: TypedArray): boolean {
+function equal(buf1: TypedArray, buf2: TypedArray): boolean {
 	if (buf1.byteLength != buf2.byteLength) return false;
+
 	const dv1 = new Int8Array(buf1.buffer);
 	const dv2 = new Int8Array(buf2.buffer);
-	for (let i = 0 ; i != buf1.byteLength ; i++)
-	{
+
+	for (let i = 0; i != buf1.byteLength; i++) {
 		if (dv1[i] != dv2[i]) return false;
 	}
+
 	return true;
+}
+
+const areEqual = (first: TypedArray, second: TypedArray): boolean => {
+	return first.length === second.length && first.every((value, index) => value === second[index]);
 }
 
 export default class WebGL2UBO {
 	private readonly renderer: WebGL2Renderer;
 	private readonly gl: WebGL2RenderingContext;
 	private readonly program: WebGL2Program;
-	private readonly blockName: string;
-	private readonly uniforms: Uniform[];
+	private readonly blockIndex: number;
+	private readonly offsetMap: Map<string, number> = new Map();
+	public blockName: string;
+	public blockSize: number;
 	private buffer: WebGLBuffer;
-	private blockIndex: number;
-	private uniformsOffsets: Map<string, number> = new Map();
-	private savedUniformValues: Map<string, TypedArray> = new Map();
+	private data: ArrayBuffer;
+	private dataView: Uint8Array;
 
-	public constructor(renderer: WebGL2Renderer, program: WebGL2Program, blockName: string, uniforms: Uniform[]) {
+	public constructor(renderer: WebGL2Renderer, program: WebGL2Program, blockIndex: number) {
 		this.renderer = renderer;
 		this.gl = renderer.gl;
 		this.program = program;
-		this.blockName = blockName;
-		this.uniforms = uniforms;
+		this.blockIndex = blockIndex;
 
 		this.createBuffer();
 	}
 
 	private createBuffer(): void  {
-		const blockIndex = this.gl.getUniformBlockIndex(this.program.WebGLProgram, this.blockName);
-
-		const blockSize = this.gl.getActiveUniformBlockParameter(
+		this.blockName = this.gl.getActiveUniformBlockName(this.program.WebGLProgram, this.blockIndex);
+		this.blockSize = this.gl.getActiveUniformBlockParameter(
 			this.program.WebGLProgram,
-			blockIndex,
+			this.blockIndex,
 			WebGL2Constants.UNIFORM_BLOCK_DATA_SIZE
 		);
 
 		this.buffer = this.gl.createBuffer();
 
 		this.gl.bindBuffer(WebGL2Constants.UNIFORM_BUFFER, this.buffer);
-		this.gl.bufferData(WebGL2Constants.UNIFORM_BUFFER, blockSize, WebGL2Constants.STATIC_DRAW);
+		this.gl.bufferData(WebGL2Constants.UNIFORM_BUFFER, this.blockSize, WebGL2Constants.STATIC_DRAW);
 
-		this.blockIndex = blockIndex;
+		this.data = new ArrayBuffer(this.blockSize);
+		this.dataView = new Uint8Array(this.data);
 
-		const variableIndices = this.gl.getUniformIndices(
+		const indices: Uint32Array = this.gl.getActiveUniformBlockParameter(
 			this.program.WebGLProgram,
-			this.uniforms.map(u => u.name)
+			this.blockIndex,
+			WebGL2Constants.UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES
 		);
 
-		const variableOffsets = this.gl.getActiveUniforms(
+		const offsets = this.gl.getActiveUniforms(
 			this.program.WebGLProgram,
-			variableIndices,
+			Array.from(indices),
 			WebGL2Constants.UNIFORM_OFFSET
 		);
 
-		for (let i = 0; i < this.uniforms.length; i++) {
-			this.uniformsOffsets.set(this.uniforms[i].name, variableOffsets[i]);
+		for (let i = 0; i < indices.length; i++) {
+			const info = this.gl.getActiveUniform(this.program.WebGLProgram, indices[i]);
 
-			this.setUniformValue(this.uniforms[i].name, <TypedArray>this.uniforms[i].value);
+			this.offsetMap.set(info.name, offsets[i]);
 		}
 	}
 
@@ -80,21 +87,18 @@ export default class WebGL2UBO {
 	}
 
 	public setUniformValue(uniformName: string, value: TypedArray): void  {
-		const savedValue = this.savedUniformValues.get(uniformName);
+		const offset = this.offsetMap.get(uniformName);
 
-		if (savedValue && equal(savedValue, value)) {
-			//return;
-		}
+		this.dataView.set(new Uint8Array(value.buffer), offset);
+	}
 
+	public applyUpdates(): void {
 		this.bind();
 
 		this.gl.bufferSubData(
 			WebGL2Constants.UNIFORM_BUFFER,
-			this.uniformsOffsets.get(uniformName),
-			value,
-			0
+			0,
+			this.data
 		);
-
-		this.savedUniformValues.set(uniformName, value);
 	}
 }

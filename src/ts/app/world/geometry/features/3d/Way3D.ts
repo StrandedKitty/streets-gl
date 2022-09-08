@@ -14,6 +14,10 @@ import Config from "../../../../Config";
 import RoadPolylineBuilder from "../../RoadPolylineBuilder";
 import Vec3 from "../../../../../math/Vec3";
 import StraightSkeletonBuilder from "../../StraightSkeletonBuilder";
+import {RoofGeometry} from "~/app/world/geometry/roofs/RoofBuilder";
+import FlatRoofBuilder from "~/app/world/geometry/roofs/FlatRoofBuilder";
+import HippedRoofBuilder from "~/app/world/geometry/roofs/HippedRoofBuilder";
+import GabledRoofBuilder from "~/app/world/geometry/roofs/GabledRoofBuilder";
 
 interface EarcutInput {
 	vertices: number[];
@@ -108,12 +112,12 @@ export default class Way3D extends Feature3D {
 		let roofType = RoofShape.Flat;
 
 		switch (this.tags.roofShape) {
-		case 'hipped':
-			roofType = RoofShape.Hipped;
-			break;
-		case 'gabled':
-			roofType = RoofShape.Gabled;
-			break;
+			case 'hipped':
+				roofType = RoofShape.Hipped;
+				break;
+			case 'gabled':
+				roofType = RoofShape.Gabled;
+				break;
 		}
 
 		this.roofShape = roofType;
@@ -158,7 +162,7 @@ export default class Way3D extends Feature3D {
 		textureId: Uint8Array;
 		positionRoad?: Float32Array;
 		uvRoad?: Float32Array;
-		} {
+	} {
 		if (!this.visible) {
 			return {
 				position: new Float32Array(),
@@ -251,13 +255,8 @@ export default class Way3D extends Feature3D {
 		positionArrays.push(roofBuffers.position);
 		uvArrays.push(roofBuffers.uv);
 		normalArrays.push(roofBuffers.normal);
-		textureIdArrays.push(Utils.fillTypedArraySequence(
-			Uint8Array,
-			new Uint8Array(roofBuffers.uv.length / 2),
-			new Uint8Array(roofBuffers.isTextured ? [this.id % 4 + 1] : [0])
-		));
+		textureIdArrays.push(roofBuffers.textureId);
 		colorArrays.push(Utils.fillTypedArraySequence(
-			Uint8Array,
 			new Uint8Array(roofBuffers.uv.length / 2 * 3),
 			new Uint8Array(<number[]>this.tags.roofColor || [255, 255, 255])
 		));
@@ -268,12 +267,10 @@ export default class Way3D extends Feature3D {
 			uvArrays.push(ringData.uvs);
 			normalArrays.push(ringData.normals);
 			textureIdArrays.push(Utils.fillTypedArraySequence(
-				Uint8Array,
 				new Uint8Array(ringData.uvs.length / 2),
 				new Uint8Array([0])
 			));
 			colorArrays.push(Utils.fillTypedArraySequence(
-				Uint8Array,
 				new Uint8Array(ringData.uvs.length / 2 * 3),
 				new Uint8Array(<number[]>this.tags.facadeColor || [255, 255, 255])
 			));
@@ -332,7 +329,7 @@ export default class Way3D extends Feature3D {
 		this.holesArrays = data;
 	}
 
-	private triangulateFootprint(): { positions: Float32Array; normals: Float32Array; uvs: Float32Array } {
+	public triangulateFootprint(): {positions: Float32Array; normals: Float32Array; uvs: Float32Array} {
 		const positions: number[] = [];
 		const uvs: number[] = [];
 		const normals: number[] = [];
@@ -466,7 +463,7 @@ export default class Way3D extends Feature3D {
 		}
 	}
 
-	private getTotalArea(): number {
+	public getTotalArea(): number {
 		let area = 0;
 
 		for (const ring of this.rings) {
@@ -482,177 +479,33 @@ export default class Way3D extends Feature3D {
 		return area;
 	}
 
-	private buildRoof(): { position: Float32Array; normal: Float32Array; uv: Float32Array; isTextured: boolean } {
+	private buildRoof(): RoofGeometry {
 		switch (this.roofShape) {
-		case RoofShape.Flat: {
-			const footprint = this.triangulateFootprint();
-			const isFootprintTextured = this.getTotalArea() > Config.MinTexturedRoofArea && this.aabb.getArea() < Config.MaxTexturedRoofAABBArea;
-
-			return {
-				position: footprint.positions,
-				normal: footprint.normals,
-				uv: footprint.uvs,
-				isTextured: isFootprintTextured
-			};
-		}
-		case RoofShape.Hipped: {
-			const skeleton = StraightSkeletonBuilder.buildFromWay(this);
-
-			if (!skeleton) {
-				this.roofShape = RoofShape.Flat;
-				return this.buildRoof();
+			case RoofShape.Flat: {
+				return FlatRoofBuilder.build(this);
 			}
+			case RoofShape.Hipped: {
+				const roof = HippedRoofBuilder.build(this);
 
-			const heightMap: Map<string, number> = new Map();
-			const minHeight = this.minGroundHeight + (+this.tags.height || 6) * this.heightFactor;
-			const roofHeight = +this.tags.roofHeight;
-			const useRoofHeight = roofHeight > 0;
-			let maxHeight = 0;
-
-			for (const [point, distance] of skeleton.Distances.entries()) {
-				heightMap.set(`${point.X} ${point.Y}`, distance);
-				maxHeight = Math.max(maxHeight, distance);
-			}
-
-			const vertices: number[] = [];
-
-			for (const edge of skeleton.Edges) {
-				for (let i = 2; i < edge.Polygon.length; i++) {
-					vertices.push(
-						edge.Polygon[0].X, 0, edge.Polygon[0].Y,
-						edge.Polygon[i].X, 0, edge.Polygon[i].Y,
-						edge.Polygon[i - 1].X, 0, edge.Polygon[i - 1].Y
-					);
-				}
-			}
-
-			for (let i = 0; i < vertices.length; i += 3) {
-				const x = vertices[i];
-				const z = vertices[i + 2];
-				const y = heightMap.get(`${x} ${z}`) || 0;
-				const height = useRoofHeight ? (y / maxHeight * roofHeight) : (y * 0.5);
-
-				vertices[i + 1] = height * this.heightFactor + minHeight;
-			}
-
-			const normals = new Float32Array(vertices.length);
-
-			for (let i = 0; i < vertices.length; i += 9) {
-				const a = new Vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
-				const b = new Vec3(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
-				const c = new Vec3(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
-
-				const normal: [number, number, number] = Vec3.toArray(MathUtils.calculateNormal(a, b, c));
-
-				for (let j = i; j < i + 9; j++) {
-					normals[j] = normal[j % 3];
-				}
-			}
-
-			return {
-				position: new Float32Array(vertices),
-				normal: normals,
-				uv: new Float32Array(vertices.length / 3 * 2),
-				isTextured: false
-			};
-		}
-		case RoofShape.Gabled: {
-			const skeleton = StraightSkeletonBuilder.buildFromWay(this);
-
-			if (!skeleton) {
-				this.roofShape = RoofShape.Flat;
-				return this.buildRoof();
-			}
-
-			const heightMap: Map<string, number> = new Map();
-			const minHeight = this.minGroundHeight + (+this.tags.height || 6) * this.heightFactor;
-			const roofHeight = +this.tags.roofHeight;
-			const useRoofHeight = roofHeight > 0;
-			let maxHeight = 0;
-
-			for (const [point, distance] of skeleton.Distances.entries()) {
-				heightMap.set(`${point.X} ${point.Y}`, distance);
-				maxHeight = Math.max(maxHeight, distance);
-			}
-
-			const vertices: number[] = [];
-
-			for (const edge of skeleton.Edges) {
-				if (edge.Polygon.length === 3) {
-					const a = edge.Edge.Begin;
-					const b = edge.Edge.End;
-					const c = edge.Polygon.find(p => p.NotEquals(a) && p.NotEquals(b));
-					const cHeight = heightMap.get(`${c.X} ${c.Y}`);
-
-					const diff = b.Sub(a);
-					const center = a.Add(diff.MultiplyScalar(0.5));
-
-					heightMap.set(`${center.X} ${center.Y}`, cHeight);
-
-					vertices.push(
-						a.X, 0, a.Y,
-						c.X, 0, c.Y,
-						center.X, 0, center.Y,
-
-						b.X, 0, b.Y,
-						center.X, 0, center.Y,
-						c.X, 0, c.Y,
-
-						a.X, 0, a.Y,
-						center.X, cHeight, center.Y,
-						b.X, 0, b.Y
-					);
-
-					continue;
+				if (!roof) {
+					this.roofShape = RoofShape.Flat;
+					return this.buildRoof();
 				}
 
-				for (let i = 2; i < edge.Polygon.length; i++) {
-					vertices.push(
-						edge.Polygon[0].X, 0, edge.Polygon[0].Y,
-						edge.Polygon[i].X, 0, edge.Polygon[i].Y,
-						edge.Polygon[i - 1].X, 0, edge.Polygon[i - 1].Y
-					);
+				return roof;
+			}
+			case RoofShape.Gabled: {
+				const roof = GabledRoofBuilder.build(this);
+
+				if (!roof) {
+					this.roofShape = RoofShape.Flat;
+					return this.buildRoof();
 				}
+
+				return roof;
 			}
-
-			for (let i = 0; i < vertices.length; i += 3) {
-				const x = vertices[i];
-				const z = vertices[i + 2];
-				const y = vertices[i + 1] || heightMap.get(`${x} ${z}`);
-
-				const height = useRoofHeight ? (y / maxHeight * roofHeight) : (y * 0.5);
-
-				vertices[i + 1] = height * this.heightFactor + minHeight;
-			}
-
-			const normals = new Float32Array(vertices.length);
-
-			for (let i = 0; i < vertices.length; i += 9) {
-				const a = new Vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
-				const b = new Vec3(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
-				const c = new Vec3(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
-
-				const normal: [number, number, number] = Vec3.toArray(MathUtils.calculateNormal(a, b, c));
-
-				for (let j = i; j < i + 9; j++) {
-					normals[j] = normal[j % 3];
-				}
-			}
-
-			return {
-				position: new Float32Array(vertices),
-				normal: normals,
-				uv: new Float32Array(vertices.length / 3 * 2),
-				isTextured: false
-			};
-		}
 		}
 
-		return {
-			position: new Float32Array(),
-			normal: new Float32Array(),
-			uv: new Float32Array(),
-			isTextured: false
-		};
+		throw new Error('Unknown roof type');
 	}
 }

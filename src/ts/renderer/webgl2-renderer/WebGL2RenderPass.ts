@@ -64,6 +64,30 @@ export default class WebGL2RenderPass implements AbstractRenderPass {
 		this.renderer.gl.copyTexImage2D(WebGL2Constants.TEXTURE_2D, 0, internalFormat, 0, 0, texture.width, texture.height, 0);
 	}
 
+	public copyAttachmentsToRenderPass(
+		{
+			destination,
+			sourceColorAttachment = 0,
+			targetColorAttachment = 0,
+			copyColor = false,
+			copyDepth = false
+		}: {
+			destination: WebGL2RenderPass;
+			sourceColorAttachment?: number;
+			targetColorAttachment?: number;
+			copyColor?: boolean;
+			copyDepth?: boolean;
+		}
+	): void {
+		return this.framebuffer.copyAttachmentsToFramebuffer({
+			destination: destination.framebuffer,
+			sourceColorAttachment,
+			targetColorAttachment,
+			copyColor,
+			copyDepth
+		});
+	}
+
 	public async readColorAttachmentPixel<T extends TypedArray>(
 		attachmentId: number,
 		buffer: T,

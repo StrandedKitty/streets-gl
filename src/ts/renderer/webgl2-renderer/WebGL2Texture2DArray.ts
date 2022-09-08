@@ -1,10 +1,12 @@
 import WebGL2Renderer from "~/renderer/webgl2-renderer/WebGL2Renderer";
 import WebGL2Texture from "~/renderer/webgl2-renderer/WebGL2Texture";
-import GLConstants from "~/renderer/GLConstants";
-import AbstractTexture2DArray, {AbstractTexture2DArrayParams} from "~/renderer/abstract-renderer/AbstractTexture2DArray";
+import AbstractTexture2DArray, {
+	AbstractTexture2DArrayParams
+} from "~/renderer/abstract-renderer/AbstractTexture2DArray";
+import WebGL2Constants from "~/renderer/webgl2-renderer/WebGL2Constants";
 
 export default class WebGL2Texture2DArray extends WebGL2Texture implements AbstractTexture2DArray {
-	protected textureTypeConstant: number = GLConstants.TEXTURE_2D_ARRAY;
+	protected textureTypeConstant: number = WebGL2Constants.TEXTURE_2D_ARRAY;
 	public depth: number;
 	public data: TypedArray[] | HTMLImageElement[];
 
