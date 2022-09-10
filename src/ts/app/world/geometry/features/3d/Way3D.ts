@@ -18,6 +18,7 @@ import {RoofGeometry} from "~/app/world/geometry/roofs/RoofBuilder";
 import FlatRoofBuilder from "~/app/world/geometry/roofs/FlatRoofBuilder";
 import HippedRoofBuilder from "~/app/world/geometry/roofs/HippedRoofBuilder";
 import GabledRoofBuilder from "~/app/world/geometry/roofs/GabledRoofBuilder";
+import PyramidalRoofBuilder from "~/app/world/geometry/roofs/PyramidalRoofBuilder";
 
 interface EarcutInput {
 	vertices: number[];
@@ -27,7 +28,8 @@ interface EarcutInput {
 enum RoofShape {
 	Flat,
 	Hipped,
-	Gabled
+	Gabled,
+	Pyramidal
 }
 
 export default class Way3D extends Feature3D {
@@ -117,6 +119,9 @@ export default class Way3D extends Feature3D {
 				break;
 			case 'gabled':
 				roofType = RoofShape.Gabled;
+				break;
+			case 'pyramidal':
+				roofType = RoofShape.Pyramidal;
 				break;
 		}
 
@@ -503,6 +508,9 @@ export default class Way3D extends Feature3D {
 				}
 
 				return roof;
+			}
+			case RoofShape.Pyramidal: {
+				return PyramidalRoofBuilder.build(this);
 			}
 		}
 

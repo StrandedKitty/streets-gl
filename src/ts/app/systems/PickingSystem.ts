@@ -5,14 +5,15 @@ import SystemManager from "../SystemManager";
 import CursorStyleSystem from "./CursorStyleSystem";
 import TileSystem from "./TileSystem";
 import UISystem from "./UISystem";
+import TileObjectsSystem from "~/app/systems/TileObjectsSystem";
+import TileBuilding from "~/app/world/TileBuilding";
 
 export default class PickingSystem extends System {
 	public pointerPosition: Vec2 = new Vec2();
 	private enablePicking = true;
 	public hoveredObjectId = 0;
 	public selectedObjectId = 0;
-	public selectedObjectLocalId = 0;
-	public selectedObjectTile: Tile = null;
+	public selectedTileBuilding: TileBuilding = null;
 	public pointerDownPosition: Vec2 = new Vec2();
 
 	public constructor(systemManager: SystemManager) {
@@ -120,20 +121,20 @@ export default class PickingSystem extends System {
 			const localTileId = selectedValue >> 16;
 			const tile = this.systemManager.getSystem(TileSystem).getTileByLocalId(localTileId);
 			const localFeatureId = selectedValue & 0xffff;
-			const packedFeatureId = tile.buildingIdMap.get(localFeatureId);
+			const packedFeatureId = tile.buildingLocalToPackedMap.get(localFeatureId);
 
 			const [type, id] = Tile.unpackFeatureId(packedFeatureId);
 
-			this.selectedObjectLocalId = localFeatureId;
-			this.selectedObjectTile = tile;
+			const tileObjectsSystem = this.systemManager.getSystem(TileObjectsSystem);
+			this.selectedTileBuilding = tileObjectsSystem.getTileBuildingByPackedId(packedFeatureId);
 
-			console.log(`clicked ${type} ${id}`);
 			this.systemManager.getSystem(UISystem).setActiveFeature(type, id);
 		}
 	}
 
 	public clearSelection(): void {
 		this.selectedObjectId = 0;
+		this.selectedTileBuilding = null;
 		this.systemManager.getSystem(UISystem).clearActiveFeature();
 	}
 

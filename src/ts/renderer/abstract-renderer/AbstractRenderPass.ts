@@ -40,6 +40,7 @@ export default interface AbstractRenderPass {
 		copyDepth?: boolean;
 	}): void;
 	readColorAttachmentPixel<T extends TypedArray>(attachmentId: number, buffer: T, x: number, y: number, width?: number, height?: number): Promise<void>;
+	clearAttachments(colorAttachmentIds: number[], clearDepth: boolean): void;
 	setSize(width: number, height: number): void;
 	delete(): void;
 }

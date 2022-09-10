@@ -78,6 +78,9 @@
 		},
 		"gabled": {
 			"roofShape": "gabled"
+		},
+		"pyramidal": {
+			"roofShape": "pyramidal"
 		}
 	},
 	"roof:height": {

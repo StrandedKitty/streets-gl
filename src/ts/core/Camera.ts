@@ -6,6 +6,7 @@ import Plane from "./Plane";
 export default abstract class Camera extends Object3D {
 	public projectionMatrix: Mat4;
 	public projectionMatrixInverse: Mat4;
+	public projectionMatrixInverseStable: Mat4 = new Mat4();
 	public matrixWorldInverse: Mat4;
 	public frustumPlanes: Plane[] = null;
 	public zoomFactor: number = 1;
@@ -24,6 +25,10 @@ export default abstract class Camera extends Object3D {
 
 	public updateProjectionMatrixInverse(): void {
 		this.projectionMatrixInverse = Mat4.inverse(this.projectionMatrix);
+	}
+
+	public saveStableProjectionMatrixInverse(): void {
+		this.projectionMatrixInverseStable = Mat4.copy(this.projectionMatrixInverse);
 	}
 
 	public abstract updateProjectionMatrix(): void;

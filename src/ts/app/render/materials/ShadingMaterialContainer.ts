@@ -36,6 +36,16 @@ export default class ShadingMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Texture2D,
 					value: null
 				}, {
+					name: 'tSelectionMask',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: null
+				}, {
+					name: 'tSelectionBlurred',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: null
+				}, {
 					name: 'viewMatrix',
 					block: null,
 					type: RendererTypes.UniformType.Matrix4,

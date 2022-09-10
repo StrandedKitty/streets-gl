@@ -22,6 +22,14 @@ export default class ShadingPass extends Pass<{
 		type: InternalResourceType.Input;
 		resource: RenderPassResource;
 	};
+	SelectionMask: {
+		type: InternalResourceType.Input;
+		resource: RenderPassResource;
+	};
+	SelectionBlurred: {
+		type: InternalResourceType.Input;
+		resource: RenderPassResource;
+	};
 	HDR: {
 		type: InternalResourceType.Output;
 		resource: RenderPassResource;
@@ -35,6 +43,8 @@ export default class ShadingPass extends Pass<{
 			GBuffer: {type: RG.InternalResourceType.Input, resource: manager.getSharedResource('GBufferRenderPass')},
 			ShadowMaps: {type: InternalResourceType.Input, resource: manager.getSharedResource('ShadowMaps')},
 			SSAO: {type: InternalResourceType.Input, resource: manager.getSharedResource('SSAOResult')},
+			SelectionMask: {type: InternalResourceType.Input, resource: manager.getSharedResource('SelectionMask')},
+			SelectionBlurred: {type: InternalResourceType.Input, resource: manager.getSharedResource('SelectionBlurred')},
 			HDR: {type: InternalResourceType.Output, resource: manager.getSharedResource('HDR')}
 		});
 
@@ -51,6 +61,8 @@ export default class ShadingPass extends Pass<{
 		const positionTexture = <AbstractTexture2D>this.getPhysicalResource('GBuffer').colorAttachments[2].texture;
 		const shadowMapsTexture = <AbstractTexture2DArray>this.getPhysicalResource('ShadowMaps').depthAttachment.texture;
 		const ssaoTexture = <AbstractTexture2D>this.getPhysicalResource('SSAO').colorAttachments[0].texture;
+		const selectionMaskTexture = <AbstractTexture2D>this.getPhysicalResource('SelectionMask').colorAttachments[0].texture;
+		const selectionBlurredTexture = <AbstractTexture2D>this.getPhysicalResource('SelectionBlurred').colorAttachments[0].texture;
 
 		const csmBuffers = csm.getUniformsBuffers();
 
@@ -61,11 +73,12 @@ export default class ShadingPass extends Pass<{
 		this.shadingMaterial.getUniform('tPosition').value = positionTexture;
 		this.shadingMaterial.getUniform('tShadowMaps').value = shadowMapsTexture;
 		this.shadingMaterial.getUniform('tSSAO').value = ssaoTexture;
+		this.shadingMaterial.getUniform('tSelectionMask').value = selectionMaskTexture;
+		this.shadingMaterial.getUniform('tSelectionBlurred').value = selectionBlurredTexture;
 		this.shadingMaterial.getUniform('viewMatrix').value = new Float32Array(camera.matrixWorld.values);
 
 		for (const [key, value] of Object.entries(csmBuffers)) {
 			this.shadingMaterial.getUniform(key + '[0]', 'CSM').value = value;
-			//this.shadingMaterial.applyUniformUpdates(key + '[0]', 'CSM');
 		}
 
 		this.shadingMaterial.updateUniformBlock('CSM');

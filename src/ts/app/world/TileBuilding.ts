@@ -1,9 +1,9 @@
 import Tile from "../objects/Tile";
 
 export default class TileBuilding {
-	private readonly id: number;
-	private parents: Tile[] = [];
-	private holder: Tile = null;
+	public readonly id: number;
+	public readonly parents: Tile[] = [];
+	public holder: Tile = null;
 
 	public constructor(id: number) {
 		this.id = id;

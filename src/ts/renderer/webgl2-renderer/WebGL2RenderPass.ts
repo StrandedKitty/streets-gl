@@ -46,7 +46,7 @@ export default class WebGL2RenderPass implements AbstractRenderPass {
 		}
 
 		if (this.framebuffer) {
-			this.framebuffer.clear();
+			this.framebuffer.clearAllAttachments();
 		}
 	}
 
@@ -113,6 +113,18 @@ export default class WebGL2RenderPass implements AbstractRenderPass {
 		this.renderer.gl.bindBuffer(WebGL2Constants.PIXEL_PACK_BUFFER, pixelBuffer);
 		this.renderer.gl.getBufferSubData(WebGL2Constants.PIXEL_PACK_BUFFER, 0, buffer);
 		this.renderer.gl.bindBuffer(WebGL2Constants.PIXEL_PACK_BUFFER, null);
+	}
+
+	public clearAttachments(colorAttachmentIds: number[], clearDepth: boolean): void {
+		this.renderer.bindFramebuffer(this.framebuffer);
+
+		for (const attachmentId of colorAttachmentIds) {
+			this.framebuffer.clearColorAttachment(attachmentId);
+		}
+
+		if (clearDepth) {
+			this.framebuffer.clearDepthAttachment();
+		}
 	}
 
 	public delete(): void {

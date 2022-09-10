@@ -16,6 +16,7 @@ import ShadowMappingPass from "~/app/render/passes/ShadowMappingPass";
 import ShadingPass from "~/app/render/passes/ShadingPass";
 import ScreenPass from "~/app/render/passes/ScreenPass";
 import SSAOPass from "~/app/render/passes/SSAOPass";
+import SelectionPass from "~/app/render/passes/SelectionPass";
 
 const jitterOffsets: [number, number][] = [
 	[-7 / 8, 1 / 8],
@@ -70,6 +71,7 @@ export default class RenderSystem extends System {
 		this.passManager.addPass(new ShadingPass(this.passManager));
 		this.passManager.addPass(new ScreenPass(this.passManager));
 		this.passManager.addPass(new SSAOPass(this.passManager));
+		this.passManager.addPass(new SelectionPass(this.passManager));
 	}
 
 	private resize(): void {
@@ -99,7 +101,7 @@ export default class RenderSystem extends System {
 		}
 
 		this.jitterProjectionMatrix(sceneSystem.objects.camera.projectionMatrix, this.frameCount);
-		//sceneSystem.objects.camera.updateProjectionMatrixInverse();
+		sceneSystem.objects.camera.updateProjectionMatrixInverse();
 
 		this.renderGraph.render();
 

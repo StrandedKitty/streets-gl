@@ -47,7 +47,8 @@ let tileCounter = 0;
 
 export default class Tile extends Object3D {
 	public staticGeometry: StaticTileGeometry;
-	public buildingIdMap: Map<number, number> = new Map();
+	public buildingLocalToPackedMap: Map<number, number> = new Map();
+	public buildingPackedToLocalMap: Map<number, number> = new Map();
 	public buildingOffsetMap: Map<number, [number, number]> = new Map();
 	public buildingVisibilityMap: Map<number, boolean> = new Map();
 	public x: number;
@@ -117,7 +118,8 @@ export default class Tile extends Object3D {
 
 			const offset = offsets[i / 2];
 			const nextOffset = offsets[i / 2 + 1] || vertexCount;
-			this.buildingIdMap.set(i / 2, packedId);
+			this.buildingLocalToPackedMap.set(i / 2, packedId);
+			this.buildingPackedToLocalMap.set(packedId, i / 2);
 			this.buildingOffsetMap.set(packedId, [offset, nextOffset - offset]);
 			this.buildingVisibilityMap.set(packedId, true);
 		}

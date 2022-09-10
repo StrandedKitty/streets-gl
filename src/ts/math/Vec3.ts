@@ -120,7 +120,7 @@ export default class Vec3 {
 	}
 
 	public static unproject(v: Vec3, camera: Camera, useWorldMatrix = true): Vec3 {
-		const cameraSpace = Vec3.applyMatrix4(v, camera.projectionMatrixInverse);
+		const cameraSpace = Vec3.applyMatrix4(v, camera.projectionMatrixInverseStable);
 		return Vec3.applyMatrix4(cameraSpace, useWorldMatrix ? camera.matrixWorld : camera.matrix);
 	}
 

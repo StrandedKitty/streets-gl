@@ -173,27 +173,39 @@ export default class WebGL2Framebuffer {
 		this.gl.bindFramebuffer(WebGL2Constants.DRAW_FRAMEBUFFER, null);
 	}
 
-	public clear(): void {
+	public clearAllAttachments(): void {
 		for (let i = 0; i < this.colorAttachments.length; i++) {
 			const attachment = this.colorAttachments[i];
 
 			if (attachment.loadOp === RendererTypes.AttachmentLoadOp.Clear) {
-				this.clearColorBuffer(attachment.texture, attachment.clearValue, i);
+				this.clearColorAttachment(i);
 			}
 		}
 
-		if (this.depthAttachment && this.depthAttachment.loadOp === RendererTypes.AttachmentLoadOp.Clear) {
-			const depthWriteEnabled = this.renderer.depthWrite;
-
-			if (!depthWriteEnabled) {
-				this.renderer.depthWrite = true;
+		if (this.depthAttachment) {
+			if (this.depthAttachment.loadOp === RendererTypes.AttachmentLoadOp.Clear) {
+				this.clearDepthAttachment();
 			}
+		}
+	}
 
-			this.gl.clearBufferfi(WebGL2Constants.DEPTH_STENCIL, 0, this.depthAttachment.clearValue, 0);
+	public clearColorAttachment(attachmentId: number): void {
+		const attachment = this.colorAttachments[attachmentId];
 
-			if (!depthWriteEnabled) {
-				this.renderer.depthWrite = false;
-			}
+		this.clearColorBuffer(attachment.texture, attachment.clearValue, attachmentId);
+	}
+
+	public clearDepthAttachment(): void {
+		const depthWriteEnabled = this.renderer.depthWrite;
+
+		if (!depthWriteEnabled) {
+			this.renderer.depthWrite = true;
+		}
+
+		this.gl.clearBufferfi(WebGL2Constants.DEPTH_STENCIL, 0, this.depthAttachment.clearValue, 0);
+
+		if (!depthWriteEnabled) {
+			this.renderer.depthWrite = false;
 		}
 	}
 
@@ -202,7 +214,15 @@ export default class WebGL2Framebuffer {
 			case RendererTypes.TextureFormat.RGBA8Unorm:
 				this.gl.clearBufferfv(WebGL2Constants.COLOR, drawBuffer, WebGL2Framebuffer.clearValueToTypedArray(Float32Array, clearValue));
 				return;
+			case RendererTypes.TextureFormat.R8Unorm:
+				this.gl.clearBufferfv(WebGL2Constants.COLOR, drawBuffer, WebGL2Framebuffer.clearValueToTypedArray(Float32Array, clearValue));
+				return;
+			case RendererTypes.TextureFormat.RGBA32Float:
+				this.gl.clearBufferfv(WebGL2Constants.COLOR, drawBuffer, WebGL2Framebuffer.clearValueToTypedArray(Float32Array, clearValue));
+				return;
 		}
+
+		throw new Error('clearColorBuffer not implemented for TextureFormat ' + texture.format);
 	}
 
 	private static clearValueToTypedArray<T extends TypedArray>(type: {new(arr: number[]): T}, clearValue: ColorClearValue): T {

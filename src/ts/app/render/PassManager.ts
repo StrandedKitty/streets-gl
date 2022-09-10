@@ -22,6 +22,9 @@ interface SharedResources {
 	SSAOBlurTemp: RenderPassResource;
 	SSAOBlurred: RenderPassResource;
 	SSAOPrevDepth: RenderPassResource;
+	SelectionMask: RenderPassResource;
+	SelectionBlurTemp: RenderPassResource;
+	SelectionBlurred: RenderPassResource;
 }
 
 export default class PassManager {
@@ -206,7 +209,7 @@ export default class PassManager {
 							mipmaps: false
 						}),
 						clearValue: {r: 0, g: 0, b: 0, a: 1},
-						loadOp: RendererTypes.AttachmentLoadOp.Clear,
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
 						storeOp: RendererTypes.AttachmentStoreOp.Store
 					}
 				]
@@ -254,7 +257,7 @@ export default class PassManager {
 							mipmaps: false
 						}),
 						clearValue: {r: 0, g: 0, b: 0, a: 1},
-						loadOp: RendererTypes.AttachmentLoadOp.Clear,
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
 						storeOp: RendererTypes.AttachmentStoreOp.Store
 					}
 				]
@@ -403,6 +406,78 @@ export default class PassManager {
 				}
 			})
 		}));
+
+		this.sharedResources.set('SelectionMask', this.resourceFactory.createRenderPassResource({
+			name: 'SelectionMask',
+			isTransient: true,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: this.renderer.resolution.x,
+							height: this.renderer.resolution.y,
+							format: RendererTypes.TextureFormat.R8Unorm,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 1},
+						loadOp: RendererTypes.AttachmentLoadOp.Clear,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
+
+		this.sharedResources.set('SelectionBlurTemp', this.resourceFactory.createRenderPassResource({
+			name: 'SelectionBlurTemp',
+			isTransient: true,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: this.renderer.resolution.x,
+							height: this.renderer.resolution.y,
+							format: RendererTypes.TextureFormat.R8Unorm,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 1},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
+
+		this.sharedResources.set('SelectionBlurred', this.resourceFactory.createRenderPassResource({
+			name: 'SelectionBlurred',
+			isTransient: true,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: this.renderer.resolution.x,
+							height: this.renderer.resolution.y,
+							format: RendererTypes.TextureFormat.R8Unorm,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 1},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
 	}
 
 	public setSize(width: number, height: number): void {
@@ -419,5 +494,8 @@ export default class PassManager {
 		this.sharedResources.get('SSAOAccum').descriptor.setSize(width, height);
 		this.sharedResources.get('SSAOResult').descriptor.setSize(width, height);
 		this.sharedResources.get('SSAOPrevDepth').descriptor.setSize(width, height);
+		this.sharedResources.get('SelectionMask').descriptor.setSize(width, height);
+		this.sharedResources.get('SelectionBlurTemp').descriptor.setSize(width, height);
+		this.sharedResources.get('SelectionBlurred').descriptor.setSize(width, height);
 	}
 }

@@ -68,6 +68,8 @@ export default class UISystem extends System {
 	}
 
 	public setActiveFeature(type: number, id: number): void {
+		console.log(`feature ${type} ${id}`);
+
 		this.globalState.activeFeatureId = id;
 		this.globalState.activeFeatureType = type;
 		this.updateDOM();

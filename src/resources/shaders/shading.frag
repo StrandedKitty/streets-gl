@@ -7,6 +7,8 @@
 #define SHADOW_CASCADES 3
 #define SHADOWMAP_SOFT_RADIUS 1.
 
+#define SELECTION_COLOR (vec3(1, 0.2, 0))
+
 out vec4 FragColor;
 
 in vec2 vUv;
@@ -16,6 +18,8 @@ uniform sampler2D tNormal;
 uniform sampler2D tPosition;
 uniform sampler2DArray tShadowMaps;
 uniform sampler2D tSSAO;
+uniform sampler2D tSelectionMask;
+uniform sampler2D tSelectionBlurred;
 uniform mat4 viewMatrix;
 
 uniform CSM {
@@ -265,6 +269,12 @@ float getShadowFactorForCascade(int cascadeId, vec3 worldPosition) {
 	return getShadowSoft(cascadeId, shadowBias, shadowPosition, shadowSize, vec2(shadowResolution), SHADOWMAP_SOFT_RADIUS);
 }
 
+vec3 applySelectionOverlay(vec3 color) {
+	float selectionMask = texture(tSelectionBlurred, vUv).r * (1. - texture(tSelectionMask, vUv).r);
+
+	return mix(color.rgb, SELECTION_COLOR, smoothstep(0., 1., selectionMask * 2.));
+}
+
 void main() {
 	vec4 baseColor = SRGBtoLINEAR(texture(tColor, vUv));
 	vec3 normal = unpackNormal(texture(tNormal, vUv).xyz);
@@ -278,7 +288,7 @@ void main() {
 	float fr = dot(normal, vec3(0, 0, 1)) * 0.5 + 0.5;
 
 	if (baseColor.a == 0.) {
-		FragColor = vec4(baseColor.rgb, 1);
+		FragColor = vec4(applySelectionOverlay(baseColor.rgb), 1);
 		return;
 	}
 
@@ -332,6 +342,7 @@ void main() {
 	color += applyDirectionalLight(light, materialInfo, worldNormal, worldView) * shadowFactor;
 	color += materialInfo.diffuseColor * 0.2 * texture(tSSAO, vUv).r;
 
+	color = applySelectionOverlay(color);
+
 	FragColor = vec4(color, 1);
-	//FragColor = vec4(vec3(1) * texture(tSSAO, vUv).r, 1);
 }

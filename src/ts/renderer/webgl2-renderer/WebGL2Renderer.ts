@@ -277,7 +277,7 @@ export default class WebGL2Renderer implements AbstractRenderer {
 			];
 		}
 
-		return [null, null];
+		return ['', ''];
 	}
 
 	public async fence(): Promise<void> {
