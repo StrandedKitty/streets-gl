@@ -14,14 +14,14 @@ uniform PerMesh {
 
 uniform sampler2D grass;
 uniform sampler2D grassNoise;
+uniform sampler2D grassNormal;
 
 #include <packNormal>
 #include <getMotionVector>
 
 float sum(vec3 v) { return v.x + v.y + v.z; }
 
-vec3 textureNoTile(sampler2D noiseSamp, sampler2D colorSamp, vec2 uv, float uvScale)
-{
+vec3 textureNoTile(sampler2D noiseSamp, sampler2D colorSamp, vec2 uv, float uvScale) {
     // sample variation pattern
     float k = texture(noiseSamp, uv / uvScale).x;// cheap (cache friendly) lookup
 
@@ -45,6 +45,34 @@ vec3 textureNoTile(sampler2D noiseSamp, sampler2D colorSamp, vec2 uv, float uvSc
     return mix(cola, colb, smoothstep(0.2, 0.8, f - 0.1 * sum(cola - colb)));
 }
 
+mat3 getTBN(vec3 N, vec3 p, vec2 uv) {
+    /* get edge vectors of the pixel triangle */
+    vec3 dp1 = dFdx(p);
+    vec3 dp2 = dFdy(p);
+    vec2 duv1 = dFdx(uv);
+    vec2 duv2 = dFdy(uv);
+
+    /* solve the linear system */
+    vec3 dp2perp = cross(dp2, N);
+    vec3 dp1perp = cross(N, dp1);
+    vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;
+    vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;
+
+    /* construct a scale-invariant frame */
+    float invmax = inversesqrt(max(dot(T, T), dot(B, B)));
+    return mat3(T * invmax, -B * invmax, N);
+}
+
+vec3 getNormal(vec3 normalTextureValue) {
+    mat3 tbn = getTBN(vNormal, vPosition, vUv);
+    vec3 mapValue = normalTextureValue * 2. - 1.;
+    vec3 normal = normalize(tbn * mapValue);
+
+    normal *= float(gl_FrontFacing) * 2. - 1.;
+
+    return normal;
+}
+
 void main() {
     outColor = vec4(textureNoTile(grassNoise, grass, vUv, 6.), 1);
 
@@ -53,7 +81,7 @@ void main() {
         //outColor = vec4(1, 0, 0, 1);
     }
 
-    outNormal = packNormal(vNormal);
+    outNormal = packNormal(getNormal(textureNoTile(grassNoise, grassNormal, vUv, 6.)));
     outPosition = vPosition;
     outMotion = getMotionVector(vClipPos, vClipPosPrev);
     outObjectId = 0u;

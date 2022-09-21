@@ -20,6 +20,7 @@ uniform sampler2DArray tShadowMaps;
 uniform sampler2D tSSAO;
 uniform sampler2D tSelectionMask;
 uniform sampler2D tSelectionBlurred;
+uniform samplerCube tSky;
 uniform mat4 viewMatrix;
 
 uniform CSM {
@@ -157,28 +158,27 @@ vec2 integrateSpecularBRDF(float dotNV, float roughness) {
 	return vec2(-1.04, 1.04) * a004 + r.zw;
 }
 
-/*vec3 getIBLContribution(MaterialInfo materialInfo, vec3 n, vec3 v) {
-	float NdotV = clamp(dot(n, v), 0.0, 1.0);
-
-	float lod = getSpecularMIPLevel(materialInfo.perceptualRoughness, 11);
+vec3 getIBLContribution(MaterialInfo materialInfo, vec3 n, vec3 v) {
+	float lod = getSpecularMIPLevel(materialInfo.perceptualRoughness, 10);
 	vec3 reflection = normalize(reflect(-v, n));
 	reflection.y = abs(reflection.y);
 
-	vec2 brdfSamplePoint = clamp(vec2(NdotV, materialInfo.perceptualRoughness), vec2(0, 0), vec2(1, 1));
+	float NdotV = clamp(dot(n, v), 0.0, 1.0);
+	//vec2 brdfSamplePoint = clamp(vec2(NdotV, materialInfo.perceptualRoughness), vec2(0, 0), vec2(1, 1));
 	//vec2 brdf = texture(tBRDF, brdfSamplePoint).rg;
 	vec2 brdf = integrateSpecularBRDF(NdotV, materialInfo.perceptualRoughness);
 
-	vec4 diffuseSample = textureLod(tSky, n, 0.);
+	//vec4 diffuseSample = textureLod(tSky, n, 0.);
 	vec4 specularSample = textureLod(tSky, reflection, lod);
 
-	vec3 diffuseLight = SRGBtoLINEAR(diffuseSample).rgb;
+	//vec3 diffuseLight = SRGBtoLINEAR(diffuseSample).rgb;
 	vec3 specularLight = SRGBtoLINEAR(specularSample).rgb;
 
-	vec3 diffuse = diffuseLight * materialInfo.diffuseColor;
+	//vec3 diffuse = diffuseLight * materialInfo.diffuseColor;
 	vec3 specular = specularLight * (materialInfo.specularColor * brdf.x + brdf.y);
 
-	return diffuse * 0. + specular;
-}*/
+	return /*diffuse + */specular;
+}
 
 float perspectiveDepthToViewZ(const in float invClipZ, const in float near, const in float far) {
 	return (near * far) / ((far - near) * invClipZ - far);
@@ -292,9 +292,9 @@ void main() {
 		return;
 	}
 
-	float perceptualRoughness = 0.95;
+	float perceptualRoughness = 0.7;
 	float metallic = 0.0;
-	vec3 f0 = vec3(0.01);
+	vec3 f0 = vec3(0.04);
 	vec3 diffuseColor = baseColor.rgb * (vec3(1.) - f0) * (1. - metallic);
 	vec3 specularColor = mix(f0, baseColor.rgb, metallic);
 
@@ -339,6 +339,7 @@ void main() {
 
 	vec3 color = vec3(0);
 
+	color += getIBLContribution(materialInfo, worldNormal, worldView) * 0.5;
 	color += applyDirectionalLight(light, materialInfo, worldNormal, worldView) * shadowFactor;
 	color += materialInfo.diffuseColor * 0.2 * texture(tSSAO, vUv).r;
 

@@ -54,6 +54,16 @@ vec3 getRoofNormal() {
     return normal;
 }
 
+/*vec3 getFacadeNormal() {
+    mat3 tbn = getTBN(vNormal, vPosition, vUv);
+    vec3 mapValue = texture(tFacadeNormal, vec3(vUv * 0.02, 0)).xyz * 2. - 1.;
+    vec3 normal = normalize(tbn * mapValue);
+
+    normal *= float(gl_FrontFacing) * 2. - 1.;
+
+    return normal;
+}*/
+
 void main() {
     if(vTextureId == 0) {
         outColor = vec4(vColor, 1);

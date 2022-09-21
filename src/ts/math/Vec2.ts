@@ -65,6 +65,10 @@ export default class Vec2 {
 		return Math.atan2(det, dot);
 	}
 
+	public getAngle(): number {
+		return Math.atan2(this.y, this.x);
+	}
+
 	public static rotate(v: Vec2, angle: number): Vec2 {
 		return new Vec2(
 			v.x * Math.cos(angle) - v.y * Math.sin(angle),

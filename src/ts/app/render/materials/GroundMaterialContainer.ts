@@ -40,6 +40,19 @@ export default class GroundMaterialContainer extends MaterialContainer {
 						mipmaps: true
 					})
 				}, {
+					name: 'grassNormal',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: this.renderer.createTexture2D({
+						anisotropy: 16,
+						data: ResourceManager.get('grassNormal'),
+						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
+						magFilter: RendererTypes.MagFilter.Linear,
+						wrap: RendererTypes.TextureWrap.Repeat,
+						format: RendererTypes.TextureFormat.RGBA8Unorm,
+						mipmaps: true
+					})
+				}, {
 					name: 'grassNoise',
 					block: null,
 					type: RendererTypes.UniformType.Texture2D,

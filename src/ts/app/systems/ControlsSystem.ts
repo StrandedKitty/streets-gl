@@ -136,23 +136,27 @@ export default class ControlsSystem extends System {
 	private mouseDownEvent(e: MouseEvent): void {
 		e.preventDefault();
 
-		if (e.button === 1) {
-			this.wheelZoomScaleTarget = 1;
-			return;
-		}
-
-		if (e.button === 2) {
-			this.isRotationMouseMode = true
-		} else {
-			this.isMovementMouseMode = true;
-			this.mouseDownPosition = this.projectOnGround(e.clientX, e.clientY);
+		switch (e.button) {
+			case 0: {
+				this.isMovementMouseMode = true;
+				this.mouseDownPosition = this.projectOnGround(e.clientX, e.clientY);
+				break;
+			}
+			case 1: {
+				this.wheelZoomScaleTarget = 1;
+				break;
+			}
+			case 2: {
+				this.isRotationMouseMode = true;
+				break;
+			}
 		}
 	}
 
 	private mouseLeaveEvent(e: MouseEvent): void {
 		this.systemManager.getSystem(CursorStyleSystem).disableGrabbing();
 
-		this.isRotationMouseMode = false
+		this.isRotationMouseMode = false;
 		this.isMovementMouseMode = false;
 		this.mouseDownPosition = null;
 		this.cachedMoveEvent = null;
@@ -161,17 +165,21 @@ export default class ControlsSystem extends System {
 	private mouseUpEvent(e: MouseEvent): void {
 		this.systemManager.getSystem(CursorStyleSystem).disableGrabbing();
 
-		if (e.button === 1) {
-			this.wheelZoomScaleTarget = 0;
-			return;
-		}
-
-		if (e.button === 2) {
-			this.isRotationMouseMode = false
-		} else {
-			this.isMovementMouseMode = false;
-			this.mouseDownPosition = null;
-			this.cachedMoveEvent = null;
+		switch (e.button) {
+			case 0: {
+				this.isMovementMouseMode = false;
+				this.mouseDownPosition = null;
+				this.cachedMoveEvent = null;
+				break;
+			}
+			case 1: {
+				this.wheelZoomScaleTarget = 0;
+				break;
+			}
+			case 2: {
+				this.isRotationMouseMode = false;
+				break;
+			}
 		}
 	}
 

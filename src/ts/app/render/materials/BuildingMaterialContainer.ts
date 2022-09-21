@@ -38,17 +38,18 @@ export default class BuildingMaterialContainer extends MaterialContainer {
 					value: this.renderer.createTexture2DArray({
 						width: 512,
 						height: 512,
-						depth: 4,
+						depth: 5,
 						anisotropy: 16,
 						data: [
 							ResourceManager.get('roofColor1'),
 							ResourceManager.get('roofColor2'),
 							ResourceManager.get('roofColor3'),
 							ResourceManager.get('roofColor4'),
+							ResourceManager.get('roofColor5'),
 						],
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,
-						wrap: RendererTypes.TextureWrap.ClampToEdge,
+						wrap: RendererTypes.TextureWrap.Repeat,
 						format: RendererTypes.TextureFormat.RGBA8Unorm,
 						mipmaps: true
 					})
@@ -59,17 +60,18 @@ export default class BuildingMaterialContainer extends MaterialContainer {
 					value: this.renderer.createTexture2DArray({
 						width: 512,
 						height: 512,
-						depth: 4,
+						depth: 5,
 						anisotropy: 16,
 						data: [
 							ResourceManager.get('roofNormal1'),
 							ResourceManager.get('roofNormal2'),
 							ResourceManager.get('roofNormal3'),
 							ResourceManager.get('roofNormal4'),
+							ResourceManager.get('roofNormal5'),
 						],
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,
-						wrap: RendererTypes.TextureWrap.ClampToEdge,
+						wrap: RendererTypes.TextureWrap.Repeat,
 						format: RendererTypes.TextureFormat.RGBA8Unorm,
 						mipmaps: true
 					})

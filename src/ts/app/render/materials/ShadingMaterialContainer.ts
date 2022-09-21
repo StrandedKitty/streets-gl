@@ -2,6 +2,7 @@ import Shaders from "../shaders/Shaders";
 import MaterialContainer from "~/app/render/materials/MaterialContainer";
 import {RendererTypes} from "~/renderer/RendererTypes";
 import AbstractRenderer from "~/renderer/abstract-renderer/AbstractRenderer";
+import ResourceManager from "~/app/world/ResourceManager";
 
 export default class ShadingMaterialContainer extends MaterialContainer {
 	public constructor(renderer: AbstractRenderer) {
@@ -45,6 +46,28 @@ export default class ShadingMaterialContainer extends MaterialContainer {
 					block: null,
 					type: RendererTypes.UniformType.Texture2D,
 					value: null
+				}, {
+					name: 'tSky',
+					block: null,
+					type: RendererTypes.UniformType.TextureCube,
+					value: this.renderer.createTextureCube({
+						width: 512,
+						height: 512,
+						anisotropy: 16,
+						data: [
+							ResourceManager.get('sky0'),
+							ResourceManager.get('sky1'),
+							ResourceManager.get('sky2'),
+							ResourceManager.get('sky3'),
+							ResourceManager.get('sky4'),
+							ResourceManager.get('sky5'),
+						],
+						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
+						magFilter: RendererTypes.MagFilter.Linear,
+						wrap: RendererTypes.TextureWrap.ClampToEdge,
+						format: RendererTypes.TextureFormat.RGBA8Unorm,
+						mipmaps: true
+					})
 				}, {
 					name: 'viewMatrix',
 					block: null,

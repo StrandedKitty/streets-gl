@@ -51,23 +51,27 @@ void main() {
 
     for (float i = 0.; i < AO_SAMPLES; ++i) {
         float progress = i / AO_SAMPLES;
-        vec3 sampleNoiseOffset = (i + 1.) * randomOffset.yzw;
+        vec2 sampleNoiseOffset = (i + 1.) * randomOffset.zw;
+        vec3 test = texture(tNoise, noiseUv + sampleNoiseOffset).xyz;
         vec3 rotationVector = normalize(vec3(
-            texture(tNoise, noiseUv + sampleNoiseOffset.x).y * 2. - 1.,
-            texture(tNoise, noiseUv + sampleNoiseOffset.y).z * 2. - 1.,
-            texture(tNoise, noiseUv + sampleNoiseOffset.z).w
+            test.x * 2. - 1.,
+            test.y * 2. - 1.,
+            test.z
         ));
         rotationVector *= mix(0.1, 1., progress * progress);
 
+        float scaledRadius = radius;
+        if (-depth < 200.) scaledRadius *= -depth / 200.;
+
         vec3 smple = TBN * rotationVector;
-        smple = fragPos + smple * radius;
+        smple = fragPos + smple * scaledRadius;
 
         vec4 offset = projectionMatrix * vec4(smple, 1.0);
         offset.xyz /= offset.w;
         offset.xyz = offset.xyz * 0.5 + 0.5;
 
         float sampleDepth = readPosition(offset.xy).z;
-        float rangeCheck = smoothstep(0., 1., radius / abs(depth - sampleDepth));
+        float rangeCheck = smoothstep(0., 1., scaledRadius / abs(depth - sampleDepth));
         occlusion += (sampleDepth >= smple.z + bias ? 1. : 0.) * rangeCheck;
 
         vec3 motionSample = texture(tMotion, offset.xy).xyz;

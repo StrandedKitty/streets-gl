@@ -15,6 +15,10 @@
 		"url": "/textures/buildings/roofs/4_color.png",
 		"type": "image"
 	},
+	"roofColor5": {
+		"url": "/textures/buildings/roofs/5_color.png",
+		"type": "image"
+	},
 	"roofNormal1": {
 		"url": "/textures/buildings/roofs/1_normal.png",
 		"type": "image"
@@ -31,8 +35,16 @@
 		"url": "/textures/buildings/roofs/4_normal.png",
 		"type": "image"
 	},
+	"roofNormal5": {
+		"url": "/textures/buildings/roofs/5_normal.png",
+		"type": "image"
+	},
 	"grass": {
 		"url": "/textures/surfaces/grass_color.png",
+		"type": "image"
+	},
+	"grassNormal": {
+		"url": "/textures/surfaces/grass_normal.png",
 		"type": "image"
 	},
 	"grassNoise": {
@@ -77,6 +89,30 @@
 	},
 	"blue_noise_rgba": {
 		"url": "/textures/blue_noise_rgba.png",
+		"type": "image"
+	},
+	"sky0": {
+		"url": "/textures/sky/px.jpg",
+		"type": "image"
+	},
+	"sky1": {
+		"url": "/textures/sky/nx.jpg",
+		"type": "image"
+	},
+	"sky2": {
+		"url": "/textures/sky/py.jpg",
+		"type": "image"
+	},
+	"sky3": {
+		"url": "/textures/sky/ny.jpg",
+		"type": "image"
+	},
+	"sky4": {
+		"url": "/textures/sky/pz.jpg",
+		"type": "image"
+	},
+	"sky5": {
+		"url": "/textures/sky/nz.jpg",
 		"type": "image"
 	}
 }

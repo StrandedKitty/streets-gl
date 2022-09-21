@@ -5,6 +5,7 @@ import {RingType} from "~/app/world/geometry/features/3d/Ring3D";
 import polylabel from "polylabel";
 import MathUtils from "~/math/MathUtils";
 import Vec3 from "~/math/Vec3";
+import Vec2 from "~/math/Vec2";
 
 export default new class PyramidalRoofBuilder extends RoofBuilder {
 	public build(way: Way3D): RoofGeometry {
@@ -23,14 +24,30 @@ export default new class PyramidalRoofBuilder extends RoofBuilder {
 		const center = polylabel([ringVertices], 1);
 
 		const minHeight = way.minGroundHeight + (+way.tags.height || 6) * way.heightFactor;
-		const maxHeight = minHeight + +way.tags.roofHeight || 8;
+		const height = +way.tags.roofHeight || 8;
+		const maxHeight = minHeight + height;
 
 		const vertices = new Float32Array(ringVertices.length * 9);
 		const normals = new Float32Array(ringVertices.length * 9);
+		const uvs = new Float32Array(ringVertices.length * 6);
+
+		let minDstToCenter = 0;
+		for (let i = 0; i < ringVertices.length; i++) {
+			const vertex = ringVertices[i];
+			const dstToCenter = Math.hypot(vertex[0] - center[0], vertex[1] - center[1]);
+
+			minDstToCenter = Math.min(minDstToCenter, dstToCenter);
+		}
+
+		const roofSlopeLength = Math.hypot(minDstToCenter, height);
+		let uvProgress = 0;
+		const uvScale = 0.5;
 
 		for (let i = 0; i < ringVertices.length; i++) {
 			const vertex = ringVertices[i];
 			const nextVertex = ringVertices[i + 1] || ringVertices[0];
+			const segmentSize = Math.hypot(vertex[0] - nextVertex[0], vertex[1] - nextVertex[1]);
+			const nextUvProgress = uvProgress + segmentSize;
 
 			vertices[i * 9] = vertex[0];
 			vertices[i * 9 + 1] = minHeight;
@@ -43,6 +60,19 @@ export default new class PyramidalRoofBuilder extends RoofBuilder {
 			vertices[i * 9 + 6] = center[0];
 			vertices[i * 9 + 7] = maxHeight;
 			vertices[i * 9 + 8] = center[1];
+
+			const segmentDir = Vec2.sub(new Vec2(nextVertex[0], nextVertex[1]), new Vec2(vertex[0], vertex[1]));
+			const segmentAngle = Vec2.normalize(segmentDir).getAngle();
+			const localCenter = Vec2.rotate(Vec2.sub(new Vec2(center[0], center[1]), new Vec2(vertex[0], vertex[1])), -segmentAngle);
+
+			uvs[i * 6] = uvProgress * uvScale;
+			uvs[i * 6 + 1] = 0;
+			uvs[i * 6 + 2] = nextUvProgress * uvScale;
+			uvs[i * 6 + 3] = 0;
+			uvs[i * 6 + 4] = (uvProgress + localCenter.x) * uvScale;
+			uvs[i * 6 + 5] = roofSlopeLength * uvScale;
+
+			uvProgress = nextUvProgress;
 
 			const normal = MathUtils.calculateNormal(
 				new Vec3(vertex[0], minHeight, vertex[1]),
@@ -62,8 +92,8 @@ export default new class PyramidalRoofBuilder extends RoofBuilder {
 		return {
 			position: vertices,
 			normal: normals,
-			uv: new Float32Array(vertexCount * 2),
-			textureId: Utils.fillTypedArraySequence(new Uint8Array(vertexCount), new Uint8Array([0]))
+			uv: uvs,
+			textureId: Utils.fillTypedArraySequence(new Uint8Array(vertexCount), new Uint8Array([6]))
 		};
 	}
 }
