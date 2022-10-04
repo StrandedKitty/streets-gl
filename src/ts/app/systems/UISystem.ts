@@ -4,6 +4,8 @@ import MathUtils from "../../math/MathUtils";
 import UI from "../ui/UI";
 import RenderSystem from "~/app/systems/RenderSystem";
 import * as RG from "~/render-graph";
+import ControlsSystem from "~/app/systems/ControlsSystem";
+import MapTimeSystem from "~/app/systems/MapTimeSystem";
 
 export interface RenderGraphSnapshot {
 	graph: {
@@ -54,6 +56,7 @@ export default class UISystem extends System {
 			event.stopPropagation();
 		});
 
+		UI.setInitialGlobalState(this.globalState);
 		this.updateDOM();
 	}
 
@@ -62,27 +65,32 @@ export default class UISystem extends System {
 	}
 
 	private updateDOM(): void {
-		UI.update(this.globalState, (k: keyof UIGlobalState, v: any) => {
-			this.globalState[k] = v;
-		}, () => this.updateRenderGraph());
+		UI.update(
+			() => this.updateRenderGraph(),
+			(lat: number, lon: number): void => {
+				this.systemManager.getSystem(ControlsSystem).setLatLon(lat, lon);
+			},
+			(state: number): void => {
+				this.systemManager.getSystem(MapTimeSystem).setState(state);
+			}
+		);
 	}
 
 	public setActiveFeature(type: number, id: number): void {
 		console.log(`feature ${type} ${id}`);
 
-		this.globalState.activeFeatureId = id;
-		this.globalState.activeFeatureType = type;
-		this.updateDOM();
+		UI.setGlobalStateField('activeFeatureId', id);
+		UI.setGlobalStateField('activeFeatureType', type);
 	}
 
 	public clearActiveFeature(): void {
-		this.globalState.activeFeatureId = null;
-		this.globalState.activeFeatureType = null;
-		this.updateDOM();
+		UI.setGlobalStateField('activeFeatureId', null);
+		UI.setGlobalStateField('activeFeatureType', null);
 	}
 
 	public updateFrameTime(frameTime: number): void {
-		this.globalState.frameTime = MathUtils.lerp(this.globalState.frameTime, frameTime, 0.1);
+		const value = MathUtils.lerp(this.globalState.frameTime, frameTime, 0.1);
+		UI.setGlobalStateField('frameTime', value);
 	}
 
 	public get mapTime(): number {
@@ -135,21 +143,23 @@ export default class UISystem extends System {
 	}
 
 	public updateRenderGraph(): void {
-		this.globalState.renderGraph = this.getRenderGraph();
+		UI.setGlobalStateField('renderGraph', this.getRenderGraph());
 	}
 
 	public update(deltaTime: number): void {
 		const newFps = Math.min(Math.round(1 / deltaTime), 1e3);
-		this.globalState.fps = MathUtils.lerp(this.globalState.fps, newFps, 0.1);
+		UI.setGlobalStateField('fps', MathUtils.lerp(this.globalState.fps, newFps, 0.1));
 
 		if (this.fpsUpdateTimer >= FPSUpdateInterval) {
 			this.fpsUpdateTimer = 0;
 			this.globalState.fpsSmooth = this.globalState.fps;
+			UI.setGlobalStateField('fpsSmooth', this.globalState.fps);
 		}
 
 		this.fpsUpdateTimer += deltaTime;
 
-		this.globalState.mapTime += deltaTime * 1000 * this.globalState.mapTimeMultiplier;
+		const newMapTime = this.globalState.mapTime + deltaTime * 1000 * this.globalState.mapTimeMultiplier;
+		UI.setGlobalStateField('mapTime', newMapTime);
 
 		this.updateDOM();
 	}

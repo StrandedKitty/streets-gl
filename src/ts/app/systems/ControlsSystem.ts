@@ -106,6 +106,15 @@ export default class ControlsSystem extends System {
 		return MathUtils.meters2degrees(this.target.x, this.target.z);
 	}
 
+	public setLatLon(lat: number, lon: number): void {
+		const position = MathUtils.degrees2meters(lat, lon);
+
+		this.state.x = position.x;
+		this.state.z = position.y;
+
+		this.updatePositionFromState(this.state);
+	}
+
 	private updateStateFromPosition(): void {
 		this.state.x = this.target.x;
 		this.state.z = this.target.z;

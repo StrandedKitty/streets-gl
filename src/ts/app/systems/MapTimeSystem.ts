@@ -8,7 +8,7 @@ import SunCalc from 'suncalc';
 import Easing from "../../math/Easing";
 import UISystem from "~/app/systems/UISystem";
 
-const PredefinedLightStates: [Vec3, Vec3][] = [
+const StaticPresets: [Vec3, Vec3][] = [
 	[new Vec3(-1, -1, -1).normalize(), new Vec3(0, 1, 0).normalize()],
 	[new Vec3(-1, -3, -1).normalize(), new Vec3(0, 1, 0).normalize()],
 	[new Vec3(1, -0.4, 1).normalize(), new Vec3(0, 1, 0).normalize()],
@@ -23,7 +23,7 @@ enum MapTimeState {
 export default class MapTimeSystem extends System {
 	private state: MapTimeState = MapTimeState.Dynamic;
 
-	private staticLights: [Vec3, Vec3] = PredefinedLightStates[0];
+	private staticLights: [Vec3, Vec3] = StaticPresets[0];
 
 	private time: number = 0;
 	public lightDirection: Vec3 = new Vec3();
@@ -39,20 +39,6 @@ export default class MapTimeSystem extends System {
 
 	public constructor(systemManager: SystemManager) {
 		super(systemManager);
-
-		document.addEventListener('keydown', (event) => {
-			const code = event.code;
-
-			if (code.startsWith('Digit')) {
-				const digit = parseInt(code[5]);
-
-				if (digit < 1 || digit > PredefinedLightStates.length + 1) {
-					return;
-				}
-
-				this.setState(digit - 2);
-			}
-		});
 	}
 
 	public postInit(): void {
@@ -60,10 +46,14 @@ export default class MapTimeSystem extends System {
 	}
 
 	public setState(state: number): void {
-		this.staticLights = PredefinedLightStates[state];
-		this.transitionProgress = 0;
-		this.sunTransitionStart = Vec3.clone(this.sunDirection);
-		this.moonTransitionStart = Vec3.clone(this.moonDirection);
+		if (state === 0) {
+			this.state = MapTimeState.Dynamic;
+			return;
+		}
+
+		const presetId = state - 1;
+		this.staticLights = StaticPresets[presetId];
+		this.state = MapTimeState.Static;
 	}
 
 	private getTargetSunAndMoonDirection(): [Vec3, Vec3] {

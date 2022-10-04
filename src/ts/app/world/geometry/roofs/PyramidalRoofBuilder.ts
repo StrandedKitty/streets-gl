@@ -2,10 +2,10 @@ import Way3D from "~/app/world/geometry/features/3d/Way3D";
 import RoofBuilder, {RoofGeometry} from "~/app/world/geometry/roofs/RoofBuilder";
 import Utils from "~/app/Utils";
 import {RingType} from "~/app/world/geometry/features/3d/Ring3D";
-import polylabel from "polylabel";
 import MathUtils from "~/math/MathUtils";
 import Vec3 from "~/math/Vec3";
 import Vec2 from "~/math/Vec2";
+import polylabel from "polylabel";
 
 export default new class PyramidalRoofBuilder extends RoofBuilder {
 	public build(way: Way3D): RoofGeometry {
@@ -21,7 +21,11 @@ export default new class PyramidalRoofBuilder extends RoofBuilder {
 		}
 
 		const ringVertices = outerRing.vertices.slice(0, -1);
-		const center = polylabel([ringVertices], 1);
+		let center = MathUtils.getPolygonCentroid(ringVertices);
+
+		if (!MathUtils.isPointInsidePolygon(center, ringVertices)) {
+			center = polylabel([ringVertices], 1) as [number, number];
+		}
 
 		const minHeight = way.minGroundHeight + (+way.tags.height || 6) * way.heightFactor;
 		const height = +way.tags.roofHeight || 8;
@@ -45,7 +49,7 @@ export default new class PyramidalRoofBuilder extends RoofBuilder {
 
 		for (let i = 0; i < ringVertices.length; i++) {
 			const vertex = ringVertices[i];
-			const nextVertex = ringVertices[i + 1] || ringVertices[0];
+			const nextVertex = ringVertices[(i + 1) % ringVertices.length];
 			const segmentSize = Math.hypot(vertex[0] - nextVertex[0], vertex[1] - nextVertex[1]);
 			const nextUvProgress = uvProgress + segmentSize;
 

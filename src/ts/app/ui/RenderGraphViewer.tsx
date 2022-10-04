@@ -3,6 +3,7 @@ import {RenderGraphSnapshot} from "~/app/systems/UISystem";
 import dagre from "dagre";
 import dagreD3 from "dagre-d3";
 import * as d3 from "d3";
+import UI from "~/app/ui/UI";
 
 const stringifyRecord = <K extends string, V>(record: Record<K, V>): string => {
 	let result = '';
@@ -57,12 +58,16 @@ const constructGraphFromData = (data: RenderGraphSnapshot): dagre.graphlib.Graph
 }
 
 const RenderGraphViewer: React.FC<{
-	data: RenderGraphSnapshot;
 	update: () => void;
 	close: () => void;
-}> = ({data, update, close}) => {
+}> = ({update, close}) => {
 	const svgRef = useRef();
+	const [data, setData] = useState<RenderGraphSnapshot>(null);
 	const [zoomHandler, setZoomHandler] = useState<d3.ZoomBehavior<Element, unknown>>(null);
+
+	useEffect(() => {
+		UI.listenToField('renderGraph', (data: RenderGraphSnapshot) => setData(data));
+	}, []);
 
 	useEffect(() => {
 		if (!data) {

@@ -5,7 +5,7 @@ import ColorsList from './../../../../resources/colors.json';
 
 export default class OSMDescriptor {
 	private readonly tags: OSMTags;
-	public properties: { [key: string]: any } = {};
+	public properties: {[key: string]: any} = {};
 
 	public constructor(feature: OSMFeature) {
 		this.tags = feature.tags;
@@ -19,27 +19,27 @@ export default class OSMDescriptor {
 
 		for (const [key, value] of Object.entries(this.tags)) {
 			if (tags[key]) {
-				const props: { [key: string]: string } = tags[key][value] || tags[key].default || {};
+				const props: {[key: string]: string} = tags[key][value] || tags[key].default || {};
 
 				for (const [propKey, propValue] of Object.entries(props)) {
 					let newValue: any;
 
 					switch (propValue) {
-					case '@units':
-						newValue = this.parseUnits(value);
-						break;
-					case '@color':
-						newValue = colors[value.toLowerCase()] || Utils.hexToRgb(value);
-						break;
-					case '@int':
-						newValue = parseInt(value);
-						break;
-					case '@self':
-						newValue = value;
-						break;
-					default:
-						newValue = propValue;
-						break;
+						case '@units':
+							newValue = this.parseUnits(value);
+							break;
+						case '@color':
+							newValue = colors[value.toLowerCase()] || Utils.hexToRgb(value);
+							break;
+						case '@int':
+							newValue = parseInt(value);
+							break;
+						case '@self':
+							newValue = value;
+							break;
+						default:
+							newValue = propValue;
+							break;
 					}
 
 					this.properties[propKey] = newValue;
