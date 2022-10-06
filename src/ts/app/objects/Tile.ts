@@ -7,6 +7,10 @@ import Vec2 from "../../math/Vec2";
 import TileBuildings from "~/app/objects/TileBuildings";
 import TileGround from "~/app/objects/TileGround";
 import TileRoads from "~/app/objects/TileRoads";
+import FontJSON from './../../../resources/Inter-Regular.json';
+import Labels from "~/app/objects/Labels";
+import TileLabelBuffers from "~/app/objects/TileLabelBuffers";
+import Config from "~/app/Config";
 
 export interface GroundGeometryBuffers {
 	position: Float32Array;
@@ -41,6 +45,11 @@ export interface StaticTileGeometry {
 		min: number[];
 		max: number[];
 	};
+	labels: {
+		position: number[];
+		priority: number[];
+		text: string[];
+	};
 }
 
 let tileCounter = 0;
@@ -60,6 +69,7 @@ export default class Tile extends Object3D {
 	public buildings: TileBuildings;
 	public ground: TileGround;
 	public roads: TileRoads;
+	public labelBuffersList: TileLabelBuffers[] = [];
 	public buildingsNeedFiltering: boolean = true;
 
 	public constructor(x: number, y: number) {
@@ -95,6 +105,18 @@ export default class Tile extends Object3D {
 			this.buildings = new TileBuildings(this.staticGeometry);
 			this.ground = new TileGround(this.staticGeometry);
 			this.roads = new TileRoads(this.staticGeometry);
+
+			for (let i = 0; i < this.staticGeometry.labels.text.length; i++) {
+				const label = new TileLabelBuffers({
+					text: this.staticGeometry.labels.text[i],
+					priority: this.staticGeometry.labels.priority[i],
+					x: this.position.x + this.staticGeometry.labels.position[i * 3],
+					y: this.position.y + this.staticGeometry.labels.position[i * 3 + 1],
+					z: this.position.z + this.staticGeometry.labels.position[i * 3 + 2],
+				});
+
+				this.labelBuffersList.push(label);
+			}
 
 			this.add(this.buildings, this.ground, this.roads);
 		});

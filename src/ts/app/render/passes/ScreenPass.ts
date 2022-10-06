@@ -7,9 +7,14 @@ import AbstractMaterial from "~/renderer/abstract-renderer/AbstractMaterial";
 import FullScreenTriangle from "~/app/objects/FullScreenTriangle";
 import AbstractTexture2D from "~/renderer/abstract-renderer/AbstractTexture2D";
 import ScreenMaterialContainer from "~/app/render/materials/ScreenMaterialContainer";
+import {UniformFloat2} from "~/renderer/abstract-renderer/Uniform";
 
 export default class ScreenPass extends Pass<{
 	HDR: {
+		type: InternalResourceType.Input;
+		resource: RenderPassResource;
+	};
+	Labels: {
 		type: InternalResourceType.Input;
 		resource: RenderPassResource;
 	};
@@ -24,6 +29,7 @@ export default class ScreenPass extends Pass<{
 	public constructor(manager: PassManager) {
 		super('ScreenPass', manager, {
 			HDR: {type: InternalResourceType.Input, resource: manager.getSharedResource('HDRAntialiased')},
+			Labels: {type: InternalResourceType.Input, resource: manager.getSharedResource('Labels')},
 			Output: {type: InternalResourceType.Output, resource: manager.getSharedResource('BackbufferRenderPass')},
 		});
 
@@ -33,10 +39,16 @@ export default class ScreenPass extends Pass<{
 
 	public render(): void {
 		const sourceTexture = <AbstractTexture2D>this.getPhysicalResource('HDR').colorAttachments[0].texture;
+		const labelsTexture = <AbstractTexture2D>this.getPhysicalResource('Labels').colorAttachments[0].texture;
+		const uiResolution = this.manager.renderSystem.resolutionUI;
 
 		this.renderer.beginRenderPass(this.getPhysicalResource('Output'));
 
 		this.material.getUniform('tHDR').value = sourceTexture;
+		this.material.getUniform('tLabels').value = labelsTexture;
+		this.material.getUniform<UniformFloat2>('resolution', 'Uniforms').value[0] = uiResolution.x;
+		this.material.getUniform<UniformFloat2>('resolution', 'Uniforms').value[1] = uiResolution.y;
+		this.material.updateUniformBlock('Uniforms');
 
 		this.renderer.useMaterial(this.material);
 		this.fullScreenTriangle.mesh.draw();

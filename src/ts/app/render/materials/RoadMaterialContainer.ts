@@ -64,6 +64,18 @@ export default class RoadMaterialContainer extends MaterialContainer {
 				depthBiasConstant: -1,
 				depthBiasSlopeScale: -1
 			},
+			blend: {
+				color: {
+					operation: RendererTypes.BlendOperation.Add,
+					srcFactor: RendererTypes.BlendFactor.One,
+					dstFactor: RendererTypes.BlendFactor.Zero
+				},
+				alpha: {
+					operation: RendererTypes.BlendOperation.Add,
+					srcFactor: RendererTypes.BlendFactor.One,
+					dstFactor: RendererTypes.BlendFactor.Zero
+				}
+			},
 			vertexShaderSource: Shaders.road.vertex,
 			fragmentShaderSource: Shaders.road.fragment
 		});

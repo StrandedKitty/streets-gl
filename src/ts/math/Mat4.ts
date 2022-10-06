@@ -743,6 +743,6 @@ export default class Mat4 {
 	}
 
 	public static copy(m: Mat4): Mat4 {
-		return new Mat4(m.values);
+		return new Mat4(new Float64Array(m.values));
 	}
 }

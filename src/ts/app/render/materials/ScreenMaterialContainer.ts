@@ -16,10 +16,15 @@ export default class ScreenMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Texture2D,
 					value: null
 				}, {
-					name: 'tSelectionMask',
+					name: 'tLabels',
 					block: null,
 					type: RendererTypes.UniformType.Texture2D,
 					value: null
+				}, {
+					name: 'resolution',
+					block: 'Uniforms',
+					type: RendererTypes.UniformType.Float2,
+					value: new Float32Array(2)
 				}
 			],
 			primitive: {
@@ -29,6 +34,18 @@ export default class ScreenMaterialContainer extends MaterialContainer {
 			depth: {
 				depthWrite: true,
 				depthCompare: RendererTypes.DepthCompare.LessEqual
+			},
+			blend: {
+				color: {
+					operation: RendererTypes.BlendOperation.Add,
+					srcFactor: RendererTypes.BlendFactor.One,
+					dstFactor: RendererTypes.BlendFactor.Zero
+				},
+				alpha: {
+					operation: RendererTypes.BlendOperation.Add,
+					srcFactor: RendererTypes.BlendFactor.One,
+					dstFactor: RendererTypes.BlendFactor.Zero
+				}
 			},
 			vertexShaderSource: Shaders.screen.vertex,
 			fragmentShaderSource: Shaders.screen.fragment

@@ -8,6 +8,8 @@ import {RendererTypes} from '~/renderer/RendererTypes';
 import SystemManager from '~/app/SystemManager';
 import SceneSystem from '~/app/systems/SceneSystem';
 import * as RG from '~/render-graph';
+import RenderSystem from "~/app/systems/RenderSystem";
+import Vec2 from "~/math/Vec2";
 
 interface SharedResources {
 	BackbufferRenderPass: RenderPassResource;
@@ -25,6 +27,7 @@ interface SharedResources {
 	SelectionMask: RenderPassResource;
 	SelectionBlurTemp: RenderPassResource;
 	SelectionBlurred: RenderPassResource;
+	Labels: RenderPassResource;
 }
 
 export default class PassManager {
@@ -42,7 +45,9 @@ export default class PassManager {
 		this.resourceFactory = resourceFactory;
 		this.renderGraph = renderGraph;
 
+
 		this.initSharedResources();
+		this.resize();
 	}
 
 	public addPass<T extends Pass>(pass: T): void {
@@ -67,6 +72,10 @@ export default class PassManager {
 		return this.systemManager.getSystem(SceneSystem);
 	}
 
+	public get renderSystem(): RenderSystem {
+		return this.systemManager.getSystem(RenderSystem);
+	}
+
 	private initSharedResources(): void {
 		this.sharedResources.set('BackbufferRenderPass', this.resourceFactory.createRenderPassResource({
 			name: 'BackbufferRenderPass',
@@ -86,8 +95,8 @@ export default class PassManager {
 					{
 						texture: new TextureResourceDescriptor({
 							type: TextureResourceType.Texture2D,
-							width: this.renderer.resolution.x,
-							height: this.renderer.resolution.y,
+							width: 1,
+							height: 1,
 							format: RendererTypes.TextureFormat.RGBA8Unorm,
 							minFilter: RendererTypes.MinFilter.Linear,
 							magFilter: RendererTypes.MagFilter.Linear,
@@ -99,8 +108,8 @@ export default class PassManager {
 					}, {
 						texture: new TextureResourceDescriptor({
 							type: TextureResourceType.Texture2D,
-							width: this.renderer.resolution.x,
-							height: this.renderer.resolution.y,
+							width: 1,
+							height: 1,
 							format: RendererTypes.TextureFormat.RGB8Unorm,
 							minFilter: RendererTypes.MinFilter.Linear,
 							magFilter: RendererTypes.MagFilter.Linear,
@@ -112,8 +121,8 @@ export default class PassManager {
 					}, {
 						texture: new TextureResourceDescriptor({
 							type: TextureResourceType.Texture2D,
-							width: this.renderer.resolution.x,
-							height: this.renderer.resolution.y,
+							width: 1,
+							height: 1,
 							format: RendererTypes.TextureFormat.RGBA32Float,
 							minFilter: RendererTypes.MinFilter.Linear,
 							magFilter: RendererTypes.MagFilter.Linear,
@@ -125,8 +134,8 @@ export default class PassManager {
 					}, {
 						texture: new TextureResourceDescriptor({
 							type: TextureResourceType.Texture2D,
-							width: this.renderer.resolution.x,
-							height: this.renderer.resolution.y,
+							width: 1,
+							height: 1,
 							format: RendererTypes.TextureFormat.RGBA32Float,
 							minFilter: RendererTypes.MinFilter.Linear,
 							magFilter: RendererTypes.MagFilter.Linear,
@@ -138,8 +147,8 @@ export default class PassManager {
 					}, {
 						texture: new TextureResourceDescriptor({
 							type: TextureResourceType.Texture2D,
-							width: this.renderer.resolution.x,
-							height: this.renderer.resolution.y,
+							width: 1,
+							height: 1,
 							format: RendererTypes.TextureFormat.R32Uint,
 							minFilter: RendererTypes.MinFilter.Nearest,
 							magFilter: RendererTypes.MagFilter.Nearest,
@@ -153,8 +162,8 @@ export default class PassManager {
 				depthAttachment: {
 					texture: new TextureResourceDescriptor({
 						type: TextureResourceType.Texture2D,
-						width: this.renderer.resolution.x,
-						height: this.renderer.resolution.y,
+						width: 1,
+						height: 1,
 						format: RendererTypes.TextureFormat.Depth32Float,
 						minFilter: RendererTypes.MinFilter.Nearest,
 						magFilter: RendererTypes.MagFilter.Nearest,
@@ -201,8 +210,8 @@ export default class PassManager {
 					{
 						texture: new TextureResourceDescriptor({
 							type: TextureResourceType.Texture2D,
-							width: this.renderer.resolution.x,
-							height: this.renderer.resolution.y,
+							width: 1,
+							height: 1,
 							format: RendererTypes.TextureFormat.RGBA32Float,
 							minFilter: RendererTypes.MinFilter.Linear,
 							magFilter: RendererTypes.MagFilter.Linear,
@@ -225,8 +234,8 @@ export default class PassManager {
 					{
 						texture: new TextureResourceDescriptor({
 							type: TextureResourceType.Texture2D,
-							width: this.renderer.resolution.x,
-							height: this.renderer.resolution.y,
+							width: 1,
+							height: 1,
 							format: RendererTypes.TextureFormat.RGBA32Float,
 							minFilter: RendererTypes.MinFilter.Linear,
 							magFilter: RendererTypes.MagFilter.Linear,
@@ -249,8 +258,8 @@ export default class PassManager {
 					{
 						texture: new TextureResourceDescriptor({
 							type: TextureResourceType.Texture2D,
-							width: this.renderer.resolution.x,
-							height: this.renderer.resolution.y,
+							width: 1,
+							height: 1,
 							format: RendererTypes.TextureFormat.RGBA32Float,
 							minFilter: RendererTypes.MinFilter.Linear,
 							magFilter: RendererTypes.MagFilter.Linear,
@@ -273,8 +282,8 @@ export default class PassManager {
 					{
 						texture: new TextureResourceDescriptor({
 							type: TextureResourceType.Texture2D,
-							width: Math.floor(this.renderer.resolution.x * 0.5),
-							height: Math.floor(this.renderer.resolution.y * 0.5),
+							width: 1,
+							height: 1,
 							format: RendererTypes.TextureFormat.RGBA8Unorm,
 							minFilter: RendererTypes.MinFilter.Linear,
 							magFilter: RendererTypes.MagFilter.Linear,
@@ -297,8 +306,8 @@ export default class PassManager {
 					{
 						texture: new TextureResourceDescriptor({
 							type: TextureResourceType.Texture2D,
-							width: this.renderer.resolution.x,
-							height: this.renderer.resolution.y,
+							width: 1,
+							height: 1,
 							format: RendererTypes.TextureFormat.RGBA8Unorm,
 							minFilter: RendererTypes.MinFilter.Linear,
 							magFilter: RendererTypes.MagFilter.Linear,
@@ -321,8 +330,8 @@ export default class PassManager {
 					{
 						texture: new TextureResourceDescriptor({
 							type: TextureResourceType.Texture2D,
-							width: this.renderer.resolution.x,
-							height: this.renderer.resolution.y,
+							width: 1,
+							height: 1,
 							format: RendererTypes.TextureFormat.RGBA8Unorm,
 							minFilter: RendererTypes.MinFilter.Linear,
 							magFilter: RendererTypes.MagFilter.Linear,
@@ -345,8 +354,8 @@ export default class PassManager {
 					{
 						texture: new TextureResourceDescriptor({
 							type: TextureResourceType.Texture2D,
-							width: this.renderer.resolution.x,
-							height: this.renderer.resolution.y,
+							width: 1,
+							height: 1,
 							format: RendererTypes.TextureFormat.RGBA8Unorm,
 							minFilter: RendererTypes.MinFilter.Linear,
 							magFilter: RendererTypes.MagFilter.Linear,
@@ -369,8 +378,8 @@ export default class PassManager {
 					{
 						texture: new TextureResourceDescriptor({
 							type: TextureResourceType.Texture2D,
-							width: this.renderer.resolution.x,
-							height: this.renderer.resolution.y,
+							width: 1,
+							height: 1,
 							format: RendererTypes.TextureFormat.R8Unorm,
 							minFilter: RendererTypes.MinFilter.Linear,
 							magFilter: RendererTypes.MagFilter.Linear,
@@ -393,8 +402,8 @@ export default class PassManager {
 				depthAttachment: {
 					texture: new TextureResourceDescriptor({
 						type: TextureResourceType.Texture2D,
-						width: this.renderer.resolution.x,
-						height: this.renderer.resolution.y,
+						width: 1,
+						height: 1,
 						format: RendererTypes.TextureFormat.Depth32Float,
 						minFilter: RendererTypes.MinFilter.Nearest,
 						magFilter: RendererTypes.MagFilter.Nearest,
@@ -416,8 +425,8 @@ export default class PassManager {
 					{
 						texture: new TextureResourceDescriptor({
 							type: TextureResourceType.Texture2D,
-							width: this.renderer.resolution.x,
-							height: this.renderer.resolution.y,
+							width: 1,
+							height: 1,
 							format: RendererTypes.TextureFormat.R8Unorm,
 							minFilter: RendererTypes.MinFilter.Linear,
 							magFilter: RendererTypes.MagFilter.Linear,
@@ -440,8 +449,8 @@ export default class PassManager {
 					{
 						texture: new TextureResourceDescriptor({
 							type: TextureResourceType.Texture2D,
-							width: this.renderer.resolution.x,
-							height: this.renderer.resolution.y,
+							width: 1,
+							height: 1,
 							format: RendererTypes.TextureFormat.R8Unorm,
 							minFilter: RendererTypes.MinFilter.Linear,
 							magFilter: RendererTypes.MagFilter.Linear,
@@ -464,8 +473,8 @@ export default class PassManager {
 					{
 						texture: new TextureResourceDescriptor({
 							type: TextureResourceType.Texture2D,
-							width: this.renderer.resolution.x,
-							height: this.renderer.resolution.y,
+							width: 1,
+							height: 1,
 							format: RendererTypes.TextureFormat.R8Unorm,
 							minFilter: RendererTypes.MinFilter.Linear,
 							magFilter: RendererTypes.MagFilter.Linear,
@@ -478,24 +487,51 @@ export default class PassManager {
 				]
 			})
 		}));
+
+		this.sharedResources.set('Labels', this.resourceFactory.createRenderPassResource({
+			name: 'Labels',
+			isTransient: true,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: 1,
+							height: 1,
+							format: RendererTypes.TextureFormat.RGBA8Unorm,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						loadOp: RendererTypes.AttachmentLoadOp.Clear,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
 	}
 
-	public setSize(width: number, height: number): void {
-		const halfWidth = Math.floor(width * 0.5);
-		const halfHeight = Math.floor(height * 0.5);
+	public resize(): void {
+		const render = this.renderSystem;
+		const resolutionScene = render.resolutionScene;
+		const resolutionUI = render.resolutionUI;
+		const resolutionSceneHalf = new Vec2(Math.floor(resolutionScene.x * 0.5), Math.floor(resolutionScene.y * 0.5));
 
-		this.sharedResources.get('GBufferRenderPass').descriptor.setSize(width, height);
-		this.sharedResources.get('HDR').descriptor.setSize(width, height);
-		this.sharedResources.get('TAAHistory').descriptor.setSize(width, height);
-		this.sharedResources.get('HDRAntialiased').descriptor.setSize(width, height);
-		this.sharedResources.get('SSAO').descriptor.setSize(halfWidth, halfHeight);
-		this.sharedResources.get('SSAOBlurTemp').descriptor.setSize(width, height);
-		this.sharedResources.get('SSAOBlurred').descriptor.setSize(width, height);
-		this.sharedResources.get('SSAOAccum').descriptor.setSize(width, height);
-		this.sharedResources.get('SSAOResult').descriptor.setSize(width, height);
-		this.sharedResources.get('SSAOPrevDepth').descriptor.setSize(width, height);
-		this.sharedResources.get('SelectionMask').descriptor.setSize(width, height);
-		this.sharedResources.get('SelectionBlurTemp').descriptor.setSize(width, height);
-		this.sharedResources.get('SelectionBlurred').descriptor.setSize(width, height);
+		this.sharedResources.get('GBufferRenderPass').descriptor.setSize(resolutionScene.x, resolutionScene.y);
+		this.sharedResources.get('HDR').descriptor.setSize(resolutionScene.x, resolutionScene.y);
+		this.sharedResources.get('TAAHistory').descriptor.setSize(resolutionScene.x, resolutionScene.y);
+		this.sharedResources.get('HDRAntialiased').descriptor.setSize(resolutionScene.x, resolutionScene.y);
+		this.sharedResources.get('SSAO').descriptor.setSize(resolutionSceneHalf.x, resolutionSceneHalf.y);
+		this.sharedResources.get('SSAOBlurTemp').descriptor.setSize(resolutionScene.x, resolutionScene.y);
+		this.sharedResources.get('SSAOBlurred').descriptor.setSize(resolutionScene.x, resolutionScene.y);
+		this.sharedResources.get('SSAOAccum').descriptor.setSize(resolutionScene.x, resolutionScene.y);
+		this.sharedResources.get('SSAOResult').descriptor.setSize(resolutionScene.x, resolutionScene.y);
+		this.sharedResources.get('SSAOPrevDepth').descriptor.setSize(resolutionScene.x, resolutionScene.y);
+		this.sharedResources.get('SelectionMask').descriptor.setSize(resolutionScene.x, resolutionScene.y);
+		this.sharedResources.get('SelectionBlurTemp').descriptor.setSize(resolutionScene.x, resolutionScene.y);
+		this.sharedResources.get('SelectionBlurred').descriptor.setSize(resolutionScene.x, resolutionScene.y);
+		this.sharedResources.get('Labels').descriptor.setSize(resolutionUI.x, resolutionUI.y);
 	}
 }

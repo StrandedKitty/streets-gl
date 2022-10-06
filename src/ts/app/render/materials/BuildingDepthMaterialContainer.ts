@@ -30,6 +30,18 @@ export default class BuildingDepthMaterialContainer extends MaterialContainer {
 				depthWrite: true,
 				depthCompare: RendererTypes.DepthCompare.LessEqual
 			},
+			blend: {
+				color: {
+					operation: RendererTypes.BlendOperation.Add,
+					srcFactor: RendererTypes.BlendFactor.One,
+					dstFactor: RendererTypes.BlendFactor.Zero
+				},
+				alpha: {
+					operation: RendererTypes.BlendOperation.Add,
+					srcFactor: RendererTypes.BlendFactor.One,
+					dstFactor: RendererTypes.BlendFactor.Zero
+				}
+			},
 			vertexShaderSource: Shaders.buildingDepth.vertex,
 			fragmentShaderSource: Shaders.buildingDepth.fragment
 		});

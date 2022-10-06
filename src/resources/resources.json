@@ -114,5 +114,9 @@
 	"sky5": {
 		"url": "/textures/sky/nz.jpg",
 		"type": "image"
+	},
+	"fontSDF": {
+		"url": "/textures/Inter-Regular.png",
+		"type": "image"
 	}
 }

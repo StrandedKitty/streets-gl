@@ -152,7 +152,6 @@ export default class UISystem extends System {
 
 		if (this.fpsUpdateTimer >= FPSUpdateInterval) {
 			this.fpsUpdateTimer = 0;
-			this.globalState.fpsSmooth = this.globalState.fps;
 			UI.setGlobalStateField('fpsSmooth', this.globalState.fps);
 		}
 
@@ -160,7 +159,5 @@ export default class UISystem extends System {
 
 		const newMapTime = this.globalState.mapTime + deltaTime * 1000 * this.globalState.mapTimeMultiplier;
 		UI.setGlobalStateField('mapTime', newMapTime);
-
-		this.updateDOM();
 	}
 }

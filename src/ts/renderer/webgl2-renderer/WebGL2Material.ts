@@ -1,5 +1,6 @@
 import WebGL2Renderer from "~/renderer/webgl2-renderer/WebGL2Renderer";
 import AbstractMaterial, {
+	AbstractMaterialBlendParams,
 	AbstractMaterialDepthParams,
 	AbstractMaterialParams,
 	AbstractMaterialPrimitiveParams,
@@ -23,6 +24,7 @@ export default class WebGL2Material implements AbstractMaterial {
 	public readonly uniforms: Uniform[];
 	public readonly primitive: AbstractMaterialPrimitiveParams;
 	public readonly depth: AbstractMaterialDepthParams;
+	public readonly blend: AbstractMaterialBlendParams;
 	public program: WebGL2Program;
 	private ubos: Map<string, WebGL2UBO> = new Map();
 	private uniformLocations: Map<string, WebGLUniformLocation> = new Map();
@@ -36,7 +38,8 @@ export default class WebGL2Material implements AbstractMaterial {
 			fragmentShaderSource,
 			uniforms,
 			primitive,
-			depth
+			depth,
+			blend
 		}: AbstractMaterialParams
 	) {
 		this.renderer = renderer;
@@ -48,6 +51,7 @@ export default class WebGL2Material implements AbstractMaterial {
 		this.uniforms = uniforms;
 		this.primitive = primitive;
 		this.depth = depth;
+		this.blend = blend;
 
 		this.createProgram();
 		this.createUBOs();

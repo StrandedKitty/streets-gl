@@ -63,6 +63,18 @@ export default class SSAOMaterialContainer extends MaterialContainer {
 				depthWrite: false,
 				depthCompare: RendererTypes.DepthCompare.LessEqual
 			},
+			blend: {
+				color: {
+					operation: RendererTypes.BlendOperation.Add,
+					srcFactor: RendererTypes.BlendFactor.One,
+					dstFactor: RendererTypes.BlendFactor.Zero
+				},
+				alpha: {
+					operation: RendererTypes.BlendOperation.Add,
+					srcFactor: RendererTypes.BlendFactor.One,
+					dstFactor: RendererTypes.BlendFactor.Zero
+				}
+			},
 			vertexShaderSource: Shaders.ssao.vertex,
 			fragmentShaderSource: Shaders.ssao.fragment
 		});

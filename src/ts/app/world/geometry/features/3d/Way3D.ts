@@ -19,6 +19,7 @@ import FlatRoofBuilder from "~/app/world/geometry/roofs/FlatRoofBuilder";
 import HippedRoofBuilder from "~/app/world/geometry/roofs/HippedRoofBuilder";
 import GabledRoofBuilder from "~/app/world/geometry/roofs/GabledRoofBuilder";
 import PyramidalRoofBuilder from "~/app/world/geometry/roofs/PyramidalRoofBuilder";
+import polylabel from "polylabel";
 
 interface EarcutInput {
 	vertices: number[];
@@ -293,6 +294,29 @@ export default class Way3D extends Feature3D {
 			uv: uvBuffer,
 			normal: normalBuffer,
 			textureId: textureIdBuffer
+		};
+	}
+
+	public getLabel(): {x: number; y: number; z: number; text: string; priority: number} {
+		if (!this.visible || this.tags.type !== 'building' || !this.tags.name) {
+			return null;
+		}
+
+		const polygon = this.rings.map(r => r.vertices);
+		const center = polylabel(polygon, 1) as [number, number];
+		const minHeight = this.minGroundHeight + (+this.tags.height || 6) * this.heightFactor;
+		let name = this.tags.name.toString().trim();
+
+		if (name.length > 60) {
+			name = name.slice(0, 60).trim() + '...';
+		}
+
+		return {
+			x: center[0],
+			y: minHeight + 10,
+			z: center[1],
+			priority: this.getTotalArea(),
+			text: name
 		};
 	}
 

@@ -120,5 +120,10 @@
 		"parking": {
 			"type": "parking"
 		}
+	},
+	"name": {
+		"default": {
+			"name": "@self"
+		}
 	}
 }

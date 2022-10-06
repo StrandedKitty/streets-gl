@@ -75,8 +75,8 @@ export default class SSAOPass extends Pass<{
 		this.ssaoMaterial.getUniform('tNormal').value = normalTexture;
 		this.ssaoMaterial.getUniform('tDepth').value = depthTexture;
 		this.ssaoMaterial.getUniform('tMotion').value = motionTexture;
-		this.ssaoMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'MainBlock').value = new Float32Array(camera.projectionMatrix.values);
-		this.ssaoMaterial.getUniform<UniformMatrix4>('projectionMatrixInverse', 'MainBlock').value = new Float32Array(camera.projectionMatrixInverse.values);
+		this.ssaoMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'MainBlock').value = new Float32Array(camera.jitteredProjectionMatrix.values);
+		this.ssaoMaterial.getUniform<UniformMatrix4>('projectionMatrixInverse', 'MainBlock').value = new Float32Array(camera.jitteredProjectionMatrixInverse.values);
 
 		const rndOffset = this.ssaoMaterial.getUniform<UniformFloat4>('randomOffset', 'MainBlock').value;
 		for (let i = 0; i < rndOffset.length; i++) {
@@ -92,7 +92,7 @@ export default class SSAOPass extends Pass<{
 
 		this.renderer.beginRenderPass(this.getPhysicalResource('BlurHorizontal'));
 
-		this.blurMaterial.getUniform<UniformMatrix4>('projectionMatrixInverse', 'MainBlock').value = new Float32Array(camera.projectionMatrixInverse.values);
+		this.blurMaterial.getUniform<UniformMatrix4>('projectionMatrixInverse', 'MainBlock').value = new Float32Array(camera.jitteredProjectionMatrixInverse.values);
 		this.blurMaterial.getUniform<UniformFloat2>('direction', 'MainBlock').value[0] = 1;
 		this.blurMaterial.getUniform<UniformFloat2>('direction', 'MainBlock').value[1] = 0;
 		this.blurMaterial.getUniform('tDepth').value = depthTexture;

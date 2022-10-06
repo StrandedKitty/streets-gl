@@ -108,4 +108,25 @@ export namespace RendererTypes {
 		GreaterEqual,
 		Always
 	}
+
+	export enum BlendOperation {
+		Add,
+		Subtract,
+		ReverseSubtract,
+		Min,
+		Max
+	}
+
+	export enum BlendFactor {
+		Zero,
+		One,
+		Src,
+		OneMinusSrc,
+		SrcAlpha,
+		OneMinusSrcAlpha,
+		Dst,
+		OneMinusDst,
+		DstAlpha,
+		OneMinusDstAlpha
+	}
 }

@@ -11,6 +11,7 @@ export default interface AbstractMesh {
 	indices: Uint32Array;
 	getAttribute(name: string): AbstractAttribute;
 	addAttribute(attribute: AbstractAttribute): void;
+	setIndices(indices: Uint32Array): void;
 	draw(): void;
 	delete(): void;
 }

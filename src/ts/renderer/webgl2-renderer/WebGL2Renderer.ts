@@ -9,7 +9,10 @@ import AbstractTexture2DArray, {
 import WebGL2Texture2DArray from "~/renderer/webgl2-renderer/WebGL2Texture2DArray";
 import AbstractTextureCube, {AbstractTextureCubeParams} from "~/renderer/abstract-renderer/AbstractTextureCube";
 import WebGL2TextureCube from "~/renderer/webgl2-renderer/WebGL2TextureCube";
-import AbstractMaterial, {AbstractMaterialParams} from "~/renderer/abstract-renderer/AbstractMaterial";
+import AbstractMaterial, {
+	AbstractMaterialBlendParams,
+	AbstractMaterialParams
+} from "~/renderer/abstract-renderer/AbstractMaterial";
 import WebGL2Material from "~/renderer/webgl2-renderer/WebGL2Material";
 import AbstractAttribute, {AbstractAttributeParams} from "~/renderer/abstract-renderer/AbstractAttribute";
 import WebGL2Attribute from "~/renderer/webgl2-renderer/WebGL2Attribute";
@@ -39,11 +42,23 @@ export default class WebGL2Renderer implements AbstractRenderer {
 	private depthBiasEnabled: boolean = false;
 	private depthBiasConstant: number = 0;
 	private depthBiasSlopeScale: number = 0;
+	private blendOperationsState: [number, number] = [
+		WebGL2Constants.FUNC_ADD,
+		WebGL2Constants.FUNC_ADD
+	];
+	private blendFactorsState: [number, number, number, number] = [
+		WebGL2Constants.ONE,
+		WebGL2Constants.ZERO,
+		WebGL2Constants.ONE,
+		WebGL2Constants.ZERO
+	];
 
 	private timerQuery: WebGLQuery = null;
 
 	public constructor(context: WebGL2RenderingContext) {
 		this.gl = context;
+
+		this.gl.enable(WebGL2Constants.BLEND);
 
 		this.initExtensions();
 	}
@@ -122,6 +137,7 @@ export default class WebGL2Renderer implements AbstractRenderer {
 			this.depthFunc = material.depth.depthCompare;
 			this.depthWrite = material.depth.depthWrite;
 			this.setDepthBias(material.depth.depthBiasSlopeScale, material.depth.depthBiasConstant);
+			this.setBlend(material.blend);
 
 			this.boundMaterial = material;
 		}
@@ -253,6 +269,49 @@ export default class WebGL2Renderer implements AbstractRenderer {
 		}
 	}
 
+	public setBlend(blend: AbstractMaterialBlendParams): void {
+		const newBlendOperations: [number, number] = [
+			WebGL2Renderer.convertBlendOperationToWebGLConstant(blend.color.operation),
+			WebGL2Renderer.convertBlendOperationToWebGLConstant(blend.alpha.operation)
+		];
+		const newBlendFactors: [number, number, number, number] = [
+			WebGL2Renderer.convertBlendFactorToWebGLConstant(blend.color.srcFactor),
+			WebGL2Renderer.convertBlendFactorToWebGLConstant(blend.color.dstFactor),
+			WebGL2Renderer.convertBlendFactorToWebGLConstant(blend.alpha.srcFactor),
+			WebGL2Renderer.convertBlendFactorToWebGLConstant(blend.alpha.dstFactor)
+		];
+		let blendOperationsNeedUpdate = false;
+		let blendFactorsNeedUpdate = false;
+
+		for (let i = 0; i < this.blendOperationsState.length; i++) {
+			if (this.blendOperationsState[i] !== newBlendOperations[i]) {
+				blendOperationsNeedUpdate = true;
+				break;
+			}
+		}
+		for (let i = 0; i < this.blendFactorsState.length; i++) {
+			if (this.blendFactorsState[i] !== newBlendFactors[i]) {
+				blendFactorsNeedUpdate = true;
+				break;
+			}
+		}
+
+		if (blendOperationsNeedUpdate) {
+			this.blendOperationsState = newBlendOperations;
+			this.gl.blendEquationSeparate(this.blendOperationsState[0], this.blendOperationsState[1]);
+		}
+
+		if (blendFactorsNeedUpdate) {
+			this.blendFactorsState = newBlendFactors;
+			this.gl.blendFuncSeparate(
+				this.blendFactorsState[0],
+				this.blendFactorsState[1],
+				this.blendFactorsState[2],
+				this.blendFactorsState[3]
+			);
+		}
+	}
+
 	public setSize(width: number, height: number): void {
 		this.gl.canvas.width = width;
 		this.gl.canvas.height = height;
@@ -333,8 +392,48 @@ export default class WebGL2Renderer implements AbstractRenderer {
 
 	public get resolution(): {x: number; y: number} {
 		return {
-			x: this.gl.canvas.width,
-			y: this.gl.canvas.height
+			x: this.gl.canvas.width / 2,
+			y: this.gl.canvas.height / 2
 		};
+	}
+
+	public static convertBlendOperationToWebGLConstant(blendOperation: RendererTypes.BlendOperation): number {
+		switch (blendOperation) {
+			case RendererTypes.BlendOperation.Add:
+				return WebGL2Constants.FUNC_ADD;
+			case RendererTypes.BlendOperation.Subtract:
+				return WebGL2Constants.FUNC_SUBTRACT;
+			case RendererTypes.BlendOperation.ReverseSubtract:
+				return WebGL2Constants.FUNC_REVERSE_SUBTRACT;
+			case RendererTypes.BlendOperation.Min:
+				return WebGL2Constants.MIN;
+			case RendererTypes.BlendOperation.Max:
+				return WebGL2Constants.MAX;
+		}
+	}
+
+	public static convertBlendFactorToWebGLConstant(blandFactor: RendererTypes.BlendFactor): number {
+		switch (blandFactor) {
+			case RendererTypes.BlendFactor.Zero:
+				return WebGL2Constants.ZERO;
+			case RendererTypes.BlendFactor.One:
+				return WebGL2Constants.ONE;
+			case RendererTypes.BlendFactor.Src:
+				return WebGL2Constants.SRC_COLOR;
+			case RendererTypes.BlendFactor.OneMinusSrc:
+				return WebGL2Constants.ONE_MINUS_SRC_COLOR;
+			case RendererTypes.BlendFactor.SrcAlpha:
+				return WebGL2Constants.SRC_ALPHA;
+			case RendererTypes.BlendFactor.OneMinusSrcAlpha:
+				return WebGL2Constants.ONE_MINUS_SRC_ALPHA;
+			case RendererTypes.BlendFactor.Dst:
+				return WebGL2Constants.DST_COLOR;
+			case RendererTypes.BlendFactor.OneMinusDst:
+				return WebGL2Constants.ONE_MINUS_DST_COLOR;
+			case RendererTypes.BlendFactor.DstAlpha:
+				return WebGL2Constants.DST_ALPHA;
+			case RendererTypes.BlendFactor.OneMinusDstAlpha:
+				return WebGL2Constants.ONE_MINUS_DST_ALPHA;
+		}
 	}
 }

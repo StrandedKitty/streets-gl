@@ -35,6 +35,18 @@ export default class BuildingMaskMaterialContainer extends MaterialContainer {
 				depthWrite: false,
 				depthCompare: RendererTypes.DepthCompare.LessEqual
 			},
+			blend: {
+				color: {
+					operation: RendererTypes.BlendOperation.Add,
+					srcFactor: RendererTypes.BlendFactor.One,
+					dstFactor: RendererTypes.BlendFactor.Zero
+				},
+				alpha: {
+					operation: RendererTypes.BlendOperation.Add,
+					srcFactor: RendererTypes.BlendFactor.One,
+					dstFactor: RendererTypes.BlendFactor.Zero
+				}
+			},
 			vertexShaderSource: Shaders.buildingMask.vertex,
 			fragmentShaderSource: Shaders.buildingMask.fragment
 		});

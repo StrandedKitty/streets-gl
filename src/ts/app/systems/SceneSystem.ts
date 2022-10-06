@@ -10,6 +10,7 @@ import CSM from "~/app/render/CSM";
 import Config from "~/app/Config";
 import MapTimeSystem from "~/app/systems/MapTimeSystem";
 import Vec3 from "~/math/Vec3";
+import Labels from "~/app/objects/Labels";
 
 interface SceneObjects {
 	wrapper: Object3D;
@@ -17,6 +18,7 @@ interface SceneObjects {
 	skybox: Skybox;
 	tiles: Object3D;
 	csm: CSM;
+	labels: Labels;
 }
 
 export default class SceneSystem extends System {
@@ -53,17 +55,19 @@ export default class SceneSystem extends System {
 			shadowBias: -0.003,
 			shadowNormalBias: 0.002,
 		});
+		const labels = new Labels();
 
 		this.objects = {
 			wrapper,
 			camera,
 			skybox,
 			tiles,
-			csm
+			csm,
+			labels
 		};
 
 		this.scene.add(wrapper);
-		wrapper.add(camera, csm, skybox, tiles);
+		wrapper.add(camera, csm, skybox, tiles, labels);
 	}
 
 	public postInit(): void {

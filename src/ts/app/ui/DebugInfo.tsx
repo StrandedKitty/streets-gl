@@ -8,7 +8,7 @@ const DebugInfo: React.FC<{
 	const [frameTime, setFrameTime] = useState<number>(0);
 
 	useEffect(() => {
-		UI.listenToField('fps', (v: number) => setFps(v));
+		UI.listenToField('fpsSmooth', (v: number) => setFps(v));
 		UI.listenToField('frameTime', (v: number) => setFrameTime(v));
 	}, []);
 

@@ -10,6 +10,7 @@ import BuildingMaterialContainer from "~/app/render/materials/BuildingMaterialCo
 import SkyboxMaterialContainer from "~/app/render/materials/SkyboxMaterialContainer";
 import GroundMaterialContainer from "~/app/render/materials/GroundMaterialContainer";
 import RoadMaterialContainer from "~/app/render/materials/RoadMaterialContainer";
+import FullScreenTriangle from "~/app/objects/FullScreenTriangle";
 
 export default class GBufferPass extends Pass<{
 	GBufferRenderPass: {
@@ -25,11 +26,14 @@ export default class GBufferPass extends Pass<{
 	public objectIdBuffer: Uint32Array = new Uint32Array(1);
 	public objectIdX = 0;
 	public objectIdY = 0;
+	private fullScreenTriangle: FullScreenTriangle;
 
 	public constructor(manager: PassManager) {
 		super('GBufferPass', manager, {
 			GBufferRenderPass: {type: InternalResourceType.Output, resource: manager.getSharedResource('GBufferRenderPass')}
 		});
+
+		this.fullScreenTriangle = new FullScreenTriangle(this.renderer);
 
 		this.createMaterials();
 	}
@@ -72,7 +76,7 @@ export default class GBufferPass extends Pass<{
 
 		this.renderer.useMaterial(this.skyboxMaterial);
 
-		this.skyboxMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'Uniforms').value = new Float32Array(camera.projectionMatrix.values);
+		this.skyboxMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'Uniforms').value = new Float32Array(camera.jitteredProjectionMatrix.values);
 		this.skyboxMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'Uniforms').value = new Float32Array(Mat4.multiply(camera.matrixWorldInverse, skybox.matrixWorld).values);
 		this.skyboxMaterial.getUniform<UniformMatrix4>('modelViewMatrixPrev', 'Uniforms').value = new Float32Array(Mat4.multiply(this.cameraMatrixWorldInversePrev, skybox.matrixWorld).values);
 		this.skyboxMaterial.updateUniformBlock('Uniforms');
@@ -81,7 +85,7 @@ export default class GBufferPass extends Pass<{
 
 		this.renderer.useMaterial(this.buildingMaterial);
 
-		this.buildingMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.projectionMatrix.values);
+		this.buildingMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.jitteredProjectionMatrix.values);
 		this.buildingMaterial.updateUniformBlock('PerMaterial');
 
 		for (const tile of tiles) {
@@ -102,7 +106,7 @@ export default class GBufferPass extends Pass<{
 
 		this.renderer.useMaterial(this.groundMaterial);
 
-		this.groundMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.projectionMatrix.values);
+		this.groundMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.jitteredProjectionMatrix.values);
 		this.groundMaterial.updateUniformBlock('PerMaterial');
 
 		for (const tile of tiles) {
@@ -122,7 +126,7 @@ export default class GBufferPass extends Pass<{
 
 		this.renderer.useMaterial(this.roadMaterial);
 
-		this.roadMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.projectionMatrix.values);
+		this.roadMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.jitteredProjectionMatrix.values);
 		this.roadMaterial.updateUniformBlock('PerMaterial');
 
 		for (const tile of tiles) {

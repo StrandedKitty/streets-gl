@@ -72,7 +72,7 @@ export default class SelectionPass extends Pass<{
 		const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, buildingTile.matrixWorld);
 
 		this.maskMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'MainBlock').value = new Float32Array(mvMatrix.values);
-		this.maskMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'MainBlock').value = new Float32Array(camera.projectionMatrix.values);
+		this.maskMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'MainBlock').value = new Float32Array(camera.jitteredProjectionMatrix.values);
 		this.maskMaterial.getUniform<UniformUint1>('selectedId', 'MainBlock').value[0] = buildingLocalId;
 		this.maskMaterial.updateUniformBlock('MainBlock');
 

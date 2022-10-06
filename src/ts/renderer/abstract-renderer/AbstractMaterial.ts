@@ -13,6 +13,17 @@ export interface AbstractMaterialDepthParams {
 	depthBiasConstant?: number;
 }
 
+interface AbstractMaterialBlendParamsComponent {
+	operation: RendererTypes.BlendOperation;
+	srcFactor: RendererTypes.BlendFactor;
+	dstFactor: RendererTypes.BlendFactor;
+}
+
+export interface AbstractMaterialBlendParams {
+	color: AbstractMaterialBlendParamsComponent;
+	alpha: AbstractMaterialBlendParamsComponent;
+}
+
 export interface AbstractMaterialParams {
 	name: string;
 	vertexShaderSource: string;
@@ -20,6 +31,7 @@ export interface AbstractMaterialParams {
 	uniforms: Uniform[];
 	primitive: AbstractMaterialPrimitiveParams;
 	depth: AbstractMaterialDepthParams;
+	blend: AbstractMaterialBlendParams;
 }
 
 export default interface AbstractMaterial {
@@ -29,6 +41,7 @@ export default interface AbstractMaterial {
 	readonly uniforms: Uniform[];
 	readonly primitive: AbstractMaterialPrimitiveParams;
 	readonly depth: AbstractMaterialDepthParams;
+	readonly blend: AbstractMaterialBlendParams;
 	getUniform<T extends Uniform>(name: string, block?: string): T;
 	updateUniform(name: string): void;
 	updateUniformBlock(name: string): void;

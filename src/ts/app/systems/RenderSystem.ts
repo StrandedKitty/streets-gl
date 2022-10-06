@@ -17,6 +17,8 @@ import ShadingPass from "~/app/render/passes/ShadingPass";
 import ScreenPass from "~/app/render/passes/ScreenPass";
 import SSAOPass from "~/app/render/passes/SSAOPass";
 import SelectionPass from "~/app/render/passes/SelectionPass";
+import LabelPass from "~/app/render/passes/LabelPass";
+import Tile from "~/app/objects/Tile";
 
 const jitterOffsets: [number, number][] = [
 	[-7 / 8, 1 / 8],
@@ -47,17 +49,15 @@ export default class RenderSystem extends System {
 		const canvas = <HTMLCanvasElement>document.getElementById('canvas');
 
 		this.renderer = new WebGL2Renderer(canvas.getContext('webgl2', {powerPreference: "high-performance"}));
-		this.renderer.setSize(this.resolution.x, this.resolution.y);
+		this.renderer.setSize(this.resolutionUI.x, this.resolutionUI.y);
 
 		console.log(`Vendor: ${this.renderer.rendererInfo[0]} \nRenderer: ${this.renderer.rendererInfo[1]}`);
-
-		this.initScene();
 
 		window.addEventListener('resize', () => this.resize());
 	}
 
 	public postInit(): void {
-
+		this.initScene();
 	}
 
 	private initScene(): void {
@@ -72,36 +72,32 @@ export default class RenderSystem extends System {
 		this.passManager.addPass(new ScreenPass(this.passManager));
 		this.passManager.addPass(new SSAOPass(this.passManager));
 		this.passManager.addPass(new SelectionPass(this.passManager));
+		this.passManager.addPass(new LabelPass(this.passManager));
 	}
 
 	private resize(): void {
-		const {x: width, y: height} = this.resolution;
+		const {x: widthUI, y: heightUI} = this.resolutionUI;
+		const {x: widthScene, y: heightScene} = this.resolutionUI;
 
-		this.renderer.setSize(width, height);
-		this.passManager.setSize(width, height);
+		this.renderer.setSize(widthUI, heightUI);
+		this.passManager.resize();
 
 		for (const pass of this.passManager.passes) {
-			pass.setSize(width, height);
+			pass.setSize(widthScene, heightScene);
 		}
-	}
-
-	public jitterProjectionMatrix(projectionMatrix: Mat4, frame: number): void {
-		const offsetX = jitterOffsets[frame % jitterOffsets.length][0];
-		const offsetY = jitterOffsets[frame % jitterOffsets.length][1];
-
-		projectionMatrix.values[8] = offsetX / this.resolution.x;
-		projectionMatrix.values[9] = offsetY / this.resolution.y;
 	}
 
 	public update(deltaTime: number): void {
 		const sceneSystem = this.systemManager.getSystem(SceneSystem);
+		const tiles = sceneSystem.objects.tiles.children as Tile[];
+
+		sceneSystem.objects.labels.updateFromTiles(tiles, sceneSystem.objects.camera, this.resolutionScene);
 
 		for (const object of sceneSystem.getObjectsToUpdateMesh()) {
 			object.updateMesh(this.renderer);
 		}
 
-		this.jitterProjectionMatrix(sceneSystem.objects.camera.projectionMatrix, this.frameCount);
-		sceneSystem.objects.camera.updateProjectionMatrixInverse();
+		sceneSystem.objects.camera.updateJitteredProjectionMatrix(this.frameCount, this.resolutionScene.x, this.resolutionScene.y);
 
 		this.renderGraph.render();
 
@@ -369,8 +365,13 @@ export default class RenderSystem extends System {
 		return this.systemManager.getSystem(PickingSystem).selectedObjectId;
 	}
 
-	public get resolution(): Vec2 {
-		const pixelRatio = Config.devicePixelRatio;
+	public get resolutionUI(): Vec2 {
+		const pixelRatio = window.devicePixelRatio;
+		return new Vec2(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio);
+	}
+
+	public get resolutionScene(): Vec2 {
+		const pixelRatio = 1;
 		return new Vec2(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio);
 	}
 }

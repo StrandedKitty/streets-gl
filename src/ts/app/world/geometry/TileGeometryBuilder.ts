@@ -74,6 +74,10 @@ export default class TileGeometryBuilder {
 		const featuresIDs: number[] = [];
 		const featuresTypes: number[] = [];
 
+		const labelPositions: number[] = [];
+		const labelPriorities: number[] = [];
+		const labelText: string[] = [];
+
 		for (const way of ways.values()) {
 			if (way.buildingRelationId !== null) {
 				if (!joinedWays.has(way.buildingRelationId)) {
@@ -86,6 +90,13 @@ export default class TileGeometryBuilder {
 			}
 
 			const {position, color, uv, normal, textureId, positionRoad, uvRoad} = way.getAttributeBuffers();
+			const label = way.getLabel();
+
+			if (label) {
+				labelPositions.push(label.x, label.y, label.z);
+				labelText.push(label.text);
+				labelPriorities.push(label.priority);
+			}
 
 			if (positionRoad) {
 				roadPositionArrays.push(positionRoad);
@@ -121,6 +132,13 @@ export default class TileGeometryBuilder {
 
 			for (const way of wayArray) {
 				const {position, color, uv, normal, textureId} = way.getAttributeBuffers();
+				const label = way.getLabel();
+
+				if (label) {
+					labelPositions.push(label.x, label.y, label.z);
+					labelPriorities.push(label.priority);
+					labelText.push(label.text);
+				}
 
 				relationPositionsArrays.push(position);
 				relationColorArrays.push(color);
@@ -245,6 +263,11 @@ export default class TileGeometryBuilder {
 				uv: projectedMeshUv,
 				normal: projectedMeshNormal,
 				textureId: projectedMeshTextureId
+			},
+			labels: {
+				position: labelPositions,
+				text: labelText,
+				priority: labelPriorities
 			},
 			bbox,
 			bboxGround: ground.bbox
@@ -498,15 +521,15 @@ export default class TileGeometryBuilder {
 					let memberFeature = null;
 
 					switch (member.type) {
-					case 'node':
-						memberFeature = nodes.get(member.ref);
-						break;
-					case 'way':
-						memberFeature = ways.get(member.ref);
-						break;
-					case 'relation':
-						memberFeature = relations.get(member.ref);
-						break;
+						case 'node':
+							memberFeature = nodes.get(member.ref);
+							break;
+						case 'way':
+							memberFeature = ways.get(member.ref);
+							break;
+						case 'relation':
+							memberFeature = relations.get(member.ref);
+							break;
 					}
 
 					if (memberFeature) {

@@ -35,6 +35,18 @@ export default class SkyboxMaterialContainer extends MaterialContainer {
 				depthWrite: false,
 				depthCompare: RendererTypes.DepthCompare.Always
 			},
+			blend: {
+				color: {
+					operation: RendererTypes.BlendOperation.Add,
+					srcFactor: RendererTypes.BlendFactor.One,
+					dstFactor: RendererTypes.BlendFactor.Zero
+				},
+				alpha: {
+					operation: RendererTypes.BlendOperation.Add,
+					srcFactor: RendererTypes.BlendFactor.One,
+					dstFactor: RendererTypes.BlendFactor.Zero
+				}
+			},
 			vertexShaderSource: Shaders.skybox.vertex,
 			fragmentShaderSource: Shaders.skybox.fragment
 		});

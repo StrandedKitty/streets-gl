@@ -302,7 +302,6 @@ export default class ControlsSystem extends System {
 		), this.camera, false);
 
 		vector = Vec3.sub(vector, this.camera.position);
-		vector.y *= 1;
 
 		const distanceToGround = (this.camera.position.y - this.target.y) / vector.y;
 		const vectorToGround = Vec3.multiplyScalar(vector, distanceToGround);
