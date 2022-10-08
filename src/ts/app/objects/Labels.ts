@@ -18,7 +18,7 @@ interface AttributeBuffers {
 }
 
 const DeclutterPaddingX = 10;
-const DeclutterPaddingY = 30;
+const DeclutterPaddingY = 20;
 
 export default class Labels extends RenderableObject3D {
 	public mesh: AbstractMesh = null;
@@ -128,12 +128,11 @@ export default class Labels extends RenderableObject3D {
 				maxY: y + DeclutterPaddingY
 			};
 
-			const result = this.tree.collides(item);
-
-			if (!result) {
-				this.tree.insert(item);
+			if (!this.tree.collides(item)) {
 				declutteredLabels.push(label);
 			}
+
+			this.tree.insert(item);
 		}
 
 		const positionBuffers: Float32Array[] = [];

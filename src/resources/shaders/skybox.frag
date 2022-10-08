@@ -2,6 +2,7 @@
 #include <gBufferOut>
 
 in vec3 vNormal;
+in vec3 vPosition;
 in vec4 vClipPos;
 in vec4 vClipPosPrev;
 
@@ -11,7 +12,7 @@ in vec4 vClipPosPrev;
 void main() {
     outColor = vec4(109. / 255., 213. / 255., 1., 0);
     outNormal = packNormal(vNormal);
-    outPosition = vec3(0, 0, -1e8);
+    outPosition = vPosition;
     outMotion = getMotionVector(vClipPos, vClipPosPrev);
     outObjectId = 0u;
 }

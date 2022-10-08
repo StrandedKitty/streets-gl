@@ -17,9 +17,34 @@ export default class WebGL2Texture3D extends WebGL2Texture implements AbstractTe
 		this.updateWrapping();
 		this.updateFilters();
 		this.updateAnisotropy();
+
+		this.updateFromData();
 	}
 
 	public updateFromData(): void {
+		this.renderer.bindTexture(this);
 
+		this.updateFlipY();
+		this.writeFromBuffer(null);
+		this.generateMipmaps();
+
+		this.renderer.unbindTexture();
+	}
+
+	private writeFromBuffer(data: TypedArray): void {
+		const {format, internalFormat, type} = WebGL2Texture.convertFormatToWebGLConstants(this.format);
+
+		this.gl.texImage3D(
+			this.textureTypeConstant,
+			0,
+			internalFormat,
+			this.width,
+			this.height,
+			this.depth,
+			0,
+			format,
+			type,
+			data
+		);
 	}
 }

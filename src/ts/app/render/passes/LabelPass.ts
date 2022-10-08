@@ -3,16 +3,9 @@ import * as RG from "~/render-graph";
 import RenderPassResource from '~/app/render/render-graph/resources/RenderPassResource';
 import PassManager from '~/app/render/PassManager';
 import AbstractMaterial from '~/renderer/abstract-renderer/AbstractMaterial';
-import AbstractTexture2D from '~/renderer/abstract-renderer/AbstractTexture2D';
-import FullScreenTriangle from '~/app/objects/FullScreenTriangle';
-import {UniformFloat2, UniformMatrix4, UniformUint1} from "~/renderer/abstract-renderer/Uniform";
-import PickingSystem from "~/app/systems/PickingSystem";
-import SelectionBlurMaterialContainer from "~/app/render/materials/SelectionBlurMaterialContainer";
-import BuildingMaskMaterialContainer from "~/app/render/materials/BuildingMaskMaterialContainer";
+import {UniformFloat2, UniformMatrix4} from "~/renderer/abstract-renderer/Uniform";
 import Mat4 from "~/math/Mat4";
 import TextLabelMaterialContainer from "~/app/render/materials/TextLabelMaterialContainer";
-import Tile from "~/app/objects/Tile";
-import TileLabelBuffers from "~/app/objects/TileLabelBuffers";
 
 const clearMat4Rotation = (m: Mat4): void => {
 	const values = m.values;
@@ -36,7 +29,6 @@ export default class LabelPass extends Pass<{
 		resource: RenderPassResource;
 	};
 }> {
-	private fullScreenTriangle: FullScreenTriangle;
 	private textLabelMaterial: AbstractMaterial;
 
 	public constructor(manager: PassManager) {
@@ -49,7 +41,6 @@ export default class LabelPass extends Pass<{
 
 	private init(): void {
 		this.textLabelMaterial = new TextLabelMaterialContainer(this.renderer).material;
-		this.fullScreenTriangle = new FullScreenTriangle(this.renderer);
 	}
 
 	public render(): void {

@@ -13,7 +13,6 @@ export default class WebGL2RenderPass implements AbstractRenderPass {
 	public readonly colorAttachments: ColorAttachment[];
 	public readonly depthAttachment: DepthAttachment;
 	private framebuffer: WebGL2Framebuffer = null;
-	private framebufferNeedsUpdate = false;
 
 	public constructor(
 		renderer: WebGL2Renderer,
@@ -38,12 +37,6 @@ export default class WebGL2RenderPass implements AbstractRenderPass {
 
 	public begin(): void {
 		this.renderer.bindFramebuffer(this.framebuffer);
-
-		if (this.framebufferNeedsUpdate && this.framebuffer) {
-			this.framebuffer.bindAttachments();
-
-			this.framebufferNeedsUpdate = false;
-		}
 
 		if (this.framebuffer) {
 			this.framebuffer.clearAllAttachments();

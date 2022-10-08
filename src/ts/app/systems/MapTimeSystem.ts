@@ -11,7 +11,7 @@ import UISystem from "~/app/systems/UISystem";
 const StaticPresets: [Vec3, Vec3][] = [
 	[new Vec3(-1, -1, -1).normalize(), new Vec3(0, 1, 0).normalize()],
 	[new Vec3(-1, -3, -1).normalize(), new Vec3(0, 1, 0).normalize()],
-	[new Vec3(1, -0.4, 1).normalize(), new Vec3(0, 1, 0).normalize()],
+	[new Vec3(1, -0.3, 1).normalize(), new Vec3(0, 1, 0).normalize()],
 	[new Vec3(0, 1, 0).normalize(), new Vec3(-1, -1, -1).normalize()]
 ];
 
@@ -30,8 +30,8 @@ export default class MapTimeSystem extends System {
 	public lightIntensity = 0;
 	public ambientIntensity = 0;
 
-	private sunDirection: Vec3 = null;
-	private moonDirection: Vec3 = null;
+	public sunDirection: Vec3 = null;
+	public moonDirection: Vec3 = null;
 
 	private transitionProgress = 1;
 	private sunTransitionStart: Vec3 = null;

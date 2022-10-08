@@ -10,6 +10,7 @@ uniform Uniforms {
     mat4 modelViewMatrixPrev;
 };
 
+out vec3 vPosition;
 out vec4 vClipPos;
 out vec4 vClipPosPrev;
 
@@ -20,8 +21,10 @@ void main() {
     vec4 cameraSpacePosition = modelViewMatrix * vec4(transformedPosition, 1.0);
     vec4 cameraSpacePositionPrev = modelViewMatrixPrev * vec4(transformedPosition, 1.0);
 
+    vPosition = vec3(cameraSpacePosition);
+
     vClipPos = projectionMatrix * cameraSpacePosition;
-    vClipPosPrev = projectionMatrix * cameraSpacePositionPrev;
+    vClipPosPrev = vClipPos;
 
     gl_Position = vClipPos;
 }

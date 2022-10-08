@@ -10,6 +10,7 @@ import SceneSystem from '~/app/systems/SceneSystem';
 import * as RG from '~/render-graph';
 import RenderSystem from "~/app/systems/RenderSystem";
 import Vec2 from "~/math/Vec2";
+import MapTimeSystem from "~/app/systems/MapTimeSystem";
 
 interface SharedResources {
 	BackbufferRenderPass: RenderPassResource;
@@ -28,6 +29,10 @@ interface SharedResources {
 	SelectionBlurTemp: RenderPassResource;
 	SelectionBlurred: RenderPassResource;
 	Labels: RenderPassResource;
+	AtmosphereTransmittanceLUT: RenderPassResource;
+	AtmosphereMultipleScatteringLUT: RenderPassResource;
+	SkyViewLUT: RenderPassResource;
+	AerialPerspectiveLUT: RenderPassResource;
 }
 
 export default class PassManager {
@@ -74,6 +79,10 @@ export default class PassManager {
 
 	public get renderSystem(): RenderSystem {
 		return this.systemManager.getSystem(RenderSystem);
+	}
+
+	public get mapTimeSystem(): MapTimeSystem {
+		return this.systemManager.getSystem(MapTimeSystem);
 	}
 
 	private initSharedResources(): void {
@@ -507,6 +516,102 @@ export default class PassManager {
 						clearValue: {r: 0, g: 0, b: 0, a: 0},
 						loadOp: RendererTypes.AttachmentLoadOp.Clear,
 						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
+		this.sharedResources.set('AtmosphereTransmittanceLUT', this.resourceFactory.createRenderPassResource({
+			name: 'AtmosphereTransmittanceLUT',
+			isTransient: false,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: 256,
+							height: 64,
+							format: RendererTypes.TextureFormat.RGBA32Float,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
+		this.sharedResources.set('AtmosphereMultipleScatteringLUT', this.resourceFactory.createRenderPassResource({
+			name: 'AtmosphereMultipleScatteringLUT',
+			isTransient: false,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: 32,
+							height: 32,
+							format: RendererTypes.TextureFormat.RGBA32Float,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
+		this.sharedResources.set('SkyViewLUT', this.resourceFactory.createRenderPassResource({
+			name: 'SkyViewLUT',
+			isTransient: false,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: 64,
+							height: 256,
+							format: RendererTypes.TextureFormat.RGBA32Float,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
+							mipmaps: false,
+							wrap: RendererTypes.TextureWrap.Repeat
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
+		this.sharedResources.set('AerialPerspectiveLUT', this.resourceFactory.createRenderPassResource({
+			name: 'AerialPerspectiveLUT',
+			isTransient: false,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture3D,
+							width: 16,
+							height: 16,
+							depth: 16,
+							format: RendererTypes.TextureFormat.RGBA32Float,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
+							mipmaps: false,
+							wrap: RendererTypes.TextureWrap.ClampToEdge
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store,
+						slice: 0
 					}
 				]
 			})

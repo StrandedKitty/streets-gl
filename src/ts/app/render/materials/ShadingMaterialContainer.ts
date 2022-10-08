@@ -47,6 +47,21 @@ export default class ShadingMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Texture2D,
 					value: null
 				}, {
+					name: 'tSkyViewLUT',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: null
+				}, {
+					name: 'tAerialPerspectiveLUT',
+					block: null,
+					type: RendererTypes.UniformType.Texture3D,
+					value: null
+				}, {
+					name: 'tTransmittanceLUT',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: null
+				}, {
 					name: 'tSky',
 					block: null,
 					type: RendererTypes.UniformType.TextureCube,
@@ -72,7 +87,12 @@ export default class ShadingMaterialContainer extends MaterialContainer {
 					name: 'viewMatrix',
 					block: null,
 					type: RendererTypes.UniformType.Matrix4,
-					value: null
+					value: new Float32Array()
+				}, {
+					name: 'sunDirection',
+					block: null,
+					type: RendererTypes.UniformType.Float3,
+					value: new Float32Array()
 				}, {
 					name: 'CSMSplits[0]',
 					block: 'CSM',

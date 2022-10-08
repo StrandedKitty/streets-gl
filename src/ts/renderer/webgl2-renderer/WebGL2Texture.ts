@@ -68,6 +68,7 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 		this.renderer.bindTexture(this);
 		this.gl.texParameteri(this.textureTypeConstant, WebGL2Constants.TEXTURE_WRAP_S, wrapConstant);
 		this.gl.texParameteri(this.textureTypeConstant, WebGL2Constants.TEXTURE_WRAP_T, wrapConstant);
+		this.gl.texParameteri(this.textureTypeConstant, WebGL2Constants.TEXTURE_WRAP_R, wrapConstant);
 	}
 
 	public updateFilters(): void {
