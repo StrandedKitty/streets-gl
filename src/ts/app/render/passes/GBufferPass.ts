@@ -1,5 +1,5 @@
 import AbstractMaterial from "~/renderer/abstract-renderer/AbstractMaterial";
-import {UniformMatrix4} from "~/renderer/abstract-renderer/Uniform";
+import {UniformFloat1, UniformMatrix4} from "~/renderer/abstract-renderer/Uniform";
 import Tile from "~/app/objects/Tile";
 import Mat4 from "../../../math/Mat4";
 import Pass from "~/app/render/passes/Pass";
@@ -11,6 +11,9 @@ import SkyboxMaterialContainer from "~/app/render/materials/SkyboxMaterialContai
 import GroundMaterialContainer from "~/app/render/materials/GroundMaterialContainer";
 import RoadMaterialContainer from "~/app/render/materials/RoadMaterialContainer";
 import FullScreenTriangle from "~/app/objects/FullScreenTriangle";
+import TerrainMaterialContainer from "~/app/render/materials/TerrainMaterialContainer";
+import {RendererTypes} from "~/renderer/RendererTypes";
+import UniformType = RendererTypes.UniformType;
 
 export default class GBufferPass extends Pass<{
 	GBufferRenderPass: {
@@ -22,6 +25,7 @@ export default class GBufferPass extends Pass<{
 	private groundMaterial: AbstractMaterial;
 	private roadMaterial: AbstractMaterial;
 	private skyboxMaterial: AbstractMaterial;
+	private terrainMaterial: AbstractMaterial;
 	private cameraMatrixWorldInversePrev: Mat4 = null;
 	public objectIdBuffer: Uint32Array = new Uint32Array(1);
 	public objectIdX = 0;
@@ -50,11 +54,15 @@ export default class GBufferPass extends Pass<{
 
 		const skyboxMaterialContainer = new SkyboxMaterialContainer(this.renderer);
 		this.skyboxMaterial = skyboxMaterialContainer.material;
+
+		const terrainMaterialContainer = new TerrainMaterialContainer(this.renderer);
+		this.terrainMaterial = terrainMaterialContainer.material;
 	}
 
 	public render(): void {
 		const camera = this.manager.sceneSystem.objects.camera;
 		const skybox = this.manager.sceneSystem.objects.skybox;
+		const terrain = this.manager.sceneSystem.objects.terrain;
 		const tiles = this.manager.sceneSystem.objects.tiles.children as Tile[];
 
 		if (!this.cameraMatrixWorldInversePrev) {
@@ -76,12 +84,22 @@ export default class GBufferPass extends Pass<{
 
 		this.renderer.useMaterial(this.skyboxMaterial);
 
-		this.skyboxMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'Uniforms').value = new Float32Array(camera.jitteredProjectionMatrix.values);
+		this.skyboxMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'Uniforms').value = new Float32Array(camera.projectionMatrix.values);
 		this.skyboxMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'Uniforms').value = new Float32Array(Mat4.multiply(camera.matrixWorldInverse, skybox.matrixWorld).values);
 		this.skyboxMaterial.getUniform<UniformMatrix4>('modelViewMatrixPrev', 'Uniforms').value = new Float32Array(Mat4.multiply(this.cameraMatrixWorldInversePrev, skybox.matrixWorld).values);
 		this.skyboxMaterial.updateUniformBlock('Uniforms');
 
 		skybox.draw();
+
+		/*this.renderer.useMaterial(this.terrainMaterial);
+
+		this.terrainMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.jitteredProjectionMatrix.values);
+		this.terrainMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(Mat4.multiply(camera.matrixWorldInverse, terrain.matrixWorld).values);
+		this.terrainMaterial.getUniform<UniformMatrix4>('modelViewMatrixPrev', 'PerMesh').value = new Float32Array(Mat4.multiply(this.cameraMatrixWorldInversePrev, terrain.matrixWorld).values);
+		this.terrainMaterial.updateUniformBlock('PerMaterial');
+		this.terrainMaterial.updateUniformBlock('PerMesh');
+
+		terrain.draw();*/
 
 		this.renderer.useMaterial(this.buildingMaterial);
 
@@ -103,6 +121,8 @@ export default class GBufferPass extends Pass<{
 
 			tile.buildings.draw();
 		}
+
+		this.groundMaterial.getUniform<UniformFloat1>('time').value[0] = performance.now() * 0.001;
 
 		this.renderer.useMaterial(this.groundMaterial);
 

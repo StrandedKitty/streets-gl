@@ -22,10 +22,14 @@ uniform sampler2D tSelectionMask;
 uniform sampler2D tSelectionBlurred;
 uniform samplerCube tSky;
 uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
 uniform vec3 sunDirection;
-uniform sampler2D tSkyViewLUT;
 uniform sampler2D tTransmittanceLUT;
 uniform sampler3D tAerialPerspectiveLUT;
+uniform sampler2D tSSR;
+uniform sampler2D tMotion;
+uniform samplerCube tAtmosphere;
+uniform mat4 skyRotationMatrix;
 
 uniform CSM {
 	vec4 CSMLightDirectionAndIntensity;
@@ -163,36 +167,8 @@ vec2 integrateSpecularBRDF(float dotNV, float roughness) {
 	return vec2(-1.04, 1.04) * a004 + r.zw;
 }
 
-vec4 getValFromSkyLUT(vec3 rayDir, vec3 sunDir) {
-	float height = length(viewPos);
-	vec3 up = viewPos / height;
-
-	float horizonAngle = safeacos(sqrt(height * height - groundRadiusMM * groundRadiusMM) / height);
-	float altitudeAngle = horizonAngle - acos(dot(rayDir, up)); // Between -PI/2 and PI/2
-	float azimuthAngle; // Between 0 and 2*PI
-	if (abs(altitudeAngle) > (0.5*PI - .0001)) {
-		// Looking nearly straight up or down.
-		azimuthAngle = 0.0;
-	} else {
-		vec3 right = cross(sunDir, up);
-		vec3 forward = cross(up, right);
-
-		vec3 projectedDir = normalize(rayDir - up*(dot(rayDir, up)));
-		float sinTheta = dot(projectedDir, right);
-		float cosTheta = dot(projectedDir, forward);
-		azimuthAngle = atan(sinTheta, cosTheta) + PI;
-	}
-
-	// Non-linear mapping of altitude angle. See Section 5.3 of the paper.
-	float v = 0.5 + 0.5 * sign(altitudeAngle) * sqrt(abs(altitudeAngle) * 2.0 / PI);
-	vec2 uv = vec2(azimuthAngle / (2.0 * PI), v);
-
-	uv.y = 1. - uv.y;
-	return texture(tSkyViewLUT, uv);
-}
-
-vec3 getIBLContribution(MaterialInfo materialInfo, vec3 n, vec3 v) {
-	float lod = getSpecularMIPLevel(materialInfo.perceptualRoughness, 10);
+vec3 getIBLContribution(MaterialInfo materialInfo, vec3 n, vec3 v, vec4 reflectionColor) {
+	float lod = getSpecularMIPLevel(materialInfo.perceptualRoughness, 9);
 	vec3 reflection = normalize(reflect(-v, n));
 
 	float NdotV = clamp(dot(n, v), 0.0, 1.0);
@@ -201,8 +177,8 @@ vec3 getIBLContribution(MaterialInfo materialInfo, vec3 n, vec3 v) {
 	vec2 brdf = integrateSpecularBRDF(NdotV, materialInfo.perceptualRoughness);
 
 	//vec4 diffuseSample = textureLod(tSky, n, 0.);
-	//vec4 specularSample = textureLod(tSky, reflection, lod);
-	vec4 specularSample = getValFromSkyLUT(-reflection, vec3(0, 0, 1)) * 5.;
+	vec4 specularSample = textureLod(tAtmosphere, reflection, lod);
+	specularSample.rgb = mix(specularSample.rgb, reflectionColor.rgb, reflectionColor.a);
 
 	//vec3 diffuseLight = SRGBtoLINEAR(diffuseSample).rgb;
 	vec3 specularLight = specularSample.rgb;
@@ -331,20 +307,27 @@ void main() {
 	vec3 worldView = normalize((viewMatrix * vec4(view, 0)).xyz);
 	vec3 worldNormal = normalize((viewMatrix * vec4(normal, 0)).xyz);
 
+	vec3 sunColor = getValFromTLUT(tTransmittanceLUT, vec3(0, groundRadiusMM + worldPosition.y * 0.000001, 0), -sunDirection);
+
 	if (baseColor.a == 0.) {
-		vec3 skyColor = getValFromSkyLUT(worldView, vec3(0, 0, 1)).rgb * 5.;
+		vec4 skyColor = textureLod(tAtmosphere, -worldView, 0.);
 		vec3 sunLum = sunWithBloom(worldView, sunDirection);
 		sunLum = smoothstep(0.002, 1.0, sunLum) * 5.;
 		if (length(sunLum) > 0.) {
 			if (rayIntersectSphere(worldPosition, worldView, groundRadiusMM) >= 0.0) {
 				sunLum = vec3(0);
 			} else {
-				sunLum *= getValFromTLUT(tTransmittanceLUT, vec3(0, groundRadiusMM + 0.00001, 0), -sunDirection);
+				sunLum *= sunColor;
 			}
 
 		}
 
-		FragColor = vec4(skyColor + sunLum, 1);
+		vec3 starsDirection = (skyRotationMatrix * vec4(worldView, 0.)).xyz;
+		vec3 stars = SRGBtoLINEAR(texture(tSky, starsDirection)).rgb;
+		stars = pow(stars, vec3(5)) * 0.25;
+
+		FragColor = vec4(skyColor.rgb + sunLum + stars * skyColor.a, 0);
+		FragColor.rgb = applySelectionOverlay(FragColor.rgb);
 		return;
 	}
 
@@ -389,13 +372,24 @@ void main() {
 
 	Light light = Light(
 		CSMLightDirectionAndIntensity.xyz,
-		vec3(1),
+		vec3(1) * sunColor,
 		CSMLightDirectionAndIntensity.w
 	);
 
 	vec3 color = vec3(0);
+	vec4 reflectionColor = vec4(0);
 
-	color += getIBLContribution(materialInfo, worldNormal, worldView);
+	if (baseColor.a < 1.) {
+		vec2 velocity = texture(tMotion, vUv).xy;
+		vec2 oldUV = vUv - velocity.xy;
+
+		if (oldUV.x >= 0. && oldUV.x <= 1. && oldUV.y >= 0. && oldUV.y <= 1.) {
+			reflectionColor = texture(tSSR, vUv - velocity.xy);
+			reflectionColor.rgb /= reflectionColor.a;
+		}
+	}
+
+	color += getIBLContribution(materialInfo, worldNormal, worldView, reflectionColor);
 	color += applyDirectionalLight(light, materialInfo, worldNormal, worldView) * shadowFactor;
 	color += materialInfo.diffuseColor * 0.2 * texture(tSSAO, vUv).r;
 
@@ -406,7 +400,7 @@ void main() {
 		vec3(aerialPerspectiveUV, aerialPerspectiveDepthToSlice(-position.z) / aerialPerspectiveSliceCount)
 	);
 
-	color = color * clamp(aerialPerspective.a, 0., 1.) + aerialPerspective.rgb * 5.;
+	color = color * clamp(aerialPerspective.a, 0., 1.) + aerialPerspective.rgb;
 
 	color = applySelectionOverlay(color);
 

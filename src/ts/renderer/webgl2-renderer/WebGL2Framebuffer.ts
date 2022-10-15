@@ -6,6 +6,7 @@ import WebGL2Texture3D from "~/renderer/webgl2-renderer/WebGL2Texture3D";
 import WebGL2Texture2D from "~/renderer/webgl2-renderer/WebGL2Texture2D";
 import {RendererTypes} from "~/renderer/RendererTypes";
 import AbstractTexture from "~/renderer/abstract-renderer/AbstractTexture";
+import WebGL2TextureCube from "~/renderer/webgl2-renderer/WebGL2TextureCube";
 
 export default class WebGL2Framebuffer {
 	private readonly renderer: WebGL2Renderer;
@@ -98,6 +99,8 @@ export default class WebGL2Framebuffer {
 			if (texture instanceof WebGL2Texture2DArray || texture instanceof WebGL2Texture3D) {
 				this.gl.framebufferTextureLayer(WebGL2Constants.FRAMEBUFFER, attachmentConstant, texture.WebGLTexture, 0, attachment.slice);
 				this.attachedLayers.color[i] = attachment.slice;
+			} else if (texture instanceof WebGL2TextureCube) {
+				this.gl.framebufferTexture2D(WebGL2Constants.FRAMEBUFFER, attachmentConstant, WebGL2Constants.TEXTURE_CUBE_MAP_POSITIVE_X + attachment.slice, texture.WebGLTexture, 0);
 			} else {
 				this.gl.framebufferTexture2D(WebGL2Constants.FRAMEBUFFER, attachmentConstant, WebGL2Constants.TEXTURE_2D, (<WebGL2Texture2D>texture).WebGLTexture, 0);
 			}
@@ -218,6 +221,15 @@ export default class WebGL2Framebuffer {
 				this.gl.clearBufferfv(WebGL2Constants.COLOR, drawBuffer, WebGL2Framebuffer.clearValueToTypedArray(Float32Array, clearValue));
 				return;
 			case RendererTypes.TextureFormat.RGBA32Float:
+				this.gl.clearBufferfv(WebGL2Constants.COLOR, drawBuffer, WebGL2Framebuffer.clearValueToTypedArray(Float32Array, clearValue));
+				return;
+			case RendererTypes.TextureFormat.RGB32Float:
+				this.gl.clearBufferfv(WebGL2Constants.COLOR, drawBuffer, WebGL2Framebuffer.clearValueToTypedArray(Float32Array, clearValue));
+				return;
+			case RendererTypes.TextureFormat.RGBA16Float:
+				this.gl.clearBufferfv(WebGL2Constants.COLOR, drawBuffer, WebGL2Framebuffer.clearValueToTypedArray(Float32Array, clearValue));
+				return;
+			case RendererTypes.TextureFormat.RGB16Float:
 				this.gl.clearBufferfv(WebGL2Constants.COLOR, drawBuffer, WebGL2Framebuffer.clearValueToTypedArray(Float32Array, clearValue));
 				return;
 		}

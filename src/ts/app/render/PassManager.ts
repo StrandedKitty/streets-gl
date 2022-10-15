@@ -33,6 +33,8 @@ interface SharedResources {
 	AtmosphereMultipleScatteringLUT: RenderPassResource;
 	SkyViewLUT: RenderPassResource;
 	AerialPerspectiveLUT: RenderPassResource;
+	SSR: RenderPassResource;
+	AtmosphereSkybox: RenderPassResource;
 }
 
 export default class PassManager {
@@ -119,7 +121,7 @@ export default class PassManager {
 							type: TextureResourceType.Texture2D,
 							width: 1,
 							height: 1,
-							format: RendererTypes.TextureFormat.RGB8Unorm,
+							format: RendererTypes.TextureFormat.RGBA16Float,
 							minFilter: RendererTypes.MinFilter.Linear,
 							magFilter: RendererTypes.MagFilter.Linear,
 							mipmaps: false
@@ -133,8 +135,8 @@ export default class PassManager {
 							width: 1,
 							height: 1,
 							format: RendererTypes.TextureFormat.RGBA32Float,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
+							minFilter: RendererTypes.MinFilter.Nearest,
+							magFilter: RendererTypes.MagFilter.Nearest,
 							mipmaps: false
 						}),
 						clearValue: {r: 0, g: 0, b: 0, a: 0},
@@ -531,7 +533,7 @@ export default class PassManager {
 							type: TextureResourceType.Texture2D,
 							width: 256,
 							height: 64,
-							format: RendererTypes.TextureFormat.RGBA32Float,
+							format: RendererTypes.TextureFormat.RGBA16Float,
 							minFilter: RendererTypes.MinFilter.Linear,
 							magFilter: RendererTypes.MagFilter.Linear,
 							mipmaps: false
@@ -554,7 +556,7 @@ export default class PassManager {
 							type: TextureResourceType.Texture2D,
 							width: 32,
 							height: 32,
-							format: RendererTypes.TextureFormat.RGBA32Float,
+							format: RendererTypes.TextureFormat.RGBA16Float,
 							minFilter: RendererTypes.MinFilter.Linear,
 							magFilter: RendererTypes.MagFilter.Linear,
 							mipmaps: false
@@ -577,7 +579,7 @@ export default class PassManager {
 							type: TextureResourceType.Texture2D,
 							width: 64,
 							height: 256,
-							format: RendererTypes.TextureFormat.RGBA32Float,
+							format: RendererTypes.TextureFormat.RGBA16Float,
 							minFilter: RendererTypes.MinFilter.Linear,
 							magFilter: RendererTypes.MagFilter.Linear,
 							mipmaps: false,
@@ -602,7 +604,7 @@ export default class PassManager {
 							width: 16,
 							height: 16,
 							depth: 16,
-							format: RendererTypes.TextureFormat.RGBA32Float,
+							format: RendererTypes.TextureFormat.RGBA16Float,
 							minFilter: RendererTypes.MinFilter.Linear,
 							magFilter: RendererTypes.MagFilter.Linear,
 							mipmaps: false,
@@ -612,6 +614,52 @@ export default class PassManager {
 						loadOp: RendererTypes.AttachmentLoadOp.Load,
 						storeOp: RendererTypes.AttachmentStoreOp.Store,
 						slice: 0
+					}
+				]
+			})
+		}));
+		this.sharedResources.set('SSR', this.resourceFactory.createRenderPassResource({
+			name: 'SSR',
+			isTransient: false,
+			isUsedExternally: true,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: 1,
+							height: 1,
+							format: RendererTypes.TextureFormat.RGBA16Float,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
+		this.sharedResources.set('AtmosphereSkybox', this.resourceFactory.createRenderPassResource({
+			name: 'AtmosphereSkybox',
+			isTransient: false,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.TextureCube,
+							width: 512,
+							height: 512,
+							format: RendererTypes.TextureFormat.RGBA16Float,
+							minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
+							magFilter: RendererTypes.MagFilter.Linear,
+							mipmaps: true
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 1},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
 					}
 				]
 			})
@@ -638,5 +686,6 @@ export default class PassManager {
 		this.sharedResources.get('SelectionBlurTemp').descriptor.setSize(resolutionScene.x, resolutionScene.y);
 		this.sharedResources.get('SelectionBlurred').descriptor.setSize(resolutionScene.x, resolutionScene.y);
 		this.sharedResources.get('Labels').descriptor.setSize(resolutionUI.x, resolutionUI.y);
+		this.sharedResources.get('SSR').descriptor.setSize(resolutionScene.x, resolutionScene.y);
 	}
 }

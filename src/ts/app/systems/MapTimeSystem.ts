@@ -7,6 +7,10 @@ import Config from "../Config";
 import SunCalc from 'suncalc';
 import Easing from "../../math/Easing";
 import UISystem from "~/app/systems/UISystem";
+import {createTimeOfInterest} from "astronomy-bundle/time";
+import {createStar} from "astronomy-bundle/stars";
+import {createLocation} from "astronomy-bundle/earth";
+import Mat4 from "~/math/Mat4";
 
 const StaticPresets: [Vec3, Vec3][] = [
 	[new Vec3(-1, -1, -1).normalize(), new Vec3(0, 1, 0).normalize()],
@@ -32,10 +36,16 @@ export default class MapTimeSystem extends System {
 
 	public sunDirection: Vec3 = null;
 	public moonDirection: Vec3 = null;
+	public skyDirection: [Vec3, Vec3, Vec3] = null;
+
+
+	public skyDirectionTarget: [Vec3, Vec3, Vec3] = null;
+	public skyDirectionMatrix: Mat4 = Mat4.identity();
 
 	private transitionProgress = 1;
 	private sunTransitionStart: Vec3 = null;
 	private moonTransitionStart: Vec3 = null;
+	private skyTransitionStart: [Vec3, Vec3, Vec3] = null;
 
 	public constructor(systemManager: SystemManager) {
 		super(systemManager);
@@ -77,7 +87,66 @@ export default class MapTimeSystem extends System {
 		return [new Vec3(), new Vec3()];
 	}
 
-	private doTransition(targetSunDirection: Vec3, targetMoonDirection: Vec3, deltaTime: number): void {
+	private updateTargetSkyDirection(): void {
+		const toi = createTimeOfInterest.fromDate(new Date(this.time));
+
+		const pointX = {
+			rightAscension: 90,
+			declination: 0,
+			radiusVector: 1,
+		};
+		const pointY = {
+			rightAscension: 90,
+			declination: 90,
+			radiusVector: 1,
+		};
+		const pointZ = {
+			rightAscension: 180,
+			declination: 0,
+			radiusVector: 1,
+		};
+
+		const starX = createStar.byEquatorialCoordinates(pointX, toi);
+		const starY = createStar.byEquatorialCoordinates(pointY, toi);
+		const starZ = createStar.byEquatorialCoordinates(pointZ, toi);
+
+		const latLon = this.systemManager.getSystem(ControlsSystem).getLatLon();
+		const location = createLocation(latLon.lat, latLon.lon);
+
+		Promise.all([
+			starX.getTopocentricHorizontalCoordinates(location),
+			starY.getTopocentricHorizontalCoordinates(location),
+			starZ.getTopocentricHorizontalCoordinates(location),
+		]).then(([r1, r2, r3]) => {
+			const px = MathUtils.sphericalToCartesian(MathUtils.toRad(r1.azimuth), MathUtils.toRad(r1.altitude));
+			const py = MathUtils.sphericalToCartesian(MathUtils.toRad(r2.azimuth), MathUtils.toRad(r2.altitude));
+			const pz = MathUtils.sphericalToCartesian(MathUtils.toRad(r3.azimuth), MathUtils.toRad(r3.altitude));
+
+			this.skyDirectionTarget = [px, py, pz];
+		});
+	}
+
+	private updateSkyDirectionMatrix(): void {
+		if (!this.skyDirection) {
+			return;
+		}
+
+		const [px, py, pz] = this.skyDirection;
+
+		this.skyDirectionMatrix.values[0] = px.x;
+		this.skyDirectionMatrix.values[4] = px.y;
+		this.skyDirectionMatrix.values[8] = px.z;
+
+		this.skyDirectionMatrix.values[1] = py.x;
+		this.skyDirectionMatrix.values[5] = py.y;
+		this.skyDirectionMatrix.values[9] = py.z;
+
+		this.skyDirectionMatrix.values[2] = pz.x;
+		this.skyDirectionMatrix.values[6] = pz.y;
+		this.skyDirectionMatrix.values[10] = pz.z;
+	}
+
+	private doTransition(targetSunDirection: Vec3, targetMoonDirection: Vec3, targetSkyDirection: [Vec3, Vec3, Vec3], deltaTime: number): void {
 		if (this.sunDirection === null || this.sunTransitionStart === null) {
 			this.sunDirection = targetSunDirection;
 		} else {
@@ -98,6 +167,18 @@ export default class MapTimeSystem extends System {
 			);
 		}
 
+		if (this.skyDirection === null || this.skyTransitionStart === null) {
+			this.skyDirection = targetSkyDirection;
+		} else {
+			this.skyDirection = [
+				Vec3.nlerp(this.skyTransitionStart[0], targetSkyDirection[0], this.getSmoothedTransitionProgress()),
+				Vec3.nlerp(this.skyTransitionStart[1], targetSkyDirection[1], this.getSmoothedTransitionProgress()),
+				Vec3.nlerp(this.skyTransitionStart[2], targetSkyDirection[2], this.getSmoothedTransitionProgress())
+			];
+		}
+
+		this.updateSkyDirectionMatrix();
+
 		this.transitionProgress += deltaTime / Config.LightTransitionDuration;
 		this.transitionProgress = Math.min(1, this.transitionProgress);
 	}
@@ -110,9 +191,14 @@ export default class MapTimeSystem extends System {
 		const newTime = this.systemManager.getSystem(UISystem).mapTime;
 		const diff = Math.abs(newTime - this.time);
 
-		if (diff > 1e6 && this.sunDirection && this.moonDirection) {
+		if (diff > 1e6 && this.sunDirection && this.moonDirection && this.skyDirection) {
 			this.sunTransitionStart = Vec3.clone(this.sunDirection);
 			this.moonTransitionStart = Vec3.clone(this.moonDirection);
+			this.skyTransitionStart = [
+				Vec3.clone(this.skyDirection[0]),
+				Vec3.clone(this.skyDirection[1]),
+				Vec3.clone(this.skyDirection[2])
+			];
 			this.transitionProgress = 0;
 		}
 
@@ -123,8 +209,9 @@ export default class MapTimeSystem extends System {
 		this.updateTime();
 
 		const [targetSunDirection, targetMoonDirection] = this.getTargetSunAndMoonDirection();
+		this.updateTargetSkyDirection();
 
-		this.doTransition(targetSunDirection, targetMoonDirection, deltaTime);
+		this.doTransition(targetSunDirection, targetMoonDirection, this.skyDirectionTarget, deltaTime);
 
 		if (this.sunDirection.y < 0) {
 			this.lightIntensity = 6;

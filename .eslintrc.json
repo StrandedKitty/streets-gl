@@ -48,7 +48,8 @@
 							"requireLast": false
 						}
 					}
-				]
+				],
+				"prefer-const": "off"
 			}
 		}
 	]

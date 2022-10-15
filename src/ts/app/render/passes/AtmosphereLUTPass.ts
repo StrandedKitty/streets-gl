@@ -13,6 +13,7 @@ import AtmosphereSkyViewMaterialContainer from "~/app/render/materials/Atmospher
 import Vec3 from "~/math/Vec3";
 import AtmosphereAerialPerspectiveMaterialContainer
 	from "~/app/render/materials/AtmosphereAerialPerspectiveMaterialContainer";
+import AtmosphereSkyboxMaterialContainer from "~/app/render/materials/AtmosphereSkyboxMaterialContainer";
 
 export default class AtmosphereLUTPass extends Pass<{
 	Transmittance: {
@@ -31,12 +32,18 @@ export default class AtmosphereLUTPass extends Pass<{
 		type: RG.InternalResourceType.Output;
 		resource: RenderPassResource;
 	};
+	Skybox: {
+		type: RG.InternalResourceType.Output;
+		resource: RenderPassResource;
+	};
 }> {
 	private fullScreenTriangle: FullScreenTriangle;
 	private transmittanceMaterial: AbstractMaterial;
 	private multipleScatteringMaterial: AbstractMaterial;
 	private skyViewMaterial: AbstractMaterial;
 	private aerialPerspectiveMaterial: AbstractMaterial;
+	private skyboxMaterial: AbstractMaterial;
+	private staticLUTsReady: boolean = false;
 
 	public constructor(manager: PassManager) {
 		super('AtmosphereLUTPass', manager, {
@@ -44,6 +51,7 @@ export default class AtmosphereLUTPass extends Pass<{
 			MultipleScattering: {type: RG.InternalResourceType.Local, resource: manager.getSharedResource('AtmosphereMultipleScatteringLUT')},
 			SkyView: {type: RG.InternalResourceType.Output, resource: manager.getSharedResource('SkyViewLUT')},
 			AerialPerspective: {type: RG.InternalResourceType.Output, resource: manager.getSharedResource('AerialPerspectiveLUT')},
+			Skybox: {type: RG.InternalResourceType.Output, resource: manager.getSharedResource('AtmosphereSkybox')},
 		});
 
 		this.init();
@@ -54,6 +62,7 @@ export default class AtmosphereLUTPass extends Pass<{
 		this.multipleScatteringMaterial = new AtmosphereMultipleScatteringMaterialContainer(this.renderer).material;
 		this.skyViewMaterial = new AtmosphereSkyViewMaterialContainer(this.renderer).material;
 		this.aerialPerspectiveMaterial = new AtmosphereAerialPerspectiveMaterialContainer(this.renderer).material;
+		this.skyboxMaterial = new AtmosphereSkyboxMaterialContainer(this.renderer).material;
 		this.fullScreenTriangle = new FullScreenTriangle(this.renderer);
 	}
 
@@ -63,17 +72,21 @@ export default class AtmosphereLUTPass extends Pass<{
 		const transmittanceLUT = <AbstractTexture2D>this.getPhysicalResource('Transmittance').colorAttachments[0].texture;
 		const multipleScatteringLUT = <AbstractTexture2D>this.getPhysicalResource('MultipleScattering').colorAttachments[0].texture;
 
-		this.renderer.beginRenderPass(this.getPhysicalResource('Transmittance'));
-		this.renderer.useMaterial(this.transmittanceMaterial);
+		if (!this.staticLUTsReady) {
+			this.renderer.beginRenderPass(this.getPhysicalResource('Transmittance'));
+			this.renderer.useMaterial(this.transmittanceMaterial);
 
-		this.fullScreenTriangle.mesh.draw();
+			this.fullScreenTriangle.mesh.draw();
 
-		this.multipleScatteringMaterial.getUniform('tTransmittanceLUT').value = transmittanceLUT;
+			this.multipleScatteringMaterial.getUniform('tTransmittanceLUT').value = transmittanceLUT;
 
-		this.renderer.beginRenderPass(this.getPhysicalResource('MultipleScattering'));
-		this.renderer.useMaterial(this.multipleScatteringMaterial);
+			this.renderer.beginRenderPass(this.getPhysicalResource('MultipleScattering'));
+			this.renderer.useMaterial(this.multipleScatteringMaterial);
 
-		this.fullScreenTriangle.mesh.draw();
+			this.fullScreenTriangle.mesh.draw();
+
+			this.staticLUTsReady = true;
+		}
 
 		this.skyViewMaterial.getUniform('tTransmittanceLUT').value = transmittanceLUT;
 		this.skyViewMaterial.getUniform('tMultipleScatteringLUT').value = multipleScatteringLUT;
@@ -114,7 +127,24 @@ export default class AtmosphereLUTPass extends Pass<{
 			this.fullScreenTriangle.mesh.draw();
 		}
 
+		const skyboxRenderPass = this.getPhysicalResource('Skybox');
 
+		this.renderer.beginRenderPass(skyboxRenderPass);
+
+		this.skyboxMaterial.getUniform('tMap').value = <AbstractTexture2D>this.getPhysicalResource('SkyView').colorAttachments[0].texture;
+		this.renderer.useMaterial(this.skyboxMaterial);
+
+		for (let i = 0; i < 6; i++) {
+			this.skyboxMaterial.getUniform<UniformFloat1>('faceId', 'MainBlock').value[0] = i;
+			this.skyboxMaterial.updateUniformBlock('MainBlock');
+
+			skyboxRenderPass.colorAttachments[0].slice = i;
+			this.renderer.beginRenderPass(skyboxRenderPass);
+
+			this.fullScreenTriangle.mesh.draw();
+		}
+
+		skyboxRenderPass.colorAttachments[0].texture.generateMipmaps();
 	}
 
 	public setSize(width: number, height: number): void {

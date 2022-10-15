@@ -20,6 +20,7 @@ import SelectionPass from "~/app/render/passes/SelectionPass";
 import LabelPass from "~/app/render/passes/LabelPass";
 import Tile from "~/app/objects/Tile";
 import AtmosphereLUTPass from "~/app/render/passes/AtmosphereLUTPass";
+import SSRPass from "~/app/render/passes/SSRPass";
 
 const jitterOffsets: [number, number][] = [
 	[-7 / 8, 1 / 8],
@@ -75,6 +76,7 @@ export default class RenderSystem extends System {
 		this.passManager.addPass(new SelectionPass(this.passManager));
 		this.passManager.addPass(new LabelPass(this.passManager));
 		this.passManager.addPass(new AtmosphereLUTPass(this.passManager));
+		this.passManager.addPass(new SSRPass(this.passManager));
 	}
 
 	private resize(): void {

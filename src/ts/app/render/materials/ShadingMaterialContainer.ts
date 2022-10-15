@@ -47,11 +47,6 @@ export default class ShadingMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Texture2D,
 					value: null
 				}, {
-					name: 'tSkyViewLUT',
-					block: null,
-					type: RendererTypes.UniformType.Texture2D,
-					value: null
-				}, {
 					name: 'tAerialPerspectiveLUT',
 					block: null,
 					type: RendererTypes.UniformType.Texture3D,
@@ -62,20 +57,30 @@ export default class ShadingMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Texture2D,
 					value: null
 				}, {
+					name: 'tSSR',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: null
+				}, {
+					name: 'tMotion',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: null
+				}, {
 					name: 'tSky',
 					block: null,
 					type: RendererTypes.UniformType.TextureCube,
 					value: this.renderer.createTextureCube({
-						width: 512,
-						height: 512,
+						width: 1024,
+						height: 1024,
 						anisotropy: 16,
 						data: [
-							ResourceManager.get('sky0'),
-							ResourceManager.get('sky1'),
-							ResourceManager.get('sky2'),
-							ResourceManager.get('sky3'),
-							ResourceManager.get('sky4'),
-							ResourceManager.get('sky5'),
+							ResourceManager.get('starmap0'),
+							ResourceManager.get('starmap1'),
+							ResourceManager.get('starmap2'),
+							ResourceManager.get('starmap3'),
+							ResourceManager.get('starmap4'),
+							ResourceManager.get('starmap5'),
 						],
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,
@@ -84,7 +89,22 @@ export default class ShadingMaterialContainer extends MaterialContainer {
 						mipmaps: true
 					})
 				}, {
+					name: 'tAtmosphere',
+					block: null,
+					type: RendererTypes.UniformType.TextureCube,
+					value: null
+				}, {
+					name: 'skyRotationMatrix',
+					block: null,
+					type: RendererTypes.UniformType.Matrix4,
+					value: new Float32Array()
+				}, {
 					name: 'viewMatrix',
+					block: null,
+					type: RendererTypes.UniformType.Matrix4,
+					value: new Float32Array()
+				}, {
+					name: 'projectionMatrix',
 					block: null,
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array()

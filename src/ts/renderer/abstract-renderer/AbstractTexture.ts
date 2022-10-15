@@ -22,5 +22,6 @@ export default interface AbstractTexture {
 	format: RendererTypes.TextureFormat;
 	flipY: boolean;
 	mipmaps: boolean;
+	generateMipmaps(): void;
 	delete(): void;
 }

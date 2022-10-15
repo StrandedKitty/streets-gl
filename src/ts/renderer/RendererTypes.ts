@@ -25,6 +25,9 @@ export namespace RendererTypes {
 		RGB8Unorm,
 		RGBA8Unorm,
 		RGBA32Float,
+		RGB32Float,
+		RGBA16Float,
+		RGB16Float,
 		Depth32Float,
 		R32Uint
 	}

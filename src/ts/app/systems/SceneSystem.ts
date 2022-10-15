@@ -11,6 +11,7 @@ import Config from "~/app/Config";
 import MapTimeSystem from "~/app/systems/MapTimeSystem";
 import Vec3 from "~/math/Vec3";
 import Labels from "~/app/objects/Labels";
+import Terrain from "~/app/objects/Terrain";
 
 interface SceneObjects {
 	wrapper: Object3D;
@@ -19,6 +20,7 @@ interface SceneObjects {
 	tiles: Object3D;
 	csm: CSM;
 	labels: Labels;
+	terrain: Terrain;
 }
 
 export default class SceneSystem extends System {
@@ -39,7 +41,7 @@ export default class SceneSystem extends System {
 
 		const wrapper = new Object3D();
 		const camera = new PerspectiveCamera({
-			fov: 40,
+			fov: Config.CameraFOV,
 			near: 10,
 			far: 25000,
 			aspect: window.innerWidth / window.innerHeight
@@ -56,6 +58,7 @@ export default class SceneSystem extends System {
 			shadowNormalBias: 0.002,
 		});
 		const labels = new Labels();
+		const terrain = new Terrain();
 
 		this.objects = {
 			wrapper,
@@ -63,11 +66,12 @@ export default class SceneSystem extends System {
 			skybox,
 			tiles,
 			csm,
-			labels
+			labels,
+			terrain
 		};
 
 		this.scene.add(wrapper);
-		wrapper.add(camera, csm, skybox, tiles, labels);
+		wrapper.add(camera, csm, skybox, tiles, labels, terrain);
 	}
 
 	public postInit(): void {
@@ -116,6 +120,9 @@ export default class SceneSystem extends System {
 
 		this.objects.skybox.position.set(cameraPos.x, cameraPos.y, cameraPos.z);
 		this.objects.skybox.updateMatrix();
+
+		this.objects.terrain.position.set(cameraPos.x, 0, cameraPos.z);
+		this.objects.terrain.updateMatrix();
 
 		const lightDirection = this.systemManager.getSystem(MapTimeSystem).lightDirection;
 		const lightIntensity = this.systemManager.getSystem(MapTimeSystem).lightIntensity;

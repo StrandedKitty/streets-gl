@@ -67,7 +67,11 @@ const vec2 offsets[] = vec2[](
 	vec2(1, 0),
 	vec2(-1, 0),
 	vec2(0, 1),
-	vec2(0, -1)
+	vec2(0, -1),
+	vec2(1, 1),
+	vec2(-1, -1),
+	vec2(-1, 1),
+	vec2(1, -1)
 );
 
 void main() {
@@ -96,7 +100,7 @@ void main() {
 	vec4 maxNeighbor = newSample;
 	vec4 minNeighbor = newSample;
 
-	for(int i = 0; i < 4; i++) {
+	for(int i = 0; i < 8; i++) {
 		vec2 neighborUv = vUv + offsets[i] / size;
 		vec4 neighborTexel = texture(tNew, neighborUv);
 
@@ -111,6 +115,11 @@ void main() {
 	accumSample = clamp(accumSample, minNeighbor, maxNeighbor);
 
 	float mixFactor = 0.1;
+
+	if (accumSample.a == 0. && newSample.a == 0.) {
+		// Disable TAA for skybox
+		mixFactor = 1.;
+	}
 
 	bool a = any(greaterThan(oldUV, vec2(1)));
 	bool b = any(lessThan(oldUV, vec2(0)));

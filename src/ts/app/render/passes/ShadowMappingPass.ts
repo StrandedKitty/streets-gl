@@ -43,22 +43,24 @@ export default class ShadowMappingPass extends Pass<{
 
 			this.renderer.beginRenderPass(pass);
 
-			this.renderer.useMaterial(this.buildingDepthMaterial);
+			{
+				this.renderer.useMaterial(this.buildingDepthMaterial);
 
-			this.buildingDepthMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.projectionMatrix.values);
-			this.buildingDepthMaterial.updateUniformBlock('PerMaterial');
+				this.buildingDepthMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.projectionMatrix.values);
+				this.buildingDepthMaterial.updateUniformBlock('PerMaterial');
 
-			for (const tile of tiles) {
-				if (!tile.buildings || !tile.buildings.inCameraFrustum(camera)) {
-					continue;
+				for (const tile of tiles) {
+					if (!tile.buildings || !tile.buildings.inCameraFrustum(camera)) {
+						continue;
+					}
+
+					const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, tile.matrixWorld);
+
+					this.buildingDepthMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
+					this.buildingDepthMaterial.updateUniformBlock('PerMesh');
+
+					tile.buildings.draw();
 				}
-
-				const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, tile.matrixWorld);
-
-				this.buildingDepthMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
-				this.buildingDepthMaterial.updateUniformBlock('PerMesh');
-
-				tile.buildings.draw();
 			}
 
 			{

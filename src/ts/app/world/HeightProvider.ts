@@ -7,7 +7,7 @@ export default new class HeightProvider {
 		const canvas = document.createElement('canvas');
 		canvas.width = 256;
 		canvas.height = 256;
-		this.ctx = canvas.getContext('2d');
+		this.ctx = canvas.getContext('2d', {willReadFrequently: true});
 	}
 
 	public getTile(x: number, y: number): Uint8ClampedArray {

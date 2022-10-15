@@ -51,6 +51,10 @@
 		"url": "/textures/noise.png",
 		"type": "image"
 	},
+	"waterNormal": {
+		"url": "/textures/water_normal.png",
+		"type": "image"
+	},
 	"pavementDiffuse": {
 		"url": "/textures/surfaces/pavement_diffuse.png",
 		"type": "image"
@@ -91,28 +95,28 @@
 		"url": "/textures/blue_noise_rgba.png",
 		"type": "image"
 	},
-	"sky0": {
-		"url": "/textures/sky/px.jpg",
+	"starmap0": {
+		"url": "/textures/starmap/px.png",
 		"type": "image"
 	},
-	"sky1": {
-		"url": "/textures/sky/nx.jpg",
+	"starmap1": {
+		"url": "/textures/starmap/nx.png",
 		"type": "image"
 	},
-	"sky2": {
-		"url": "/textures/sky/py.jpg",
+	"starmap2": {
+		"url": "/textures/starmap/py.png",
 		"type": "image"
 	},
-	"sky3": {
-		"url": "/textures/sky/ny.jpg",
+	"starmap3": {
+		"url": "/textures/starmap/ny.png",
 		"type": "image"
 	},
-	"sky4": {
-		"url": "/textures/sky/pz.jpg",
+	"starmap4": {
+		"url": "/textures/starmap/pz.png",
 		"type": "image"
 	},
-	"sky5": {
-		"url": "/textures/sky/nz.jpg",
+	"starmap5": {
+		"url": "/textures/starmap/nz.png",
 		"type": "image"
 	},
 	"fontSDF": {

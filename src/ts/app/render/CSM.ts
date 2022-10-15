@@ -78,7 +78,6 @@ export default class CSM extends Object3D {
 
 	public updateFrustums(): void {
 		this.mainFrustum = new Frustum(this.camera.fov, this.camera.aspect, this.near, this.far);
-
 		this.mainFrustum.updateViewSpaceVertices();
 
 		const newFrustumsVertices = this.mainFrustum.split(this.breaks);

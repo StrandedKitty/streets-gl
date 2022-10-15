@@ -89,4 +89,5 @@ void main() {
     }
 
     FragColor = raymarchScattering(WorldPos, WorldDir, -sunDirection, tMax, float(numScatteringSteps));
+    FragColor.rgb *= 5.;
 }

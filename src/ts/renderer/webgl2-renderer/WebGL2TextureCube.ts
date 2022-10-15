@@ -33,6 +33,10 @@ export default class WebGL2TextureCube extends WebGL2Texture implements Abstract
 					this.writeSideFromBuffer(<TypedArray>this.data[i], i);
 				}
 			}
+		} else {
+			for (let i = 0; i < 6; i++) {
+				this.writeSideFromBuffer(null, i);
+			}
 		}
 
 		this.generateMipmaps();

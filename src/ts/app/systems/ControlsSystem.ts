@@ -16,8 +16,9 @@ import SceneSystem from '~/app/systems/SceneSystem';
 import PerspectiveCamera from "../../core/PerspectiveCamera";
 import Easing from "../../math/Easing";
 
-const touchYawFactor = 4;
-const touchPitchFactor = 2;
+const TouchYawFactor = 4;
+const TouchPitchFactor = 2;
+const WheelZoomFactor = 6;
 
 export interface ControlsState {
 	x: number;
@@ -270,11 +271,11 @@ export default class ControlsSystem extends System {
 		}
 
 		if (e.bearingDelta && !this.touchHandlers.get('pinch').active) {
-			this.yaw += MathUtils.toRad(e.bearingDelta) * this.rotationSpeed * touchYawFactor;
+			this.yaw += MathUtils.toRad(e.bearingDelta) * this.rotationSpeed * TouchYawFactor;
 		}
 
 		if (e.pinchDelta) {
-			this.pitch -= MathUtils.toRad(e.pinchDelta) * this.rotationSpeed * touchPitchFactor;
+			this.pitch -= MathUtils.toRad(e.pinchDelta) * this.rotationSpeed * TouchPitchFactor;
 		}
 	}
 
@@ -388,7 +389,7 @@ export default class ControlsSystem extends System {
 		if (this.wheelZoomScaleTarget !== this.wheelZoomScale) {
 			const sign = Math.sign(this.wheelZoomScaleTarget - this.wheelZoomScale);
 
-			this.wheelZoomScale += sign * deltaTime * 12.;
+			this.wheelZoomScale += sign * deltaTime * WheelZoomFactor;
 			this.wheelZoomScale = MathUtils.clamp(this.wheelZoomScale, 0, 1);
 
 			const alpha = Easing.easeOutCubic(this.wheelZoomScale);

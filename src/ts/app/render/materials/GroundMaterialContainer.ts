@@ -65,6 +65,24 @@ export default class GroundMaterialContainer extends MaterialContainer {
 						format: RendererTypes.TextureFormat.RGBA8Unorm,
 						mipmaps: true
 					})
+				}, {
+					name: 'waterNormal',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: this.renderer.createTexture2D({
+						anisotropy: 16,
+						data: ResourceManager.get('waterNormal'),
+						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
+						magFilter: RendererTypes.MagFilter.Linear,
+						wrap: RendererTypes.TextureWrap.Repeat,
+						format: RendererTypes.TextureFormat.RGBA8Unorm,
+						mipmaps: true
+					})
+				}, {
+					name: 'time',
+					block: null,
+					type: RendererTypes.UniformType.Float1,
+					value: new Float32Array(1)
 				}
 			],
 			primitive: {
