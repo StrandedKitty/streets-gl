@@ -28,4 +28,8 @@ export default class PerspectiveCamera extends Camera {
 		);
 		this.updateProjectionMatrixInverse();
 	}
+
+	public getFocalLength(sensorHeight: number): number {
+		return this.projectionMatrix.values[5] * sensorHeight / 2;
+	}
 }

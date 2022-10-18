@@ -18,6 +18,14 @@ export default class ScreenPass extends Pass<{
 		type: InternalResourceType.Input;
 		resource: RenderPassResource;
 	};
+	CoC: {
+		type: InternalResourceType.Input;
+		resource: RenderPassResource;
+	};
+	DoF: {
+		type: InternalResourceType.Input;
+		resource: RenderPassResource;
+	};
 	Output: {
 		type: RG.InternalResourceType.Output;
 		resource: RenderPassResource;
@@ -30,6 +38,8 @@ export default class ScreenPass extends Pass<{
 		super('ScreenPass', manager, {
 			HDR: {type: InternalResourceType.Input, resource: manager.getSharedResource('HDRAntialiased')},
 			Labels: {type: InternalResourceType.Input, resource: manager.getSharedResource('Labels')},
+			CoC: {type: InternalResourceType.Input, resource: manager.getSharedResource('CoCAntialiased')},
+			DoF: {type: InternalResourceType.Input, resource: manager.getSharedResource('DoFBlurred')},
 			Output: {type: InternalResourceType.Output, resource: manager.getSharedResource('BackbufferRenderPass')},
 		});
 
@@ -40,12 +50,16 @@ export default class ScreenPass extends Pass<{
 	public render(): void {
 		const sourceTexture = <AbstractTexture2D>this.getPhysicalResource('HDR').colorAttachments[0].texture;
 		const labelsTexture = <AbstractTexture2D>this.getPhysicalResource('Labels').colorAttachments[0].texture;
+		const cocTexture = <AbstractTexture2D>this.getPhysicalResource('CoC').colorAttachments[0].texture;
+		const dofTexture = <AbstractTexture2D>this.getPhysicalResource('DoF').colorAttachments[0].texture;
 		const uiResolution = this.manager.renderSystem.resolutionUI;
 
 		this.renderer.beginRenderPass(this.getPhysicalResource('Output'));
 
 		this.material.getUniform('tHDR').value = sourceTexture;
 		this.material.getUniform('tLabels').value = labelsTexture;
+		this.material.getUniform('tCoC').value = cocTexture;
+		this.material.getUniform('tDoF').value = dofTexture;
 		this.material.getUniform<UniformFloat2>('resolution', 'Uniforms').value[0] = uiResolution.x;
 		this.material.getUniform<UniformFloat2>('resolution', 'Uniforms').value[1] = uiResolution.y;
 		this.material.updateUniformBlock('Uniforms');

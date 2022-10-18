@@ -1,17 +1,11 @@
-#version 300 es
-precision highp float;
-precision highp int;
-precision highp sampler2D;
-precision highp usampler2D;
-precision highp sampler2DArray;
-precision highp sampler3D;
+#include <versionPrecision>
 
 out vec4 FragColor;
 
 in vec2 vUv;
 
 uniform sampler2D tCoC;
-uniform sampler2D tCoCAccum;
+uniform sampler2D tCoCHistory;
 uniform sampler2D tMotion;
 
 const vec2 offsets[] = vec2[](
@@ -43,7 +37,7 @@ void main() {
 
     vec2 velocity = texture(tMotion, vUv + closest.xy * texelSize).xy;
     vec2 oldUV = vUv - velocity.xy;
-    float accumSample = texture(tCoCAccum, oldUV).r;
+    float accumSample = texture(tCoCHistory, oldUV).r;
 
     accumSample = clamp(accumSample, minNeighbor, maxNeighbor);
 

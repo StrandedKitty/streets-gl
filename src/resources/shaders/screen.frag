@@ -6,6 +6,8 @@ in vec2 vUv;
 
 uniform sampler2D tHDR;
 uniform sampler2D tLabels;
+uniform sampler2D tCoC;
+uniform sampler2D tDoF;
 
 uniform Uniforms {
 	vec2 resolution;
@@ -29,7 +31,7 @@ vec2 computeUV(vec2 uv, float k, float kcube) {
 
 // from https://iquilezles.org/articles/distfunctions
 float roundedBoxSDF(vec2 CenterPosition, vec2 Size, float Radius) {
-	return length(max(abs(CenterPosition)-Size+Radius,0.0))-Radius;
+	return length(max(abs(CenterPosition) - Size + Radius, 0.0)) - Radius;
 }
 
 void main() {
@@ -37,14 +39,26 @@ void main() {
 	vec2 uv = (vUv - 0.5) * scale + 0.5;
 	vec2 distortedUv = computeUV(uv, 1., 1.);*/
 
-	vec4 hdr = texture(tHDR, vUv);
 	vec4 labels = texture(tLabels, vUv);
 
 	float bordersSDF = roundedBoxSDF(vUv * resolution - resolution * 0.5, resolution * 0.5, 100.);
 	labels.a *= smoothstep(0., -100., bordersSDF);
 
-	vec3 sceneColor = LINEARtoSRGB(hdr.rgb);
+	vec4 hdr = texture(tHDR, vUv);
+	vec4 dof = texture(tDoF, vUv);
+	float coc = texture(tCoC, vUv).r;
+
+	float dofStrength = smoothstep(0.1, 1., abs(coc));;
+	vec3 color = mix(
+		hdr.rgb,
+		dof.rgb,
+		dofStrength + dof.a - dofStrength * dof.a
+	);
+
+	vec3 sceneColor = LINEARtoSRGB(color);
 	vec3 sceneWithLabelsColor = mix(sceneColor, labels.rgb, labels.a);
 
 	FragColor = vec4(sceneWithLabelsColor, 1);
+	//FragColor = vec4(texture(tCoC, vUv).rgb, 1);
+	//FragColor.r = texture(tCoC, vUv).a;
 }

@@ -1,10 +1,4 @@
-#version 300 es
-precision highp float;
-precision highp int;
-precision highp sampler2D;
-precision highp usampler2D;
-precision highp sampler2DArray;
-precision highp sampler3D;
+#include <versionPrecision>
 
 out vec4 FragColor;
 
@@ -16,7 +10,7 @@ uniform sampler2D tColor;
 void main() {
     vec2 texelSize = 1. / vec2(textureSize(tCoC, 0));
 
-    vec4 o = texelSize.xyxy * vec2(-0.5, 0.5).xxyy;
+    vec4 o = texelSize.xyxy * vec2(-0.5, 0.5).xxyy * 0.5;
 
     float coc0 = texture(tCoC, vUv + o.xy).r;
     float coc1 = texture(tCoC, vUv + o.zy).r;
@@ -34,5 +28,5 @@ void main() {
 
     vec3 color = (c0 + c1 + c2 + c3) / 4.;
 
-    FragColor = vec4(color, coc);
+    FragColor = vec4(color, coc * 0.5);
 }

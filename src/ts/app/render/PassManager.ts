@@ -35,6 +35,12 @@ interface SharedResources {
 	AerialPerspectiveLUT: RenderPassResource;
 	SSR: RenderPassResource;
 	AtmosphereSkybox: RenderPassResource;
+	CoC: RenderPassResource;
+	CoCHistory: RenderPassResource;
+	CoCAntialiased: RenderPassResource;
+	CoCWithColorDownscaled: RenderPassResource;
+	DoF: RenderPassResource;
+	DoFBlurred: RenderPassResource;
 }
 
 export default class PassManager {
@@ -664,6 +670,144 @@ export default class PassManager {
 				]
 			})
 		}));
+		this.sharedResources.set('CoC', this.resourceFactory.createRenderPassResource({
+			name: 'CoC',
+			isTransient: true,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: 1,
+							height: 1,
+							format: RendererTypes.TextureFormat.RGBA32Float,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
+		this.sharedResources.set('CoCHistory', this.resourceFactory.createRenderPassResource({
+			name: 'CoCHistory',
+			isTransient: false,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: 1,
+							height: 1,
+							format: RendererTypes.TextureFormat.RGBA32Float,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
+		this.sharedResources.set('CoCAntialiased', this.resourceFactory.createRenderPassResource({
+			name: 'CoCAntialiased',
+			isTransient: true,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: 1,
+							height: 1,
+							format: RendererTypes.TextureFormat.RGBA32Float,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
+		this.sharedResources.set('CoCWithColorDownscaled', this.resourceFactory.createRenderPassResource({
+			name: 'CoCWithColorDownscaled',
+			isTransient: true,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: 1,
+							height: 1,
+							format: RendererTypes.TextureFormat.RGBA32Float,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
+		this.sharedResources.set('DoF', this.resourceFactory.createRenderPassResource({
+			name: 'DoF',
+			isTransient: true,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: 1,
+							height: 1,
+							format: RendererTypes.TextureFormat.RGBA32Float,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
+		this.sharedResources.set('DoFBlurred', this.resourceFactory.createRenderPassResource({
+			name: 'DoFBlurred',
+			isTransient: true,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: 1,
+							height: 1,
+							format: RendererTypes.TextureFormat.RGBA32Float,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
 	}
 
 	public resize(): void {
@@ -687,5 +831,11 @@ export default class PassManager {
 		this.sharedResources.get('SelectionBlurred').descriptor.setSize(resolutionScene.x, resolutionScene.y);
 		this.sharedResources.get('Labels').descriptor.setSize(resolutionUI.x, resolutionUI.y);
 		this.sharedResources.get('SSR').descriptor.setSize(resolutionScene.x, resolutionScene.y);
+		this.sharedResources.get('CoC').descriptor.setSize(resolutionScene.x, resolutionScene.y);
+		this.sharedResources.get('CoCHistory').descriptor.setSize(resolutionScene.x, resolutionScene.y);
+		this.sharedResources.get('CoCAntialiased').descriptor.setSize(resolutionScene.x, resolutionScene.y);
+		this.sharedResources.get('CoCWithColorDownscaled').descriptor.setSize(resolutionSceneHalf.x, resolutionSceneHalf.y);
+		this.sharedResources.get('DoF').descriptor.setSize(resolutionSceneHalf.x, resolutionSceneHalf.y);
+		this.sharedResources.get('DoFBlurred').descriptor.setSize(resolutionSceneHalf.x, resolutionSceneHalf.y);
 	}
 }
