@@ -35,8 +35,8 @@ const jitterOffsets: [number, number][] = [
 ];
 
 export default class RenderSystem extends System {
-	public renderer: AbstractRenderer;
-	private frameCount = 0;
+	private renderer: AbstractRenderer;
+	private frameCount: number = 0;
 
 	private renderGraph: RG.RenderGraph;
 	private renderGraphResourceFactory: RenderGraphResourceFactory;

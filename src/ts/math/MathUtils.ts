@@ -22,12 +22,20 @@ export default class MathUtils {
 		return (angle %= 2 * Math.PI) >= 0 ? angle : (angle + 2 * Math.PI);
 	}
 
-	public static sphericalToCartesian(azimuth: number, altitude: number): Vec3 {
+	public static polarToCartesian(azimuth: number, altitude: number): Vec3 {
 		return new Vec3(
-			-Math.cos(altitude) * Math.cos(azimuth),
-			-Math.sin(altitude),
-			-Math.cos(altitude) * Math.sin(azimuth)
+			Math.cos(altitude) * Math.cos(azimuth),
+			Math.sin(altitude),
+			Math.cos(altitude) * Math.sin(azimuth)
 		)
+	}
+
+	public static cartesianToPolar(position: Vec3): [number, number] {
+		const lon = Math.atan2(position.x, -position.z) + Math.PI / 2;
+		const length = Math.sqrt(position.x * position.x + position.z * position.z);
+		const lat = Math.atan2(position.y, length);
+
+		return [lat, lon];
 	}
 
 	public static degrees2meters(lat: number, lon: number): Vec2 {

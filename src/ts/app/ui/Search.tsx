@@ -97,7 +97,7 @@ const Search: React.FC<{
 
 	return (
 		<div className='search'>
-			<div className='search-title'>
+			<div className='search-bar'>
 				<div className='svg-icon-wrapper'><IoSearch size={20}/></div>
 				<input
 					type={'text'}

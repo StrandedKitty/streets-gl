@@ -26,16 +26,11 @@ export default class PickingSystem extends System {
 				return;
 			}
 
-			this.pointerPosition.x = e.clientX;
-			this.pointerPosition.y = e.clientY;
-
-			this.pointerDownPosition.x = e.clientX;
-			this.pointerDownPosition.y = e.clientY;
+			this.updatePointerPositionFromEvent(e, true);
 		});
 
 		canvas.addEventListener('pointermove', e => {
-			this.pointerPosition.x = e.clientX;
-			this.pointerPosition.y = e.clientY;
+			this.updatePointerPositionFromEvent(e);
 		});
 
 		canvas.addEventListener('pointerup', e => {
@@ -43,10 +38,9 @@ export default class PickingSystem extends System {
 				return;
 			}
 
-			this.pointerPosition.x = e.clientX;
-			this.pointerPosition.y = e.clientY;
+			this.updatePointerPositionFromEvent(e);
 
-			if (this.pointerDownPosition.x === e.clientX && this.pointerDownPosition.y === e.clientY) {
+			if (this.pointerDownPosition.x === this.pointerPosition.x && this.pointerDownPosition.y === this.pointerPosition.y) {
 				this.onClick();
 			}
 		});
@@ -64,37 +58,22 @@ export default class PickingSystem extends System {
 
 	}
 
+	private updatePointerPositionFromEvent(e: PointerEvent, updatePointerDown: boolean = false): void {
+		if (document.pointerLockElement !== null) {
+			this.pointerPosition.x = Math.floor(window.innerWidth / 2);
+			this.pointerPosition.y = Math.floor(window.innerHeight / 2);
+		} else {
+			this.pointerPosition.x = e.clientX;
+			this.pointerPosition.y = e.clientY;
+		}
+
+		if (updatePointerDown) {
+			this.pointerDownPosition.x = this.pointerPosition.x;
+			this.pointerDownPosition.y = this.pointerPosition.y;
+		}
+	}
+
 	public readObjectId(buffer: Uint32Array): void {
-		/*if (!this.pixelBuffer) {
-			this.createPixelBuffer(renderer);
-		}
-
-		if (!this.enablePicking) {
-			this.hoveredObjectId = 0;
-		}
-
-		renderer.gl.readBuffer(GLConstants.COLOR_ATTACHMENT6);
-
-		const data = new Uint32Array(1);
-		const offset = this.pointerPosition;
-		const width = 1;
-		const height = 1;
-		const format = GLConstants.RED_INTEGER;
-		const type = GLConstants.UNSIGNED_INT;
-
-		renderer.gl.bindBuffer(renderer.gl.PIXEL_PACK_BUFFER, this.pixelBuffer);
-		renderer.gl.readPixels(offset.x, gBuffer.height - offset.y - 1, width, height, format, type, 0);
-		renderer.gl.bindBuffer(renderer.gl.PIXEL_PACK_BUFFER, null);
-
-		renderer.fence().then(() => {
-			renderer.gl.bindBuffer(renderer.gl.PIXEL_PACK_BUFFER, this.pixelBuffer);
-			renderer.gl.getBufferSubData(renderer.gl.PIXEL_PACK_BUFFER, 0, data);
-			renderer.gl.bindBuffer(renderer.gl.PIXEL_PACK_BUFFER, null);
-
-			this.hoveredObjectId = data[0];
-			this.updatePointer();
-		});*/
-
 		this.hoveredObjectId = buffer[0];
 		this.updatePointer();
 	}

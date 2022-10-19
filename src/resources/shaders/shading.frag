@@ -322,7 +322,7 @@ void main() {
 
 		}
 
-		vec3 starsDirection = (skyRotationMatrix * vec4(worldView, 0.)).xyz;
+		vec3 starsDirection = (skyRotationMatrix * vec4(-worldView, 0.)).xyz;
 		vec3 stars = SRGBtoLINEAR(texture(tSky, starsDirection)).rgb;
 		stars = pow(stars, vec3(5)) * 0.25;
 

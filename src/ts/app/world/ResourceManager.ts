@@ -26,7 +26,13 @@ export default new class ResourceManager {
 		return this.resources.get(name);
 	}
 
-	public async load(): Promise<void> {
+	public async load(
+		{
+			onFileLoad
+		}: {
+			onFileLoad: (loaded: number, total: number) => void;
+		}
+	): Promise<void> {
 		let loaded = 0;
 		const total = this.requests.size;
 
@@ -37,8 +43,10 @@ export default new class ResourceManager {
 				image.crossOrigin = "anonymous";
 				image.onload = (): void => {
 					this.resources.set(name, image);
+					++loaded;
+					onFileLoad(loaded, total);
 
-					if (++loaded === total) {
+					if (loaded === total) {
 						resolve();
 					}
 				};

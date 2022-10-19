@@ -221,7 +221,7 @@ export default class PassManager {
 		this.sharedResources.set('HDR', this.resourceFactory.createRenderPassResource({
 			name: 'HDR',
 			isTransient: true,
-			isUsedExternally: true,
+			isUsedExternally: false,
 			descriptor: new RenderPassResourceDescriptor({
 				colorAttachments: [
 					{

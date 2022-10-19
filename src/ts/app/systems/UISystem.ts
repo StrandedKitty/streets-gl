@@ -28,6 +28,8 @@ export interface UIGlobalState {
 	mapTime: number;
 	mapTimeMultiplier: number;
 	renderGraph: RenderGraphSnapshot;
+	resourcesLoaded: boolean;
+	resourcesLoadingProgress: number;
 }
 
 const FPSUpdateInterval = 0.4;
@@ -41,7 +43,9 @@ export default class UISystem extends System {
 		frameTime: 0,
 		mapTime: Date.now(),
 		mapTimeMultiplier: 1,
-		renderGraph: null
+		renderGraph: null,
+		resourcesLoaded: false,
+		resourcesLoadingProgress: 0
 	};
 	private fpsUpdateTimer = 0;
 
@@ -74,6 +78,11 @@ export default class UISystem extends System {
 				this.systemManager.getSystem(MapTimeSystem).setState(state);
 			}
 		);
+	}
+
+	public setResourcesLoadingProgress(progress: number): void {
+		UI.setGlobalStateField('resourcesLoaded', progress === 1);
+		UI.setGlobalStateField('resourcesLoadingProgress', progress);
 	}
 
 	public setActiveFeature(type: number, id: number): void {

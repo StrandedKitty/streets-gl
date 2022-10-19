@@ -20,28 +20,33 @@ class App {
 	private systemManager: SystemManager;
 
 	public constructor() {
-		ResourceManager.addFromJSON(resourcesList as ResourceJSON);
-		ResourceManager.load().then(() => {
-			this.init();
-		});
+		this.init();
 	}
 
 	private init(): void {
 		this.systemManager = new SystemManager();
 
-		this.systemManager.addSystems([
-			ControlsSystem,
-			SceneSystem,
-			CursorStyleSystem,
-			PickingSystem,
-			MapTimeSystem,
-			TileSystem,
-			TileObjectsSystem,
-			RenderSystem,
-			MapWorkerSystem,
-			StaticGeometryLoadingSystem,
-			UISystem
-		]);
+		this.systemManager.addSystems([UISystem]);
+
+		ResourceManager.addFromJSON(resourcesList as ResourceJSON);
+		ResourceManager.load({
+			onFileLoad: (loaded: number, total: number) => {
+				this.systemManager.getSystem(UISystem).setResourcesLoadingProgress(loaded / total);
+			}
+		}).then(() => {
+			this.systemManager.addSystems([
+				ControlsSystem,
+				MapTimeSystem,
+				SceneSystem,
+				CursorStyleSystem,
+				PickingSystem,
+				TileSystem,
+				TileObjectsSystem,
+				RenderSystem,
+				MapWorkerSystem,
+				StaticGeometryLoadingSystem
+			]);
+		});
 
 		this.update();
 	}

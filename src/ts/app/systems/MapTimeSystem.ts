@@ -75,8 +75,8 @@ export default class MapTimeSystem extends System {
 				const moonPosition = SunCalc.getMoonPosition(date, latLon.lat, latLon.lon);
 
 				return [
-					MathUtils.sphericalToCartesian(sunPosition.azimuth + Math.PI, sunPosition.altitude),
-					MathUtils.sphericalToCartesian(moonPosition.azimuth + Math.PI, moonPosition.altitude)
+					Vec3.multiplyScalar(MathUtils.polarToCartesian(sunPosition.azimuth + Math.PI, sunPosition.altitude), -1),
+					Vec3.multiplyScalar(MathUtils.polarToCartesian(moonPosition.azimuth + Math.PI, moonPosition.altitude), -1),
 				];
 			}
 			case MapTimeState.Static: {
@@ -118,9 +118,9 @@ export default class MapTimeSystem extends System {
 			starY.getTopocentricHorizontalCoordinates(location),
 			starZ.getTopocentricHorizontalCoordinates(location),
 		]).then(([r1, r2, r3]) => {
-			const px = MathUtils.sphericalToCartesian(MathUtils.toRad(r1.azimuth), MathUtils.toRad(r1.altitude));
-			const py = MathUtils.sphericalToCartesian(MathUtils.toRad(r2.azimuth), MathUtils.toRad(r2.altitude));
-			const pz = MathUtils.sphericalToCartesian(MathUtils.toRad(r3.azimuth), MathUtils.toRad(r3.altitude));
+			const px = MathUtils.polarToCartesian(MathUtils.toRad(r1.azimuth), MathUtils.toRad(r1.altitude));
+			const py = MathUtils.polarToCartesian(MathUtils.toRad(r2.azimuth), MathUtils.toRad(r2.altitude));
+			const pz = MathUtils.polarToCartesian(MathUtils.toRad(r3.azimuth), MathUtils.toRad(r3.altitude));
 
 			this.skyDirectionTarget = [px, py, pz];
 		});
