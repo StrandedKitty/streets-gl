@@ -24,7 +24,7 @@ export default class BuildingDepthMaterialContainer extends MaterialContainer {
 			],
 			primitive: {
 				frontFace: RendererTypes.FrontFace.CCW,
-				cullMode: RendererTypes.CullMode.Back
+				cullMode: RendererTypes.CullMode.None
 			},
 			depth: {
 				depthWrite: true,

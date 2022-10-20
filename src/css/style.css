@@ -180,11 +180,7 @@ body {
     margin: 6px 0 0 0;
     cursor: pointer;
     display: inline-block;
-    border-bottom: 1px dotted #fff;
-}
-
-.time-reset:hover {
-    border-bottom: 1px solid #fff;
+    text-decoration: underline;
 }
 
 .svg-icon-wrapper {
@@ -414,12 +410,6 @@ g.type-TK > rect {
 
 .attribution a {
     color: #fff;
-    text-decoration: none;
-    border-bottom: 1px dotted #fff;
-}
-.attribution a:hover {
-    border-bottom: 1px solid #fff;
-    text-decoration: none;
 }
 
 .loading-screen {
@@ -466,4 +456,86 @@ g.type-TK > rect {
 
 .loading-screen-info a {
     color: #fff;
+}
+
+.modal {
+    position: absolute;
+    top: 96px;
+    max-height: calc(100% - 192px);
+    right: 16px;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.75);
+    border-radius: 24px;
+    color: #fff;
+    border: 1px solid #eee;
+    width: 600px;
+    font-size: 14px;
+}
+
+.modal-header {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0 0 16px 0;
+    position: relative;
+    width: 90%;
+}
+
+.modal-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    cursor: pointer;
+}
+
+.modal-close > svg {
+    display: block;
+}
+
+.modal-p {
+    margin: 0 0 16px 0;
+    line-height: 24px;
+}
+
+.modal-p a {
+    color: #fff;
+}
+
+.modal-p a > svg {
+    margin: 0 4px -3px 0;
+}
+
+.modal-keys {
+    line-height: 24px;
+    table-layout: fixed;
+    border-spacing: 0;
+    border-collapse: collapse;
+}
+
+.modal-keys td {
+    padding: 8px 4px;
+}
+.modal-keys tr {
+    border-bottom: 1px solid #ccc;
+}
+
+.modal-keys tr:last-child {
+    border: 0;
+}
+
+.modal-key-label {
+
+}
+
+kbd {
+    border: 1px solid #fff;
+    box-shadow: 0 1px 0 1px #fff;
+    font-size: .85em;
+    line-height: .85em;
+    display: inline-block;
+    font-weight: 600;
+    letter-spacing: .05em;
+    padding: 4px 5px;
+    white-space: nowrap;
+    border-radius: 4px;
+    font-family: monospace;
 }

@@ -265,11 +265,11 @@ export default class MeshGroundProjector {
 			return cached;
 		}
 
-		const x = quadX;
-		const y = quadY;
+		const x = quadX + 1;
+		const y = quadY + 1;
 
-		const isOdd = (quadX + quadY) % 2 === 1;
-		const sideLength = Config.GroundSegments + 1;
+		const isOdd = (x + y) % 2 === 1;
+		const sideLength = Config.GroundSegments + 3;
 
 		const quadVertices = [
 			...this.getGroundVertexNormal(x + y * sideLength),

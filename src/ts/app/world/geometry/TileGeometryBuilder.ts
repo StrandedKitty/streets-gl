@@ -323,11 +323,88 @@ export default class TileGeometryBuilder {
 		return {vertices: new Float32Array(vertices), uvs: new Float32Array(uvs), indices: new Uint32Array(indices)};
 	}
 
+	public static createPlaneExtruded(x: number, z: number, segmentsX: number, segmentsZ: number): {
+		vertices: Float32Array;
+		uvs: Float32Array;
+		indices: Uint32Array;
+		indicesExtruded: Uint32Array;
+	} {
+		const vertices: number[] = [];
+		const indices: number[] = [];
+		const indicesExtruded: number[] = [];
+		const uvs: number[] = [];
+
+		x += x / segmentsX * 2;
+		z += z / segmentsZ * 2;
+		segmentsX += 2;
+		segmentsZ += 2;
+
+		const segmentSize = {
+			x: x / segmentsX,
+			z: z / segmentsZ
+		};
+
+		for (let z = 0; z <= segmentsZ; z++) {
+			for (let x = 0; x <= segmentsX; x++) {
+				vertices.push(x * segmentSize.x - segmentSize.x, 0, z * segmentSize.z - segmentSize.z);
+				uvs.push((z - 1) / (segmentsZ - 2), (x - 1) / (segmentsX - 2));
+			}
+		}
+
+		for (let z = 0; z < segmentsZ; z++) {
+			for (let x = 0; x < segmentsX; x++) {
+				const isOdd = (x + z) % 2 === 1;
+
+				const quad = [
+					z * (segmentsX + 1) + x,
+					z * (segmentsX + 1) + x + 1,
+					(z + 1) * (segmentsX + 1) + x,
+					(z + 1) * (segmentsX + 1) + x + 1,
+				];
+
+				const isNotExtruded = z > 0 && z < segmentsZ - 1 && x > 0 && x < segmentsX - 1;
+
+				if (isOdd) {
+					indicesExtruded.push(
+						quad[1], quad[0], quad[3],
+						quad[3], quad[0], quad[2]
+					);
+
+					if (isNotExtruded) {
+						indices.push(
+							quad[1], quad[0], quad[3],
+							quad[3], quad[0], quad[2]
+						);
+					}
+				} else {
+					indicesExtruded.push(
+						quad[2], quad[1], quad[0],
+						quad[3], quad[1], quad[2]
+					);
+
+					if (isNotExtruded) {
+						indices.push(
+							quad[2], quad[1], quad[0],
+							quad[3], quad[1], quad[2]
+						);
+					}
+				}
+			}
+		}
+
+		return {
+			vertices: new Float32Array(vertices),
+			uvs: new Float32Array(uvs),
+			indices: new Uint32Array(indices),
+			indicesExtruded: new Uint32Array(indicesExtruded)
+		};
+	}
+
 	private getGroundGeometry(): {
 		geometry: GroundGeometryBuffers;
 		bbox: { min: number[]; max: number[] };
 		} {
-		const plane = TileGeometryBuilder.createPlane(
+		const plane = TileGeometryBuilder.createPlaneExtruded(
 			Config.TileSize,
 			Config.TileSize,
 			Config.GroundSegments,
@@ -340,8 +417,29 @@ export default class TileGeometryBuilder {
 		let maxHeight = -Infinity, minHeight = Infinity;
 
 		for(let i = 0; i < uvs.length / 2; i++) {
-			//const height = this.heightViewer.getHeight(this.x, this.y, uvs[i * 2], 1 - uvs[i * 2 + 1]);
-			const height = this.heightViewer.getHeight(this.x, this.y, vertices[i * 3 + 2] / Config.TileSize, 1 - vertices[i * 3] / Config.TileSize);
+			let tileX = this.x;
+			let tileY = this.y;
+			let u = vertices[i * 3 + 2] / Config.TileSize;
+			let v = 1 - vertices[i * 3] / Config.TileSize;
+
+			if (u < 0) {
+				tileX -= 1;
+				u = 1 + u;
+			}
+			if (u > 1) {
+				tileX += 1;
+				u = u - 1;
+			}
+			if (v < 0) {
+				tileY -= 1;
+				v = 1 + v;
+			}
+			if (v > 1) {
+				tileY += 1;
+				v = v - 1;
+			}
+
+			const height = this.heightViewer.getHeight(tileX, tileY, u, v);
 
 			vertices[i * 3 + 1] = height;
 
@@ -349,7 +447,7 @@ export default class TileGeometryBuilder {
 			minHeight = Math.min(minHeight, height);
 		}
 
-		const normals = this.calculateGroundNormals(vertices, plane.indices);
+		const normals = this.calculateGroundNormals(vertices, plane.indicesExtruded);
 
 		return {
 			geometry: {
@@ -369,7 +467,6 @@ export default class TileGeometryBuilder {
 		const normalBuffer = new Float32Array(vertices.length);
 
 		const accumulatedNormals: Map<number, Vec3> = new Map();
-		const borderTriangles: number[][] = [];
 
 		const buffer32 = new Float32Array(2);
 		const buffer64 = new Float64Array(buffer32.buffer);
@@ -379,8 +476,6 @@ export default class TileGeometryBuilder {
 
 			return buffer64[0];
 		}
-
-		const infMap = new Map();
 
 		for(let i = 0; i < indices.length; i += 3) {
 			const aIndex = indices[i] * 3;
@@ -401,76 +496,6 @@ export default class TileGeometryBuilder {
 				const newValue = Vec3.add(accum, triangleNormal);
 
 				accumulatedNormals.set(key, newValue);
-
-				const normalizedX = vertex.x / Config.TileSize;
-				const normalizedZ = vertex.z / Config.TileSize;
-
-				if (normalizedX === 0 || normalizedZ === 0 || normalizedX === 1 || normalizedZ === 1) {
-					borderTriangles.push([
-						vertex.x,
-						vertex.z,
-						a.x,
-						a.z,
-						b.x,
-						b.z,
-						c.x,
-						c.z,
-					]);
-				}
-			}
-		}
-
-		const neighborOffsets: [number, number][] = [];
-
-		for (let x = -1; x <= 1; x++) {
-			for (let y = -1; y <= 1; y++) {
-				if (x !== 0 && y !== 0) {
-					neighborOffsets.push([x, y]);
-				}
-			}
-		}
-
-		for (const neighborOffset of neighborOffsets) {
-			const neighborX = this.x + neighborOffset[1];
-			const neighborY = this.y - neighborOffset[0];
-
-			for (const neighborTriangleData of borderTriangles) {
-				const fixedOffsetX = neighborOffset[0];
-				const fixedOffsetY = neighborOffset[1];
-
-				const localSpaceX = neighborTriangleData[0] + fixedOffsetX * Config.TileSize;
-				const localSpaceY = neighborTriangleData[1] + fixedOffsetY * Config.TileSize;
-
-				const vertexX = MathUtils.clamp(localSpaceX, 0, Config.TileSize);
-				const vertexY = MathUtils.clamp(localSpaceY, 0, Config.TileSize);
-
-				const vertexKey = getVertexKey(new Vec2(vertexX, vertexY));
-				const accum = accumulatedNormals.get(vertexKey) || new Vec3();
-
-				const sameX = vertexX === localSpaceX;
-				const sameY = vertexY === localSpaceY;
-
-				if (!sameX || !sameY) {
-					continue;
-				}
-
-				const k = `${vertexX} ${vertexY}`;
-
-				infMap.set(k, (infMap.get(k) || 0) + 1);
-
-				const vertexA = new Vec3(neighborTriangleData[2], 0, neighborTriangleData[3]);
-				const vertexB = new Vec3(neighborTriangleData[4], 0, neighborTriangleData[5]);
-				const vertexC = new Vec3(neighborTriangleData[6], 0, neighborTriangleData[7]);
-
-				vertexA.y = this.heightViewer.getHeight(neighborX, neighborY, vertexA.z / Config.TileSize, 1 - vertexA.x / Config.TileSize);
-				vertexB.y = this.heightViewer.getHeight(neighborX, neighborY, vertexB.z / Config.TileSize, 1 - vertexB.x / Config.TileSize);
-				vertexC.y = this.heightViewer.getHeight(neighborX, neighborY, vertexC.z / Config.TileSize, 1 - vertexC.x / Config.TileSize);
-
-				const neighborTriangleNormal = Vec3.cross(Vec3.sub(vertexB, vertexA), Vec3.sub(vertexC, vertexA));
-
-				const newValue = Vec3.add(accum, neighborTriangleNormal);
-
-				accumulatedNormals.set(vertexKey, newValue);
 			}
 		}
 

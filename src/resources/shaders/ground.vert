@@ -21,7 +21,7 @@ uniform PerMaterial {
 
 void main() {
 	vUv = uv;
-	vNormal = vec3(modelViewMatrix * vec4(0, 1, 0, 0));
+	vNormal = vec3(modelViewMatrix * vec4(normal, 0));
 
 	vec3 transformedPosition = position;
 	vec4 cameraSpacePosition = modelViewMatrix * vec4(transformedPosition, 1.0);

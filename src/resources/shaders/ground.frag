@@ -80,10 +80,10 @@ vec3 getNormal(vec3 normalTextureValue) {
 void main() {
     outColor = vec4(textureNoTile(grassNoise, grass, vUv, 6.), 0.5);
 
-    float borderSize = 0.005;
+    /*float borderSize = 0.005;
     if(vUv.x > 1. - borderSize || vUv.y > 1. - borderSize || vUv.x < borderSize || vUv.y < borderSize) {
-        //outColor = vec4(1, 0, 0, 1);
-    }
+        outColor = vec4(1, 0, 0, 1);
+    }*/
 
     float waveTime = time * 0.1;
     vec2 uvOffsets[3] = vec2[](
@@ -97,8 +97,8 @@ void main() {
         texture(waterNormal, vUv * 5. + uvOffsets[1]).rgb * 0.5 +
         texture(waterNormal, vUv * 9. + uvOffsets[2]).rgb * 0.1;
 
-    //outNormal = packNormal(getNormal(textureNoTile(grassNoise, grassNormal, vUv, 6.)));
-    outNormal = packNormal(getNormal(normalValue));
+    outNormal = packNormal(getNormal(textureNoTile(grassNoise, grassNormal, vUv, 6.)));
+    //outNormal = packNormal(getNormal(normalValue));
     //outNormal = packNormal(vNormal);
     outPosition = vPosition;
     outMotion = getMotionVector(vClipPos, vClipPosPrev);

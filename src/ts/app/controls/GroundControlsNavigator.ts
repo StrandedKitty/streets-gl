@@ -21,6 +21,15 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 	private isRMBDown: boolean = false;
 	private LMBDownPosition: Vec2 = null;
 	private lastLMBMoveEvent: Vec2 = null;
+	private forwardKeyPressed: boolean = false;
+	private leftKeyPressed: boolean = false;
+	private rightKeyPressed: boolean = false;
+	private backwardKeyPressed: boolean = false;
+	private fastMovementKeyPressed: boolean = false;
+	private pitchMinusKeyPressed: boolean = false;
+	private pitchPlusKeyPressed: boolean = false;
+	private yawMinusKeyPressed: boolean = false;
+	private yawPlusKeyPressed: boolean = false;
 
 	public constructor(element: HTMLElement, camera: Camera, cursorStyleSystem: CursorStyleSystem) {
 		super(element, camera);
@@ -32,6 +41,8 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		this.element.addEventListener('mouseup', (e: MouseEvent) => this.mouseUpEvent(e));
 		this.element.addEventListener('mousemove', (e: MouseEvent) => this.mouseMoveEvent(e));
 		this.element.addEventListener('wheel', (e: WheelEvent) => this.wheelEvent(e));
+		document.addEventListener('keydown', (e: KeyboardEvent) => this.keyDownEvent(e));
+		document.addEventListener('keyup', (e: KeyboardEvent) => this.keyUpEvent(e));
 	}
 
 	private mouseDownEvent(e: MouseEvent): void {
@@ -120,6 +131,78 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		}
 
 		this.normalizedDistanceTarget += e.deltaY / 2000.;
+	}
+
+	private keyDownEvent(e: KeyboardEvent): void {
+		if (!this.isEnabled) {
+			return;
+		}
+
+		switch (e.code) {
+			case 'KeyW':
+				this.forwardKeyPressed = true;
+				break;
+			case 'KeyA':
+				this.leftKeyPressed = true;
+				break;
+			case 'KeyS':
+				this.backwardKeyPressed = true;
+				break;
+			case 'ShiftLeft':
+				this.fastMovementKeyPressed = true;
+				break;
+			case 'KeyD':
+				this.rightKeyPressed = true;
+				break;
+			case 'KeyQ':
+				this.yawPlusKeyPressed = true;
+				break;
+			case 'KeyE':
+				this.yawMinusKeyPressed = true;
+				break;
+			case 'KeyR':
+				this.pitchPlusKeyPressed = true;
+				break;
+			case 'KeyF':
+				this.pitchMinusKeyPressed = true;
+				break;
+		}
+	}
+
+	private keyUpEvent(e: KeyboardEvent): void {
+		if (!this.isEnabled) {
+			return;
+		}
+
+		switch (e.code) {
+			case 'KeyW':
+				this.forwardKeyPressed = false;
+				break;
+			case 'KeyA':
+				this.leftKeyPressed = false;
+				break;
+			case 'KeyS':
+				this.backwardKeyPressed = false;
+				break;
+			case 'ShiftLeft':
+				this.fastMovementKeyPressed = false;
+				break;
+			case 'KeyD':
+				this.rightKeyPressed = false;
+				break;
+			case 'KeyQ':
+				this.yawPlusKeyPressed = false;
+				break;
+			case 'KeyE':
+				this.yawMinusKeyPressed = false;
+				break;
+			case 'KeyR':
+				this.pitchPlusKeyPressed = false;
+				break;
+			case 'KeyF':
+				this.pitchMinusKeyPressed = false;
+				break;
+		}
 	}
 
 	private moveTarget(dx: number, dy: number): void {
@@ -223,7 +306,46 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		this.lastLMBMoveEvent = null;
 	}
 
+	private processMovementByKeys(deltaTime: number): void {
+		const mat = this.camera.matrixWorld.values;
+		const forwardDir = Vec2.normalize(new Vec2(mat[8], mat[10]));
+		const rightDir = Vec2.normalize(new Vec2(mat[0], mat[2]));
+		const speed = this.fastMovementKeyPressed ? Config.GroundCameraSpeedFast : Config.GroundCameraSpeed;
+
+		let movementDelta = new Vec2();
+		if (this.forwardKeyPressed) {
+			movementDelta = Vec2.add(movementDelta, Vec2.multiplyScalar(forwardDir, -deltaTime));
+		}
+		if (this.backwardKeyPressed) {
+			movementDelta = Vec2.add(movementDelta, Vec2.multiplyScalar(forwardDir, deltaTime));
+		}
+		if (this.leftKeyPressed) {
+			movementDelta = Vec2.add(movementDelta, Vec2.multiplyScalar(rightDir, -deltaTime));
+		}
+		if (this.rightKeyPressed) {
+			movementDelta = Vec2.add(movementDelta, Vec2.multiplyScalar(rightDir, deltaTime));
+		}
+		movementDelta = Vec2.multiplyScalar(movementDelta, speed);
+
+		this.target.x += movementDelta.x;
+		this.target.z += movementDelta.y;
+
+		if (this.yawPlusKeyPressed) {
+			this.yaw += deltaTime * Config.FreeCameraYawSpeed;
+		}
+		if (this.yawMinusKeyPressed) {
+			this.yaw -= deltaTime * Config.FreeCameraYawSpeed;
+		}
+		if (this.pitchMinusKeyPressed) {
+			this.pitch -= deltaTime * Config.FreeCameraPitchSpeed;
+		}
+		if (this.pitchPlusKeyPressed) {
+			this.pitch += deltaTime * Config.FreeCameraPitchSpeed;
+		}
+	}
+
 	public update(deltaTime: number): void {
+		this.processMovementByKeys(deltaTime);
 		this.updateDistance();
 		this.clampPitchAndYaw();
 		this.updateTargetHeightFromHeightmap();

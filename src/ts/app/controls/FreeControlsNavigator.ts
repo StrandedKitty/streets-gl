@@ -15,6 +15,10 @@ export default class FreeControlsNavigator extends ControlsNavigator {
 	private rightKeyPressed: boolean = false;
 	private backwardKeyPressed: boolean = false;
 	private fastMovementKeyPressed: boolean = false;
+	private pitchMinusKeyPressed: boolean = false;
+	private pitchPlusKeyPressed: boolean = false;
+	private yawMinusKeyPressed: boolean = false;
+	private yawPlusKeyPressed: boolean = false;
 	private pointerLocked: boolean = false;
 
 	public constructor(element: HTMLElement, camera: Camera) {
@@ -49,8 +53,8 @@ export default class FreeControlsNavigator extends ControlsNavigator {
 		}
 
 		if (this.pointerLocked) {
-			this.yaw += e.movementX * 0.002;
-			this.pitch += e.movementY * 0.002;
+			this.yaw += e.movementX * Config.FreeCameraRotationSensitivity;
+			this.pitch += e.movementY * Config.FreeCameraRotationSensitivity;
 		}
 	}
 
@@ -75,6 +79,18 @@ export default class FreeControlsNavigator extends ControlsNavigator {
 			case 'ShiftLeft':
 				this.fastMovementKeyPressed = true;
 				break;
+			case 'KeyQ':
+				this.yawMinusKeyPressed = true;
+				break;
+			case 'KeyE':
+				this.yawPlusKeyPressed = true;
+				break;
+			case 'KeyR':
+				this.pitchMinusKeyPressed = true;
+				break;
+			case 'KeyF':
+				this.pitchPlusKeyPressed = true;
+				break;
 		}
 	}
 
@@ -98,6 +114,18 @@ export default class FreeControlsNavigator extends ControlsNavigator {
 				break;
 			case 'ShiftLeft':
 				this.fastMovementKeyPressed = false;
+				break;
+			case 'KeyQ':
+				this.yawMinusKeyPressed = false;
+				break;
+			case 'KeyE':
+				this.yawPlusKeyPressed = false;
+				break;
+			case 'KeyR':
+				this.pitchMinusKeyPressed = false;
+				break;
+			case 'KeyF':
+				this.pitchPlusKeyPressed = false;
 				break;
 		}
 	}
@@ -202,6 +230,20 @@ export default class FreeControlsNavigator extends ControlsNavigator {
 		this.camera.position.y = Math.max(this.camera.position.y, heightmapValue + 15);
 
 		this.camera.updateMatrix();
+
+		if (this.yawPlusKeyPressed) {
+			this.yaw += deltaTime * Config.FreeCameraYawSpeed;
+		}
+		if (this.yawMinusKeyPressed) {
+			this.yaw -= deltaTime * Config.FreeCameraYawSpeed;
+		}
+		if (this.pitchMinusKeyPressed) {
+			this.pitch -= deltaTime * Config.FreeCameraPitchSpeed;
+		}
+		if (this.pitchPlusKeyPressed) {
+			this.pitch += deltaTime * Config.FreeCameraPitchSpeed;
+		}
+
 		this.clampPitchAndYaw();
 		this.applyCameraPitchAndYaw();
 

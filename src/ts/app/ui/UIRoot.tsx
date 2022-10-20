@@ -7,6 +7,8 @@ import RenderGraphViewer from "~/app/ui/RenderGraphViewer";
 import LegalAttribution from "~/app/ui/LegalAttribution";
 import Nav from "~/app/ui/Nav";
 import UI from "~/app/ui/UI";
+import Info from "~/app/ui/Info";
+import Settings from "~/app/ui/Settings";
 
 const UIRoot: React.FC<{
 	updateRenderGraph: () => void;
@@ -15,10 +17,29 @@ const UIRoot: React.FC<{
 }> = ({updateRenderGraph, goToLatLon, setTimeState}) => {
 	const [showRenderGraph, setShowRenderGraph] = useState<boolean>(false);
 	const [loadingProgress, setLoadingProgress] = useState<number>(0);
+	const [activeModalWindow, setActiveModalWindow] = useState<string>('');
+	const [isUIVisible, setIsUIVisible] = useState<boolean>(true);
 
 	useEffect(() => {
 		UI.listenToField('resourcesLoadingProgress', (v: number) => setLoadingProgress(v));
 	}, []);
+
+	useEffect(() => {
+		UI.listenToField('resourcesLoadingProgress', (v: number) => setLoadingProgress(v));
+	}, []);
+
+	useEffect(() => {
+		const handler = (e: KeyboardEvent): void => {
+			if (e.code === 'KeyU' && (e.ctrlKey || e.metaKey)) {
+				setIsUIVisible(!isUIVisible);
+			}
+		}
+
+		window.addEventListener('keydown', handler);
+		return () => {
+			window.removeEventListener('keydown', handler)
+		};
+	}, [isUIVisible]);
 
 	if (loadingProgress < 1) {
 		return <div className='loading-screen'>
@@ -28,18 +49,34 @@ const UIRoot: React.FC<{
 					<div className='loading-screen-progress-inner' style={{width: `${loadingProgress * 100}%`}} />
 				</div>
 				<div className='loading-screen-info'>
-					<a href={'https://github.com/StrandedKitty/streets-gl'}>GitHub repo</a>
+					<a href={'https://github.com/StrandedKitty/streets-gl'} target={'_blank'}>GitHub repository</a>
 				</div>
 			</div>
 		</div>
 	}
 
 	return (
-		<>
+		<div style={{display: isUIVisible ? 'block' : 'none'}}>
 			<Search
 				goToLatLon={goToLatLon}
 			/>
-			<Nav />
+			<Nav
+				setActiveModalWindow={(name: string): void => setActiveModalWindow(name)}
+			/>
+			{
+				activeModalWindow === 'info' && (
+					<Info
+						onClose={(): void => setActiveModalWindow('')}
+					/>
+				)
+			}
+			{
+				activeModalWindow === 'settings' && (
+					<Settings
+						onClose={(): void => setActiveModalWindow('')}
+					/>
+				)
+			}
 			<DebugInfo
 				onRenderGraphOpen={(): void => setShowRenderGraph(true)}
 			/>
@@ -56,7 +93,7 @@ const UIRoot: React.FC<{
 				)
 			}
 			<LegalAttribution/>
-		</>
+		</div>
 	);
 }
 
