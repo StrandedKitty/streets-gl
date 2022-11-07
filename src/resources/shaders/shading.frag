@@ -385,7 +385,6 @@ void main() {
 
 		if (oldUV.x >= 0. && oldUV.x <= 1. && oldUV.y >= 0. && oldUV.y <= 1.) {
 			reflectionColor = texture(tSSR, vUv - velocity.xy);
-			reflectionColor.rgb /= reflectionColor.a;
 		}
 	}
 
