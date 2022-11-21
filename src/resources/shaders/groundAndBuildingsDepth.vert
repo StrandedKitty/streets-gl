@@ -1,8 +1,6 @@
 #include <versionPrecision>
 
 in vec3 position;
-in vec2 uv;
-in vec3 normal;
 
 uniform PerMesh {
 	mat4 modelViewMatrix;

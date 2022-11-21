@@ -64,29 +64,6 @@ export default class TileSystem extends System {
 		this.tiles.delete(`${x},${y}`);
 	}
 
-	public getTileNeighbors(x: number, y: number): Tile[] {
-		const tiles: Tile[] = [];
-
-		const potentialTiles: Tile[] = [
-			this.getTile(x + 1, y),
-			this.getTile(x - 1, y),
-			this.getTile(x, y + 1),
-			this.getTile(x, y - 1),
-			this.getTile(x + 1, y + 1),
-			this.getTile(x - 1, y - 1),
-			this.getTile(x - 1, y + 1),
-			this.getTile(x + 1, y - 1)
-		];
-
-		for (const tile of potentialTiles) {
-			if (tile) {
-				tiles.push(tile);
-			}
-		}
-
-		return tiles;
-	}
-
 	public getTileByLocalId(localId: number): Tile {
 		for (const tile of this.tiles.values()) {
 			if (tile.localId === localId) {

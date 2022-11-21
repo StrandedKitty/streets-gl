@@ -9,6 +9,8 @@ export interface AbstractAttributeParams {
 	normalized: boolean;
 	instanced?: boolean;
 	divisor?: number;
+	stride?: number;
+	offset?: number;
 	data?: TypedArray;
 }
 
@@ -21,6 +23,8 @@ export default interface AbstractAttribute {
 	normalized: boolean;
 	instanced: boolean;
 	divisor: number;
+	stride: number;
+	offset: number;
 	data: TypedArray;
 	setData(data: TypedArray): void;
 }

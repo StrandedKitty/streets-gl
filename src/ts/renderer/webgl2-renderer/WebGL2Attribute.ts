@@ -12,6 +12,8 @@ export default class WebGL2Attribute implements AbstractAttribute {
 	public name: string;
 	public normalized: boolean;
 	public size: number;
+	public stride: number;
+	public offset: number;
 	public type: RendererTypes.AttributeType;
 	public format: RendererTypes.AttributeFormat;
 	public usage: RendererTypes.BufferUsage;
@@ -29,6 +31,8 @@ export default class WebGL2Attribute implements AbstractAttribute {
 			normalized,
 			instanced = false,
 			divisor = 1,
+			stride = 0,
+			offset = 0,
 			data = null
 		}: AbstractAttributeParams
 	) {
@@ -42,6 +46,8 @@ export default class WebGL2Attribute implements AbstractAttribute {
 		this.normalized = normalized;
 		this.instanced = instanced;
 		this.divisor = divisor;
+		this.offset = offset;
+		this.stride = stride;
 		this.data = data;
 
 		this.createBuffer();
@@ -64,10 +70,10 @@ export default class WebGL2Attribute implements AbstractAttribute {
 
 			switch (this.format) {
 				case RendererTypes.AttributeFormat.Integer:
-					this.gl.vertexAttribIPointer(location, this.size, typeConstant, 0, 0);
+					this.gl.vertexAttribIPointer(location, this.size, typeConstant, this.stride, this.offset);
 					break;
 				case RendererTypes.AttributeFormat.Float:
-					this.gl.vertexAttribPointer(location, this.size, typeConstant, this.normalized, 0, 0);
+					this.gl.vertexAttribPointer(location, this.size, typeConstant, this.normalized, this.stride, this.offset);
 					break;
 			}
 

@@ -6,7 +6,7 @@
     font-family: 'Inter', sans-serif;
 }
 
-input:focus, button:focus {
+input:focus, button:focus, select:focus {
     outline: none !important;
 }
 
@@ -116,7 +116,6 @@ body {
     margin: 0 8px 0 0;
     color: white;
     background: transparent;
-    cursor: pointer;
 }
 
 .time-controls-button-text {
@@ -172,13 +171,12 @@ body {
 }
 
 .time-input-edit-button {
-    cursor: pointer;
+
 }
 
 .time-reset {
     font-size: 12px;
     margin: 6px 0 0 0;
-    cursor: pointer;
     display: inline-block;
     text-decoration: underline;
 }
@@ -294,6 +292,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     padding: 11px;
 }
 
+.nav-icon-active {
+    background: #eee;
+    color: #000;
+}
+
 .render-graph-viewer {
     position: absolute;
     top: 0;
@@ -316,7 +319,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .render-graph-viewer-nav > button {
-    cursor: pointer;
     margin: 0 12px 0 0;
     font-size: 16px;
     background: transparent;
@@ -509,6 +511,7 @@ g.type-TK > rect {
     table-layout: fixed;
     border-spacing: 0;
     border-collapse: collapse;
+    width: 100%;
 }
 
 .modal-keys td {
@@ -524,6 +527,58 @@ g.type-TK > rect {
 
 .modal-key-label {
 
+}
+
+.modal-settings-range {
+    width: 100%;
+    display: block;
+    margin: 0;
+}
+
+.modal-settings-range-container {
+    width: 200px;
+}
+
+.modal-settings-range-value {
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    line-height: 12px;
+}
+
+.modal-settings-range-footer {
+    width: 100%;
+}
+
+.modal-settings-range-min-max {
+    font-size: 8px;
+    line-height: 12px;
+}
+
+.modal-settings-reset {
+    border: 1px solid white;
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-size: 12px;
+    min-width: 36px;
+    line-height: 18px;
+    display: block;
+    color: white;
+    background: transparent;
+    float: right;
+    margin: 16px 0 0 0;
+}
+
+.modal-settings-select {
+    border: 1px solid white;
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-size: 12px;
+    min-width: 200px;
+    line-height: 18px;
+    display: block;
+    color: white;
+    background: transparent;
 }
 
 kbd {

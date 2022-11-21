@@ -16,18 +16,29 @@ function resolveIncludes(str: string): string {
 	return str.replace(IncludePattern, includeReplacer);
 }
 
-function addName(src: string, name: string): string {
-	if (src.startsWith('#version 300 es')) {
-		return src.replace('#version 300 es', `#version 300 es\n#define SHADER_NAME ${name}`);
+export default class ShaderPrecompiler {
+	public static resolveIncludes(shaderSource: string): string {
+		return resolveIncludes(shaderSource);
 	}
 
-	return `#define SHADER_NAME ${name}\n${src}`;
-}
+	public static resolveNameAndDefines(shaderSource: string, name: string, defines: Record<string, string>): string {
+		const lines = shaderSource.split('\n');
+		let lineIndex = 0;
 
-export default class ShaderPrecompiler {
-	public static resolveIncludes(shaderSource: string, shaderName: string): string {
-		const withIncludes = resolveIncludes(shaderSource);
+		for (let i = 0; i < lines.length; i++) {
+			if (lines[i].startsWith('#version')) {
+				lineIndex = i + 1;
+			}
+		}
 
-		return addName(withIncludes, shaderName);
+		let definesString = `#define SHADER_NAME ${name}\n`;
+
+		for (const [key, value] of Object.entries(defines)) {
+			definesString += `#define ${key} ${value}\n`;
+		}
+
+		lines.splice(lineIndex, 0, definesString);
+
+		return lines.join('\n');
 	}
 }

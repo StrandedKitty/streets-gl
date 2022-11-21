@@ -74,6 +74,7 @@ export default class DoFPass extends Pass<{
 	}
 
 	public render(): void {
+		return;
 		this.renderCoC();
 		this.antialiasCoC();
 		this.downscaleCoC();

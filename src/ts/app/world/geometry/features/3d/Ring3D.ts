@@ -94,7 +94,7 @@ export default class Ring3D extends Feature3D {
 			return;
 		}
 
-		this.vertices = Simplify(nodeVertices, 0.5, false).map(p => [p.x, p.y]);
+		this.vertices = Simplify(nodeVertices, 0.2, false).map(p => [p.x, p.y]);
 	}
 
 	public updateFootprintHeight(): void {
@@ -173,7 +173,13 @@ export default class Ring3D extends Feature3D {
 		const tags = this.parent.tags;
 		const heightFactor = this.parent.heightFactor;
 
-		const height = (+tags.height || 6) * heightFactor + this.parent.minGroundHeight;
+		let roofHeight = 0;
+
+		if (this.tags.roofShape !== 'flat') {
+			roofHeight = (+this.parent.tags.roofHeight || 0) * this.parent.heightFactor;
+		}
+
+		const height = (+tags.height || 6) * heightFactor + this.parent.minGroundHeight - roofHeight;
 		const minHeight = (+tags.minHeight || 0) * heightFactor + this.parent.minGroundHeight;
 
 		const positions: number[] = [];

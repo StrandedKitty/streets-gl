@@ -18,6 +18,11 @@
 			"levels": "@int"
 		}
 	},
+	"roof:levels": {
+		"default": {
+			"roofLevels": "@int"
+		}
+	},
 	"height": {
 		"default": {
 			"height": "@units"
@@ -81,11 +86,19 @@
 		},
 		"pyramidal": {
 			"roofShape": "pyramidal"
+		},
+		"skillion": {
+			"roofShape": "skillion"
 		}
 	},
 	"roof:height": {
 		"default": {
 			"roofHeight": "@units"
+		}
+	},
+	"roof:direction": {
+		"default": {
+			"roofDirection": "@units"
 		}
 	},
 	"lanes": {
@@ -113,6 +126,21 @@
 			"isArea": false
 		},
 		"yes": {
+			"isArea": true
+		}
+	},
+	"aeroway": {
+		"apron": {
+			"type": "road",
+			"isArea": true
+		},
+		"taxiway": {
+			"type": "road"
+		}
+	},
+	"area:aeroway": {
+		"runway": {
+			"type": "road",
 			"isArea": true
 		}
 	},

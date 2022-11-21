@@ -3,7 +3,7 @@ import Vec2 from "../../../../math/Vec2";
 import Config from "../../../Config";
 import Utils from "../../../Utils";
 import MathUtils from "../../../../math/MathUtils";
-import {GroundGeometryBuffers} from "../../../objects/Tile";
+import {GroundGeometryBuffers} from "~/app/objects/Tile";
 
 const vertexPos = new Vec2();
 

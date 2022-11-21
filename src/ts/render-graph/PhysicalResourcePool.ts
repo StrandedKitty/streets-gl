@@ -29,8 +29,13 @@ export default class PhysicalResourcePool {
 		}
 
 		const entries = this.resourcesMap.get(id);
+		const result = entries.pop().resource;
 
-		return entries.pop().resource;
+		if (entries.length === 0) {
+			this.resourcesMap.delete(id);
+		}
+
+		return result;
 	}
 
 	public update(): void {

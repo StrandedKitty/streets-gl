@@ -122,5 +122,77 @@
 	"fontSDF": {
 		"url": "/textures/Inter-Regular.png",
 		"type": "image"
+	},
+	"tree1Diffuse": {
+		"url": "/models/tree/tree_volume_normal.png",
+		"type": "image"
+	},
+	"tree2Diffuse": {
+		"url": "/models/tree/tree_volume_normal.png",
+		"type": "image"
+	},
+	"tree1Normal": {
+		"url": "/models/tree/tree_volume_normal.png",
+		"type": "image"
+	},
+	"tree2Normal": {
+		"url": "/models/tree/tree_volume_normal.png",
+		"type": "image"
+	},
+	"treeVolumeNormal": {
+		"url": "/models/tree/tree_volume_normal.png",
+		"type": "image"
+	},
+	"treeModel": {
+		"url": "/models/tree/tree.glb",
+		"type": "gltf"
+	},
+	"aircraftB777": {
+		"url": "/models/b777/b777.glb",
+		"type": "gltf"
+	},
+	"aircraftB777Diffuse": {
+		"url": "/models/b777/diffuse.png",
+		"type": "image"
+	},
+	"aircraftB777Normal": {
+		"url": "/models/b777/normal.png",
+		"type": "image"
+	},
+	"aircraftA321": {
+		"url": "/models/a321/a321.glb",
+		"type": "gltf"
+	},
+	"aircraftA321Diffuse": {
+		"url": "/models/a321/diffuse.png",
+		"type": "image"
+	},
+	"aircraftA321Normal": {
+		"url": "/models/a321/normal.png",
+		"type": "image"
+	},
+	"aircraftCessna208": {
+		"url": "/models/cessna208/cessna208.glb",
+		"type": "gltf"
+	},
+	"aircraftCessna208Diffuse": {
+		"url": "/models/cessna208/diffuse.png",
+		"type": "image"
+	},
+	"aircraftCessna208Normal": {
+		"url": "/models/cessna208/normal.png",
+		"type": "image"
+	},
+	"aircraftERJ135": {
+		"url": "/models/erj135/erj135.glb",
+		"type": "gltf"
+	},
+	"aircraftERJ135Diffuse": {
+		"url": "/models/erj135/diffuse.png",
+		"type": "image"
+	},
+	"aircraftERJ135Normal": {
+		"url": "/models/erj135/normal.png",
+		"type": "image"
 	}
 }

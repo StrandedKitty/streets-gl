@@ -3,7 +3,7 @@
 		"module": "es6",
 		"target": "es6",
 		"lib": [
-			"es2019",
+			"es2021",
 			"dom"
 		],
 		"allowJs": true,

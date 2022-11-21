@@ -6,6 +6,7 @@ import AABB from "../../core/AABB";
 import Material, {UniformType} from "../../renderer/Material";
 import Texture2DArray from "../../renderer/Texture2DArray";
 import CSMCascadeCamera from "~/app/render/CSMCascadeCamera";
+import Config from "~/app/Config";
 
 const ShadowCameraTopOffset = 2000;
 const FadeOffsetFactor = 250;
@@ -67,8 +68,8 @@ export default class CSM extends Object3D {
 		for (let i = 0; i < this.cascades; i++) {
 			const camera = new CSMCascadeCamera({
 				size: 0,
-				near: 1,
-				far: 10000
+				near: Config.CSMShadowCameraNear,
+				far: Config.CSMShadowCameraFar
 			});
 
 			this.add(camera);

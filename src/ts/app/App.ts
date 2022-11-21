@@ -13,6 +13,7 @@ import UISystem from "./systems/UISystem";
 import SceneSystem from '~/app/systems/SceneSystem';
 import ResourceManager, {ResourceJSON} from '~/app/world/ResourceManager';
 import resourcesList from './../../resources/resources.json';
+import VehicleSystem from "~/app/systems/VehicleSystem";
 
 class App {
 	private loop = (deltaTime: number): void => this.update(deltaTime);
@@ -44,7 +45,8 @@ class App {
 				TileObjectsSystem,
 				RenderSystem,
 				MapWorkerSystem,
-				StaticGeometryLoadingSystem
+				StaticGeometryLoadingSystem,
+				VehicleSystem
 			]);
 		});
 

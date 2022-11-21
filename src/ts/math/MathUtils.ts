@@ -10,6 +10,16 @@ export default class MathUtils {
 		return (1 - amt) * start + amt * end
 	}
 
+	public static shortestAngleDistance(a0: number, a1: number): number {
+		const max = Math.PI * 2;
+		const da = (a1 - a0) % max;
+		return 2 * da % max - da;
+	}
+
+	public static lerpAngle(a0: number, a1: number, t: number): number {
+		return a0 + this.shortestAngleDistance(a0, a1) * t;
+	}
+
 	public static toRad(degrees: number): number {
 		return degrees * Math.PI / 180;
 	}

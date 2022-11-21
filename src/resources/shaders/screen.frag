@@ -36,17 +36,21 @@ float roundedBoxSDF(vec2 CenterPosition, vec2 Size, float Radius) {
 
 void main() {
 	/*float scale = 0.72;
-	vec2 uv = (vUv - 0.5) * scale + 0.5;
-	vec2 distortedUv = computeUV(uv, 1., 1.);*/
+	vec2 uv = computeUV(
+		(vUv - 0.5) * scale + 0.5,
+		1.,
+		1.
+	);*/
+	vec2 uv = vUv;
 
-	vec4 labels = texture(tLabels, vUv);
+	vec4 labels = texture(tLabels, uv);
 
 	float bordersSDF = roundedBoxSDF(vUv * resolution - resolution * 0.5, resolution * 0.5, 100.);
 	labels.a *= smoothstep(0., -100., bordersSDF);
 
-	vec4 hdr = texture(tHDR, vUv);
-	vec4 dof = texture(tDoF, vUv);
-	float coc = texture(tCoC, vUv).r;
+	vec4 hdr = texture(tHDR, uv);
+	vec4 dof = texture(tDoF, uv);
+	float coc = texture(tCoC, uv).r;
 
 	float dofStrength = smoothstep(0.1, 1., abs(coc));;
 	vec3 color = mix(
@@ -59,6 +63,4 @@ void main() {
 	vec3 sceneWithLabelsColor = mix(sceneColor, labels.rgb, labels.a);
 
 	FragColor = vec4(sceneWithLabelsColor, 1);
-	//FragColor = vec4(texture(tCoC, vUv).rgb, 1);
-	//FragColor.r = texture(tCoC, vUv).a;
 }

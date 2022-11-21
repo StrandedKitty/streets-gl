@@ -1,5 +1,4 @@
 import FontJSON from "../../../resources/Inter-Regular.json";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import * as createLayout from 'layout-bmfont-text';
 import {getIndices, getUvs, getPositions} from '../world/geometry/FontGeometryGenerator';

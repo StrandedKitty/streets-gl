@@ -21,9 +21,6 @@ export default class HeightViewer {
 		let positionX = Math.floor(x * 255);
 		let positionY = Math.floor(y * 255);
 
-		//positionX = Math.min(positionX, 255);
-		//positionY = Math.min(positionY, 255);
-
 		let tile = this.getTile(tileX, tileY);
 
 		if (x === 1 && y === 1) {
@@ -36,6 +33,10 @@ export default class HeightViewer {
 		} else if (y === 1) {
 			tile = this.getTile(tileX, tileY + 1);
 			positionY = 0;
+		}
+
+		if (!tile) {
+			return 0;
 		}
 
 		const start = (positionX + positionY * 256) * 4;

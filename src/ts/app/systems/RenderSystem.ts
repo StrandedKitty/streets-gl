@@ -1,6 +1,4 @@
-import Mat4 from "../../math/Mat4";
 import Vec2 from "../../math/Vec2";
-import Config from "../Config";
 import System from "../System";
 import SystemManager from "../SystemManager";
 import PickingSystem from "./PickingSystem";
@@ -22,17 +20,6 @@ import Tile from "~/app/objects/Tile";
 import AtmosphereLUTPass from "~/app/render/passes/AtmosphereLUTPass";
 import SSRPass from "~/app/render/passes/SSRPass";
 import DoFPass from "~/app/render/passes/DoFPass";
-
-const jitterOffsets: [number, number][] = [
-	[-7 / 8, 1 / 8],
-	[-5 / 8, -5 / 8],
-	[-1 / 8, -3 / 8],
-	[3 / 8, -7 / 8],
-	[5 / 8, -1 / 8],
-	[7 / 8, 7 / 8],
-	[1 / 8, 3 / 8],
-	[-3 / 8, 5 / 8]
-];
 
 export default class RenderSystem extends System {
 	private renderer: AbstractRenderer;

@@ -98,8 +98,6 @@ void main() {
         texture(waterNormal, vUv * 9. + uvOffsets[2]).rgb * 0.1;
 
     outNormal = packNormal(getNormal(textureNoTile(grassNoise, grassNormal, vUv, 6.)));
-    //outNormal = packNormal(getNormal(normalValue));
-    //outNormal = packNormal(vNormal);
     outPosition = vPosition;
     outMotion = getMotionVector(vClipPos, vClipPosPrev);
     outObjectId = 0u;

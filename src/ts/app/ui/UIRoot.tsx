@@ -62,6 +62,7 @@ const UIRoot: React.FC<{
 			/>
 			<Nav
 				setActiveModalWindow={(name: string): void => setActiveModalWindow(name)}
+				activeModalWindow={activeModalWindow}
 			/>
 			{
 				activeModalWindow === 'info' && (

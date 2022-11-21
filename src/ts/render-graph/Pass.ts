@@ -55,13 +55,13 @@ export default abstract class Pass<T extends ResourcePropMap> extends Node {
 	}
 
 	public getAllResources(): Resource<any, any>[] {
-		return Array.from(this.internalResources.values()).map(r => r.resource);
+		return Array.from(this.internalResources.values()).map(r => r.resource).filter(r => r !== null);
 	}
 
 	public getAllResourcesOfType(type: InternalResourceType): Set<Resource<any, any>> {
 		const filtered = Array.from(this.internalResources.values()).filter(r => r.type === type);
 
-		return new Set(filtered.map(r => r.resource));
+		return new Set(filtered.map(r => r.resource).filter(r => r !== null));
 	}
 
 	public abstract render(): void;

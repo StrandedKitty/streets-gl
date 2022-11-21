@@ -29,8 +29,8 @@ export default new class DomeRoofBuilder extends RoofBuilder {
 			center = polylabel([ringVertices], 1) as [number, number];
 		}
 
-		const minHeight = way.minGroundHeight + (+way.tags.height || 6) * way.heightFactor;
-		const roofHeight = +way.tags.roofHeight || 40;
+		const roofHeight = (+way.tags.roofHeight || 40) * way.heightFactor;
+		const minHeight = way.minGroundHeight + (+way.tags.height || 6) * way.heightFactor - roofHeight;
 
 		const centerVertex = new Vec2(center[0], center[1]);
 

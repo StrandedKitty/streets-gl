@@ -10,6 +10,8 @@ export default class WebGL2Mesh implements AbstractMesh {
 	private readonly gl: WebGL2RenderingContext;
 	public indexed: boolean;
 	public indices: Uint32Array;
+	public instanced: boolean;
+	public instanceCount: number;
 	private indexBuffer: WebGLBuffer;
 	private attributes: Map<string, WebGL2Attribute> = new Map();
 	private materialsAttributes: Map<string, Map<string, WebGL2Attribute>> = new Map();
@@ -19,6 +21,8 @@ export default class WebGL2Mesh implements AbstractMesh {
 		renderer: WebGL2Renderer, {
 			indexed = false,
 			indices,
+			instanced = false,
+			instanceCount = 0,
 			attributes = []
 		}: AbstractMeshParams
 	) {
@@ -26,6 +30,8 @@ export default class WebGL2Mesh implements AbstractMesh {
 		this.gl = renderer.gl;
 		this.indexed = indexed;
 		this.indices = indices;
+		this.instanced = instanced;
+		this.instanceCount = instanceCount;
 
 		if (this.indexed) {
 			this.createIndexBuffer();
@@ -81,10 +87,31 @@ export default class WebGL2Mesh implements AbstractMesh {
 
 		if (this.indexed) {
 			this.gl.bindBuffer(WebGL2Constants.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-			this.gl.drawElements(WebGL2Constants.TRIANGLES, this.indices.length, WebGL2Constants.UNSIGNED_INT, 0);
+
+			if (this.instanced) {
+				if (this.instanceCount > 0) {
+					this.gl.drawElementsInstanced(
+						WebGL2Constants.TRIANGLES,
+						this.indices.length,
+						WebGL2Constants.UNSIGNED_INT,
+						0,
+						this.instanceCount
+					);
+				}
+			} else {
+				this.gl.drawElements(WebGL2Constants.TRIANGLES, this.indices.length, WebGL2Constants.UNSIGNED_INT, 0);
+			}
+
 			this.gl.bindBuffer(WebGL2Constants.ELEMENT_ARRAY_BUFFER, null);
 		} else {
-			this.gl.drawArrays(WebGL2Constants.TRIANGLES, 0, this.attributes.get('position').data.length / 3);
+			const positionAttribute = this.attributes.get('position');
+			const vertexCount = positionAttribute.data.length / positionAttribute.size;
+
+			if (this.instanced) {
+				this.gl.drawArraysInstanced(WebGL2Constants.TRIANGLES, 0, vertexCount, this.instanceCount);
+			} else {
+				this.gl.drawArrays(WebGL2Constants.TRIANGLES, 0, vertexCount);
+			}
 		}
 	}
 

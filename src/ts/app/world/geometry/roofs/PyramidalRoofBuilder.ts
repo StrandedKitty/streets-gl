@@ -27,8 +27,8 @@ export default new class PyramidalRoofBuilder extends RoofBuilder {
 			center = polylabel([ringVertices], 1) as [number, number];
 		}
 
-		const minHeight = way.minGroundHeight + (+way.tags.height || 6) * way.heightFactor;
-		const height = +way.tags.roofHeight || 8;
+		const height = (+way.tags.roofHeight || 8) * way.heightFactor;
+		const minHeight = way.minGroundHeight + (+way.tags.height || 6) * way.heightFactor - height;
 		const maxHeight = minHeight + height;
 
 		const vertices = new Float32Array(ringVertices.length * 9);

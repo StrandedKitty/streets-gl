@@ -21,14 +21,14 @@ uniform MainBlock {
 #include <reconstructPositionFromDepth>
 
 vec3 readNormal(vec2 uv) {
-    return texture(tNormal, uv).rgb * 2. - 1.;
+    return texture(tNormal, uv).rgb;
 }
 
 vec3 readPosition(vec2 uv) {
     return reconstructPositionFromDepth(uv, texture(tDepth, uv).r, projectionMatrixInverse);
 }
 
-const float radius = 30.;
+const float radius = 50.;
 const float biasStart = 0.5;
 const float biasDepthFactor = 200.;
 
@@ -52,15 +52,14 @@ void main() {
     for (float i = 0.; i < AO_SAMPLES; ++i) {
         float progress = i / AO_SAMPLES;
         vec2 sampleNoiseOffset = (i + 1.) * randomOffset.zw;
-        vec3 test = texture(tNoise, noiseUv + sampleNoiseOffset).xyz;
+        vec3 noiseValue = texture(tNoise, noiseUv + sampleNoiseOffset).xyz;
         vec3 rotationVector = normalize(vec3(
-            test.x * 2. - 1.,
-            test.y * 2. - 1.,
-            test.z
+            noiseValue.x * 2. - 1.,
+            noiseValue.y * 2. - 1.,
+            noiseValue.z
         ));
-        rotationVector *= mix(0.1, 1., progress * progress);
 
-        float scaledRadius = radius;
+        float scaledRadius = radius * mix(0.1, 1., progress * progress);
         if (-depth < 200.) scaledRadius *= -depth / 200.;
 
         vec3 smple = TBN * rotationVector;

@@ -209,7 +209,7 @@ float orthographicDepthToViewZ( const in float linearClipZ, const in float near,
 }
 
 float textureShadow(int shadowMapLayer, vec2 uv) {
-    return -orthographicDepthToViewZ(texture(shadowMap, vec3(uv, shadowMapLayer)).r, 1., 10000.);
+    return -orthographicDepthToViewZ(texture(shadowMap, vec3(uv, shadowMapLayer)).r, 1., 20000.);
 }
 
 float textureCompare(int shadowMapLayer, vec2 uv, float compare) {

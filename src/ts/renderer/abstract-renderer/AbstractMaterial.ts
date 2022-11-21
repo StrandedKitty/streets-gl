@@ -29,6 +29,7 @@ export interface AbstractMaterialParams {
 	vertexShaderSource: string;
 	fragmentShaderSource: string;
 	uniforms: Uniform[];
+	defines?: Record<string, string>;
 	primitive: AbstractMaterialPrimitiveParams;
 	depth: AbstractMaterialDepthParams;
 	blend: AbstractMaterialBlendParams;
@@ -39,6 +40,7 @@ export default interface AbstractMaterial {
 	readonly vertexShaderSource: string;
 	readonly fragmentShaderSource: string;
 	readonly uniforms: Uniform[];
+	readonly defines: Record<string, string>;
 	readonly primitive: AbstractMaterialPrimitiveParams;
 	readonly depth: AbstractMaterialDepthParams;
 	readonly blend: AbstractMaterialBlendParams;

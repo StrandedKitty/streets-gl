@@ -1,12 +1,12 @@
 export interface UniversalNodeDescription {
-	name: string;
-	type: 'tree' | 'hydrant' | 'transmissionTower' | 'utilityPole' | 'artwork';
+	name?: string;
+	type?: 'tree' | 'hydrant' | 'transmissionTower' | 'utilityPole' | 'artwork';
 	direction?: number;
 }
 
 export interface UniversalPolylineDescription {
-	name: string;
-	type: 'path' | 'fence' | 'hedge' | 'powerLine' | 'treeRow';
+	name?: string;
+	type?: 'path' | 'fence' | 'hedge' | 'powerLine' | 'treeRow';
 	pathType?: 'roadway' | 'footway' | 'cycleway' | 'railway';
 	width?: number;
 	height?: number;
@@ -17,8 +17,8 @@ export interface UniversalPolylineDescription {
 }
 
 export interface UniversalAreaDescription {
-	name: string;
-	type: 'building' | 'forest' | 'roadway' | 'footway' | 'water' | 'farmland' | 'sand' | 'rock';
+	name?: string;
+	type?: 'building' | 'forest' | 'roadway' | 'footway' | 'water' | 'farmland' | 'sand' | 'rock';
 	buildingLevels?: number;
 	buildingHeight?: number;
 	buildingMinHeight?: number;

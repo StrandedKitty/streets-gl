@@ -15,8 +15,8 @@ export default new class HippedRoofBuilder extends RoofBuilder {
 		}
 
 		const heightMap: Map<string, number> = new Map();
-		const minHeight = way.minGroundHeight + (+way.tags.height || 6) * way.heightFactor;
-		const roofHeight = +way.tags.roofHeight;
+		const roofHeight = (+way.tags.roofHeight || 8) * way.heightFactor;
+		const minHeight = way.minGroundHeight + (+way.tags.height || 6) * way.heightFactor - roofHeight;
 		const useRoofHeight = roofHeight > 0;
 		let maxHeight = 0;
 

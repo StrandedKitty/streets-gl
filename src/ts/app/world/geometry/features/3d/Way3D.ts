@@ -20,6 +20,7 @@ import HippedRoofBuilder from "~/app/world/geometry/roofs/HippedRoofBuilder";
 import GabledRoofBuilder from "~/app/world/geometry/roofs/GabledRoofBuilder";
 import PyramidalRoofBuilder from "~/app/world/geometry/roofs/PyramidalRoofBuilder";
 import polylabel from "polylabel";
+import SkillionRoofBuilder from "~/app/world/geometry/roofs/SkillionRoofBuilder";
 
 interface EarcutInput {
 	vertices: number[];
@@ -30,7 +31,8 @@ enum RoofShape {
 	Flat,
 	Hipped,
 	Gabled,
-	Pyramidal
+	Pyramidal,
+	Skillion
 }
 
 export default class Way3D extends Feature3D {
@@ -123,6 +125,9 @@ export default class Way3D extends Feature3D {
 				break;
 			case 'pyramidal':
 				roofType = RoofShape.Pyramidal;
+				break;
+			case 'skillion':
+				roofType = RoofShape.Skillion;
 				break;
 		}
 
@@ -535,6 +540,9 @@ export default class Way3D extends Feature3D {
 			}
 			case RoofShape.Pyramidal: {
 				return PyramidalRoofBuilder.build(this);
+			}
+			case RoofShape.Skillion: {
+				return SkillionRoofBuilder.build(this);
 			}
 		}
 

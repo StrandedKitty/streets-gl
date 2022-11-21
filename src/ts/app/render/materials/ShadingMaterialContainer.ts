@@ -3,6 +3,7 @@ import MaterialContainer from "~/app/render/materials/MaterialContainer";
 import {RendererTypes} from "~/renderer/RendererTypes";
 import AbstractRenderer from "~/renderer/abstract-renderer/AbstractRenderer";
 import ResourceManager from "~/app/world/ResourceManager";
+import Config from "~/app/Config";
 
 export default class ShadingMaterialContainer extends MaterialContainer {
 	public constructor(renderer: AbstractRenderer) {
@@ -10,6 +11,13 @@ export default class ShadingMaterialContainer extends MaterialContainer {
 
 		this.material = this.renderer.createMaterial({
 			name: 'Shading material',
+			defines: {
+				SHADOW_CASCADES: '3',
+				SHADOW_CAMERA_NEAR: `${Config.CSMShadowCameraNear}.`,
+				SHADOW_CAMERA_FAR: `${Config.CSMShadowCameraFar}.`,
+				SSAO_ENABLED: '1',
+				SSR_ENABLED: '1'
+			},
 			uniforms: [
 				{
 					name: 'tColor',
@@ -22,7 +30,7 @@ export default class ShadingMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Texture2D,
 					value: null
 				}, {
-					name: 'tPosition',
+					name: 'tDepth',
 					block: null,
 					type: RendererTypes.UniformType.Texture2D,
 					value: null
@@ -67,50 +75,28 @@ export default class ShadingMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Texture2D,
 					value: null
 				}, {
-					name: 'tSky',
-					block: null,
-					type: RendererTypes.UniformType.TextureCube,
-					value: this.renderer.createTextureCube({
-						width: 1024,
-						height: 1024,
-						anisotropy: 16,
-						data: [
-							ResourceManager.get('starmap0'),
-							ResourceManager.get('starmap1'),
-							ResourceManager.get('starmap2'),
-							ResourceManager.get('starmap3'),
-							ResourceManager.get('starmap4'),
-							ResourceManager.get('starmap5'),
-						],
-						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
-						magFilter: RendererTypes.MagFilter.Linear,
-						wrap: RendererTypes.TextureWrap.ClampToEdge,
-						format: RendererTypes.TextureFormat.RGBA8Unorm,
-						mipmaps: true
-					})
-				}, {
 					name: 'tAtmosphere',
 					block: null,
 					type: RendererTypes.UniformType.TextureCube,
 					value: null
 				}, {
 					name: 'skyRotationMatrix',
-					block: null,
+					block: 'MainBlock',
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array()
 				}, {
 					name: 'viewMatrix',
-					block: null,
+					block: 'MainBlock',
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array()
 				}, {
-					name: 'projectionMatrix',
-					block: null,
+					name: 'projectionMatrixInverse',
+					block: 'MainBlock',
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array()
 				}, {
 					name: 'sunDirection',
-					block: null,
+					block: 'MainBlock',
 					type: RendererTypes.UniformType.Float3,
 					value: new Float32Array()
 				}, {

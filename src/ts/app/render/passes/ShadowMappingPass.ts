@@ -6,8 +6,10 @@ import Tile from "~/app/objects/Tile";
 import AbstractMaterial from "~/renderer/abstract-renderer/AbstractMaterial";
 import {UniformMatrix4} from "~/renderer/abstract-renderer/Uniform";
 import Mat4 from "~/math/Mat4";
-import BuildingDepthMaterialContainer from "~/app/render/materials/BuildingDepthMaterialContainer";
-import GroundDepthMaterialContainer from "~/app/render/materials/GroundDepthMaterialContainer";
+import GroundAndBuildingsDepthMaterialContainer from "~/app/render/materials/GroundAndBuildingsDepthMaterialContainer";
+import TreeDepthMaterialContainer from "~/app/render/materials/TreeDepthMaterialContainer";
+import AircraftDepthMaterialContainer from "~/app/render/materials/AircraftDepthMaterialContainer";
+import VehicleSystem from "~/app/systems/VehicleSystem";
 
 export default class ShadowMappingPass extends Pass<{
 	ShadowMaps: {
@@ -15,16 +17,18 @@ export default class ShadowMappingPass extends Pass<{
 		resource: RenderPassResource;
 	};
 }> {
-	private readonly buildingDepthMaterial: AbstractMaterial;
-	private readonly groundDepthMaterial: AbstractMaterial;
+	private readonly groundAndBuildingsDepthMaterial: AbstractMaterial;
+	private readonly treeMaterial: AbstractMaterial;
+	private readonly aircraftMaterial: AbstractMaterial;
 
 	public constructor(manager: PassManager) {
 		super('ShadowMappingPass', manager, {
 			ShadowMaps: {type: InternalResourceType.Output, resource: manager.getSharedResource('ShadowMaps')}
 		});
 
-		this.buildingDepthMaterial = new BuildingDepthMaterialContainer(this.renderer).material;
-		this.groundDepthMaterial = new GroundDepthMaterialContainer(this.renderer).material;
+		this.groundAndBuildingsDepthMaterial = new GroundAndBuildingsDepthMaterialContainer(this.renderer).material;
+		this.treeMaterial = new TreeDepthMaterialContainer(this.renderer).material;
+		this.aircraftMaterial = new AircraftDepthMaterialContainer(this.renderer).material;
 
 		const csm = this.manager.sceneSystem.objects.csm;
 
@@ -34,6 +38,8 @@ export default class ShadowMappingPass extends Pass<{
 	public render(): void {
 		const csm = this.manager.sceneSystem.objects.csm;
 		const tiles = this.manager.sceneSystem.objects.tiles.children as Tile[];
+		const trees = this.manager.sceneSystem.objects.instancedObjects.get('tree')
+		const aircraftList = this.manager.sceneSystem.objects.instancedAircraft;
 		const pass = this.getPhysicalResource('ShadowMaps');
 
 		for (let i = 0; i < csm.cascadeCameras.length; i++) {
@@ -43,43 +49,51 @@ export default class ShadowMappingPass extends Pass<{
 
 			this.renderer.beginRenderPass(pass);
 
-			{
-				this.renderer.useMaterial(this.buildingDepthMaterial);
+			if (i < 2) {
+				const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, trees.matrixWorld);
 
-				this.buildingDepthMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.projectionMatrix.values);
-				this.buildingDepthMaterial.updateUniformBlock('PerMaterial');
+				this.renderer.useMaterial(this.treeMaterial);
 
-				for (const tile of tiles) {
-					if (!tile.buildings || !tile.buildings.inCameraFrustum(camera)) {
-						continue;
-					}
+				this.treeMaterial.getUniform('projectionMatrix', 'MainBlock').value = new Float32Array(camera.projectionMatrix.values);
+				this.treeMaterial.getUniform('modelViewMatrix', 'MainBlock').value = new Float32Array(mvMatrix.values);
+				this.treeMaterial.updateUniformBlock('MainBlock');
 
-					const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, tile.matrixWorld);
+				trees.mesh.draw();
+			}
 
-					this.buildingDepthMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
-					this.buildingDepthMaterial.updateUniformBlock('PerMesh');
+			for (let i = 0; i < aircraftList.length; i++) {
+				const aircraft = aircraftList[i];
 
-					tile.buildings.draw();
+				if (aircraft.mesh && aircraft.mesh.instanceCount > 0) {
+					const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, aircraft.matrixWorld);
+
+					this.renderer.useMaterial(this.aircraftMaterial);
+
+					this.aircraftMaterial.getUniform('projectionMatrix', 'MainBlock').value = new Float32Array(camera.projectionMatrix.values);
+					this.aircraftMaterial.getUniform('modelViewMatrix', 'MainBlock').value = new Float32Array(mvMatrix.values);
+					this.aircraftMaterial.updateUniformBlock('MainBlock');
+
+					aircraft.mesh.draw();
 				}
 			}
 
 			{
-				this.renderer.useMaterial(this.groundDepthMaterial);
+				this.renderer.useMaterial(this.groundAndBuildingsDepthMaterial);
 
-				this.groundDepthMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.projectionMatrix.values);
-				this.groundDepthMaterial.updateUniformBlock('PerMaterial');
+				this.groundAndBuildingsDepthMaterial.getUniform('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.projectionMatrix.values);
+				this.groundAndBuildingsDepthMaterial.updateUniformBlock('PerMaterial');
 
 				for (const tile of tiles) {
-					if (!tile.ground || !tile.ground.inCameraFrustum(camera)) {
+					if (!tile.groundAndBuildings || !tile.groundAndBuildings.inCameraFrustum(camera)) {
 						continue;
 					}
 
 					const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, tile.matrixWorld);
 
-					this.groundDepthMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
-					this.groundDepthMaterial.updateUniformBlock('PerMesh');
+					this.groundAndBuildingsDepthMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
+					this.groundAndBuildingsDepthMaterial.updateUniformBlock('PerMesh');
 
-					tile.ground.draw();
+					tile.groundAndBuildings.draw();
 				}
 			}
 		}

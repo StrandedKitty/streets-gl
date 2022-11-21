@@ -9,6 +9,9 @@ import {
 } from "./WorkerMessageTypes";
 import Vec2 from "../../../math/Vec2";
 import Config from "../../Config";
+import CombinedUniversalFeatureProvider
+	from "~/app/world/universal-features/providers/CombinedUniversalFeatureProvider";
+import GroundGeometryBuilder from "~/app/world/universal-features/providers/GroundGeometryBuilder";
 
 const ctx: Worker = self as any;
 const heightViewer = new HeightViewer();
@@ -19,11 +22,24 @@ heightViewer.requestHeightFunction = (x: number, y: number): void => {
 	});
 };
 
+const provider = new CombinedUniversalFeatureProvider();
+
 ctx.addEventListener('message', event => {
 	const data = event.data as WorkerMessageOutgoing;
+	const x = data.tile[0];
+	const y = data.tile[1];
 
 	if (data.type === WorkerMessageOutgoingType.Start) {
-		load(data.tile[0], data.tile[1]);
+		load(x, y);
+
+		const ground = GroundGeometryBuilder.getGroundGeometry(x, y, heightViewer);
+
+		provider.getCollection({
+			x,
+			y,
+			heightViewer,
+			groundData: ground
+		});
 	} else if (data.type === WorkerMessageOutgoingType.SendHeightData) {
 		heightViewer.pushHeightTile(data.tile[0], data.tile[1], data.heightArray);
 	}

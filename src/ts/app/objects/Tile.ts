@@ -7,10 +7,12 @@ import Vec2 from "../../math/Vec2";
 import TileBuildings from "~/app/objects/TileBuildings";
 import TileGround from "~/app/objects/TileGround";
 import TileRoads from "~/app/objects/TileRoads";
-import FontJSON from './../../../resources/Inter-Regular.json';
-import Labels from "~/app/objects/Labels";
 import TileLabelBuffers from "~/app/objects/TileLabelBuffers";
-import Config from "~/app/Config";
+import TileGroundAndBuildings from "~/app/objects/TileGroundAndBuildings";
+
+// position.xyz, scale, rotation
+export type InstanceBufferInterleaved = Float32Array;
+export type InstanceType = 'tree';
 
 export interface GroundGeometryBuffers {
 	position: Float32Array;
@@ -37,6 +39,8 @@ export interface StaticTileGeometry {
 		normal: Float32Array;
 		textureId: Uint8Array;
 	};
+	instancesLOD0: Record<InstanceType, InstanceBufferInterleaved>;
+	instancesLOD1: Record<InstanceType, InstanceBufferInterleaved>;
 	bbox: {
 		min: number[];
 		max: number[];
@@ -51,6 +55,15 @@ export interface StaticTileGeometry {
 		text: string[];
 	};
 }
+
+export type TileInstanceBuffers = Map<InstanceType, {
+	rawLOD0: InstanceBufferInterleaved;
+	rawLOD1: InstanceBufferInterleaved;
+	transformedLOD0: InstanceBufferInterleaved;
+	transformedLOD1: InstanceBufferInterleaved;
+	transformOriginLOD0: Vec2;
+	transformOriginLOD1: Vec2;
+}>;
 
 let tileCounter = 0;
 
@@ -69,8 +82,10 @@ export default class Tile extends Object3D {
 	public buildings: TileBuildings;
 	public ground: TileGround;
 	public roads: TileRoads;
+	public groundAndBuildings: TileGroundAndBuildings;
 	public labelBuffersList: TileLabelBuffers[] = [];
 	public buildingsNeedFiltering: boolean = true;
+	public instanceBuffers: TileInstanceBuffers = new Map();
 
 	public constructor(x: number, y: number) {
 		super();
@@ -105,21 +120,66 @@ export default class Tile extends Object3D {
 			this.buildings = new TileBuildings(this.staticGeometry);
 			this.ground = new TileGround(this.staticGeometry);
 			this.roads = new TileRoads(this.staticGeometry);
+			this.groundAndBuildings = new TileGroundAndBuildings(this.staticGeometry);
 
-			for (let i = 0; i < this.staticGeometry.labels.text.length; i++) {
-				const label = new TileLabelBuffers({
-					text: this.staticGeometry.labels.text[i],
-					priority: this.staticGeometry.labels.priority[i],
-					x: this.position.x + this.staticGeometry.labels.position[i * 3],
-					y: this.position.y + this.staticGeometry.labels.position[i * 3 + 1],
-					z: this.position.z + this.staticGeometry.labels.position[i * 3 + 2],
+			this.add(this.buildings, this.ground, this.roads, this.groundAndBuildings);
+			this.updateLabelBufferList();
+
+			for (const [key, LOD0Value] of Object.entries(this.staticGeometry.instancesLOD0)) {
+				const LOD1Value = this.staticGeometry.instancesLOD1[key as InstanceType];
+
+				this.instanceBuffers.set(key as InstanceType, {
+					rawLOD0: LOD0Value,
+					rawLOD1: LOD1Value,
+					transformedLOD0: new Float32Array(LOD0Value),
+					transformedLOD1: new Float32Array(LOD1Value),
+					transformOriginLOD0: new Vec2(NaN, NaN),
+					transformOriginLOD1: new Vec2(NaN, NaN)
 				});
-
-				this.labelBuffersList.push(label);
 			}
-
-			this.add(this.buildings, this.ground, this.roads);
 		});
+	}
+
+	public getInstanceBufferWithTransform(instanceName: InstanceType, lod: number, origin: Vec2): InstanceBufferInterleaved {
+		const buffers = this.instanceBuffers.get(instanceName);
+
+		if (!buffers) {
+			return null;
+		}
+
+		const lodKey = lod === 0 ? 'LOD0' : 'LOD1';
+		const transformed = buffers[`transformed${lodKey}`];
+		const transformOrigin = buffers[`transformOrigin${lodKey}`];
+
+		if (transformOrigin.equals(origin)) {
+			return transformed;
+		}
+
+		const raw = buffers[`raw${lodKey}`];
+
+		for (let i = 0; i < raw.length; i += 5) {
+			transformed[i] = raw[i] - origin.x + this.position.x;
+			transformed[i + 2] = raw[i + 2] - origin.y + this.position.z;
+		}
+
+		transformOrigin.x = origin.x;
+		transformOrigin.y = origin.y;
+
+		return transformed;
+	}
+
+	private updateLabelBufferList(): void {
+		for (let i = 0; i < this.staticGeometry.labels.text.length; i++) {
+			const label = new TileLabelBuffers({
+				text: this.staticGeometry.labels.text[i],
+				priority: this.staticGeometry.labels.priority[i],
+				x: this.position.x + this.staticGeometry.labels.position[i * 3],
+				y: this.position.y + this.staticGeometry.labels.position[i * 3 + 1],
+				z: this.position.z + this.staticGeometry.labels.position[i * 3 + 2],
+			});
+
+			this.labelBuffersList.push(label);
+		}
 	}
 
 	public updateDistanceToCamera(camera: Camera): void {

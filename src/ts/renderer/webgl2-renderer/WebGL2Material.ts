@@ -22,6 +22,7 @@ export default class WebGL2Material implements AbstractMaterial {
 	public readonly vertexShaderSource: string;
 	public readonly fragmentShaderSource: string;
 	public readonly uniforms: Uniform[];
+	public readonly defines: Record<string, string>;
 	public readonly primitive: AbstractMaterialPrimitiveParams;
 	public readonly depth: AbstractMaterialDepthParams;
 	public readonly blend: AbstractMaterialBlendParams;
@@ -37,6 +38,7 @@ export default class WebGL2Material implements AbstractMaterial {
 			vertexShaderSource,
 			fragmentShaderSource,
 			uniforms,
+			defines = {},
 			primitive,
 			depth,
 			blend
@@ -49,16 +51,35 @@ export default class WebGL2Material implements AbstractMaterial {
 		this.vertexShaderSource = vertexShaderSource;
 		this.fragmentShaderSource = fragmentShaderSource;
 		this.uniforms = uniforms;
+		this.defines = defines;
 		this.primitive = primitive;
 		this.depth = depth;
 		this.blend = blend;
 
 		this.createProgram();
 		this.createUBOs();
+
+		/*setInterval(() => {
+			if (this.name === 'Shading material') {
+				this.defines.TEST = `${Math.random()}`;
+				this.recompile();
+			}
+		}, 2000)*/
 	}
 
 	private createProgram(): void {
-		this.program = new WebGL2Program(this.renderer, this.vertexShaderSource, this.fragmentShaderSource);
+		this.program = new WebGL2Program({
+			name: this.name,
+			renderer: this.renderer,
+			vertexShaderSource: this.vertexShaderSource,
+			fragmentShaderSource: this.fragmentShaderSource,
+			defines: this.defines
+		});
+	}
+
+	public recompile(): void {
+		this.program.recompileShaders();
+		this.uniformLocations.clear();
 	}
 
 	private createUBOs(): void {

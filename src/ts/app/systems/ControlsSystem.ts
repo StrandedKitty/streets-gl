@@ -173,7 +173,7 @@ export default class ControlsSystem extends System {
 
 			const alpha = Easing.easeOutCubic(this.wheelZoomScale);
 
-			this.camera.zoom(MathUtils.lerp(1, Config.CameraFOV / Config.CameraFOVZoomed, alpha));
+			this.camera.zoom(MathUtils.lerp(1, Config.CameraFOVZoomFactor, alpha));
 		}
 
 		this.updateHash();

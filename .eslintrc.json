@@ -49,7 +49,8 @@
 						}
 					}
 				],
-				"prefer-const": "off"
+				"prefer-const": "off",
+				"@typescript-eslint/ban-ts-comment": "off"
 			}
 		}
 	]

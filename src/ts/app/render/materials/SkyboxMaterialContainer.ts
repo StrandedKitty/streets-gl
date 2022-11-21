@@ -2,6 +2,7 @@ import Shaders from "../shaders/Shaders";
 import MaterialContainer from "~/app/render/materials/MaterialContainer";
 import {RendererTypes} from "~/renderer/RendererTypes";
 import AbstractRenderer from "~/renderer/abstract-renderer/AbstractRenderer";
+import ResourceManager from "~/app/world/ResourceManager";
 
 export default class SkyboxMaterialContainer extends MaterialContainer {
 	public constructor(renderer: AbstractRenderer) {
@@ -25,6 +26,53 @@ export default class SkyboxMaterialContainer extends MaterialContainer {
 					block: 'Uniforms',
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array(16)
+				}, {
+					name: 'viewMatrix',
+					block: 'Uniforms',
+					type: RendererTypes.UniformType.Matrix4,
+					value: new Float32Array(16)
+				}, {
+					name: 'sunDirection',
+					block: 'Uniforms',
+					type: RendererTypes.UniformType.Float3,
+					value: new Float32Array(3)
+				}, {
+					name: 'tSky',
+					block: null,
+					type: RendererTypes.UniformType.TextureCube,
+					value: this.renderer.createTextureCube({
+						width: 1024,
+						height: 1024,
+						anisotropy: 16,
+						data: [
+							ResourceManager.get('starmap0'),
+							ResourceManager.get('starmap1'),
+							ResourceManager.get('starmap2'),
+							ResourceManager.get('starmap3'),
+							ResourceManager.get('starmap4'),
+							ResourceManager.get('starmap5'),
+						],
+						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
+						magFilter: RendererTypes.MagFilter.Linear,
+						wrap: RendererTypes.TextureWrap.ClampToEdge,
+						format: RendererTypes.TextureFormat.RGBA8Unorm,
+						mipmaps: true
+					})
+				}, {
+					name: 'tAtmosphere',
+					block: null,
+					type: RendererTypes.UniformType.TextureCube,
+					value: null
+				}, {
+					name: 'tTransmittanceLUT',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: null
+				}, {
+					name: 'skyRotationMatrix',
+					block: 'Uniforms',
+					type: RendererTypes.UniformType.Matrix4,
+					value: new Float32Array()
 				}
 			],
 			primitive: {

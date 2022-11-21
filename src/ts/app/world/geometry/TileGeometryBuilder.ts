@@ -241,6 +241,22 @@ export default class TileGeometryBuilder {
 		const projectedMeshUv = Utils.mergeTypedArrays(Float32Array, projectedUvs);
 		const projectedMeshTextureId = Utils.mergeTypedArrays(Uint8Array, projectedTextureIds);
 
+		const treesArray: number[] = [];
+		const size = 1;
+		for (let x = 0; x < size; x++) {
+			for (let y = 0; y < size; y++) {
+				const cellSize = Config.TileSize / size;
+				const tx = Config.TileSize * (x / size) + cellSize * (0.25 + 0.5 * Math.random());
+				const ty = Config.TileSize * (y / size) + cellSize * (0.25 + 0.5 * Math.random());
+				const height = this.heightViewer.getHeight(this.x, this.y, ty / Config.TileSize, 1 - tx / Config.TileSize);
+
+				treesArray.push(tx, height, ty, 1, Math.random() * 100);
+			}
+		}
+
+		const randomTreePosition = new Float32Array(treesArray);
+		const treesLOD1 = randomTreePosition;
+
 		return {
 			buildings: {
 				position: positionBuffer,
@@ -270,7 +286,13 @@ export default class TileGeometryBuilder {
 				priority: labelPriorities
 			},
 			bbox,
-			bboxGround: ground.bbox
+			bboxGround: ground.bbox,
+			instancesLOD0: {
+				tree: randomTreePosition
+			},
+			instancesLOD1: {
+				tree: treesLOD1
+			}
 		};
 	}
 

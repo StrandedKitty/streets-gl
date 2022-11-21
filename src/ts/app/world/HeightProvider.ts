@@ -44,6 +44,10 @@ export default new class HeightProvider {
 			position.y = 0;
 		}
 
+		if (!tile) {
+			return 0;
+		}
+
 		const start = (position.x + position.y * 256) * 4;
 		const pixel = [tile[start], tile[start + 1], tile[start + 2]];
 

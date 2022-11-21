@@ -4,9 +4,7 @@
 #define PI2 6.28318530718
 #define Eu 2.71828182846
 
-#define SHADOW_CASCADES 3
 #define SHADOWMAP_SOFT_RADIUS 1.
-
 #define SELECTION_COLOR (vec3(1, 0.2, 0))
 
 out vec4 FragColor;
@@ -15,21 +13,23 @@ in vec2 vUv;
 
 uniform sampler2D tColor;
 uniform sampler2D tNormal;
-uniform sampler2D tPosition;
+uniform sampler2D tDepth;
 uniform sampler2DArray tShadowMaps;
 uniform sampler2D tSSAO;
 uniform sampler2D tSelectionMask;
 uniform sampler2D tSelectionBlurred;
-uniform samplerCube tSky;
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
-uniform vec3 sunDirection;
 uniform sampler2D tTransmittanceLUT;
 uniform sampler3D tAerialPerspectiveLUT;
 uniform sampler2D tSSR;
 uniform sampler2D tMotion;
 uniform samplerCube tAtmosphere;
-uniform mat4 skyRotationMatrix;
+
+uniform MainBlock {
+	mat4 viewMatrix;
+	mat4 projectionMatrixInverse;
+	vec3 sunDirection;
+	mat4 skyRotationMatrix;
+};
 
 uniform CSM {
 	vec4 CSMLightDirectionAndIntensity;
@@ -44,6 +44,7 @@ uniform CSM {
 #include <unpackNormal>
 #include <gamma>
 #include <atmosphere>
+#include <reconstructPositionFromDepth>
 
 struct Light {
 	vec3 direction;
@@ -198,7 +199,7 @@ float orthographicDepthToViewZ( const in float linearClipZ, const in float near,
 }
 
 float textureShadow(int shadowMapLayer, vec2 uv) {
-	return -orthographicDepthToViewZ(texture(tShadowMaps, vec3(uv, shadowMapLayer)).r, 1., 10000.);
+	return -orthographicDepthToViewZ(texture(tShadowMaps, vec3(uv, shadowMapLayer)).r, SHADOW_CAMERA_NEAR, SHADOW_CAMERA_FAR);
 }
 
 float textureCompare(int shadowMapLayer, vec2 uv, float compare) {
@@ -284,23 +285,10 @@ vec3 applySelectionOverlay(vec3 color) {
 	return mix(color.rgb, SELECTION_COLOR, smoothstep(0., 1., selectionMask * 2.));
 }
 
-vec3 sunWithBloom(vec3 rayDir, vec3 sunDir) {
-	const float sunSolidAngle = 0.53*PI/180.0;
-	const float minSunCosTheta = cos(sunSolidAngle);
-
-	float cosTheta = dot(rayDir, sunDir);
-	if (cosTheta >= minSunCosTheta) return vec3(1.0);
-
-	float offset = minSunCosTheta - cosTheta;
-	float gaussianBloom = exp(-offset*50000.0)*0.5;
-	float invBloom = 1.0/(0.02 + offset*300.0)*0.01;
-	return vec3(gaussianBloom+invBloom);
-}
-
 void main() {
 	vec4 baseColor = SRGBtoLINEAR(texture(tColor, vUv));
 	vec3 normal = unpackNormal(texture(tNormal, vUv).xyz);
-	vec3 position = texture(tPosition, vUv).xyz;
+	vec3 position = reconstructPositionFromDepth(vUv, texture(tDepth, vUv).r, projectionMatrixInverse);
 
 	vec3 worldPosition = vec3(viewMatrix * vec4(position, 1));
 	vec3 view = normalize(-position);
@@ -310,24 +298,7 @@ void main() {
 	vec3 sunColor = getValFromTLUT(tTransmittanceLUT, vec3(0, groundRadiusMM + worldPosition.y * 0.000001, 0), -sunDirection);
 
 	if (baseColor.a == 0.) {
-		vec4 skyColor = textureLod(tAtmosphere, -worldView, 0.);
-		vec3 sunLum = sunWithBloom(worldView, sunDirection);
-		sunLum = smoothstep(0.002, 1.0, sunLum) * 5.;
-		if (length(sunLum) > 0.) {
-			if (rayIntersectSphere(worldPosition, worldView, groundRadiusMM) >= 0.0) {
-				sunLum = vec3(0);
-			} else {
-				sunLum *= sunColor;
-			}
-
-		}
-
-		vec3 starsDirection = (skyRotationMatrix * vec4(-worldView, 0.)).xyz;
-		vec3 stars = SRGBtoLINEAR(texture(tSky, starsDirection)).rgb;
-		stars = pow(stars, vec3(5)) * 0.25;
-
-		FragColor = vec4(skyColor.rgb + sunLum + stars * skyColor.a, 0);
-		FragColor.rgb = applySelectionOverlay(FragColor.rgb);
+		FragColor.rgb = applySelectionOverlay(baseColor.rgb);
 		return;
 	}
 
@@ -379,6 +350,7 @@ void main() {
 	vec3 color = vec3(0);
 	vec4 reflectionColor = vec4(0);
 
+	#if SSR_ENABLED == 1
 	if (baseColor.a < 1.) {
 		vec2 velocity = texture(tMotion, vUv).xy;
 		vec2 oldUV = vUv - velocity.xy;
@@ -387,10 +359,16 @@ void main() {
 			reflectionColor = texture(tSSR, vUv - velocity.xy);
 		}
 	}
+	#endif
 
 	color += getIBLContribution(materialInfo, worldNormal, worldView, reflectionColor);
 	color += applyDirectionalLight(light, materialInfo, worldNormal, worldView) * shadowFactor;
-	color += materialInfo.diffuseColor * 0.2 * texture(tSSAO, vUv).r;
+
+	#if SSAO_ENABLED == 1
+		color += materialInfo.diffuseColor * 0.2 * texture(tSSAO, vUv).r;
+	#else
+		color += materialInfo.diffuseColor * 0.2;
+	#endif
 
 	vec2 aerialPerspectiveUV = vUv;
 	aerialPerspectiveUV.y = 1. - aerialPerspectiveUV.y;

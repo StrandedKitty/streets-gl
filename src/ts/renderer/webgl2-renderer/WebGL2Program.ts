@@ -1,5 +1,6 @@
 import WebGL2Renderer from "~/renderer/webgl2-renderer/WebGL2Renderer";
 import WebGL2Constants from "~/renderer/webgl2-renderer/WebGL2Constants";
+import ShaderPrecompiler from "~/app/render/shaders/ShaderPrecompiler";
 
 enum ShaderType {
 	Vertex,
@@ -9,17 +10,57 @@ enum ShaderType {
 export default class WebGL2Program {
 	private readonly renderer: WebGL2Renderer;
 	private readonly gl: WebGL2RenderingContext;
+	private readonly name: string;
 	private readonly fragmentShaderSource: string;
 	private readonly vertexShaderSource: string;
+	private readonly defines: Record<string, string>;
 	public WebGLProgram: WebGLProgram;
+	private fragmentShader: WebGLShader;
+	private vertexShader: WebGLShader;
 
-	public constructor(renderer: WebGL2Renderer, vertexShaderSource: string, fragmentShaderSource: string) {
+	public constructor(
+		{
+			renderer,
+			vertexShaderSource,
+			fragmentShaderSource,
+			defines,
+			name
+		}: {
+			renderer: WebGL2Renderer;
+			vertexShaderSource: string;
+			fragmentShaderSource: string;
+			defines: Record<string, string>;
+			name: string;
+		}
+	) {
 		this.renderer = renderer;
 		this.gl = renderer.gl;
 		this.vertexShaderSource = vertexShaderSource;
 		this.fragmentShaderSource = fragmentShaderSource;
+		this.defines = defines;
+		this.name = name;
 
 		this.createProgram();
+	}
+
+	private getShader(type: ShaderType): WebGLShader {
+		const typeConstant = type === ShaderType.Vertex ? WebGL2Constants.VERTEX_SHADER : WebGL2Constants.FRAGMENT_SHADER;
+
+		if (typeConstant === WebGL2Constants.FRAGMENT_SHADER) {
+			if (!this.fragmentShader) {
+				this.fragmentShader = this.gl.createShader(typeConstant);
+			}
+
+			return this.fragmentShader;
+		} else if (typeConstant === WebGL2Constants.VERTEX_SHADER) {
+			if (!this.vertexShader) {
+				this.vertexShader = this.gl.createShader(typeConstant);
+			}
+
+			return this.vertexShader;
+		}
+
+		throw new Error();
 	}
 
 	private createProgram(): void {
@@ -39,10 +80,19 @@ export default class WebGL2Program {
 		this.WebGLProgram = program;
 	}
 
-	private compileShader(shaderType: ShaderType, source: string): WebGLShader {
-		const typeConstant = shaderType === ShaderType.Vertex ? WebGL2Constants.VERTEX_SHADER : WebGL2Constants.FRAGMENT_SHADER;
+	public recompileShaders(): void {
+		const vertexShader = this.compileShader(ShaderType.Vertex, this.vertexShaderSource);
+		const fragmentShader = this.compileShader(ShaderType.Fragment, this.fragmentShaderSource);
+		//this.gl.attachShader(this.WebGLProgram, vertexShader);
+		//this.gl.attachShader(this.WebGLProgram, fragmentShader);
+		this.gl.linkProgram(this.WebGLProgram);
+	}
 
-		const shader = this.gl.createShader(typeConstant);
+	private compileShader(shaderType: ShaderType, source: string): WebGLShader {
+		const name = this.name.replaceAll(' ', '_') + (shaderType === ShaderType.Vertex ? '_vert' : '_frag');
+		source = ShaderPrecompiler.resolveNameAndDefines(source, name, this.defines);
+
+		const shader = this.getShader(shaderType);
 
 		this.gl.shaderSource(shader, source);
 		this.gl.compileShader(shader);

@@ -12,6 +12,10 @@ import MapTimeSystem from "~/app/systems/MapTimeSystem";
 import Vec3 from "~/math/Vec3";
 import Labels from "~/app/objects/Labels";
 import Terrain from "~/app/objects/Terrain";
+import InstancedObject from "~/app/objects/InstancedObject";
+import ModelManager from "~/app/objects/models/ModelManager";
+import InstancedAircraft from "~/app/objects/InstancedAircraft";
+import SettingsManager from "~/app/ui/SettingsManager";
 
 interface SceneObjects {
 	wrapper: Object3D;
@@ -21,6 +25,8 @@ interface SceneObjects {
 	csm: CSM;
 	labels: Labels;
 	terrain: Terrain;
+	instancedObjects: Map<string, InstancedObject>;
+	instancedAircraft: InstancedAircraft[];
 }
 
 export default class SceneSystem extends System {
@@ -41,7 +47,7 @@ export default class SceneSystem extends System {
 
 		const wrapper = new Object3D();
 		const camera = new PerspectiveCamera({
-			fov: Config.CameraFOV,
+			fov: SettingsManager.getSetting('fov').numberValue,
 			near: 10,
 			far: 25000,
 			aspect: window.innerWidth / window.innerHeight
@@ -60,6 +66,13 @@ export default class SceneSystem extends System {
 		const labels = new Labels();
 		const terrain = new Terrain();
 
+		const instancedAircraft = [
+			new InstancedAircraft(ModelManager.getGLTFModel('aircraftB777')),
+			new InstancedAircraft(ModelManager.getGLTFModel('aircraftA321')),
+			new InstancedAircraft(ModelManager.getGLTFModel('aircraftCessna208')),
+			new InstancedAircraft(ModelManager.getGLTFModel('aircraftERJ135'))
+		];
+
 		this.objects = {
 			wrapper,
 			camera,
@@ -67,11 +80,25 @@ export default class SceneSystem extends System {
 			tiles,
 			csm,
 			labels,
-			terrain
+			terrain,
+			instancedObjects: new Map(),
+			instancedAircraft
 		};
 
+		this.objects.instancedObjects.set('tree', new InstancedObject(ModelManager.getGLTFModel('treeModel')));
+
 		this.scene.add(wrapper);
-		wrapper.add(camera, csm, skybox, tiles, labels, terrain);
+		wrapper.add(
+			camera, csm, skybox, tiles, labels, terrain,
+			...this.objects.instancedObjects.values(),
+			...instancedAircraft
+		);
+
+		SettingsManager.onSettingChange('fov', ({numberValue}) => {
+			camera.fov = numberValue;
+			camera.updateProjectionMatrix();
+			csm.updateFrustums();
+		});
 	}
 
 	public postInit(): void {
