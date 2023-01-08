@@ -14,6 +14,7 @@ in vec2 vUv;
 uniform sampler2D tColor;
 uniform sampler2D tNormal;
 uniform sampler2D tDepth;
+uniform sampler2D tRoughnessMetalness;
 uniform sampler2DArray tShadowMaps;
 uniform sampler2D tSSAO;
 uniform sampler2D tSelectionMask;
@@ -289,6 +290,7 @@ void main() {
 	vec4 baseColor = SRGBtoLINEAR(texture(tColor, vUv));
 	vec3 normal = unpackNormal(texture(tNormal, vUv).xyz);
 	vec3 position = reconstructPositionFromDepth(vUv, texture(tDepth, vUv).r, projectionMatrixInverse);
+	vec2 roughnessMetalness = texture(tRoughnessMetalness, vUv).rg;
 
 	vec3 worldPosition = vec3(viewMatrix * vec4(position, 1));
 	vec3 view = normalize(-position);
@@ -302,9 +304,9 @@ void main() {
 		return;
 	}
 
-	float perceptualRoughness = 0.9;
-	float metallic = 0.0;
-	vec3 f0 = vec3(0.04);
+	float perceptualRoughness = roughnessMetalness.x;
+	float metallic = roughnessMetalness.y;
+	vec3 f0 = vec3(0.03);
 	vec3 diffuseColor = baseColor.rgb * (vec3(1.) - f0) * (1. - metallic);
 	vec3 specularColor = mix(f0, baseColor.rgb, metallic);
 
@@ -374,10 +376,11 @@ void main() {
 	aerialPerspectiveUV.y = 1. - aerialPerspectiveUV.y;
 	vec4 aerialPerspective = texture(
 		tAerialPerspectiveLUT,
-		vec3(aerialPerspectiveUV, aerialPerspectiveDepthToSlice(-position.z) / aerialPerspectiveSliceCount)
+		vec3(aerialPerspectiveUV, aerialPerspectiveDepthToSlice(-position.z) / (aerialPerspectiveSliceCount - 1.))
 	);
 
 	color = color * clamp(aerialPerspective.a, 0., 1.) + aerialPerspective.rgb;
+	//color = worldNormal;
 
 	color = applySelectionOverlay(color);
 

@@ -38,7 +38,7 @@ vec4 raymarchScattering(vec3 pos, vec3 rayDir, vec3 sunDir, float tMax, float nu
         float dt = newT - t;
         t = newT;
 
-        vec3 newPos = pos + t*rayDir;
+        vec3 newPos = pos + t * rayDir;
 
         vec3 rayleighScattering, extinction;
         float mieScattering;

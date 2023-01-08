@@ -1,15 +1,16 @@
-enum OSMReferenceType {
+export enum OSMReferenceType {
 	None,
 	Node,
 	Way,
 	Relation
 }
 
-interface OSMReference {
+export interface OSMReference {
 	type: OSMReferenceType;
 	id: number;
 }
 
-export default class UniversalFeature {
-	public osmReference: OSMReference;
+export default abstract class UniversalFeature {
+	protected constructor(public osmReference: OSMReference) {
+	}
 }

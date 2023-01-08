@@ -184,12 +184,12 @@ export default class CSM extends Object3D {
 
 		return {
 			CSMLightDirectionAndIntensity: new Float32Array([...Vec3.toArray(this.direction), this.intensity]),
-			CSMSplits: new Float32Array(arrays.CSMSplits),
-			CSMResolution: new Float32Array(arrays.CSMResolution),
-			CSMSize: new Float32Array(arrays.CSMSize),
-			CSMBias: new Float32Array(arrays.CSMBias),
-			CSMMatrixWorldInverse: new Float32Array(arrays.CSMMatrixWorldInverse),
-			CSMFadeOffset: new Float32Array(arrays.CSMFadeOffset)
+			'CSMSplits[0]': new Float32Array(arrays.CSMSplits),
+			'CSMResolution[0]': new Float32Array(arrays.CSMResolution),
+			'CSMSize[0]': new Float32Array(arrays.CSMSize),
+			'CSMBias[0]': new Float32Array(arrays.CSMBias),
+			'CSMMatrixWorldInverse[0]': new Float32Array(arrays.CSMMatrixWorldInverse),
+			'CSMFadeOffset[0]': new Float32Array(arrays.CSMFadeOffset)
 		};
 	}
 

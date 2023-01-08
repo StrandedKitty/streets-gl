@@ -46,6 +46,7 @@ export default class SSRPass extends Pass<{
 	}
 
 	public render(): void {
+		return;
 		const camera = this.manager.sceneSystem.objects.camera;
 		const colorTexture = <AbstractTexture2D>this.getPhysicalResource('PrevFrame').colorAttachments[0].texture;
 		const normalTexture = <AbstractTexture2D>this.getPhysicalResource('GBuffer').colorAttachments[1].texture;

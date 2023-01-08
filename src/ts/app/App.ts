@@ -14,6 +14,7 @@ import SceneSystem from '~/app/systems/SceneSystem';
 import ResourceManager, {ResourceJSON} from '~/app/world/ResourceManager';
 import resourcesList from './../../resources/resources.json';
 import VehicleSystem from "~/app/systems/VehicleSystem";
+import TerrainSystem from "~/app/systems/TerrainSystem";
 
 class App {
 	private loop = (deltaTime: number): void => this.update(deltaTime);
@@ -38,6 +39,7 @@ class App {
 			this.systemManager.addSystems([
 				ControlsSystem,
 				MapTimeSystem,
+				TerrainSystem,
 				SceneSystem,
 				CursorStyleSystem,
 				PickingSystem,

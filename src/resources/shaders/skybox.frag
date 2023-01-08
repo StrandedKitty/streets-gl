@@ -63,7 +63,7 @@ void main() {
     outColor = vec4(skyColor.rgb + sunLum + stars * skyColor.a, 0);
     outColor.rgb = LINEARtoSRGB(outColor.rgb);
     outNormal = packNormal(vNormal);
-    outPosition = vPosition;
+    outRoughnessMetalness = vec2(0.9, 0);
     outMotion = getMotionVector(vClipPos, vClipPosPrev);
     outObjectId = 0u;
 }

@@ -33,6 +33,10 @@ const UIRoot: React.FC<{
 			if (e.code === 'KeyU' && (e.ctrlKey || e.metaKey)) {
 				setIsUIVisible(!isUIVisible);
 			}
+
+			if (e.code === 'Escape') {
+				setActiveModalWindow('');
+			}
 		}
 
 		window.addEventListener('keydown', handler);

@@ -127,5 +127,13 @@ export default class WebGL2Mesh implements AbstractMesh {
 		for (const vao of this.vaos.values()) {
 			vao.delete();
 		}
+
+		if (this.indexBuffer) {
+			this.gl.deleteBuffer(this.indexBuffer);
+		}
+
+		for (const attribute of this.attributes.values()) {
+			attribute.delete();
+		}
 	}
 }

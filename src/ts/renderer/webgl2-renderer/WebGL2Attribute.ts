@@ -97,6 +97,10 @@ export default class WebGL2Attribute implements AbstractAttribute {
 		this.renderer.gl.bindBuffer(WebGL2Constants.ARRAY_BUFFER, null);
 	}
 
+	public delete(): void {
+		this.gl.deleteBuffer(this.buffer);
+	}
+
 	public static convertUsageToWebGLConstant(usage: RendererTypes.BufferUsage): number {
 		switch (usage) {
 			case RendererTypes.BufferUsage.StaticDraw:

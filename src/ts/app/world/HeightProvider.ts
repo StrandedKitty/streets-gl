@@ -51,7 +51,7 @@ export default new class HeightProvider {
 		const start = (position.x + position.y * 256) * 4;
 		const pixel = [tile[start], tile[start + 1], tile[start + 2]];
 
-		return -10000 + ((pixel[0] * 256 * 256 + pixel[1] * 256 + pixel[2]) * 0.1);
+		return -10000 + (pixel[0] * 256 * 256 + pixel[1] * 256 + pixel[2]) * 0.1;
 	}
 
 	public async prepareDataForTile(x: number, y: number): Promise<void[]> {

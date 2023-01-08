@@ -5,7 +5,7 @@ import WebGL2Constants from "~/renderer/webgl2-renderer/WebGL2Constants";
 
 export default class WebGL2Texture2D extends WebGL2Texture implements AbstractTexture2D {
 	protected textureTypeConstant: number = WebGL2Constants.TEXTURE_2D;
-	public data: TypedArray | HTMLImageElement;
+	public data: TypedArray | HTMLImageElement | ImageBitmap;
 
 	public constructor(renderer: WebGL2Renderer, params: AbstractTexture2DParams) {
 		super(renderer, params);
@@ -23,7 +23,7 @@ export default class WebGL2Texture2D extends WebGL2Texture implements AbstractTe
 		this.renderer.bindTexture(this);
 		this.updateFlipY();
 
-		if (this.data instanceof HTMLImageElement) {
+		if (this.data instanceof HTMLImageElement || this.data instanceof ImageBitmap) {
 			this.writeFromImage(this.data);
 		} else {
 			this.writeFromBuffer(this.data);
@@ -33,7 +33,7 @@ export default class WebGL2Texture2D extends WebGL2Texture implements AbstractTe
 		this.renderer.unbindTexture();
 	}
 
-	private writeFromImage(image: HTMLImageElement): void {
+	private writeFromImage(image: HTMLImageElement | ImageBitmap): void {
 		this.width = image.width;
 		this.height = image.height;
 

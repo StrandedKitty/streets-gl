@@ -11,6 +11,7 @@ import * as RG from '~/render-graph';
 import RenderSystem from "~/app/systems/RenderSystem";
 import Vec2 from "~/math/Vec2";
 import MapTimeSystem from "~/app/systems/MapTimeSystem";
+import Config from "~/app/Config";
 
 interface SharedResources {
 	BackbufferRenderPass: RenderPassResource;
@@ -41,6 +42,11 @@ interface SharedResources {
 	CoCWithColorDownscaled: RenderPassResource;
 	DoF: RenderPassResource;
 	DoFBlurred: RenderPassResource;
+	TerrainHeight: RenderPassResource;
+	TerrainNormal: RenderPassResource;
+	TerrainWater: RenderPassResource;
+	TerrainTileMask: RenderPassResource;
+	TerrainRingHeight: RenderPassResource;
 }
 
 export default class PassManager {
@@ -140,9 +146,9 @@ export default class PassManager {
 							type: TextureResourceType.Texture2D,
 							width: 1,
 							height: 1,
-							format: RendererTypes.TextureFormat.RGBA32Float,
-							minFilter: RendererTypes.MinFilter.Nearest,
-							magFilter: RendererTypes.MagFilter.Nearest,
+							format: RendererTypes.TextureFormat.RGBA8Unorm,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
 							mipmaps: false
 						}),
 						clearValue: {r: 0, g: 0, b: 0, a: 0},
@@ -801,6 +807,128 @@ export default class PassManager {
 							magFilter: RendererTypes.MagFilter.Linear,
 							mipmaps: false
 						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
+		this.sharedResources.set('TerrainHeight', this.resourceFactory.createRenderPassResource({
+			name: 'TerrainHeight',
+			isTransient: false,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: 1,
+							height: 1,
+							format: RendererTypes.TextureFormat.R16Float,
+							minFilter: RendererTypes.MinFilter.NearestMipmapNearest,
+							magFilter: RendererTypes.MagFilter.Nearest,
+							wrap: RendererTypes.TextureWrap.ClampToEdge,
+							mipmaps: true
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
+		this.sharedResources.set('TerrainNormal', this.resourceFactory.createRenderPassResource({
+			name: 'TerrainNormal',
+			isTransient: false,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: 1,
+							height: 1,
+							format: RendererTypes.TextureFormat.RGBA16Float,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
+							wrap: RendererTypes.TextureWrap.ClampToEdge,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
+		this.sharedResources.set('TerrainWater', this.resourceFactory.createRenderPassResource({
+			name: 'TerrainWater',
+			isTransient: false,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: 1,
+							height: 1,
+							format: RendererTypes.TextureFormat.R8Unorm,
+							minFilter: RendererTypes.MinFilter.Linear,
+							magFilter: RendererTypes.MagFilter.Linear,
+							wrap: RendererTypes.TextureWrap.ClampToEdge,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
+		this.sharedResources.set('TerrainTileMask', this.resourceFactory.createRenderPassResource({
+			name: 'TerrainTileMask',
+			isTransient: false,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2D,
+							width: Config.TerrainWaterMaskResolution,
+							height: Config.TerrainWaterMaskResolution,
+							format: RendererTypes.TextureFormat.R8Unorm,
+							minFilter: RendererTypes.MinFilter.Nearest,
+							magFilter: RendererTypes.MagFilter.Nearest,
+							wrap: RendererTypes.TextureWrap.ClampToEdge,
+							mipmaps: false
+						}),
+						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store
+					}
+				]
+			})
+		}));
+		this.sharedResources.set('TerrainRingHeight', this.resourceFactory.createRenderPassResource({
+			name: 'TerrainRingHeight',
+			isTransient: false,
+			isUsedExternally: false,
+			descriptor: new RenderPassResourceDescriptor({
+				colorAttachments: [
+					{
+						texture: new TextureResourceDescriptor({
+							type: TextureResourceType.Texture2DArray,
+							width: Config.TerrainRingSegmentCount * 2 + 1,
+							height: Config.TerrainRingSegmentCount * 2 + 1,
+							depth: Config.TerrainRingCount,
+							format: RendererTypes.TextureFormat.R32Float,
+							minFilter: RendererTypes.MinFilter.Nearest,
+							magFilter: RendererTypes.MagFilter.Nearest,
+							wrap: RendererTypes.TextureWrap.ClampToEdge,
+							mipmaps: false
+						}),
+						slice: 0,
 						clearValue: {r: 0, g: 0, b: 0, a: 0},
 						loadOp: RendererTypes.AttachmentLoadOp.Load,
 						storeOp: RendererTypes.AttachmentStoreOp.Store

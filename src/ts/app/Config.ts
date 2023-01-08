@@ -1,7 +1,7 @@
 import Utils from "./Utils";
 
 const Config = {
-	TileSize: /*40075016.7 / (1 << 16)*/ 611.4962158203125,
+	TileSize: /*40075016.68 / (1 << 16)*/ 611.4962158203125,
 	GroundSegments: 16,
 	MaxConcurrentTiles: 100,
 	MaxTilesPerWorker: 2,
@@ -9,7 +9,7 @@ const Config = {
 	ShadowCascades: 3,
 	StartPosition: [40.76050, -73.98088],
 	MinCameraDistance: 20,
-	MaxCameraDistance: 3000,
+	MaxCameraDistance: 5000,
 	CameraZoomSmoothing: 0.4,
 	MinCameraPitch: 5,
 	MaxCameraPitch: 89.99,
@@ -31,10 +31,18 @@ const Config = {
 	DoFCoCScale: 4,
 	DoFFocusScale: 2,
 	DoFBokehRadius: 5,
-	devicePixelRatio: 1,
+	devicePixelRatio: 2,
 	CameraFOVZoomFactor: 2,
 	CSMShadowCameraNear: 1,
-	CSMShadowCameraFar: 20000
+	CSMShadowCameraFar: 20000,
+	TerrainHeightMapTileZoom: 11,
+	TerrainHeightMapCount: 8,
+	TerrainHeightTileWorldSize: 40075016.68 / (1 << 11),
+	TerrainRingCount: 5,
+	TerrainRingSegmentCount: 64,
+	TerrainRingHoleSegmentCount: 32,
+	TerrainRingSize: 40075016.68 / (1 << 13),
+	TerrainWaterMaskResolution: 32
 };
 
 export default Config;

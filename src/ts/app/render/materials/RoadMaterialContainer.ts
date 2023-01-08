@@ -3,6 +3,7 @@ import MaterialContainer from "~/app/render/materials/MaterialContainer";
 import {RendererTypes} from "~/renderer/RendererTypes";
 import ResourceManager from "~/app/world/ResourceManager";
 import AbstractRenderer from "~/renderer/abstract-renderer/AbstractRenderer";
+import Config from "~/app/Config";
 
 export default class RoadMaterialContainer extends MaterialContainer {
 	public constructor(renderer: AbstractRenderer) {
@@ -52,8 +53,46 @@ export default class RoadMaterialContainer extends MaterialContainer {
 						format: RendererTypes.TextureFormat.RGBA8Unorm,
 						mipmaps: true
 					})
+				}, {
+					name: 'tRingHeight',
+					block: null,
+					type: RendererTypes.UniformType.Texture2DArray,
+					value: null
+				}, {
+					name: 'tNormal',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: null
+				}, {
+					name: 'transformHeight',
+					block: 'PerMesh',
+					type: RendererTypes.UniformType.Float3,
+					value: new Float32Array(3)
+				}, {
+					name: 'terrainRingSize',
+					block: 'PerMesh',
+					type: RendererTypes.UniformType.Float1,
+					value: new Float32Array(1)
+				}, {
+					name: 'terrainRingOffset',
+					block: 'PerMesh',
+					type: RendererTypes.UniformType.Float4,
+					value: new Float32Array(4)
+				}, {
+					name: 'terrainLevelId',
+					block: 'PerMesh',
+					type: RendererTypes.UniformType.Int1,
+					value: new Int32Array(1)
+				}, {
+					name: 'segmentCount',
+					block: 'PerMesh',
+					type: RendererTypes.UniformType.Float1,
+					value: new Float32Array(1)
 				}
 			],
+			defines: {
+				TILE_SIZE: Config.TileSize.toString()
+			},
 			primitive: {
 				frontFace: RendererTypes.FrontFace.CCW,
 				cullMode: RendererTypes.CullMode.Back

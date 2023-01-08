@@ -20,6 +20,7 @@ import Tile from "~/app/objects/Tile";
 import AtmosphereLUTPass from "~/app/render/passes/AtmosphereLUTPass";
 import SSRPass from "~/app/render/passes/SSRPass";
 import DoFPass from "~/app/render/passes/DoFPass";
+import TerrainTexturesPass from "~/app/render/passes/TerrainTexturesPass";
 
 export default class RenderSystem extends System {
 	private renderer: AbstractRenderer;
@@ -66,6 +67,7 @@ export default class RenderSystem extends System {
 		this.passManager.addPass(new AtmosphereLUTPass(this.passManager));
 		this.passManager.addPass(new SSRPass(this.passManager));
 		this.passManager.addPass(new DoFPass(this.passManager));
+		this.passManager.addPass(new TerrainTexturesPass(this.passManager));
 	}
 
 	private resize(): void {

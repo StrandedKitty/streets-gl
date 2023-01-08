@@ -203,6 +203,8 @@ export default class TileGeometryBuilder {
 		const projectedUvs: Float32Array[] = [];
 		const projectedTextureIds: Uint8Array[] = [];
 
+		const projectorSegmentCount = Math.round(Config.TileSize / Config.TerrainRingSize * Config.TerrainRingSegmentCount);
+
 		for (let ii = 0; ii < roadPositionArrays.length * 2; ii++) {
 			const i = ii % roadPositionArrays.length;
 
@@ -217,7 +219,7 @@ export default class TileGeometryBuilder {
 			}
 
 			for (let i = 0, j = 0; i < roadPositions.length; i += 9, j += 6) {
-				const projectedMesh = projector.project([
+				const projectedMesh = projector.project2([
 					[roadPositions[i] / Config.TileSize, roadPositions[i + 2] / Config.TileSize],
 					[roadPositions[i + 3] / Config.TileSize, roadPositions[i + 5] / Config.TileSize],
 					[roadPositions[i + 6] / Config.TileSize, roadPositions[i + 8] / Config.TileSize]
@@ -227,14 +229,40 @@ export default class TileGeometryBuilder {
 						[roadUvs[j + 2], roadUvs[j + 3]],
 						[roadUvs[j + 4], roadUvs[j + 5]]
 					],
-				});
+				}, Config.TileSize, projectorSegmentCount);
 
 				projectedPositions.push(projectedMesh.position);
-				projectedNormals.push(projectedMesh.normal);
+				projectedNormals.push(new Float32Array(projectedMesh.position.length));
 				projectedUvs.push(projectedMesh.attributes.uv);
 				projectedTextureIds.push(new Uint8Array(projectedMesh.position.length / 3).fill(roadTextureIds[0]));
 			}
 		}
+
+		for (let x = 0; x < 1; x++) {
+			for (let y = 0; y < 1; y++) {
+				continue;
+				const tri = [
+					[0.01, 0.01],
+					[0.999, 0.01],
+					[0.011, 0.999]
+				] as [number, number][];
+				const uv = [
+					[0, 0],
+					[1, 0],
+					[0, 1]
+				] as [number, number][];
+
+				const projectedTri = projector.project2(tri, {
+					uv: uv,
+				}, Config.TileSize, projectorSegmentCount);
+
+				projectedPositions.push(projectedTri.position);
+				projectedNormals.push(new Float32Array(projectedTri.position.length));
+				projectedUvs.push(projectedTri.attributes.uv);
+				projectedTextureIds.push(new Uint8Array(projectedTri.position.length / 3).fill(1));
+			}
+		}
+
 
 		const projectedMeshPosition = Utils.mergeTypedArrays(Float32Array, projectedPositions);
 		const projectedMeshNormal = Utils.mergeTypedArrays(Float32Array, projectedNormals);

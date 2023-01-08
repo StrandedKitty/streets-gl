@@ -14,13 +14,25 @@ const Nav: React.FC<{
 		<div className='nav'>
 			<button
 				className={'nav-icon' + (activeModalWindow === 'settings' ? ' nav-icon-active' : '')}
-				onClick={(): void => setActiveModalWindow('settings')}
+				onClick={(): void => {
+					if (activeModalWindow === 'settings') {
+						setActiveModalWindow('');
+					} else {
+						setActiveModalWindow('settings');
+					}
+				}}
 			>
 				<IoSettingsOutline size={24}/>
 			</button>
 			<button
 				className={'nav-icon' + (activeModalWindow === 'info' ? ' nav-icon-active' : '')}
-				onClick={(): void => setActiveModalWindow('info')}
+				onClick={(): void => {
+					if (activeModalWindow === 'info') {
+						setActiveModalWindow('');
+					} else {
+						setActiveModalWindow('info');
+					}
+				}}
 			>
 				<IoInformationOutline size={24}/>
 			</button>

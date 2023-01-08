@@ -140,6 +140,95 @@ export default class MeshGroundProjector {
 		};
 	}
 
+	public project2(
+		projectedTri: [number, number][],
+		attributes: {[attributeName: string]: [number, number][]},
+		tileSize: number,
+		segmentCount: number,
+	): {
+		position: Float32Array;
+		attributes: {[name: string]: Float32Array};
+	} {
+		const positionTris: number[][] = [];
+		const coveredTiles = MeshGroundProjector.getTilesUnderTriangle(projectedTri, segmentCount * 2, segmentCount * 2);
+
+		for(const tilePos of coveredTiles) {
+			positionTris.push(this.getGroundTriangleHeight2(tilePos.x, tilePos.y, 0, segmentCount * 2));
+			positionTris.push(this.getGroundTriangleHeight2(tilePos.x, tilePos.y, 1, segmentCount * 2));
+		}
+
+		const positionArrays: Float32Array[] = [];
+		const attributeArrays: Map<string, Float32Array[]> = new Map();
+
+		for (const name of Object.keys(attributes)) {
+			attributeArrays.set(name, []);
+		}
+
+		for(let i = 0; i < positionTris.length; i++) {
+			const verticesHeight = positionTris[i];
+
+			const triPoints: [number, number][] = [
+				[verticesHeight[0], verticesHeight[2]],
+				[verticesHeight[3], verticesHeight[5]],
+				[verticesHeight[6], verticesHeight[8]]
+			];
+
+			for (let i = 0; i < verticesHeight.length; i++) {
+				verticesHeight[i] *= tileSize;
+			}
+
+			//positionArrays.push(new Float32Array(verticesHeight.flat()));
+
+			const polygon = MathUtils.findIntersectionTriangleTriangle(triPoints, projectedTri);
+
+			if(polygon.length > 0) {
+				const triangulated = this.triangulate(polygon);
+				const vertices = new Float32Array(triangulated.length * 3);
+				const attributesBuffers: Map<string, Float32Array> = new Map();
+
+				for (const name of Object.keys(attributes)) {
+					attributesBuffers.set(name, new Float32Array(triangulated.length * 2));
+				}
+
+				for (let i = 0; i < triangulated.length; i++) {
+					const index = triangulated[i];
+					const x = vertexPos.x = polygon[index][0];
+					const z = vertexPos.y = polygon[index][1];
+
+					vertices[i * 3] = x * tileSize;
+					vertices[i * 3 + 1] = 0;
+					vertices[i * 3 + 2] = z * tileSize;
+
+					for (const [name, attribute] of Object.entries(attributes)) {
+						const bar = MathUtils.getBarycentricCoordinatesOfPoint(new Vec2(x, z), projectedTri.flat());
+
+						const buffer = attributesBuffers.get(name);
+
+						buffer[i * 2] = attribute[0][0] * bar.x + attribute[1][0] * bar.y + attribute[2][0] * bar.z;
+						buffer[i * 2 + 1] = attribute[0][1] * bar.x + attribute[1][1] * bar.y + attribute[2][1] * bar.z;
+					}
+				}
+
+				positionArrays.push(vertices);
+
+				for (const [name, buffer] of attributesBuffers.entries()) {
+					attributeArrays.get(name).push(buffer);
+				}
+			}
+		}
+
+		const mergedAttributes: {[attributeName: string]: Float32Array} = {};
+
+		for (const [name, buffers] of attributeArrays.entries()) {
+			mergedAttributes[name] = Utils.mergeTypedArrays(Float32Array, buffers);
+		}
+
+		return {
+			position: Utils.mergeTypedArrays(Float32Array, positionArrays),
+			attributes: mergedAttributes
+		};
+	}
+
 	private triangulate(vertices: [number, number][]): number[] {
 		const result: number[] = [];
 
@@ -254,6 +343,62 @@ export default class MeshGroundProjector {
 		}
 
 		this.heightCache.set(`${quadX} ${quadY} ${index}`, result);
+
+		return result;
+	}
+
+	private getGroundTriangleHeight2(quadX: number, quadY: number, index: 0 | 1, segmentCount: number): number[] {
+		const cached = this.heightCache.get(`${quadX} ${quadY} ${index}`);
+
+		if (cached) {
+			//return cached;
+		}
+
+		const quadSize = 1 / segmentCount;
+		const normQuadX = quadX / segmentCount;
+		const normQuadY = quadY / segmentCount;
+		const isOdd = (quadX + quadY) % 2 === 1;
+
+		const quadVertices = [
+			normQuadX,
+			normQuadY,
+			normQuadX + quadSize,
+			normQuadY,
+			normQuadX + quadSize,
+			normQuadY + quadSize,
+			normQuadX,
+			normQuadY + quadSize
+		];
+
+		let vertices: number[];
+
+		if (!isOdd) {
+			if (index === 0) {
+				vertices = [0, 2, 1];
+			} else {
+				vertices = [0, 3, 2];
+			}
+		} else {
+			if (index === 0) {
+				vertices = [1, 0, 3];
+			} else {
+				vertices = [1, 3, 2];
+			}
+		}
+
+		const result: number[] = new Array(9);
+
+		for (let i = 0; i < 3; i++) {
+			const vertexId = vertices[i];
+			const x = quadVertices[vertexId * 2];
+			const y = quadVertices[vertexId * 2 + 1];
+
+			result[i * 3] = x;
+			result[i * 3 + 1] = 0;
+			result[i * 3 + 2] = y;
+		}
+
+		//this.heightCache.set(`${quadX} ${quadY} ${index}`, result);
 
 		return result;
 	}

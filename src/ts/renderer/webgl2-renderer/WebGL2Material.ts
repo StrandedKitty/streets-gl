@@ -58,13 +58,6 @@ export default class WebGL2Material implements AbstractMaterial {
 
 		this.createProgram();
 		this.createUBOs();
-
-		/*setInterval(() => {
-			if (this.name === 'Shading material') {
-				this.defines.TEST = `${Math.random()}`;
-				this.recompile();
-			}
-		}, 2000)*/
 	}
 
 	private createProgram(): void {

@@ -121,6 +121,7 @@ export default class ShadingPass extends Pass<{
 		const colorTexture = <AbstractTexture2D>this.getPhysicalResource('GBuffer').colorAttachments[0].texture;
 		const normalTexture = <AbstractTexture2D>this.getPhysicalResource('GBuffer').colorAttachments[1].texture;
 		const depthTexture = <AbstractTexture2D>this.getPhysicalResource('GBuffer').depthAttachment.texture;
+		const roughnessMetalnessTexture = <AbstractTexture2D>this.getPhysicalResource('GBuffer').colorAttachments[2].texture;
 		const motionTexture = <AbstractTexture2D>this.getPhysicalResource('GBuffer').colorAttachments[3].texture;
 		const shadowMapsTexture = <AbstractTexture2DArray>this.getPhysicalResource('ShadowMaps').depthAttachment.texture;
 		const selectionMaskTexture = <AbstractTexture2D>this.getPhysicalResource('SelectionMask').colorAttachments[0].texture;
@@ -146,6 +147,7 @@ export default class ShadingPass extends Pass<{
 		this.shadingMaterial.getUniform('tColor').value = colorTexture;
 		this.shadingMaterial.getUniform('tNormal').value = normalTexture;
 		this.shadingMaterial.getUniform('tDepth').value = depthTexture;
+		this.shadingMaterial.getUniform('tRoughnessMetalness').value = roughnessMetalnessTexture;
 		this.shadingMaterial.getUniform('tShadowMaps').value = shadowMapsTexture;
 		this.shadingMaterial.getUniform('tSSAO').value = ssaoTexture;
 		this.shadingMaterial.getUniform('tSelectionMask').value = selectionMaskTexture;
@@ -161,7 +163,7 @@ export default class ShadingPass extends Pass<{
 		this.shadingMaterial.getUniform('skyRotationMatrix', 'MainBlock').value = skyDirectionMatrix;
 
 		for (const [key, value] of Object.entries(csmBuffers)) {
-			this.shadingMaterial.getUniform(key + '[0]', 'CSM').value = value;
+			this.shadingMaterial.getUniform(key, 'CSM').value = value;
 		}
 
 		this.shadingMaterial.updateUniformBlock('CSM');

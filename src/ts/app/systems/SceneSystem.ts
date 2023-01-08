@@ -11,11 +11,11 @@ import Config from "~/app/Config";
 import MapTimeSystem from "~/app/systems/MapTimeSystem";
 import Vec3 from "~/math/Vec3";
 import Labels from "~/app/objects/Labels";
-import Terrain from "~/app/objects/Terrain";
 import InstancedObject from "~/app/objects/InstancedObject";
 import ModelManager from "~/app/objects/models/ModelManager";
 import InstancedAircraft from "~/app/objects/InstancedAircraft";
 import SettingsManager from "~/app/ui/SettingsManager";
+import Terrain from "~/app/objects/Terrain";
 
 interface SceneObjects {
 	wrapper: Object3D;
@@ -49,7 +49,7 @@ export default class SceneSystem extends System {
 		const camera = new PerspectiveCamera({
 			fov: SettingsManager.getSetting('fov').numberValue,
 			near: 10,
-			far: 25000,
+			far: 100000,
 			aspect: window.innerWidth / window.innerHeight
 		});
 		const skybox = new Skybox();
@@ -72,6 +72,9 @@ export default class SceneSystem extends System {
 			new InstancedAircraft(ModelManager.getGLTFModel('aircraftCessna208')),
 			new InstancedAircraft(ModelManager.getGLTFModel('aircraftERJ135'))
 		];
+
+		// @ts-ignore
+		window.camera = camera;
 
 		this.objects = {
 			wrapper,
@@ -147,9 +150,6 @@ export default class SceneSystem extends System {
 
 		this.objects.skybox.position.set(cameraPos.x, cameraPos.y, cameraPos.z);
 		this.objects.skybox.updateMatrix();
-
-		this.objects.terrain.position.set(cameraPos.x, 0, cameraPos.z);
-		this.objects.terrain.updateMatrix();
 
 		const lightDirection = this.systemManager.getSystem(MapTimeSystem).lightDirection;
 		const lightIntensity = this.systemManager.getSystem(MapTimeSystem).lightIntensity;

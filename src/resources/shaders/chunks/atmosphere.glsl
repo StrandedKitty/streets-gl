@@ -103,8 +103,8 @@ vec3 getSunDir(float time) {
 }
 
 float aerialPerspectiveDepthToSlice(float depth) {
-    return depth / (aerialPerspectiveSliceSize * 1000000.);
+    return pow(depth / 1000., 1. / 1.4);
 }
 float aerialPerspectiveSliceToDepth(float slice) {
-    return slice * aerialPerspectiveSliceSize;
+    return pow(slice, 1.4) * 1000. / 1000000.;
 }

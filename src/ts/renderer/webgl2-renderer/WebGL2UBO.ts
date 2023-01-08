@@ -89,6 +89,10 @@ export default class WebGL2UBO {
 	public setUniformValue(uniformName: string, value: TypedArray): void  {
 		const offset = this.offsetMap.get(uniformName);
 
+		if (offset === undefined) {
+			throw new Error(`Uniform ${uniformName} in block ${this.blockName} is not present in the shader`);
+		}
+
 		this.dataView.set(new Uint8Array(value.buffer), offset);
 	}
 

@@ -3,8 +3,6 @@ import UniversalFeatureCollection from "~/app/world/universal-features/Universal
 import OverpassUniversalFeatureProvider
 	from "~/app/world/universal-features/providers/OverpassUniversalFeatureProvider";
 import MapboxUniversalFeatureProvider from "~/app/world/universal-features/providers/MapboxUniversalFeatureProvider";
-import HeightViewer from "~/app/world/HeightViewer";
-import {GroundGeometryData} from "~/app/world/universal-features/providers/GroundGeometryBuilder";
 
 export default class CombinedUniversalFeatureProvider extends UniversalFeatureProvider {
 	private overpassProvider: OverpassUniversalFeatureProvider = new OverpassUniversalFeatureProvider();
@@ -13,22 +11,23 @@ export default class CombinedUniversalFeatureProvider extends UniversalFeaturePr
 	public async getCollection(
 		{
 			x,
-			y,
-			heightViewer,
-			groundData
+			y
 		}: {
 			x: number;
 			y: number;
-			heightViewer: HeightViewer;
-			groundData: GroundGeometryData;
 		}
 	): Promise<UniversalFeatureCollection> {
-		const mapboxData = await this.mapboxProvider.getCollection({x, y, heightViewer, groundData});
+		const mapboxData = await this.mapboxProvider.getCollection({x, y});
+		const overpassData = await this.overpassProvider.getCollection({x, y});
 
-		return this.mergeCollections([mapboxData]);
+		return this.mergeCollections(overpassData, mapboxData);
 	}
 
-	private mergeCollections(collections: UniversalFeatureCollection[]): UniversalFeatureCollection {
-		return collections[0]; // todo
+	private mergeCollections(...collections: UniversalFeatureCollection[]): UniversalFeatureCollection {
+		return {
+			nodes: [].concat(collections.map(c => c.nodes)),
+			polylines: [].concat(collections.map(c => c.polylines)),
+			areas: [].concat(collections.map(c => c.areas))
+		};
 	}
 }

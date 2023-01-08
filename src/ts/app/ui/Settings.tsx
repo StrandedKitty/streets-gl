@@ -1,8 +1,6 @@
 import React, {useEffect, useReducer, useState} from "react";
 import {IoCloseOutline} from 'react-icons/io5';
 import SettingsManager, {SettingsConfigType, SettingsValues} from "~/app/ui/SettingsManager";
-import UI from "~/app/ui/UI";
-import {RenderGraphSnapshot} from "~/app/systems/UISystem";
 
 const req = (
 	settingsConfig: SettingsConfigType,

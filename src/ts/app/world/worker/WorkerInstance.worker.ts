@@ -11,7 +11,10 @@ import Vec2 from "../../../math/Vec2";
 import Config from "../../Config";
 import CombinedUniversalFeatureProvider
 	from "~/app/world/universal-features/providers/CombinedUniversalFeatureProvider";
-import GroundGeometryBuilder from "~/app/world/universal-features/providers/GroundGeometryBuilder";
+import GroundGeometryBuilder, {
+	GroundGeometryData
+} from "~/app/world/universal-features/providers/GroundGeometryBuilder";
+import Tile3DBuilder from "~/app/world/tile3d/Tile3DBuilder";
 
 const ctx: Worker = self as any;
 const heightViewer = new HeightViewer();
@@ -23,8 +26,9 @@ heightViewer.requestHeightFunction = (x: number, y: number): void => {
 };
 
 const provider = new CombinedUniversalFeatureProvider();
+const tile3d = new Tile3DBuilder();
 
-ctx.addEventListener('message', event => {
+ctx.addEventListener('message', async event => {
 	const data = event.data as WorkerMessageOutgoing;
 	const x = data.tile[0];
 	const y = data.tile[1];
@@ -32,14 +36,14 @@ ctx.addEventListener('message', event => {
 	if (data.type === WorkerMessageOutgoingType.Start) {
 		load(x, y);
 
-		const ground = GroundGeometryBuilder.getGroundGeometry(x, y, heightViewer);
+		/*const ground = GroundGeometryBuilder.getGroundGeometry(x, y, heightViewer);
 
-		provider.getCollection({
-			x,
-			y,
+		const universalCollection = await provider.getCollection({x, y});
+		const tile3dData = tile3d.fromUniversalFeatures({
+			collection: universalCollection,
 			heightViewer,
 			groundData: ground
-		});
+		});*/
 	} else if (data.type === WorkerMessageOutgoingType.SendHeightData) {
 		heightViewer.pushHeightTile(data.tile[0], data.tile[1], data.heightArray);
 	}
@@ -106,6 +110,8 @@ function load(x: number, y: number): void {
 		
 		.all out body qt;
 	`;
+
+	//url = `http://localhost:3000/tile?x=${x}&y=${y}`;
 
 	const httpRequest = new XMLHttpRequest();
 

@@ -9,12 +9,26 @@ in vec3 vColor;
 in vec4 vClipPos;
 in vec4 vClipPosPrev;
 in vec3 vCenter;
+in vec2 vNormalUV;
 flat in int vTextureId;
 
+uniform PerMesh {
+	mat4 modelViewMatrix;
+	mat4 modelViewMatrixPrev;
+	vec3 transformHeight;
+	float terrainRingSize;
+	vec4 terrainRingOffset;
+	int terrainLevelId;
+	float segmentCount;
+};
+
 uniform sampler2DArray tMap;
+uniform sampler2D tNormal;
 
 #include <packNormal>
 #include <getMotionVector>
+#include <sampleCatmullRom>
+#include <getTBN>
 
 float edgeFactor() {
 	float widthFactor = 1.;
@@ -22,24 +36,6 @@ float edgeFactor() {
 	vec3 a3 = smoothstep(vec3(0), d * widthFactor, vCenter.xyz);
 
 	return min(min(a3.x, a3.y), a3.z);
-}
-
-mat3 getTBN(vec3 N, vec3 p, vec2 uv) {
-	/* get edge vectors of the pixel triangle */
-	vec3 dp1 = dFdx(p);
-	vec3 dp2 = dFdy(p);
-	vec2 duv1 = dFdx(uv);
-	vec2 duv2 = dFdy(uv);
-
-	/* solve the linear system */
-	vec3 dp2perp = cross(dp2, N);
-	vec3 dp1perp = cross(N, dp1);
-	vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;
-	vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;
-
-	/* construct a scale-invariant frame */
-	float invmax = inversesqrt(max(dot(T, T), dot(B, B)));
-	return mat3(T * invmax, -B * invmax, N);
 }
 
 vec3 getNormal(vec3 normalMapValue) {
@@ -59,9 +55,17 @@ void main() {
 	vec3 normal = getNormal(texture(tMap, vec3(mapUV, vTextureId * 3 + 1)).xyz);
 	vec3 mask = texture(tMap, vec3(mapUV, vTextureId * 3 + 2)).rgb;
 
+	if (edgeFactor() > 0.9) {
+		//discard;
+	}
+
+	vec3 heightMapNormal = sampleCatmullRom(tNormal, vNormalUV, vec2(textureSize(tNormal, 0))).xyz;
+	vec3 kindaVNormal = vec3(modelViewMatrix * vec4(heightMapNormal, 0));
+
 	outColor = color;
-	outNormal = packNormal(vNormal);
-	outPosition = vPosition;
+	//outColor = vec4(1, 0, 1, 1);
+	outNormal = packNormal(kindaVNormal);
+	outRoughnessMetalness = vec2(0.9, 0);
 	outMotion = getMotionVector(vClipPos, vClipPosPrev);
 	outObjectId = 0u;
 }

@@ -10,6 +10,9 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 	public minFilter: RendererTypes.MinFilter;
 	public magFilter: RendererTypes.MagFilter;
 	public wrap: RendererTypes.TextureWrap;
+	public wrapS: RendererTypes.TextureWrap;
+	public wrapT: RendererTypes.TextureWrap;
+	public wrapR: RendererTypes.TextureWrap;
 	public format: RendererTypes.TextureFormat;
 	public flipY: boolean;
 	public mipmaps: boolean;
@@ -29,6 +32,9 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 			minFilter = RendererTypes.MinFilter.Nearest,
 			magFilter = RendererTypes.MagFilter.Nearest,
 			wrap = RendererTypes.TextureWrap.ClampToEdge,
+			wrapS = wrap,
+			wrapT = wrap,
+			wrapR = wrap,
 			format,
 			flipY = false,
 			mipmaps = false
@@ -40,6 +46,9 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 		this.minFilter = minFilter;
 		this.magFilter = magFilter;
 		this.wrap = wrap;
+		this.wrapS = wrapS;
+		this.wrapT = wrapT;
+		this.wrapR = wrapR;
 		this.format = format;
 		this.flipY = flipY;
 		this.mipmaps = mipmaps;
@@ -63,12 +72,15 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 	}
 
 	public updateWrapping(): void {
-		const wrapConstant = WebGL2Texture.convertWrapToWebGLConstant(this.wrap);
+		const warpS = WebGL2Texture.convertWrapToWebGLConstant(this.wrapS);
+		const warpT = WebGL2Texture.convertWrapToWebGLConstant(this.wrapT);
+		const warpR = WebGL2Texture.convertWrapToWebGLConstant(this.wrapR);
 
 		this.renderer.bindTexture(this);
-		this.gl.texParameteri(this.textureTypeConstant, WebGL2Constants.TEXTURE_WRAP_S, wrapConstant);
-		this.gl.texParameteri(this.textureTypeConstant, WebGL2Constants.TEXTURE_WRAP_T, wrapConstant);
-		this.gl.texParameteri(this.textureTypeConstant, WebGL2Constants.TEXTURE_WRAP_R, wrapConstant);
+
+		this.gl.texParameteri(this.textureTypeConstant, WebGL2Constants.TEXTURE_WRAP_S, warpS);
+		this.gl.texParameteri(this.textureTypeConstant, WebGL2Constants.TEXTURE_WRAP_T, warpT);
+		this.gl.texParameteri(this.textureTypeConstant, WebGL2Constants.TEXTURE_WRAP_R, warpR);
 	}
 
 	public updateFilters(): void {
@@ -218,6 +230,12 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 					internalFormat: WebGL2Constants.RGB16F,
 					type: WebGL2Constants.HALF_FLOAT
 				};
+			case RendererTypes.TextureFormat.R16Float:
+				return {
+					format: WebGL2Constants.RED,
+					internalFormat: WebGL2Constants.R16F,
+					type: WebGL2Constants.HALF_FLOAT
+				};
 			case RendererTypes.TextureFormat.Depth32Float:
 				return {
 					format: WebGL2Constants.DEPTH_COMPONENT,
@@ -229,6 +247,12 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 					format: WebGL2Constants.RED_INTEGER,
 					internalFormat: WebGL2Constants.R32UI,
 					type: WebGL2Constants.UNSIGNED_INT
+				};
+			case RendererTypes.TextureFormat.R32Float:
+				return {
+					format: WebGL2Constants.RED,
+					internalFormat: WebGL2Constants.R32F,
+					type: WebGL2Constants.FLOAT
 				};
 		}
 
@@ -253,7 +277,13 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 				return 16;
 			case RendererTypes.TextureFormat.Depth32Float:
 				return 4;
+			case RendererTypes.TextureFormat.RGB16Float:
+				return 6;
+			case RendererTypes.TextureFormat.R16Float:
+				return 2;
 			case RendererTypes.TextureFormat.R32Uint:
+				return 4;
+			case RendererTypes.TextureFormat.R32Float:
 				return 4;
 		}
 

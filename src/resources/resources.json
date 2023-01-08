@@ -39,6 +39,18 @@
 		"url": "/textures/buildings/roofs/5_normal.png",
 		"type": "image"
 	},
+	"biomeMap": {
+		"url": "/textures/biomes_blurred.png",
+		"type": "image"
+	},
+	"genericTerrainColor": {
+		"url": "/textures/surfaces/generic_terrain_color.png",
+		"type": "image"
+	},
+	"genericTerrainNormal": {
+		"url": "/textures/surfaces/generic_terrain_normal.png",
+		"type": "image"
+	},
 	"grass": {
 		"url": "/textures/surfaces/grass_color.png",
 		"type": "image"
@@ -53,6 +65,10 @@
 	},
 	"waterNormal": {
 		"url": "/textures/water_normal.png",
+		"type": "image"
+	},
+	"waterNormal2": {
+		"url": "/textures/water_normal_2.png",
 		"type": "image"
 	},
 	"pavementDiffuse": {

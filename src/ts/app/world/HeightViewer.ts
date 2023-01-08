@@ -41,7 +41,7 @@ export default class HeightViewer {
 
 		const start = (positionX + positionY * 256) * 4;
 
-		return -10000 + ((tile[start] * 256 * 256 + tile[start + 1] * 256 + tile[start + 2]) * 0.1);
+		return -10000 + (tile[start] * 256 * 256 + tile[start + 1] * 256 + tile[start + 2]) * 0.1;
 	}
 
 	public async requestHeightTile(x: number, y: number): Promise<void> {

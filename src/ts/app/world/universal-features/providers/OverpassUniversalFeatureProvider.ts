@@ -2,18 +2,22 @@ import UniversalFeatureProvider from "~/app/world/universal-features/providers/U
 import UniversalFeatureCollection from "~/app/world/universal-features/UniversalFeatureCollection";
 import Config from "~/app/Config";
 import MathUtils from "~/math/MathUtils";
-import OverpassDataObject, {WayElement} from "~/app/world/universal-features/providers/OverpassDataObject";
+import OverpassDataObject, {
+	NodeElement,
+	RelationElement,
+	RelationMember,
+	WayElement
+} from "~/app/world/universal-features/providers/OverpassDataObject";
 import UniversalNode from "~/app/world/universal-features/UniversalNode";
 import Vec2 from "~/math/Vec2";
-import UniversalArea, {UniversalAreaRing} from "~/app/world/universal-features/UniversalArea";
+import UniversalArea, {UniversalAreaRing, UniversalAreaRingType} from "~/app/world/universal-features/UniversalArea";
 import UniversalPolyline from "~/app/world/universal-features/UniversalPolyline";
 import {
 	UniversalAreaDescription,
 	UniversalNodeDescription,
 	UniversalPolylineDescription
 } from "~/app/world/universal-features/descriptions";
-import HeightViewer from "~/app/world/HeightViewer";
-import {GroundGeometryData} from "~/app/world/universal-features/providers/GroundGeometryBuilder";
+import {OSMReference, OSMReferenceType} from "~/app/world/universal-features/UniversalFeature";
 
 const TileRequestMargin = 0.05;
 
@@ -69,72 +73,159 @@ const isWayElementArea = (way: WayElement): boolean => {
 	return false;
 }
 
+const isWayElementPolyline = (way: WayElement): boolean => {
+	if (way.nodes.length < 2) {
+		return false;
+	}
+
+	const tags = way.tags || {};
+
+	if (tags.type === 'path' || tags.type === 'fence') {
+		return true;
+	}
+
+	return false;
+}
+
+const ElementTypeToOSMReferenceTypeMap: Record<string, OSMReferenceType> = {
+	node: OSMReferenceType.Node,
+	way: OSMReferenceType.Way,
+	relation: OSMReferenceType.Relation
+};
+
+const getElementOSMReference = (element: NodeElement | WayElement | RelationElement): OSMReference => {
+	return {
+		type: ElementTypeToOSMReferenceTypeMap[element.type] ?? OSMReferenceType.None,
+		id: element.id ?? 0
+	};
+}
+
 const getNodeDescriptionFromTags = (tags: Record<string, string>): UniversalNodeDescription => {
-	return tags;
+	return {};
 }
 
 const getPolylineDescriptionFromTags = (tags: Record<string, string>): UniversalPolylineDescription => {
-	return tags;
+	return {
+		type: 'path'
+	};
 }
 
 const getAreaDescriptionFromTags = (tags: Record<string, string>): UniversalAreaDescription => {
-	return tags;
+	return {
+		type: 'roadway'
+	};
 }
 
 export default class OverpassUniversalFeatureProvider extends UniversalFeatureProvider {
 	public async getCollection(
 		{
 			x,
-			y,
-			heightViewer,
-			groundData
+			y
 		}: {
 			x: number;
 			y: number;
-			heightViewer: HeightViewer;
-			groundData: GroundGeometryData;
 		}
 	): Promise<UniversalFeatureCollection> {
 		const tileOrigin = MathUtils.tile2meters(x, y + 1);
 		const overpassData = await this.fetchOverpassTile(x, y);
-		const nodes: Map<number, UniversalNode> = new Map();
-		const polylines: Map<number, UniversalPolyline> = new Map();
-		const areas: Map<number, UniversalArea> = new Map();
+		const nodesMap: Map<number, UniversalNode> = new Map();
+		const polylines: UniversalPolyline[] = [];
+		const areas: UniversalArea[] = [];
 
 		for (const element of overpassData.elements) {
 			if (element.type === 'node') {
 				const position = Vec2.sub(MathUtils.degrees2meters(element.lat, element.lon), tileOrigin);
-				const node = new UniversalNode(element.id, position.x, position.y, getNodeDescriptionFromTags(element.tags || {}));
+				const node = new UniversalNode(
+					element.id,
+					position.x,
+					position.y,
+					getNodeDescriptionFromTags(element.tags || {}),
+					getElementOSMReference(element)
+				);
 
-				nodes.set(element.id, node);
+				nodesMap.set(element.id, node);
 			}
 		}
 
 		for (const element of overpassData.elements) {
 			if (element.type === 'way') {
-				const polylineNodes = element.nodes.map(nodeId => {
-					return nodes.get(nodeId);
+				const elementNodes = element.nodes.map(nodeId => {
+					return nodesMap.get(nodeId);
 				});
-				const isArea = isWayElementArea(element);
+				const polylineDesc = getPolylineDescriptionFromTags(element.tags || {});
+				const areaDesc = getAreaDescriptionFromTags(element.tags || {});
 
-				if (isArea) {
-					const ring = new UniversalAreaRing(polylineNodes);
-					const feature = new UniversalArea([ring], getAreaDescriptionFromTags(element.tags || {}));
-					areas.set(element.id, feature);
-				} else {
-					const feature = new UniversalPolyline(polylineNodes, getPolylineDescriptionFromTags(element.tags || {}));
-					polylines.set(element.id, feature);
+				if (polylineDesc) {
+					polylines.push(new UniversalPolyline(
+						elementNodes,
+						polylineDesc,
+						getElementOSMReference(element)
+					));
+				}
+
+				if (areaDesc) {
+					const ring = new UniversalAreaRing(elementNodes, UniversalAreaRingType.Outer);
+
+					areas.push(new UniversalArea(
+						[ring],
+						areaDesc,
+						getElementOSMReference(element)
+					));
 				}
 			}
 
 			if (element.type === 'relation' && element.tags && element.tags.type === 'multipolygon') {
-				const wayMembers = element.members.filter(member => member.type === 'way');
+				const members = element.members.filter(member => member.type === 'way');
+				const desc = getAreaDescriptionFromTags(element.tags || {});
+
+				if (members.length > 0 && desc !== null) {
+					const rings: UniversalAreaRing[] = [];
+
+					for (const member of members) {
+						const memberId = member.ref;
+						const memberType = OverpassUniversalFeatureProvider.getUniversalAreaRingType(member);
+
+						if (memberType === null) {
+							continue;
+						}
+
+						const way = <WayElement>overpassData.elements.find(e => {
+							return e.id === memberId && e.type === 'way';
+						});
+
+						if (!way) {
+							console.error();
+							continue;
+						}
+
+						const wayNodes = way.nodes.map(nodeId => {
+							return nodesMap.get(nodeId);
+						});
+						rings.push(new UniversalAreaRing(wayNodes, memberType));
+					}
+
+					areas.push(new UniversalArea(
+						rings,
+						desc,
+						getElementOSMReference(element)
+					));
+				}
 			}
 		}
 
-		//console.log(nodes, polylines, areas)
+		const nodes: UniversalNode[] = [];
 
-		return {nodes, polylines, areas};
+		for (const node of nodesMap.values()) {
+			if (node.description) {
+				nodes.push(node);
+			}
+		}
+
+		return {
+			nodes,
+			polylines,
+			areas
+		};
 	}
 
 	private async fetchOverpassTile(x: number, y: number): Promise<OverpassDataObject> {
@@ -144,5 +235,17 @@ export default class OverpassUniversalFeatureProvider extends UniversalFeaturePr
 		});
 
 		return await response.json() as OverpassDataObject;
+	}
+
+	private static getUniversalAreaRingType(member: RelationMember): UniversalAreaRingType | null {
+		if (member.role === 'inner') {
+			return UniversalAreaRingType.Inner;
+		}
+
+		if (member.role === 'outer') {
+			return UniversalAreaRingType.Outer;
+		}
+
+		return null;
 	}
 }

@@ -9,6 +9,7 @@ out vec4 vClipPosPrev;
 out vec2 vUv;
 out vec3 vNormal;
 out vec3 vPosition;
+out vec3 vBiomeColor;
 
 uniform PerMesh {
 	mat4 modelViewMatrix;
@@ -17,9 +18,13 @@ uniform PerMesh {
 
 uniform PerMaterial {
 	mat4 projectionMatrix;
+	vec2 biomeCoordinates;
 };
 
+uniform sampler2D tBiomeMap;
+
 void main() {
+	vBiomeColor = texture(tBiomeMap, biomeCoordinates).rgb * 1.5;
 	vUv = uv;
 	vNormal = vec3(modelViewMatrix * vec4(normal, 0));
 

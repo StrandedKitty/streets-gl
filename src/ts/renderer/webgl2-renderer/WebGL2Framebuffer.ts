@@ -232,6 +232,12 @@ export default class WebGL2Framebuffer {
 			case RendererTypes.TextureFormat.RGB16Float:
 				this.gl.clearBufferfv(WebGL2Constants.COLOR, drawBuffer, WebGL2Framebuffer.clearValueToTypedArray(Float32Array, clearValue));
 				return;
+			case RendererTypes.TextureFormat.R16Float:
+				this.gl.clearBufferfv(WebGL2Constants.COLOR, drawBuffer, WebGL2Framebuffer.clearValueToTypedArray(Float32Array, clearValue));
+				return;
+			case RendererTypes.TextureFormat.R32Float:
+				this.gl.clearBufferfv(WebGL2Constants.COLOR, drawBuffer, WebGL2Framebuffer.clearValueToTypedArray(Float32Array, clearValue));
+				return;
 		}
 
 		throw new Error('clearColorBuffer not implemented for TextureFormat ' + texture.format);

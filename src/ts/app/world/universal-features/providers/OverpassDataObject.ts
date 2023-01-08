@@ -10,10 +10,10 @@ export default interface OverpassDataObject {
 
 export interface Element {
 	type: 'node' | 'way' | 'relation';
-	id: any;
+	id: number;
 	lat: number;
 	lon: number;
-	tags: Record<string, string>;
+	tags?: Record<string, string>;
 }
 
 export interface NodeElement extends Element {

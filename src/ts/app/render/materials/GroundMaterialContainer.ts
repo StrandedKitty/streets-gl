@@ -27,12 +27,17 @@ export default class GroundMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array(16)
 				}, {
+					name: 'biomeCoordinates',
+					block: 'PerMaterial',
+					type: RendererTypes.UniformType.Float2,
+					value: new Float32Array(2)
+				}, {
 					name: 'grass',
 					block: null,
 					type: RendererTypes.UniformType.Texture2D,
 					value: this.renderer.createTexture2D({
 						anisotropy: 16,
-						data: ResourceManager.get('grass'),
+						data: ResourceManager.get('genericTerrainColor'),
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,
 						wrap: RendererTypes.TextureWrap.Repeat,
@@ -45,7 +50,7 @@ export default class GroundMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Texture2D,
 					value: this.renderer.createTexture2D({
 						anisotropy: 16,
-						data: ResourceManager.get('grassNormal'),
+						data: ResourceManager.get('genericTerrainNormal'),
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,
 						wrap: RendererTypes.TextureWrap.Repeat,
@@ -64,6 +69,19 @@ export default class GroundMaterialContainer extends MaterialContainer {
 						wrap: RendererTypes.TextureWrap.Repeat,
 						format: RendererTypes.TextureFormat.RGBA8Unorm,
 						mipmaps: true
+					})
+				}, {
+					name: 'tBiomeMap',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: this.renderer.createTexture2D({
+						anisotropy: 16,
+						data: ResourceManager.get('biomeMap'),
+						minFilter: RendererTypes.MinFilter.Linear,
+						magFilter: RendererTypes.MagFilter.Linear,
+						wrap: RendererTypes.TextureWrap.Repeat,
+						format: RendererTypes.TextureFormat.RGBA8Unorm,
+						mipmaps: false
 					})
 				}, {
 					name: 'waterNormal',

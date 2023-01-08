@@ -35,6 +35,11 @@ export default class ShadingMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Texture2D,
 					value: null
 				}, {
+					name: 'tRoughnessMetalness',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: null
+				}, {
 					name: 'tShadowMaps',
 					block: null,
 					type: RendererTypes.UniformType.Texture2DArray,
@@ -105,7 +110,7 @@ export default class ShadingMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Float2,
 					value: new Float32Array()
 				}, {
-					name: 'CSMLightDirectionAndIntensity[0]',
+					name: 'CSMLightDirectionAndIntensity',
 					block: 'CSM',
 					type: RendererTypes.UniformType.Float4,
 					value: new Float32Array()

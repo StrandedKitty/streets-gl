@@ -7,6 +7,9 @@ export interface AbstractTextureParams {
 	minFilter?: RendererTypes.MinFilter;
 	magFilter?: RendererTypes.MagFilter;
 	wrap?: RendererTypes.TextureWrap;
+	wrapS?: RendererTypes.TextureWrap;
+	wrapT?: RendererTypes.TextureWrap;
+	wrapR?: RendererTypes.TextureWrap;
 	format: RendererTypes.TextureFormat;
 	flipY?: boolean;
 	mipmaps: boolean;
@@ -19,6 +22,9 @@ export default interface AbstractTexture {
 	minFilter: RendererTypes.MinFilter;
 	magFilter: RendererTypes.MagFilter;
 	wrap: RendererTypes.TextureWrap;
+	wrapS: RendererTypes.TextureWrap;
+	wrapT: RendererTypes.TextureWrap;
+	wrapR: RendererTypes.TextureWrap;
 	format: RendererTypes.TextureFormat;
 	flipY: boolean;
 	mipmaps: boolean;

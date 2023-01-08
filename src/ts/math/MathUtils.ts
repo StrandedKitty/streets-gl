@@ -28,6 +28,10 @@ export default class MathUtils {
 		return radians * 180 / Math.PI;
 	}
 
+	public static mod(n: number, m: number): number {
+		return ((n % m) + m) % m;
+	}
+
 	public static normalizeAngle(angle: number): number {
 		return (angle %= 2 * Math.PI) >= 0 ? angle : (angle + 2 * Math.PI);
 	}
@@ -112,7 +116,9 @@ export default class MathUtils {
 		const tDeltaX = 1 / vX;
 		const tDeltaY = 1 / vY;
 
-		while (!(x === endX && y === endY)) {
+		let i = 0;
+
+		while (!(x === endX && y === endY) && i < 10000) {
 			if (tMaxX <= tMaxY) {
 				tMaxX = tMaxX + tDeltaX;
 				x = x + stepX;
@@ -122,6 +128,8 @@ export default class MathUtils {
 			}
 
 			points.push(new Vec2(x, y));
+
+			i++;
 		}
 
 		return points;

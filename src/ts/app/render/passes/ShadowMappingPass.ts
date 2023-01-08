@@ -6,10 +6,10 @@ import Tile from "~/app/objects/Tile";
 import AbstractMaterial from "~/renderer/abstract-renderer/AbstractMaterial";
 import {UniformMatrix4} from "~/renderer/abstract-renderer/Uniform";
 import Mat4 from "~/math/Mat4";
-import GroundAndBuildingsDepthMaterialContainer from "~/app/render/materials/GroundAndBuildingsDepthMaterialContainer";
 import TreeDepthMaterialContainer from "~/app/render/materials/TreeDepthMaterialContainer";
 import AircraftDepthMaterialContainer from "~/app/render/materials/AircraftDepthMaterialContainer";
 import VehicleSystem from "~/app/systems/VehicleSystem";
+import BuildingDepthMaterial from "~/app/render/materials/BuildingDepthMaterial";
 
 export default class ShadowMappingPass extends Pass<{
 	ShadowMaps: {
@@ -17,7 +17,7 @@ export default class ShadowMappingPass extends Pass<{
 		resource: RenderPassResource;
 	};
 }> {
-	private readonly groundAndBuildingsDepthMaterial: AbstractMaterial;
+	private readonly buildingDepthMaterial: AbstractMaterial;
 	private readonly treeMaterial: AbstractMaterial;
 	private readonly aircraftMaterial: AbstractMaterial;
 
@@ -26,7 +26,7 @@ export default class ShadowMappingPass extends Pass<{
 			ShadowMaps: {type: InternalResourceType.Output, resource: manager.getSharedResource('ShadowMaps')}
 		});
 
-		this.groundAndBuildingsDepthMaterial = new GroundAndBuildingsDepthMaterialContainer(this.renderer).material;
+		this.buildingDepthMaterial = new BuildingDepthMaterial(this.renderer).material;
 		this.treeMaterial = new TreeDepthMaterialContainer(this.renderer).material;
 		this.aircraftMaterial = new AircraftDepthMaterialContainer(this.renderer).material;
 
@@ -78,22 +78,22 @@ export default class ShadowMappingPass extends Pass<{
 			}
 
 			{
-				this.renderer.useMaterial(this.groundAndBuildingsDepthMaterial);
+				this.renderer.useMaterial(this.buildingDepthMaterial);
 
-				this.groundAndBuildingsDepthMaterial.getUniform('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.projectionMatrix.values);
-				this.groundAndBuildingsDepthMaterial.updateUniformBlock('PerMaterial');
+				this.buildingDepthMaterial.getUniform('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.projectionMatrix.values);
+				this.buildingDepthMaterial.updateUniformBlock('PerMaterial');
 
 				for (const tile of tiles) {
-					if (!tile.groundAndBuildings || !tile.groundAndBuildings.inCameraFrustum(camera)) {
+					if (!tile.buildings || !tile.buildings.inCameraFrustum(camera)) {
 						continue;
 					}
 
 					const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, tile.matrixWorld);
 
-					this.groundAndBuildingsDepthMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
-					this.groundAndBuildingsDepthMaterial.updateUniformBlock('PerMesh');
+					this.buildingDepthMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
+					this.buildingDepthMaterial.updateUniformBlock('PerMesh');
 
-					tile.groundAndBuildings.draw();
+					tile.buildings.draw();
 				}
 			}
 		}

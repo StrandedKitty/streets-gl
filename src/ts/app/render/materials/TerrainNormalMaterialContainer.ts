@@ -2,33 +2,34 @@ import Shaders from "../shaders/Shaders";
 import MaterialContainer from "~/app/render/materials/MaterialContainer";
 import {RendererTypes} from "~/renderer/RendererTypes";
 import AbstractRenderer from "~/renderer/abstract-renderer/AbstractRenderer";
+import Config from "~/app/Config";
 
-export default class GroundAndBuildingsDepthMaterialContainer extends MaterialContainer {
+export default class TerrainNormalMaterialContainer extends MaterialContainer {
 	public constructor(renderer: AbstractRenderer) {
 		super(renderer);
 
 		this.material = this.renderer.createMaterial({
-			name: 'Building and buildings depth material',
+			name: 'Terrain normal material',
 			uniforms: [
 				{
-					name: 'modelViewMatrix',
-					block: 'PerMesh',
-					type: RendererTypes.UniformType.Matrix4,
-					value: new Float32Array(16)
+					name: 'tHeight',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: null
 				}, {
-					name: 'projectionMatrix',
-					block: 'PerMaterial',
-					type: RendererTypes.UniformType.Matrix4,
-					value: new Float32Array(16)
-				}
+					name: 'heightMapWorldSize',
+					block: 'MainBlock',
+					type: RendererTypes.UniformType.Float1,
+					value: new Float32Array([Config.TerrainHeightMapCount * Config.TerrainHeightTileWorldSize])
+				},
 			],
 			primitive: {
 				frontFace: RendererTypes.FrontFace.CCW,
 				cullMode: RendererTypes.CullMode.None
 			},
 			depth: {
-				depthWrite: true,
-				depthCompare: RendererTypes.DepthCompare.LessEqual
+				depthWrite: false,
+				depthCompare: RendererTypes.DepthCompare.Always
 			},
 			blend: {
 				color: {
@@ -42,8 +43,8 @@ export default class GroundAndBuildingsDepthMaterialContainer extends MaterialCo
 					dstFactor: RendererTypes.BlendFactor.Zero
 				}
 			},
-			vertexShaderSource: Shaders.groundAndBuildingsDepth.vertex,
-			fragmentShaderSource: Shaders.groundAndBuildingsDepth.fragment
+			vertexShaderSource: Shaders.terrainNormal.vertex,
+			fragmentShaderSource: Shaders.terrainNormal.fragment
 		});
 	}
 }

@@ -8,7 +8,6 @@ import TileBuildings from "~/app/objects/TileBuildings";
 import TileGround from "~/app/objects/TileGround";
 import TileRoads from "~/app/objects/TileRoads";
 import TileLabelBuffers from "~/app/objects/TileLabelBuffers";
-import TileGroundAndBuildings from "~/app/objects/TileGroundAndBuildings";
 
 // position.xyz, scale, rotation
 export type InstanceBufferInterleaved = Float32Array;
@@ -82,7 +81,6 @@ export default class Tile extends Object3D {
 	public buildings: TileBuildings;
 	public ground: TileGround;
 	public roads: TileRoads;
-	public groundAndBuildings: TileGroundAndBuildings;
 	public labelBuffersList: TileLabelBuffers[] = [];
 	public buildingsNeedFiltering: boolean = true;
 	public instanceBuffers: TileInstanceBuffers = new Map();
@@ -120,9 +118,8 @@ export default class Tile extends Object3D {
 			this.buildings = new TileBuildings(this.staticGeometry);
 			this.ground = new TileGround(this.staticGeometry);
 			this.roads = new TileRoads(this.staticGeometry);
-			this.groundAndBuildings = new TileGroundAndBuildings(this.staticGeometry);
 
-			this.add(this.buildings, this.ground, this.roads, this.groundAndBuildings);
+			this.add(this.buildings, /*this.ground,*/ this.roads);
 			this.updateLabelBufferList();
 
 			for (const [key, LOD0Value] of Object.entries(this.staticGeometry.instancesLOD0)) {

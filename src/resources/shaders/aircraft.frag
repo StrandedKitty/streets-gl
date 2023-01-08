@@ -49,7 +49,7 @@ void main() {
 
     outColor = vec4(color.rgb * 1.5, 1);
     outNormal = packNormal(getNormal());
-    outPosition = vPosition;
+    outRoughnessMetalness = vec2(0.9, 0);
     outMotion = getMotionVector(vClipPos, vClipPosPrev);
     outObjectId = 0u;
 }

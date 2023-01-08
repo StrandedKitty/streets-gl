@@ -1,30 +1,14 @@
 import UniversalFeatureProvider from "~/app/world/universal-features/providers/UniversalFeatureProvider";
 import UniversalFeatureCollection from "~/app/world/universal-features/UniversalFeatureCollection";
-import Config from "~/app/Config";
-import MathUtils from "~/math/MathUtils";
-import OverpassDataObject, {WayElement} from "~/app/world/universal-features/providers/OverpassDataObject";
 import UniversalNode from "~/app/world/universal-features/UniversalNode";
-import Vec2 from "~/math/Vec2";
-import UniversalArea, {UniversalAreaRing} from "~/app/world/universal-features/UniversalArea";
-import UniversalPolyline from "~/app/world/universal-features/UniversalPolyline";
-import {
-	UniversalAreaDescription,
-	UniversalNodeDescription,
-	UniversalPolylineDescription
-} from "~/app/world/universal-features/descriptions";
-import PBFPolygonParser, {PBFPolygon} from "~/app/world/universal-features/providers/PBFPolygonParser";
-import MeshGroundProjector from "~/app/world/geometry/features/MeshGroundProjector";
-import {GroundGeometryData} from "~/app/world/universal-features/providers/GroundGeometryBuilder";
-import HeightViewer from "~/app/world/HeightViewer";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const Pbf = require('pbf');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const proto = require('./vector_tile.js').Tile;
+import UniversalArea, {UniversalAreaRing, UniversalAreaRingType} from "~/app/world/universal-features/UniversalArea";
+import {UniversalAreaDescription} from "~/app/world/universal-features/descriptions";
+import PBFPolygonParser, {PBFPolygon} from "~/app/world/universal-features/providers/pbf/PBFPolygonParser";
+import {OSMReferenceType} from "~/app/world/universal-features/UniversalFeature";
+import Config from "~/app/Config";
 
-enum UVMode {
-	OMBB,
-	TileCoordinates
-}
+const Pbf = require('pbf');
+const proto = require('./pbf/vector_tile.js').Tile;
 
 const AreasConfig: Record<'water', {
 	description: UniversalAreaDescription;
@@ -44,17 +28,13 @@ export default class MapboxUniversalFeatureProvider extends UniversalFeatureProv
 	public async getCollection(
 		{
 			x,
-			y,
-			heightViewer,
-			groundData
+			y
 		}: {
 			x: number;
 			y: number;
-			heightViewer: HeightViewer;
-			groundData: GroundGeometryData;
 		}
 	): Promise<UniversalFeatureCollection> {
-		const areas: Map<number, UniversalArea> = new Map();
+		const areas: UniversalArea[] = [];
 		const polygons = await this.fetchTile(x, y);
 
 		for (const [name, polygonList] of Object.entries(polygons)) {
@@ -65,22 +45,31 @@ export default class MapboxUniversalFeatureProvider extends UniversalFeatureProv
 
 				for (const ring of polygon) {
 					const nodes = ring.map((point, i) => {
-						return new UniversalNode(i, point[0], point[1], {});
+						return new UniversalNode(
+							i,
+							point[0],
+							point[1],
+							{},
+							{type: OSMReferenceType.None, id: 0}
+						);
 					});
 
-					universalRings.push(new UniversalAreaRing(nodes));
+					universalRings.push(new UniversalAreaRing(nodes, UniversalAreaRingType.Outer));
 				}
 
 				if (universalRings.length > 0) {
-					const area = new UniversalArea(universalRings, config.description);
-					areas.set(areas.size, area);
+					areas.push(new UniversalArea(
+						universalRings,
+						config.description,
+						{type: OSMReferenceType.None, id: 0}
+					));
 				}
 			}
 		}
 
 		return {
-			nodes: new Map(),
-			polylines: new Map(),
+			nodes: [],
+			polylines: [],
 			areas
 		};
 	}
@@ -102,7 +91,7 @@ export default class MapboxUniversalFeatureProvider extends UniversalFeatureProv
 
 			if (AreasConfig[name]) {
 				for (const feature of layer.features) {
-					const polygon = PBFPolygonParser.convertCommandsToPolygons(feature.geometry);
+					const polygon = PBFPolygonParser.convertCommandsToPolygons(feature.geometry, Config.TileSize);
 
 					polygons[name].push(polygon);
 				}
