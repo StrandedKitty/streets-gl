@@ -10,6 +10,8 @@ export default class TerrainRing extends RenderableObject3D {
 	public size: number;
 	public heightTextureTransform: Float32Array = new Float32Array(3);
 	public maskTextureTransform: Float32Array = new Float32Array(3);
+	public waterTextureTransform0: Float32Array = new Float32Array(4);
+	public waterTextureTransform1: Float32Array = new Float32Array(4);
 	public morphOffset: Float32Array = new Float32Array(2);
 	public isLastRing: boolean = false;
 

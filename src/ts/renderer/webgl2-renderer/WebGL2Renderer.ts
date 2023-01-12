@@ -381,9 +381,7 @@ export default class WebGL2Renderer implements AbstractRenderer {
 					result = +(timeElapsed / 1e6).toFixed(3);
 				}
 
-				if (available || disjoint) {
-					this.gl.deleteQuery(query);
-				}
+				this.gl.deleteQuery(query);
 
 				resolve(result);
 			}, 1000);

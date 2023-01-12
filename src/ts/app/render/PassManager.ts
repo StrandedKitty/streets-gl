@@ -12,6 +12,7 @@ import RenderSystem from "~/app/systems/RenderSystem";
 import Vec2 from "~/math/Vec2";
 import MapTimeSystem from "~/app/systems/MapTimeSystem";
 import Config from "~/app/Config";
+import TextureResource from "~/app/render/render-graph/resources/TextureResource";
 
 interface SharedResources {
 	BackbufferRenderPass: RenderPassResource;
@@ -33,7 +34,7 @@ interface SharedResources {
 	AtmosphereTransmittanceLUT: RenderPassResource;
 	AtmosphereMultipleScatteringLUT: RenderPassResource;
 	SkyViewLUT: RenderPassResource;
-	AerialPerspectiveLUT: RenderPassResource;
+	AerialPerspectiveLUT: TextureResource;
 	SSR: RenderPassResource;
 	AtmosphereSkybox: RenderPassResource;
 	CoC: RenderPassResource;
@@ -84,6 +85,7 @@ export default class PassManager {
 	}
 
 	public getSharedResource<K extends keyof SharedResources>(name: K): SharedResources[K] {
+		// @ts-ignore
 		return this.sharedResources.get(name);
 	}
 
@@ -604,30 +606,20 @@ export default class PassManager {
 				]
 			})
 		}));
-		this.sharedResources.set('AerialPerspectiveLUT', this.resourceFactory.createRenderPassResource({
+		this.sharedResources.set('AerialPerspectiveLUT', this.resourceFactory.createTextureResource({
 			name: 'AerialPerspectiveLUT',
 			isTransient: false,
 			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture3D,
-							width: 16,
-							height: 16,
-							depth: 16,
-							format: RendererTypes.TextureFormat.RGBA16Float,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false,
-							wrap: RendererTypes.TextureWrap.ClampToEdge
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 0},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store,
-						slice: 0
-					}
-				]
+			descriptor: new TextureResourceDescriptor({
+				type: TextureResourceType.Texture3D,
+				width: 16,
+				height: 16,
+				depth: 16,
+				format: RendererTypes.TextureFormat.RGBA16Float,
+				minFilter: RendererTypes.MinFilter.Linear,
+				magFilter: RendererTypes.MagFilter.Linear,
+				mipmaps: false,
+				wrap: RendererTypes.TextureWrap.ClampToEdge
 			})
 		}));
 		this.sharedResources.set('SSR', this.resourceFactory.createRenderPassResource({
@@ -870,15 +862,17 @@ export default class PassManager {
 				colorAttachments: [
 					{
 						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
+							type: TextureResourceType.Texture2DArray,
 							width: 1,
 							height: 1,
+							depth: 2,
 							format: RendererTypes.TextureFormat.R8Unorm,
 							minFilter: RendererTypes.MinFilter.Linear,
 							magFilter: RendererTypes.MagFilter.Linear,
 							wrap: RendererTypes.TextureWrap.ClampToEdge,
 							mipmaps: false
 						}),
+						slice: 0,
 						clearValue: {r: 0, g: 0, b: 0, a: 0},
 						loadOp: RendererTypes.AttachmentLoadOp.Load,
 						storeOp: RendererTypes.AttachmentStoreOp.Store

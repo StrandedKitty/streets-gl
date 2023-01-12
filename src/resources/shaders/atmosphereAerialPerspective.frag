@@ -1,23 +1,24 @@
 #include <versionPrecision>
 
 #define PLANET_RADIUS_OFFSET 0.00001
+#define SLICES_PER_DRAW 8
 
-out vec4 FragColor;
+out vec4 FragColor[SLICES_PER_DRAW];
 
 in vec2 vUv;
 
 uniform sampler2D tTransmittanceLUT;
 uniform sampler2D tMultipleScatteringLUT;
 
-uniform MainBlock {
+uniform Common {
     mat4 projectionMatrixInverse;
     mat4 viewMatrixInverse;
     vec3 cameraPosition;
     vec3 sunDirection;
 };
 
-uniform PerSlice {
-    float sliceIndex;
+uniform PerDraw {
+    float sliceIndexOffset;
 };
 
 #include <atmosphere>
@@ -74,20 +75,29 @@ void main() {
 
     vec3 WorldPos = camPos;
 
-    // Compute position from froxel information
-    float tMax = aerialPerspectiveSliceToDepth(sliceIndex + 0.5);
-    vec3 newWorldPos = WorldPos + tMax * WorldDir;
+    vec4 outputValues[SLICES_PER_DRAW];
 
-    float viewHeight = length(newWorldPos);
+    for (int i = 0; i < SLICES_PER_DRAW; i++) {
+        float sliceIndex = float(i) + sliceIndexOffset;
 
-    // If the voxel is under the ground, make sure to offset it out on the ground.
-    if (length(newWorldPos) <= groundRadiusMM + PLANET_RADIUS_OFFSET) {
-        // Apply a position offset to make sure no artefact are visible close to the earth boundaries for large voxel.
-        newWorldPos = normalize(newWorldPos) * (groundRadiusMM + PLANET_RADIUS_OFFSET);
-        WorldDir = normalize(newWorldPos - camPos);
-        tMax = length(newWorldPos - camPos);
+        float tMax = aerialPerspectiveSliceToDepth(sliceIndex + 0.5);
+        vec3 newWorldPos = WorldPos + tMax * WorldDir;
+
+        float viewHeight = length(newWorldPos);
+
+        // If the voxel is under the ground, make sure to offset it out on the ground.
+        if (length(newWorldPos) <= groundRadiusMM + PLANET_RADIUS_OFFSET) {
+            // Apply a position offset to make sure no artefact are visible close to the earth boundaries for large voxel.
+            newWorldPos = normalize(newWorldPos) * (groundRadiusMM + PLANET_RADIUS_OFFSET);
+            WorldDir = normalize(newWorldPos - camPos);
+            tMax = length(newWorldPos - camPos);
+        }
+
+        vec4 result = raymarchScattering(WorldPos, WorldDir, -sunDirection, tMax, float(numScatteringSteps));
+        result.rgb *= 5.;
+
+        outputValues[i] = result;
     }
 
-    FragColor = raymarchScattering(WorldPos, WorldDir, -sunDirection, tMax, float(numScatteringSteps));
-    FragColor.rgb *= 5.;
+    FragColor = outputValues;
 }

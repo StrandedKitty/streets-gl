@@ -5,18 +5,15 @@ import {RendererTypes} from "~/renderer/RendererTypes";
 
 export default class WaterMask extends RenderableObject3D {
 	public mesh: AbstractMesh = null;
-	private vertices: Float32Array = null;
+	private readonly verticesBuffer: Float32Array = null;
 
-	public constructor() {
+	public constructor(vertices: Float32Array) {
 		super();
+		this.verticesBuffer = vertices;
 	}
 
 	public isMeshReady(): boolean {
 		return this.mesh !== null;
-	}
-
-	public setVertices(vertices: Float32Array): void {
-		this.vertices = vertices;
 	}
 
 	public updateMesh(renderer: AbstractRenderer): void {
@@ -29,14 +26,10 @@ export default class WaterMask extends RenderableObject3D {
 						format: RendererTypes.AttributeFormat.Float,
 						size: 2,
 						normalized: false,
-						data: this.vertices || new Float32Array(0)
+						data: this.verticesBuffer
 					})
 				]
 			});
-
-			return;
 		}
-
-		this.mesh.getAttribute('position').setData(this.vertices);
 	}
 }

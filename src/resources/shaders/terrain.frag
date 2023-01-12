@@ -3,6 +3,8 @@
 
 in vec2 vNormalUV;
 in vec2 vDetailUV;
+in vec3 vWaterUV;
+in vec2 vUv;
 in vec2 vMaskUV;
 in vec3 vNormal;
 in vec3 vPosition;
@@ -16,6 +18,8 @@ uniform PerMesh {
     mat4 modelViewMatrixPrev;
     vec3 transformHeight;
     vec3 transformMask;
+    vec4 transformWater0;
+    vec4 transformWater1;
     float size;
     float segmentCount;
     vec2 detailTextureOffset;
@@ -30,7 +34,7 @@ uniform PerMaterial {
 
 uniform sampler2DArray tRingHeight;
 uniform sampler2D tNormal;
-uniform sampler2D tWater;
+uniform sampler2DArray tWater;
 uniform sampler2D tWaterMask;
 uniform sampler2D tDetailColor;
 uniform sampler2D tDetailNormal;
@@ -81,8 +85,18 @@ void main() {
     vec3 detailNormal = getNormal(textureNoTile(tDetailNoise, tDetailNormal, vDetailUV, 0.01));
     vec3 detailColor = textureNoTile(tDetailNoise, tDetailColor, vDetailUV, 0.01) * vBiomeColor;
 
-    float waterFactor = texture(tWater, vNormalUV).r * waterMask;
+    vec3 waterUV = vec3(0);
+    waterUV.xy = transformWater0.xy + vUv * transformWater0.zw;
 
+    if (waterUV.x < 0. || waterUV.x > 1. || waterUV.y < 0. || waterUV.y > 1.) {
+        waterUV.xy = transformWater1.xy + vUv * transformWater1.zw;
+        waterUV.z = 1.;
+    }
+
+    float waterSample = texture(tWater, waterUV).r;
+    float waterFactor = waterSample * waterMask;
+
+    outColor = vec4(fract(waterUV.xyz), 1);
     outColor = vec4(detailColor, 1);
     outNormal = packNormal(detailNormal);
     outRoughnessMetalness = vec2(0.9, 0);

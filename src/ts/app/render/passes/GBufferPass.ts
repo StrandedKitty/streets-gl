@@ -2,7 +2,7 @@ import AbstractMaterial from "~/renderer/abstract-renderer/AbstractMaterial";
 import {
 	UniformFloat1,
 	UniformFloat2,
-	UniformFloat3,
+	UniformFloat3, UniformFloat4,
 	UniformInt1,
 	UniformMatrix4
 } from "~/renderer/abstract-renderer/Uniform";
@@ -30,6 +30,7 @@ import Config from "~/app/Config";
 import TerrainSystem from "~/app/systems/TerrainSystem";
 import SceneSystem from "~/app/systems/SceneSystem";
 import TerrainRing from "~/app/objects/TerrainRing";
+import AbstractTexture2DArray from "~/renderer/abstract-renderer/AbstractTexture2DArray";
 
 export default class GBufferPass extends Pass<{
 	GBufferRenderPass: {
@@ -41,10 +42,6 @@ export default class GBufferPass extends Pass<{
 		resource: RenderPassResource;
 	};
 	Transmittance: {
-		type: InternalResourceType.Input;
-		resource: RenderPassResource;
-	};
-	TerrainHeight: {
 		type: InternalResourceType.Input;
 		resource: RenderPassResource;
 	};
@@ -83,7 +80,6 @@ export default class GBufferPass extends Pass<{
 			GBufferRenderPass: {type: InternalResourceType.Output, resource: manager.getSharedResource('GBufferRenderPass')},
 			AtmosphereSkybox: {type: InternalResourceType.Input, resource: manager.getSharedResource('AtmosphereSkybox')},
 			Transmittance: {type: InternalResourceType.Input, resource: manager.getSharedResource('AtmosphereTransmittanceLUT')},
-			TerrainHeight: {type: InternalResourceType.Input, resource: manager.getSharedResource('TerrainHeight')},
 			TerrainNormal: {type: InternalResourceType.Input, resource: manager.getSharedResource('TerrainNormal')},
 			TerrainWater: {type: InternalResourceType.Input, resource: manager.getSharedResource('TerrainWater')},
 			TerrainTileMask: {type: InternalResourceType.Input, resource: manager.getSharedResource('TerrainTileMask')},
@@ -116,11 +112,10 @@ export default class GBufferPass extends Pass<{
 		const skyRotationMatrix = new Float32Array(this.manager.mapTimeSystem.skyDirectionMatrix.values);
 		const atmosphereSkyboxTexture = <AbstractTextureCube>this.getPhysicalResource('AtmosphereSkybox').colorAttachments[0].texture;
 		const transmittanceLUT = <AbstractTexture2D>this.getPhysicalResource('Transmittance').colorAttachments[0].texture;
-		const terrainHeight = <AbstractTexture2D>this.getPhysicalResource('TerrainHeight').colorAttachments[0].texture;
 		const terrainNormal = <AbstractTexture2D>this.getPhysicalResource('TerrainNormal').colorAttachments[0].texture;
-		const terrainWater = <AbstractTexture2D>this.getPhysicalResource('TerrainWater').colorAttachments[0].texture;
+		const terrainWater = <AbstractTexture2DArray>this.getPhysicalResource('TerrainWater').colorAttachments[0].texture;
 		const terrainTileMask = <AbstractTexture2D>this.getPhysicalResource('TerrainTileMask').colorAttachments[0].texture;
-		const terrainRingHeight = <AbstractTexture2D>this.getPhysicalResource('TerrainRingHeight').colorAttachments[0].texture;
+		const terrainRingHeight = <AbstractTexture2DArray>this.getPhysicalResource('TerrainRingHeight').colorAttachments[0].texture;
 		const biomePos = MathUtils.meters2tile(camera.position.x, camera.position.z, 0);
 
 		const instancesOrigin = new Vec2(
@@ -285,6 +280,8 @@ export default class GBufferPass extends Pass<{
 			this.terrainMaterial.getUniform<UniformMatrix4>('modelViewMatrixPrev', 'PerMesh').value = new Float32Array(Mat4.multiply(this.cameraMatrixWorldInversePrev, terrainRing.matrixWorld).values);
 			this.terrainMaterial.getUniform<UniformFloat3>('transformHeight', 'PerMesh').value = terrainRing.heightTextureTransform;
 			this.terrainMaterial.getUniform<UniformFloat3>('transformMask', 'PerMesh').value = terrainRing.maskTextureTransform;
+			this.terrainMaterial.getUniform<UniformFloat4>('transformWater0', 'PerMesh').value = terrainRing.waterTextureTransform0;
+			this.terrainMaterial.getUniform<UniformFloat4>('transformWater1', 'PerMesh').value = terrainRing.waterTextureTransform1;
 			this.terrainMaterial.getUniform<UniformFloat1>('size', 'PerMesh').value[0] = terrainRing.size;
 			this.terrainMaterial.getUniform<UniformFloat1>('segmentCount', 'PerMesh').value[0] = terrainRing.segmentCount * 2;
 			this.terrainMaterial.getUniform('detailTextureOffset', 'PerMesh').value = new Float32Array([
@@ -344,14 +341,9 @@ export default class GBufferPass extends Pass<{
 				}
 			}
 
-			//ring0 = terrain.children[0];
-			//ring1 = terrain.children[1];
-			//levelId = 0.;
-
 			if (ring0 === null || ring1 === null) {
 				continue;
 			}
-
 
 			const ringOffset = [
 				tile.position.x - ring0.position.x, tile.position.z - ring0.position.z,

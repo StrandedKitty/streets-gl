@@ -10,22 +10,15 @@ import {RendererTypes} from "~/renderer/RendererTypes";
 import RenderPassResource from "~/app/render/render-graph/resources/RenderPassResource";
 import TerrainNormalMaterialContainer from "~/app/render/materials/TerrainNormalMaterialContainer";
 import AbstractRenderer from "~/renderer/abstract-renderer/AbstractRenderer";
-import TerrainHeightTileSource from "~/app/world/terrain/TerrainHeightTileSource";
-import TerrainWaterTileSource from "~/app/world/terrain/TerrainWaterTileSource";
+import HeightTileSource from "~/app/world/terrain/HeightTileSource";
+import WaterTileSource from "~/app/world/terrain/WaterTileSource";
 import TerrainWaterMaterialContainer from "~/app/render/materials/TerrainWaterMaterialContainer";
 import WaterMask from "~/app/objects/WaterMask";
 import RenderableObject3D from "~/app/objects/RenderableObject3D";
 import TileSystem from "~/app/systems/TileSystem";
 import Config from "~/app/Config";
 import TerrainRingHeightMaterialContainer from "~/app/render/materials/TerrainRingHeightMaterialContainer";
-import {
-	UniformFloat1,
-	UniformFloat2,
-	UniformFloat3,
-	UniformInt1,
-	UniformMatrix4
-} from "~/renderer/abstract-renderer/Uniform";
-import Mat4 from "~/math/Mat4";
+import {UniformFloat1, UniformFloat2, UniformFloat3, UniformInt1} from "~/renderer/abstract-renderer/Uniform";
 
 const TileResolution = 512;
 const MaxCachedTiles = 64;
@@ -51,11 +44,11 @@ class TileTextureStorage {
 
 		const source = this.system.getHeightTileSource(x, y);
 
-		if (!source || !source.bitmap) {
+		if (!source || !source.data) {
 			return null;
 		}
 
-		return this.createTexture(x, y, source.bitmap);
+		return this.createTexture(x, y, source.data);
 	}
 
 	private createTexture(x: number, y: number, bitmap: ImageBitmap): AbstractTexture2D {
@@ -118,17 +111,15 @@ class TileMeshStorage {
 
 		const source = this.system.getWaterTileSource(x, y);
 
-		if (!source || !source.vertices) {
+		if (!source || !source.data) {
 			return null;
 		}
 
-		return this.createMesh(x, y, source.vertices);
+		return this.createMesh(x, y, source.data);
 	}
 
 	private createMesh(x: number, y: number, vertices: Float32Array): RenderableObject3D {
-		const waterMask = new WaterMask();
-
-		waterMask.setVertices(vertices);
+		const waterMask = new WaterMask(vertices);
 		waterMask.updateMesh(this.renderer);
 
 		this.cache.set(`${x} ${y}`, {
@@ -201,7 +192,6 @@ export default class TerrainTexturesPass extends Pass<{
 	};
 }> {
 	private quad: FullScreenQuad;
-	private waterMask: WaterMask;
 	private heightMaterial: AbstractMaterial;
 	private ringHeightMaterial: AbstractMaterial;
 	private normalMaterial: AbstractMaterial;
@@ -228,14 +218,13 @@ export default class TerrainTexturesPass extends Pass<{
 		this.normalMaterial = new TerrainNormalMaterialContainer(this.renderer).material;
 		this.waterMaterial = new TerrainWaterMaterialContainer(this.renderer).material;
 		this.quad = new FullScreenQuad(this.renderer);
-		this.waterMask = new WaterMask();
 
 		const terrainSystem = this.manager.systemManager.getSystem(TerrainSystem);
 		const textureSize = Config.TerrainHeightMapCount * TileResolution;
 
 		this.getResource('TerrainHeight').descriptor.setSize(textureSize, textureSize);
 		this.getResource('TerrainNormal').descriptor.setSize(textureSize, textureSize);
-		this.getResource('TerrainWater').descriptor.setSize(textureSize, textureSize);
+		this.getResource('TerrainWater').descriptor.setSize(2048, 2048, 2);
 
 		this.heightStorage = new TileTextureStorage(terrainSystem, this.renderer);
 		this.waterStorage = new TileMeshStorage(terrainSystem, this.renderer);
@@ -270,15 +259,15 @@ export default class TerrainTexturesPass extends Pass<{
 		const terrainWaterRenderPass = this.getPhysicalResource('TerrainWater');
 		const terrainRingHeightRenderPass = this.getPhysicalResource('TerrainRingHeight');
 
-		const heightTilesToRender: TerrainHeightTileSource[] = [];
-		const waterTilesToRender: TerrainWaterTileSource[] = [];
+		const heightTilesToRender: HeightTileSource[] = [];
+		const waterTilesToRender: WaterTileSource[] = [];
 
 		for (let x = 0; x < Config.TerrainHeightMapCount; x++) {
 			for (let y = 0; y < Config.TerrainHeightMapCount; y++) {
 				const heightTile = terrainSystem.getHeightTileSource(x + terrainSystem.lastHeightTilePivot.x, y + terrainSystem.lastHeightTilePivot.y);
 				const waterTile = terrainSystem.getWaterTileSource(x + terrainSystem.lastHeightTilePivot.x, y + terrainSystem.lastHeightTilePivot.y);
 
-				if (!heightTile || !heightTile.bitmap || !waterTile || !waterTile.vertices) {
+				if (!heightTile || !heightTile.data || !waterTile || !waterTile.data) {
 					continue;
 				}
 
@@ -338,32 +327,49 @@ export default class TerrainTexturesPass extends Pass<{
 			this.quad.mesh.draw();
 		}
 
-		// @ts-ignore
-		this.renderer.gl.flush()
+		const waterLoaders = [
+			terrainSystem.areaLoaders.water0,
+			terrainSystem.areaLoaders.water1
+		];
+		let waterMaterialInUse = false;
 
-		// @ts-ignore
-		this.renderer.gl.flush()
+		for (let i = 0; i < waterLoaders.length; i++) {
+			const waterLoader = waterLoaders[i];
+			const dirtyTiles = waterLoader.getDirtyTileStates();
 
-		this.renderer.beginRenderPass(terrainWaterRenderPass);
-		this.renderer.useMaterial(this.waterMaterial);
+			if (dirtyTiles.length === 0) {
+				continue;
+			}
 
-		for (const tile of waterTilesToRender) {
-			const x = tile.x - terrainSystem.lastHeightTilePivot.x;
-			const y = tile.y - terrainSystem.lastHeightTilePivot.y;
+			if (!waterMaterialInUse) {
+				this.renderer.useMaterial(this.waterMaterial);
+				waterMaterialInUse = true;
+			}
 
-			const scale = 1 / Config.TerrainHeightMapCount;
-			const transform = [(Config.TerrainHeightMapCount - y) * scale, x * scale, scale];
+			terrainWaterRenderPass.colorAttachments[0].slice = i;
+			this.renderer.beginRenderPass(terrainWaterRenderPass);
 
-			this.waterMaterial.getUniform('transform', 'MainBlock').value = new Float32Array(transform);
-			this.waterMaterial.getUniform('fillValue', 'MainBlock').value = new Float32Array([0]);
-			this.waterMaterial.updateUniformBlock('MainBlock');
+			for (const tileState of dirtyTiles) {
+				const x = tileState.localX;
+				const y = tileState.localY;
+				const count = waterLoader.viewportSize;
 
-			this.quad.mesh.draw();
+				const scale = 1 / count;
+				const transform = [x * scale, (count - y - 1) * scale, scale];
 
-			this.waterMaterial.getUniform('fillValue', 'MainBlock').value = new Float32Array([1]);
-			this.waterMaterial.updateUniformBlock('MainBlock');
+				this.waterMaterial.getUniform('transform', 'MainBlock').value = new Float32Array(transform);
+				this.waterMaterial.getUniform('fillValue', 'MainBlock').value = new Float32Array([0]);
+				this.waterMaterial.updateUniformBlock('MainBlock');
 
-			this.waterStorage.get(tile.x, tile.y).mesh.draw();
+				this.quad.mesh.draw();
+
+				this.waterMaterial.getUniform('fillValue', 'MainBlock').value = new Float32Array([1]);
+				this.waterMaterial.updateUniformBlock('MainBlock');
+
+				const mesh = tileState.tile.getMesh(this.renderer);
+
+				mesh.draw();
+			}
 		}
 
 		this.renderer.beginRenderPass(terrainNormalRenderPass);

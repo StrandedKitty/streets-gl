@@ -23,27 +23,27 @@ export default class AtmosphereAerialPerspectiveMaterialContainer extends Materi
 					value: null
 				}, {
 					name: 'projectionMatrixInverse',
-					block: 'MainBlock',
+					block: 'Common',
 					type: UniformType.Matrix4,
 					value: new Float32Array(16)
 				}, {
 					name: 'viewMatrixInverse',
-					block: 'MainBlock',
+					block: 'Common',
 					type: UniformType.Matrix4,
 					value: new Float32Array(16)
 				}, {
 					name: 'cameraPosition',
-					block: 'MainBlock',
+					block: 'Common',
 					type: UniformType.Float3,
 					value: new Float32Array(3)
 				}, {
 					name: 'sunDirection',
-					block: 'MainBlock',
+					block: 'Common',
 					type: UniformType.Float3,
 					value: new Float32Array(3)
 				}, {
-					name: 'sliceIndex',
-					block: 'PerSlice',
+					name: 'sliceIndexOffset',
+					block: 'PerDraw',
 					type: UniformType.Float1,
 					value: new Float32Array(1)
 				}

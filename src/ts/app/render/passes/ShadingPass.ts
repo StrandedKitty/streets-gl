@@ -12,6 +12,7 @@ import AbstractTexture3D from "~/renderer/abstract-renderer/AbstractTexture3D";
 import Vec3 from "~/math/Vec3";
 import AbstractTextureCube from "~/renderer/abstract-renderer/AbstractTextureCube";
 import SettingsManager from "~/app/ui/SettingsManager";
+import TextureResource from "~/app/render/render-graph/resources/TextureResource";
 
 export default class ShadingPass extends Pass<{
 	GBuffer: {
@@ -44,7 +45,7 @@ export default class ShadingPass extends Pass<{
 	};
 	AerialPerspectiveLUT: {
 		type: InternalResourceType.Input;
-		resource: RenderPassResource;
+		resource: TextureResource;
 	};
 	TransmittanceLUT: {
 		type: InternalResourceType.Input;
@@ -126,7 +127,7 @@ export default class ShadingPass extends Pass<{
 		const shadowMapsTexture = <AbstractTexture2DArray>this.getPhysicalResource('ShadowMaps').depthAttachment.texture;
 		const selectionMaskTexture = <AbstractTexture2D>this.getPhysicalResource('SelectionMask').colorAttachments[0].texture;
 		const selectionBlurredTexture = <AbstractTexture2D>this.getPhysicalResource('SelectionBlurred').colorAttachments[0].texture;
-		const aerialPerspectiveLUT = <AbstractTexture3D>this.getPhysicalResource('AerialPerspectiveLUT').colorAttachments[0].texture;
+		const aerialPerspectiveLUT = <AbstractTexture3D>this.getPhysicalResource('AerialPerspectiveLUT');
 		const transmittanceLUT = <AbstractTexture3D>this.getPhysicalResource('TransmittanceLUT').colorAttachments[0].texture;
 		const atmosphereSkyboxTexture = <AbstractTextureCube>this.getPhysicalResource('AtmosphereSkybox').colorAttachments[0].texture;
 

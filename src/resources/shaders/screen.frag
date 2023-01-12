@@ -8,6 +8,7 @@ uniform sampler2D tHDR;
 uniform sampler2D tLabels;
 uniform sampler2D tCoC;
 uniform sampler2D tDoF;
+uniform sampler2DArray tDebug;
 
 uniform Uniforms {
 	vec2 resolution;
@@ -42,6 +43,13 @@ void main() {
 		1.
 	);*/
 	vec2 uv = vUv;
+
+	vec2 debugUV = uv * 4.;
+
+	if (debugUV.x >= 0. && debugUV.x <= 1. && debugUV.y >= 0. && debugUV.y <= 1.) {
+		FragColor = vec4(texture(tDebug, vec3(debugUV, 0)).rrr, 1);
+		return;
+	}
 
 	vec4 labels = texture(tLabels, uv);
 

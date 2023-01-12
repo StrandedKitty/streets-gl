@@ -41,7 +41,7 @@ const Config = {
 	TerrainRingCount: 5,
 	TerrainRingSegmentCount: 64,
 	TerrainRingHoleSegmentCount: 32,
-	TerrainRingSize: 40075016.68 / (1 << 13),
+	TerrainRingSize: 40075016.68 / (1 << 12),
 	TerrainWaterMaskResolution: 32
 };
 

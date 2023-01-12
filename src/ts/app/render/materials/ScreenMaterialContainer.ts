@@ -35,6 +35,11 @@ export default class ScreenMaterialContainer extends MaterialContainer {
 					block: 'Uniforms',
 					type: RendererTypes.UniformType.Float2,
 					value: new Float32Array(2)
+				}, {
+					name: 'tDebug',
+					block: null,
+					type: RendererTypes.UniformType.Texture2DArray,
+					value: null
 				}
 			],
 			primitive: {

@@ -14,6 +14,13 @@ import Vec3 from "~/math/Vec3";
 import AtmosphereAerialPerspectiveMaterialContainer
 	from "~/app/render/materials/AtmosphereAerialPerspectiveMaterialContainer";
 import AtmosphereSkyboxMaterialContainer from "~/app/render/materials/AtmosphereSkyboxMaterialContainer";
+import TextureResource from "~/app/render/render-graph/resources/TextureResource";
+import AbstractRenderPass from "~/renderer/abstract-renderer/AbstractRenderPass";
+import AbstractTexture3D from "~/renderer/abstract-renderer/AbstractTexture3D";
+import {RendererTypes} from "~/renderer/RendererTypes";
+
+const AerialPerspectiveSlices = 16;
+const AerialPerspectiveSliceStep = 8;
 
 export default class AtmosphereLUTPass extends Pass<{
 	Transmittance: {
@@ -30,7 +37,7 @@ export default class AtmosphereLUTPass extends Pass<{
 	};
 	AerialPerspective: {
 		type: RG.InternalResourceType.Output;
-		resource: RenderPassResource;
+		resource: TextureResource;
 	};
 	Skybox: {
 		type: RG.InternalResourceType.Output;
@@ -44,6 +51,7 @@ export default class AtmosphereLUTPass extends Pass<{
 	private aerialPerspectiveMaterial: AbstractMaterial;
 	private skyboxMaterial: AbstractMaterial;
 	private staticLUTsReady: boolean = false;
+	private aerialPerspectiveRenderPass: AbstractRenderPass;
 
 	public constructor(manager: PassManager) {
 		super('AtmosphereLUTPass', manager, {
@@ -99,32 +107,54 @@ export default class AtmosphereLUTPass extends Pass<{
 
 		this.fullScreenTriangle.mesh.draw();
 
-		const aerialPerspectiveRenderPass = this.getPhysicalResource('AerialPerspective');
+		const aerialPerspectiveTexture = <AbstractTexture3D>this.getPhysicalResource('AerialPerspective');
 
 		this.aerialPerspectiveMaterial.getUniform('tTransmittanceLUT').value = transmittanceLUT;
 		this.aerialPerspectiveMaterial.getUniform('tMultipleScatteringLUT').value = multipleScatteringLUT;
-		this.aerialPerspectiveMaterial.getUniform<UniformMatrix4>('projectionMatrixInverse', 'MainBlock').value =
+		this.aerialPerspectiveMaterial.getUniform<UniformMatrix4>('projectionMatrixInverse', 'Common').value =
 			new Float32Array(camera.projectionMatrixInverse.values);
-		this.aerialPerspectiveMaterial.getUniform<UniformMatrix4>('viewMatrixInverse', 'MainBlock').value =
+		this.aerialPerspectiveMaterial.getUniform<UniformMatrix4>('viewMatrixInverse', 'Common').value =
 			new Float32Array(camera.matrixWorld.values);
-		this.aerialPerspectiveMaterial.getUniform<UniformFloat3>('cameraPosition', 'MainBlock').value = new Float32Array([
+		this.aerialPerspectiveMaterial.getUniform<UniformFloat3>('cameraPosition', 'Common').value = new Float32Array([
 			camera.position.x,
 			camera.position.y,
 			camera.position.z
 		]);
-		this.aerialPerspectiveMaterial.getUniform<UniformFloat3>('sunDirection', 'MainBlock').value = lightDirection;
-		this.aerialPerspectiveMaterial.updateUniformBlock('MainBlock');
+		this.aerialPerspectiveMaterial.getUniform<UniformFloat3>('sunDirection', 'Common').value = lightDirection;
+		this.aerialPerspectiveMaterial.updateUniformBlock('Common');
 
 		this.renderer.useMaterial(this.aerialPerspectiveMaterial);
 
-		for (let i = 0; i < 16; i++) {
-			this.aerialPerspectiveMaterial.getUniform<UniformFloat1>('sliceIndex', 'PerSlice').value[0] = i;
-			this.aerialPerspectiveMaterial.updateUniformBlock('PerSlice');
+		{
+			for (let i = 0; i < AerialPerspectiveSlices; i += AerialPerspectiveSliceStep) {
+				const colorAttachments = [];
 
-			aerialPerspectiveRenderPass.colorAttachments[0].slice = i;
-			this.renderer.beginRenderPass(aerialPerspectiveRenderPass);
+				for (let j = i; j < i + AerialPerspectiveSliceStep; j++) {
+					colorAttachments.push({
+						texture: aerialPerspectiveTexture,
+						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						storeOp: RendererTypes.AttachmentStoreOp.Store,
+						slice: j
+					});
+				}
 
-			this.fullScreenTriangle.mesh.draw();
+				if (!this.aerialPerspectiveRenderPass) {
+					this.aerialPerspectiveRenderPass = this.renderer.createRenderPass({
+						colorAttachments: colorAttachments
+					});
+				} else {
+					this.aerialPerspectiveRenderPass.colorAttachments.length = 0;
+					this.aerialPerspectiveRenderPass.colorAttachments.push(...colorAttachments);
+				}
+
+				this.renderer.beginRenderPass(this.aerialPerspectiveRenderPass);
+
+				this.aerialPerspectiveMaterial.getUniform<UniformFloat1>('sliceIndexOffset', 'PerDraw').value[0] = i;
+				this.aerialPerspectiveMaterial.updateUniformBlock('PerDraw');
+
+				this.fullScreenTriangle.mesh.draw();
+			}
 		}
 
 		const skyboxRenderPass = this.getPhysicalResource('Skybox');

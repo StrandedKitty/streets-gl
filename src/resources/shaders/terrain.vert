@@ -7,6 +7,8 @@ out vec4 vClipPosPrev;
 
 out vec2 vNormalUV;
 out vec2 vDetailUV;
+out vec3 vWaterUV;
+out vec2 vUv;
 out vec2 vMaskUV;
 out vec3 vNormal;
 out vec3 vPosition;
@@ -18,6 +20,8 @@ uniform PerMesh {
 	mat4 modelViewMatrixPrev;
 	vec3 transformHeight;
 	vec3 transformMask;
+	vec4 transformWater0;
+	vec4 transformWater1;
 	float size;
 	float segmentCount;
 	vec2 detailTextureOffset;
@@ -50,6 +54,8 @@ void main() {
 	vDetailUV = (heightUV * size + detailTextureOffset);
 	vMaskUV = transformMask.xy + heightUV * transformMask.z;
 	vMaskUV = vec2(vMaskUV.y, 1. - vMaskUV.x);
+
+	vUv = vec2(1. - uv.y, uv.x);
 
 	float height = texture(tRingHeight, vec3(uv * segmentCount / (segmentCount + 1.), levelId)).r;
 

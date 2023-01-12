@@ -4,20 +4,52 @@ import SceneSystem from "~/app/systems/SceneSystem";
 import MathUtils from "~/math/MathUtils";
 import Vec2 from "~/math/Vec2";
 import Config from "~/app/Config";
-import TerrainHeightTileSource from "~/app/world/terrain/TerrainHeightTileSource";
-import TerrainWaterTileSource from "~/app/world/terrain/TerrainWaterTileSource";
+import HeightTileSource from "~/app/world/terrain/HeightTileSource";
+import WaterTileSource from "~/app/world/terrain/WaterTileSource";
+import TileAreaLoader from "~/app/world/terrain/TileAreaLoader";
+
+export interface TerrainAreaLoaders {
+	water0: TileAreaLoader<WaterTileSource>;
+	water1: TileAreaLoader<WaterTileSource>;
+	height: TileAreaLoader<HeightTileSource>;
+}
 
 export default class TerrainSystem extends System {
-	public heightSourceTiles: Map<string, TerrainHeightTileSource> = new Map();
-	public waterSourceTiles: Map<string, TerrainWaterTileSource> = new Map();
+	public heightSourceTiles: Map<string, HeightTileSource> = new Map();
+	public waterSourceTiles: Map<string, WaterTileSource> = new Map();
 	public lastPivotPosition: Vec2 = null;
 	public lastPivotPositionMeters: Vec2 = null;
 	public lastHeightTilePivot: Vec2 = null;
 	public maskOriginMeters: Vec2 = new Vec2();
 	public maskOriginTiles: Vec2 = new Vec2();
+	public readonly areaLoaders: Readonly<TerrainAreaLoaders>;
 
 	public constructor(systemManager: SystemManager) {
 		super(systemManager);
+
+		this.areaLoaders = {
+			water0: new TileAreaLoader({
+				sourceClass: WaterTileSource,
+				zoom: 13,
+				maxStoredTiles: 100,
+				viewportSize: 4,
+				bufferSize: 2
+			}),
+			water1: new TileAreaLoader({
+				sourceClass: WaterTileSource,
+				zoom: 9,
+				maxStoredTiles: 100,
+				viewportSize: 4,
+				bufferSize: 2
+			}),
+			height: new TileAreaLoader({
+				sourceClass: HeightTileSource,
+				zoom: 11,
+				maxStoredTiles: 100,
+				viewportSize: 8,
+				bufferSize: 2
+			}),
+		};
 	}
 
 	public postInit(): void {
@@ -54,6 +86,11 @@ export default class TerrainSystem extends System {
 
 			currentStepX = Math.floor(currentStepX / 2);
 			currentStepY = Math.floor(currentStepY / 2);
+		}
+
+		const cameraPosition2D = new Vec2(camera.position.x, camera.position.z);
+		for (const areaLoader of Object.values(this.areaLoaders)) {
+			(<TileAreaLoader<any>>areaLoader).update(cameraPosition2D);
 		}
 
 		const heightMapCount = Config.TerrainHeightMapCount;
@@ -121,20 +158,33 @@ export default class TerrainSystem extends System {
 			ring.maskTextureTransform[0] = maskOffsetX;
 			ring.maskTextureTransform[1] = maskOffsetY;
 			ring.maskTextureTransform[2] = maskScale;
+
+			this.areaLoaders.water0.transformToArray(
+				ring.position.x - ring.size / 2,
+				ring.position.z - ring.size / 2,
+				ring.size,
+				ring.waterTextureTransform0
+			);
+			this.areaLoaders.water1.transformToArray(
+				ring.position.x - ring.size / 2,
+				ring.position.z - ring.size / 2,
+				ring.size,
+				ring.waterTextureTransform1
+			);
 		}
 	}
 
-	public getHeightTileSource(x: number, y: number): TerrainHeightTileSource {
+	public getHeightTileSource(x: number, y: number): HeightTileSource {
 		return this.heightSourceTiles.get(`${x} ${y}`);
 	}
 
-	public getWaterTileSource(x: number, y: number): TerrainWaterTileSource {
+	public getWaterTileSource(x: number, y: number): WaterTileSource {
 		return this.waterSourceTiles.get(`${x} ${y}`);
 	}
 
 	private fetchTileSources(x: number, y: number): void {
-		const height = new TerrainHeightTileSource(x, y, Config.TerrainHeightMapTileZoom);
-		const water = new TerrainWaterTileSource(x, y, Config.TerrainHeightMapTileZoom);
+		const height = new HeightTileSource(x, y, Config.TerrainHeightMapTileZoom);
+		const water = new WaterTileSource(x, y, Config.TerrainHeightMapTileZoom);
 
 		this.heightSourceTiles.set(`${x} ${y}`, height);
 		this.waterSourceTiles.set(`${x} ${y}`, water);

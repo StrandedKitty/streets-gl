@@ -2,6 +2,11 @@ import PBFPolygonParser, {PBFPolygon, PBFRing} from "~/app/world/universal-featu
 import {Tile as proto} from "~/app/world/universal-features/providers/pbf/vector_tile";
 import earcut from 'earcut';
 import Vec2 from "~/math/Vec2";
+import TileSource from "~/app/world/terrain/TileSource";
+import AbstractMesh from "~/renderer/abstract-renderer/AbstractMesh";
+import {RendererTypes} from "~/renderer/RendererTypes";
+import WaterMask from "~/app/objects/WaterMask";
+import AbstractRenderer from "~/renderer/abstract-renderer/AbstractRenderer";
 
 const Pbf = require('pbf');
 
@@ -12,16 +17,16 @@ const HalfTileOffsets = [
 	new Vec2(1, 1)
 ];
 
-export default class TerrainWaterTileSource {
-	public vertices: Float32Array = null;
-	private deleted: boolean = false;
+export default class WaterTileSource extends TileSource<Float32Array> {
+	private mesh: AbstractMesh = null;
 
-	public constructor(public x: number, public y: number, public zoom: number) {
+	public constructor(x: number, y: number, zoom: number) {
+		super(x, y, zoom);
 		this.load();
 	}
 
 	private async fetchTile(x: number, y: number, zoom: number, scale: number): Promise<PBFPolygon[]> {
-		const url = TerrainWaterTileSource.getURL(x, y, zoom);
+		const url = WaterTileSource.getURL(x, y, zoom);
 		const response = await fetch(url, {
 			method: 'GET'
 		});
@@ -70,7 +75,7 @@ export default class TerrainWaterTileSource {
 
 		const tiles = await this.fetchTile(this.x, this.y, this.zoom, 1);
 		const tris = this.polygonsToTriangles(tiles, 0, 0);
-		this.vertices = new Float32Array(tris);
+		this.data = new Float32Array(tris);
 	}
 
 	private polygonsToTriangles(polygons: PBFPolygon[], offsetX: number, offsetY: number): number[] {
@@ -80,7 +85,7 @@ export default class TerrainWaterTileSource {
 			const types: number[] = [];
 
 			for (const ring of polygon) {
-				types.push(this.isRingClockwise(ring) ? 0 : 1);
+				types.push(WaterTileSource.isRingClockwise(ring) ? 0 : 1);
 			}
 
 			for (let i = 0; i < types.length; i++) {
@@ -105,8 +110,8 @@ export default class TerrainWaterTileSource {
 
 				for (let j = 0; j < triangles.length; j++) {
 					vertices.push(
-						outer[triangles[j] * 2] + offsetX,
-						outer[triangles[j] * 2 + 1] + offsetY
+						outer[triangles[j] * 2 + 1] + offsetX,
+						outer[triangles[j] * 2] + offsetY
 					);
 				}
 			}
@@ -115,7 +120,21 @@ export default class TerrainWaterTileSource {
 		return vertices;
 	}
 
-	private isRingClockwise(ring: PBFRing): boolean {
+	public getMesh(renderer: AbstractRenderer): AbstractMesh {
+		if (!this.data) {
+			throw new Error();
+		}
+
+		if (!this.mesh) {
+			const waterMask = new WaterMask(this.data);
+			waterMask.updateMesh(renderer);
+			this.mesh = waterMask.mesh;
+		}
+
+		return this.mesh;
+	}
+
+	private static isRingClockwise(ring: PBFRing): boolean {
 		let sum = 0;
 
 		for (let i = 0; i < ring.length; i++) {

@@ -87,6 +87,10 @@ export default class Labels extends RenderableObject3D {
 		const visibleLabels: TileLabelBuffers[] = [];
 
 		for (const tile of tiles) {
+			if (!tile.buildings || !tile.buildings.inCameraFrustum(camera)) {
+				continue;
+			}
+
 			for (const labelBuffers of tile.labelBuffersList) {
 				const x = labelBuffers.x - camera.position.x;
 				const y = labelBuffers.y - camera.position.y;
@@ -113,7 +117,8 @@ export default class Labels extends RenderableObject3D {
 
 		const declutteredLabels: TileLabelBuffers[] = [];
 
-		for (const label of sortedLabels) {
+		for (let i = 0; i < Math.min(sortedLabels.length, 300); i++) {
+			const label = sortedLabels[i];
 			const p = Vec3.applyMatrix4(label.tempPosition, this.matrixWorld);
 			const projected = Vec3.project(p, camera);
 			const x = (projected.x * 0.5 + 0.5) * resolution.x;

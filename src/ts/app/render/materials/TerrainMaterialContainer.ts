@@ -48,6 +48,16 @@ export default class TerrainMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Float3,
 					value: new Float32Array(3)
 				}, {
+					name: 'transformWater0',
+					block: 'PerMesh',
+					type: RendererTypes.UniformType.Float4,
+					value: new Float32Array(4)
+				}, {
+					name: 'transformWater1',
+					block: 'PerMesh',
+					type: RendererTypes.UniformType.Float4,
+					value: new Float32Array(4)
+				}, {
 					name: 'size',
 					block: 'PerMesh',
 					type: RendererTypes.UniformType.Float1,
@@ -80,7 +90,7 @@ export default class TerrainMaterialContainer extends MaterialContainer {
 				}, {
 					name: 'tWater',
 					block: null,
-					type: RendererTypes.UniformType.Texture2D,
+					type: RendererTypes.UniformType.Texture2DArray,
 					value: null
 				}, {
 					name: 'tWaterMask',

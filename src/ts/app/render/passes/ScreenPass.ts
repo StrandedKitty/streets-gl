@@ -8,6 +8,7 @@ import FullScreenTriangle from "~/app/objects/FullScreenTriangle";
 import AbstractTexture2D from "~/renderer/abstract-renderer/AbstractTexture2D";
 import ScreenMaterialContainer from "~/app/render/materials/ScreenMaterialContainer";
 import {UniformFloat2} from "~/renderer/abstract-renderer/Uniform";
+import AbstractTexture2DArray from "~/renderer/abstract-renderer/AbstractTexture2DArray";
 
 export default class ScreenPass extends Pass<{
 	HDR: {
@@ -30,6 +31,10 @@ export default class ScreenPass extends Pass<{
 		type: RG.InternalResourceType.Output;
 		resource: RenderPassResource;
 	};
+	TerrainWater: {
+		type: RG.InternalResourceType.Input;
+		resource: RenderPassResource;
+	};
 }> {
 	private readonly material: AbstractMaterial;
 	private readonly fullScreenTriangle: FullScreenTriangle;
@@ -41,6 +46,7 @@ export default class ScreenPass extends Pass<{
 			CoC: {type: InternalResourceType.Input, resource: manager.getSharedResource('CoCAntialiased')},
 			DoF: {type: InternalResourceType.Input, resource: manager.getSharedResource('DoFBlurred')},
 			Output: {type: InternalResourceType.Output, resource: manager.getSharedResource('BackbufferRenderPass')},
+			TerrainWater: {type: InternalResourceType.Input, resource: manager.getSharedResource('TerrainWater')},
 		});
 
 		this.fullScreenTriangle = new FullScreenTriangle(this.renderer);
@@ -60,6 +66,7 @@ export default class ScreenPass extends Pass<{
 		this.material.getUniform('tLabels').value = labelsTexture;
 		this.material.getUniform('tCoC').value = cocTexture;
 		this.material.getUniform('tDoF').value = dofTexture;
+		this.material.getUniform('tDebug').value = <AbstractTexture2DArray>this.getPhysicalResource('TerrainWater').colorAttachments[0].texture;
 		this.material.getUniform<UniformFloat2>('resolution', 'Uniforms').value[0] = uiResolution.x;
 		this.material.getUniform<UniformFloat2>('resolution', 'Uniforms').value[1] = uiResolution.y;
 		this.material.updateUniformBlock('Uniforms');
