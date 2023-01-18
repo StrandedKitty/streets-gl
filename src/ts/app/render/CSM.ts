@@ -7,6 +7,7 @@ import Material, {UniformType} from "../../renderer/Material";
 import Texture2DArray from "../../renderer/Texture2DArray";
 import CSMCascadeCamera from "~/app/render/CSMCascadeCamera";
 import Config from "~/app/Config";
+import Mat4 from "~/math/Mat4";
 
 const ShadowCameraTopOffset = 2000;
 const FadeOffsetFactor = 250;
@@ -118,18 +119,22 @@ export default class CSM extends Object3D {
 			const worldSpaceFrustum = this.frustums[i].toSpace(this.camera.matrix);
 			const cascadeCamera = this.cascadeCameras[i];
 
-			cascadeCamera.updateMatrixWorldInverse();
+			const lightOrientationMatrix = Mat4.lookAt(new Vec3(), this.direction, new Vec3(0, 1, 0));
+			const lightOrientationMatrixInverse = Mat4.inverse(lightOrientationMatrix);
 
-			const lightSpaceFrustum = worldSpaceFrustum.toSpace(cascadeCamera.matrixWorldInverse);
+			const texelSize = (cascadeCamera.right - cascadeCamera.left) / this.resolution;
+
+			const lightSpaceFrustum = worldSpaceFrustum.toSpace(lightOrientationMatrixInverse);
 			const bbox = (new AABB()).fromFrustum(lightSpaceFrustum);
 
-			const bboxDims = bbox.getSize();
-			const bboxSideSize = Math.max(bboxDims.x, bboxDims.y);
+			const bboxSideSize = Vec3.distance(lightSpaceFrustum.vertices.far[0], lightSpaceFrustum.vertices.far[2]);
 			let bboxCenter = bbox.getCenter();
 
 			bboxCenter.z = bbox.max.z + ShadowCameraTopOffset;
+			bboxCenter.x = Math.floor(bboxCenter.x / texelSize) * texelSize;
+			bboxCenter.y = Math.floor(bboxCenter.y / texelSize) * texelSize;
 
-			bboxCenter = Vec3.applyMatrix4(bboxCenter, cascadeCamera.matrixWorld);
+			bboxCenter = Vec3.applyMatrix4(bboxCenter, lightOrientationMatrix);
 
 			cascadeCamera.left = -bboxSideSize / 2;
 			cascadeCamera.right = bboxSideSize / 2;

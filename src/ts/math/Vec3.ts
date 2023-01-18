@@ -102,6 +102,10 @@ export default class Vec3 {
 		return a.x * b.x + a.y * b.y + a.z * b.z;
 	}
 
+	public static distance(a: Vec3, b: Vec3): number {
+		return Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
+	}
+
 	public static lerp(v1: Vec3, v2: Vec3, amount: number): Vec3 {
 		const dst = new Vec3();
 		dst.x = (1 - amount) * v1.x + amount * v2.x;
