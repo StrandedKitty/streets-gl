@@ -11,6 +11,7 @@ export interface ColorClearValue {
 export interface Attachment {
 	texture: AbstractTexture;
 	slice?: number;
+	level?: number;
 	loadOp: RendererTypes.AttachmentLoadOp;
 	storeOp: RendererTypes.AttachmentStoreOp;
 }
@@ -38,6 +39,7 @@ export default interface AbstractRenderPass {
 		targetColorAttachment?: number;
 		copyColor?: boolean;
 		copyDepth?: boolean;
+		linearFilter?: boolean;
 	}): void;
 	readColorAttachmentPixel<T extends TypedArray>(attachmentId: number, buffer: T, x: number, y: number, width?: number, height?: number): Promise<void>;
 	clearAttachments(colorAttachmentIds: number[], clearDepth: boolean): void;

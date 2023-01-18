@@ -20,6 +20,8 @@ export default class TextureResourceDescriptor extends ResourceDescriptor {
 	public format: RendererTypes.TextureFormat;
 	public flipY: boolean;
 	public mipmaps: boolean;
+	public isImmutable: boolean;
+	public immutableLevels: number;
 
 	public constructor(
 		{
@@ -34,6 +36,8 @@ export default class TextureResourceDescriptor extends ResourceDescriptor {
 			format = RendererTypes.TextureFormat.RGBA8Unorm,
 			flipY = false,
 			mipmaps = false,
+			isImmutable = false,
+			immutableLevels
 		}: {
 			type: TextureResourceType;
 			width: number;
@@ -46,6 +50,8 @@ export default class TextureResourceDescriptor extends ResourceDescriptor {
 			format?: RendererTypes.TextureFormat;
 			flipY?: boolean;
 			mipmaps?: boolean;
+			isImmutable?: boolean;
+			immutableLevels?: number;
 		}
 	) {
 		super();
@@ -61,6 +67,8 @@ export default class TextureResourceDescriptor extends ResourceDescriptor {
 		this.format = format;
 		this.flipY = flipY;
 		this.mipmaps = mipmaps;
+		this.isImmutable = isImmutable;
+		this.immutableLevels = immutableLevels;
 	}
 
 	public setSize(width: number, height: number, depth: number = 1): void {

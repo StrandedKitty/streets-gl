@@ -12,6 +12,10 @@ export interface AbstractTextureParams {
 	wrapR?: RendererTypes.TextureWrap;
 	format: RendererTypes.TextureFormat;
 	flipY?: boolean;
+	baseLevel?: number;
+	maxLevel?: number;
+	isImmutable?: boolean;
+	immutableLevels?: number;
 	mipmaps: boolean;
 }
 
@@ -27,7 +31,12 @@ export default interface AbstractTexture {
 	wrapR: RendererTypes.TextureWrap;
 	format: RendererTypes.TextureFormat;
 	flipY: boolean;
+	baseLevel: number;
+	maxLevel: number;
+	isImmutable: boolean;
+	immutableLevels: number;
 	mipmaps: boolean;
 	generateMipmaps(): void;
+	updateBaseAndMaxLevel(): void;
 	delete(): void;
 }

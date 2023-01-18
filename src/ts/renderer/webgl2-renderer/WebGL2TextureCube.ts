@@ -15,6 +15,7 @@ export default class WebGL2TextureCube extends WebGL2Texture implements Abstract
 		this.updateWrapping();
 		this.updateFilters();
 		this.updateAnisotropy();
+		this.updateBaseAndMaxLevel();
 
 		this.updateFromData();
 	}

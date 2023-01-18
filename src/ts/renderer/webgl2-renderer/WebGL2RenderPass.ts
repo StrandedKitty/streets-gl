@@ -63,13 +63,15 @@ export default class WebGL2RenderPass implements AbstractRenderPass {
 			sourceColorAttachment = 0,
 			targetColorAttachment = 0,
 			copyColor = false,
-			copyDepth = false
+			copyDepth = false,
+			linearFilter = false
 		}: {
 			destination: WebGL2RenderPass;
 			sourceColorAttachment?: number;
 			targetColorAttachment?: number;
 			copyColor?: boolean;
 			copyDepth?: boolean;
+			linearFilter?: boolean;
 		}
 	): void {
 		return this.framebuffer.copyAttachmentsToFramebuffer({
@@ -77,7 +79,8 @@ export default class WebGL2RenderPass implements AbstractRenderPass {
 			sourceColorAttachment,
 			targetColorAttachment,
 			copyColor,
-			copyDepth
+			copyDepth,
+			linearFilter
 		});
 	}
 

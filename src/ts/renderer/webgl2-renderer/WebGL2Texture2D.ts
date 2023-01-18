@@ -15,6 +15,7 @@ export default class WebGL2Texture2D extends WebGL2Texture implements AbstractTe
 		this.updateWrapping();
 		this.updateFilters();
 		this.updateAnisotropy();
+		this.updateBaseAndMaxLevel();
 
 		this.updateFromData();
 	}
@@ -45,6 +46,10 @@ export default class WebGL2Texture2D extends WebGL2Texture implements AbstractTe
 	private writeFromBuffer(data: TypedArray): void {
 		const {format, internalFormat, type} = WebGL2Texture.convertFormatToWebGLConstants(this.format);
 
-		this.gl.texImage2D(this.textureTypeConstant, 0, internalFormat, this.width, this.height, 0, format, type, data);
+		if (this.isImmutable) {
+			this.gl.texStorage2D(this.textureTypeConstant, this.immutableLevels, internalFormat, this.width, this.height);
+		} else {
+			this.gl.texImage2D(this.textureTypeConstant, 0, internalFormat, this.width, this.height, 0, format, type, data);
+		}
 	}
 }

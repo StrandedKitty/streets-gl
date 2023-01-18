@@ -20,6 +20,10 @@ export default class WebGL2Framebuffer {
 		color: [],
 		depth: -1
 	};
+	private attachedLevels: {color: number[]; depth: number} = {
+		color: [],
+		depth: -1
+	};
 
 	public constructor(renderer: WebGL2Renderer, colorAttachments: ColorAttachment[], depthAttachment: DepthAttachment) {
 		this.renderer = renderer;
@@ -39,6 +43,13 @@ export default class WebGL2Framebuffer {
 		if (this.colorAttachments.length !== 0) {
 			this.width = this.colorAttachments[0].texture.width;
 			this.height = this.colorAttachments[0].texture.height;
+
+			const targetMipmapLevel = this.colorAttachments[0].level || 0;
+
+			if (targetMipmapLevel > 0) {
+				this.width = Math.floor(this.width / (2 ** targetMipmapLevel));
+				this.height = Math.floor(this.height / (2 ** targetMipmapLevel));
+			}
 		} else if (this.depthAttachment) {
 			this.width = this.depthAttachment.texture.width;
 			this.height = this.depthAttachment.texture.height;
@@ -51,19 +62,29 @@ export default class WebGL2Framebuffer {
 		let shouldUpdateAttachments: boolean = false;
 
 		for (let i = 0; i < this.colorAttachments.length; i++) {
-			const layer = this.colorAttachments[i].slice;
-			const lastLayer = this.attachedLayers.color[i];
+			const attachment = this.colorAttachments[i];
+			const sliceUpdated = attachment.slice !== undefined && (
+				attachment.slice !== this.attachedLayers.color[i]
+			);
+			const levelUpdated = attachment.level !== undefined && (
+				attachment.level !== this.attachedLevels.color[i]
+			);
 
-			if (layer !== lastLayer) {
+			if (sliceUpdated || levelUpdated) {
 				shouldUpdateAttachments = true;
 			}
 		}
 
 		if (this.depthAttachment) {
-			const layer = this.depthAttachment.slice;
-			const lastLayer = this.attachedLayers.depth;
+			const attachment = this.depthAttachment;
+			const sliceUpdated = attachment.slice !== undefined && (
+				attachment.slice !== this.attachedLayers.depth
+			);
+			const levelUpdated = attachment.level !== undefined && (
+				attachment.level !== this.attachedLevels.depth
+			);
 
-			if (layer !== lastLayer) {
+			if (sliceUpdated || levelUpdated) {
 				shouldUpdateAttachments = true;
 			}
 		}
@@ -96,13 +117,15 @@ export default class WebGL2Framebuffer {
 			const attachmentConstant = WebGL2Constants.COLOR_ATTACHMENT0 + i;
 			const texture = attachment.texture;
 
+			const layer = attachment.slice ?? 0;
+			const level = attachment.level ?? 0;
+
 			if (texture instanceof WebGL2Texture2DArray || texture instanceof WebGL2Texture3D) {
-				this.gl.framebufferTextureLayer(WebGL2Constants.FRAMEBUFFER, attachmentConstant, texture.WebGLTexture, 0, attachment.slice);
-				this.attachedLayers.color[i] = attachment.slice;
+				this.gl.framebufferTextureLayer(WebGL2Constants.FRAMEBUFFER, attachmentConstant, texture.WebGLTexture, level, layer);
 			} else if (texture instanceof WebGL2TextureCube) {
-				this.gl.framebufferTexture2D(WebGL2Constants.FRAMEBUFFER, attachmentConstant, WebGL2Constants.TEXTURE_CUBE_MAP_POSITIVE_X + attachment.slice, texture.WebGLTexture, 0);
+				this.gl.framebufferTexture2D(WebGL2Constants.FRAMEBUFFER, attachmentConstant, WebGL2Constants.TEXTURE_CUBE_MAP_POSITIVE_X + attachment.slice, texture.WebGLTexture, level);
 			} else {
-				this.gl.framebufferTexture2D(WebGL2Constants.FRAMEBUFFER, attachmentConstant, WebGL2Constants.TEXTURE_2D, (<WebGL2Texture2D>texture).WebGLTexture, 0);
+				this.gl.framebufferTexture2D(WebGL2Constants.FRAMEBUFFER, attachmentConstant, WebGL2Constants.TEXTURE_2D, (<WebGL2Texture2D>texture).WebGLTexture, level);
 			}
 
 			attachments.push(attachmentConstant);
@@ -111,12 +134,18 @@ export default class WebGL2Framebuffer {
 		if (this.depthAttachment) {
 			const texture = this.depthAttachment.texture;
 
+			const layer = this.depthAttachment.slice ?? 0;
+			const level = this.depthAttachment.level ?? 0;
+
 			if (texture instanceof WebGL2Texture2DArray || texture instanceof WebGL2Texture3D) {
-				this.gl.framebufferTextureLayer(WebGL2Constants.FRAMEBUFFER, WebGL2Constants.DEPTH_ATTACHMENT, texture.WebGLTexture, 0, this.depthAttachment.slice);
+				this.gl.framebufferTextureLayer(WebGL2Constants.FRAMEBUFFER, WebGL2Constants.DEPTH_ATTACHMENT, texture.WebGLTexture, level, layer);
 				this.attachedLayers.depth = this.depthAttachment.slice;
 			} else {
-				this.gl.framebufferTexture2D(WebGL2Constants.FRAMEBUFFER, WebGL2Constants.DEPTH_ATTACHMENT, WebGL2Constants.TEXTURE_2D, (<WebGL2Texture2D>texture).WebGLTexture, 0);
+				this.gl.framebufferTexture2D(WebGL2Constants.FRAMEBUFFER, WebGL2Constants.DEPTH_ATTACHMENT, WebGL2Constants.TEXTURE_2D, (<WebGL2Texture2D>texture).WebGLTexture, level);
 			}
+
+			this.attachedLayers.depth = layer;
+			this.attachedLevels.depth = level;
 		}
 
 		this.gl.drawBuffers(attachments);
@@ -141,13 +170,15 @@ export default class WebGL2Framebuffer {
 			sourceColorAttachment = 0,
 			targetColorAttachment = 0,
 			copyColor = false,
-			copyDepth = false
+			copyDepth = false,
+			linearFilter = false
 		}: {
 			destination: WebGL2Framebuffer;
 			sourceColorAttachment?: number;
 			targetColorAttachment?: number;
 			copyColor?: boolean;
 			copyDepth?: boolean;
+			linearFilter?: boolean;
 		}
 	): void {
 		this.gl.bindFramebuffer(WebGL2Constants.READ_FRAMEBUFFER, this.WebGLFramebuffer);
@@ -156,11 +187,13 @@ export default class WebGL2Framebuffer {
 		this.gl.readBuffer(WebGL2Constants.COLOR_ATTACHMENT0 + sourceColorAttachment);
 		this.gl.drawBuffers(this.buildAttachmentsArray(targetColorAttachment));
 
+		const filter =  linearFilter ? WebGL2Constants.LINEAR : WebGL2Constants.NEAREST;
+
 		if (copyColor) {
 			this.gl.blitFramebuffer(
 				0, 0, this.width, this.height,
 				0, 0, destination.width, destination.height,
-				WebGL2Constants.COLOR_BUFFER_BIT, WebGL2Constants.NEAREST
+				WebGL2Constants.COLOR_BUFFER_BIT, filter
 			);
 		}
 

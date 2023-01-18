@@ -17,6 +17,7 @@ export default class WebGL2Texture3D extends WebGL2Texture implements AbstractTe
 		this.updateWrapping();
 		this.updateFilters();
 		this.updateAnisotropy();
+		this.updateBaseAndMaxLevel();
 
 		this.updateFromData();
 	}

@@ -15,7 +15,11 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 	public wrapR: RendererTypes.TextureWrap;
 	public format: RendererTypes.TextureFormat;
 	public flipY: boolean;
+	public baseLevel: number;
+	public maxLevel: number;
 	public mipmaps: boolean;
+	public isImmutable: boolean;
+	public immutableLevels: number;
 	protected abstract textureTypeConstant: number;
 	protected renderer: WebGL2Renderer;
 	protected gl: WebGL2RenderingContext;
@@ -37,7 +41,11 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 			wrapR = wrap,
 			format,
 			flipY = false,
-			mipmaps = false
+			baseLevel,
+			maxLevel,
+			mipmaps = false,
+			isImmutable = false,
+			immutableLevels
 		}: AbstractTextureParams
 	) {
 		this.width = width;
@@ -51,7 +59,11 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 		this.wrapR = wrapR;
 		this.format = format;
 		this.flipY = flipY;
+		this.baseLevel = baseLevel;
+		this.maxLevel = maxLevel;
 		this.mipmaps = mipmaps;
+		this.isImmutable = isImmutable;
+		this.immutableLevels = immutableLevels;
 
 		this.renderer = renderer;
 		this.gl = renderer.gl;
@@ -90,6 +102,18 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 		this.renderer.bindTexture(this);
 		this.gl.texParameteri(this.textureTypeConstant, WebGL2Constants.TEXTURE_MIN_FILTER, minFilterConstant);
 		this.gl.texParameteri(this.textureTypeConstant, WebGL2Constants.TEXTURE_MAG_FILTER, magFilterConstant);
+	}
+
+	public updateBaseAndMaxLevel(): void {
+		this.renderer.bindTexture(this);
+
+		if (this.baseLevel !== undefined) {
+			this.gl.texParameteri(this.textureTypeConstant, WebGL2Constants.TEXTURE_BASE_LEVEL, this.baseLevel);
+		}
+
+		if (this.maxLevel !== undefined) {
+			this.gl.texParameteri(this.textureTypeConstant, WebGL2Constants.TEXTURE_MAX_LEVEL, this.maxLevel);
+		}
 	}
 
 	public updateFlipY(): void {

@@ -19,6 +19,7 @@ export default class WebGL2Texture2DArray extends WebGL2Texture implements Abstr
 		this.updateWrapping();
 		this.updateFilters();
 		this.updateAnisotropy();
+		this.updateBaseAndMaxLevel();
 
 		this.updateFromData();
 	}
