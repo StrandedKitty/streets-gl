@@ -1,12 +1,12 @@
 import FontJSON from "../../../resources/Inter-Regular.json";
-// @ts-ignore
-import * as createLayout from 'layout-bmfont-text';
-import {getIndices, getUvs, getPositions} from '../world/geometry/FontGeometryGenerator';
 import Vec3 from "~/math/Vec3";
+import {LayoutGenerator} from "~/bmfont";
 
+const FontSize = 12;
+const LineHeight = 1.25;
 const LabelWidth = 200;
-const SDFTextureWidth = 256;
-const SDFTextureHeight = 256;
+
+const textGenerator = new LayoutGenerator(FontJSON as any);
 
 export default class TileLabelBuffers {
 	public positionBuffer: Float32Array;
@@ -48,32 +48,29 @@ export default class TileLabelBuffers {
 	}
 
 	public updateBuffers(): void {
-		const layout = createLayout({
-			font: FontJSON,
+		const layout2 = textGenerator.layout({
 			text: this.text,
-			width: LabelWidth,
-			letterSpacing: 1,
-			align: 'center'
+			width: LabelWidth / FontSize,
+			letterSpacing: 0.1,
+			align: 'center',
+			lineHeight: LineHeight
 		});
 
-		const positions = getPositions(layout.glyphs);
-		this.vertexCount = positions.length / 2;
-		this.uvBuffer = getUvs(layout.glyphs, SDFTextureWidth, SDFTextureHeight, false);
-		this.indexBuffer = new Uint32Array(getIndices([], {
-			clockwise: true,
-			type: 'uint32',
-			count: layout.glyphs.length,
-		}));
+		this.positionBuffer = new Float32Array(layout2.verts);
+		this.uvBuffer = new Float32Array(layout2.uvs);
+		this.indexBuffer = new Uint32Array(layout2.indices);
 
-		this.positionBuffer = new Float32Array(this.vertexCount * 3);
+		for (let i = 0; i < this.positionBuffer.length; i += 2) {
+			this.positionBuffer[i] *= 12;
+			this.positionBuffer[i + 1] *= 12;
 
-		for (let i = 0, j = 0; i < this.positionBuffer.length; i += 3, j += 2) {
-			this.positionBuffer[i] = positions[j] - LabelWidth / 2;
-			this.positionBuffer[i + 1] = -positions[j + 1] + 16;
-			this.positionBuffer[i + 2] = 0;
+			this.positionBuffer[i] = this.positionBuffer[i] - LabelWidth / 2;
+			this.positionBuffer[i + 1] += (layout2.lineCount - 0.5) * FontSize * 1.25;
 		}
 
-		this.width = layout.width;
-		this.height = layout.height;
+		this.vertexCount = this.positionBuffer.length / 2;
+
+		this.width = LabelWidth;
+		this.height = layout2.lineCount * LineHeight * FontSize;
 	}
 }

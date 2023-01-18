@@ -1,6 +1,6 @@
 #include <versionPrecision>
 
-in vec3 position;
+in vec2 position;
 in vec3 offset;
 in vec2 uv;
 
@@ -19,7 +19,7 @@ void main() {
 	vDistance = -(modelViewMatrix * vec4(offset, 1)).z;
 
 	float scale = vDistance / resolution.y / projectionMatrix[1][1] * 2.;
-	vec4 cameraSpacePosition = modelViewMatrix * vec4(offset, 1) + vec4((modelViewMatrixNoRotation * vec4(position * scale, 1.0)).xyz, 0.);
+	vec4 cameraSpacePosition = modelViewMatrix * vec4(offset, 1) + vec4((modelViewMatrixNoRotation * vec4(position * scale, 0, 1)).xyz, 0.);
 
 	gl_Position = projectionMatrix * cameraSpacePosition;
 }

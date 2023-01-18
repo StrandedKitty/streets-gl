@@ -45,7 +45,7 @@ export default class Labels extends RenderableObject3D {
 				attributes: [
 					renderer.createAttribute({
 						name: 'position',
-						size: 3,
+						size: 2,
 						type: RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
