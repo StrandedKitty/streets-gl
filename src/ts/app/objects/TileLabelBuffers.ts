@@ -61,11 +61,11 @@ export default class TileLabelBuffers {
 		this.indexBuffer = new Uint32Array(layout2.indices);
 
 		for (let i = 0; i < this.positionBuffer.length; i += 2) {
-			this.positionBuffer[i] *= 12;
-			this.positionBuffer[i + 1] *= 12;
+			this.positionBuffer[i] *= FontSize;
+			this.positionBuffer[i + 1] *= FontSize;
 
 			this.positionBuffer[i] = this.positionBuffer[i] - LabelWidth / 2;
-			this.positionBuffer[i + 1] += (layout2.lineCount - 0.5) * FontSize * 1.25;
+			this.positionBuffer[i + 1] += (layout2.lineCount - 0.5) * FontSize * LineHeight;
 		}
 
 		this.vertexCount = this.positionBuffer.length / 2;

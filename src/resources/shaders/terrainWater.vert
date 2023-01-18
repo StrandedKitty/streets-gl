@@ -1,5 +1,5 @@
-#version 300 es
-precision highp float;
+#include <versionPrecision>
+
 in vec2 position;
 
 out vec2 vUv;
