@@ -52,8 +52,8 @@ export default class SSAOBlurMaterialContainer extends MaterialContainer {
 					dstFactor: RendererTypes.BlendFactor.Zero
 				}
 			},
-			vertexShaderSource: Shaders.bilateralBlur.vertex,
-			fragmentShaderSource: Shaders.bilateralBlur.fragment
+			vertexShaderSource: Shaders.ssaoBlur.vertex,
+			fragmentShaderSource: Shaders.ssaoBlur.fragment
 		});
 	}
 }

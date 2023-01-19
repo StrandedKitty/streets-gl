@@ -8,6 +8,7 @@ export type SettingsValues = Record<string, SettingsValuesEntry>;
 export type SettingsConfigEntryType = {
 	label: string;
 	parent?: string;
+	parentStatusCondition?: string[];
 	status?: string[];
 	statusLabels?: string[];
 	statusDefault?: string;
@@ -54,12 +55,14 @@ const SettingsConfig: SettingsConfigType = {
 	dofAperture: {
 		label: 'Aperture',
 		parent: 'dof',
+		parentStatusCondition: ['low', 'high'],
 		selectRange: [0.001, 1, 0.001],
 		selectRangeDefault: 0.1
 	},
 	dofMode: {
 		label: 'Focusing mode',
 		parent: 'dof',
+		parentStatusCondition: ['low', 'high'],
 		status: ['center', 'ground', 'cursor'],
 		statusLabels: ['Screen center', 'Ground', 'Cursor position'],
 		statusDefault: 'center'

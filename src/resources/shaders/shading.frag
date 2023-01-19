@@ -326,6 +326,7 @@ void main() {
 
 	float shadowFactor = 1.;
 
+	#if SHADOW_ENABLED == 1
 	for(int i = 0; i < SHADOW_CASCADES; i++) {
 		if(-position.z > CSMSplits[i].x && -position.z <= CSMSplits[i].y) {
 			float shadowValue = 1. - getShadowFactorForCascade(i, worldPosition + worldNormal * CSMBias[i].y);
@@ -342,6 +343,7 @@ void main() {
 			shadowFactor -= shadowValue;
 		}
 	}
+	#endif
 
 	Light light = Light(
 		CSMLightDirectionAndIntensity.xyz,

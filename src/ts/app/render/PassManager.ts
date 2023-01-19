@@ -13,6 +13,7 @@ import Vec2 from "~/math/Vec2";
 import MapTimeSystem from "~/app/systems/MapTimeSystem";
 import Config from "~/app/Config";
 import TextureResource from "~/app/render/render-graph/resources/TextureResource";
+import SettingsManager from "~/app/ui/SettingsManager";
 
 interface SharedResources {
 	BackbufferRenderPass: RenderPassResource;
@@ -41,13 +42,21 @@ interface SharedResources {
 	CoCHistory: RenderPassResource;
 	CoCAntialiased: RenderPassResource;
 	CoCWithColorDownscaled: RenderPassResource;
-	DoF: RenderPassResource;
+	DoFRaw: RenderPassResource;
 	DoFBlurred: RenderPassResource;
+	DoF: RenderPassResource;
 	TerrainHeight: RenderPassResource;
 	TerrainNormal: RenderPassResource;
 	TerrainWater: RenderPassResource;
 	TerrainTileMask: RenderPassResource;
 	TerrainRingHeight: RenderPassResource;
+	BloomHighLuminosity: RenderPassResource;
+	Bloom: RenderPassResource;
+}
+
+interface SharedResourcesMap {
+	set<K extends keyof SharedResources>(key: K, value: SharedResources[K]): this;
+	get<K extends keyof SharedResources>(key: K): SharedResources[K];
 }
 
 export default class PassManager {
@@ -57,7 +66,7 @@ export default class PassManager {
 	public readonly renderGraph: RG.RenderGraph;
 	public passes: Set<Pass> = new Set();
 	private passMap: Map<string, Pass> = new Map();
-	public sharedResources: Map<keyof SharedResources, SharedResources[keyof SharedResources]> = new Map();
+	public sharedResources: SharedResourcesMap = new Map();
 
 	public constructor(systemManager: SystemManager, renderer: AbstractRenderer, resourceFactory: RenderGraphResourceFactory, renderGraph: RG.RenderGraph) {
 		this.systemManager = systemManager;
@@ -65,19 +74,20 @@ export default class PassManager {
 		this.resourceFactory = resourceFactory;
 		this.renderGraph = renderGraph;
 
-
 		this.initSharedResources();
 		this.resize();
 	}
 
-	public addPass<T extends Pass>(pass: T): void {
-		if (this.passMap.has(pass.name)) {
-			throw new Error('Each pass must have a unique name value');
-		}
+	public addPasses(...passes: Pass[]): void {
+		for (const pass of passes) {
+			if (this.passMap.has(pass.name)) {
+				throw new Error('Each pass must have a unique name value');
+			}
 
-		this.passes.add(pass);
-		this.passMap.set(pass.name, pass);
-		this.renderGraph.addPass(pass);
+			this.passes.add(pass);
+			this.passMap.set(pass.name, pass);
+			this.renderGraph.addPass(pass);
+		}
 	}
 
 	public getPass(passName: string): Pass {
@@ -85,7 +95,6 @@ export default class PassManager {
 	}
 
 	public getSharedResource<K extends keyof SharedResources>(name: K): SharedResources[K] {
-		// @ts-ignore
 		return this.sharedResources.get(name);
 	}
 
@@ -101,835 +110,948 @@ export default class PassManager {
 		return this.systemManager.getSystem(MapTimeSystem);
 	}
 
+	public listenToSettings(): void {
+		const updateDoFAndBloom = (): void => {
+			const dofEnabled = SettingsManager.getSetting('dof').statusValue !== 'off';
+			const bloomEnabled = SettingsManager.getSetting('bloom').statusValue !== 'off';
+			let screenPassHDRResource: RenderPassResource;
+			let bloomPassColorResource: RenderPassResource;
+
+			if (bloomEnabled) {
+				screenPassHDRResource = this.getSharedResource('Bloom');
+			} else if (dofEnabled) {
+				screenPassHDRResource = this.getSharedResource('DoF');
+			} else {
+				screenPassHDRResource = this.getSharedResource('HDRAntialiased');
+			}
+
+			if (dofEnabled) {
+				bloomPassColorResource = this.getSharedResource('DoF');
+			} else {
+				bloomPassColorResource = this.getSharedResource('HDRAntialiased');
+			}
+
+			this.getPass('ScreenPass').setResource('HDR', screenPassHDRResource);
+			this.getPass('BloomPass').setResource('Color', bloomPassColorResource);
+		};
+
+		SettingsManager.onSettingChange('ssao', ({statusValue}) => {
+			const shadingPassSSAOResource = statusValue === 'on' ? this.getSharedResource('SSAOResult') : null;
+			this.getPass('ShadingPass').setResource('SSAO', shadingPassSSAOResource);
+		});
+		SettingsManager.onSettingChange('shadows', ({statusValue}) => {
+			const shadingPassShadowMapsResource = statusValue !== 'off' ? this.getSharedResource('ShadowMaps') : null;
+			this.getPass('ShadingPass').setResource('ShadowMaps', shadingPassShadowMapsResource);
+		});
+		SettingsManager.onSettingChange('dof', () => {
+			updateDoFAndBloom();
+		});
+		SettingsManager.onSettingChange('bloom', () => {
+			updateDoFAndBloom();
+		});
+		SettingsManager.onSettingChange('ssr', ({statusValue}) => {
+			const shadingPassSSRResource = statusValue !== 'off' ? this.getSharedResource('SSR') : null;
+			this.getPass('ShadingPass').setResource('SSR', shadingPassSSRResource);
+
+			this.getSharedResource('SSR').isUsedExternally = statusValue !== 'off';
+		});
+		SettingsManager.onSettingChange('labels', ({statusValue}) => {
+			const screenPassLabels = statusValue === 'on' ? this.getSharedResource('Labels') : null;
+			this.getPass('ScreenPass').setResource('Labels', screenPassLabels);
+		});
+	}
+
 	private initSharedResources(): void {
-		this.sharedResources.set('BackbufferRenderPass', this.resourceFactory.createRenderPassResource({
-			name: 'BackbufferRenderPass',
-			isTransient: true,
-			isUsedExternally: true,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: []
-			})
-		}));
-
-		this.sharedResources.set('GBufferRenderPass', this.resourceFactory.createRenderPassResource({
-			name: 'GBufferRenderPass',
-			isTransient: true,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
+		const resourcesList: SharedResources = {
+			BackbufferRenderPass: this.resourceFactory.createRenderPassResource({
+				name: 'BackbufferRenderPass',
+				isTransient: true,
+				isUsedExternally: true,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: []
+				})
+			}),
+			GBufferRenderPass: this.resourceFactory.createRenderPassResource({
+				name: 'GBufferRenderPass',
+				isTransient: true,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA8Unorm,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 1},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}, {
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA16Float,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 1},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}, {
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA8Unorm,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}, {
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA32Float,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}, {
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.R32Uint,
+								minFilter: RendererTypes.MinFilter.Nearest,
+								magFilter: RendererTypes.MagFilter.Nearest,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					],
+					depthAttachment: {
 						texture: new TextureResourceDescriptor({
 							type: TextureResourceType.Texture2D,
 							width: 1,
 							height: 1,
-							format: RendererTypes.TextureFormat.RGBA8Unorm,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 1},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}, {
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.RGBA16Float,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 1},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}, {
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.RGBA8Unorm,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 0},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}, {
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.RGBA32Float,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 0},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}, {
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.R32Uint,
+							format: RendererTypes.TextureFormat.Depth32Float,
 							minFilter: RendererTypes.MinFilter.Nearest,
 							magFilter: RendererTypes.MagFilter.Nearest,
 							mipmaps: false
 						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 0},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				],
-				depthAttachment: {
-					texture: new TextureResourceDescriptor({
-						type: TextureResourceType.Texture2D,
-						width: 1,
-						height: 1,
-						format: RendererTypes.TextureFormat.Depth32Float,
-						minFilter: RendererTypes.MinFilter.Nearest,
-						magFilter: RendererTypes.MagFilter.Nearest,
-						mipmaps: false
-					}),
-					clearValue: 1,
-					loadOp: RendererTypes.AttachmentLoadOp.Clear,
-					storeOp: RendererTypes.AttachmentStoreOp.Store
-				}
-			})
-		}));
-
-		this.sharedResources.set('ShadowMaps', this.resourceFactory.createRenderPassResource({
-			name: 'ShadowMaps',
-			isTransient: true,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [],
-				depthAttachment: {
-					texture: new TextureResourceDescriptor({
-						type: TextureResourceType.Texture2DArray,
-						width: 1,
-						height: 1,
-						depth: 1,
-						format: RendererTypes.TextureFormat.Depth32Float,
-						minFilter: RendererTypes.MinFilter.Nearest,
-						magFilter: RendererTypes.MagFilter.Nearest,
-						mipmaps: false
-					}),
-					slice: 0,
-					clearValue: 1,
-					loadOp: RendererTypes.AttachmentLoadOp.Clear,
-					storeOp: RendererTypes.AttachmentStoreOp.Store
-				}
-			})
-		}));
-
-		this.sharedResources.set('HDR', this.resourceFactory.createRenderPassResource({
-			name: 'HDR',
-			isTransient: true,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.RGBA32Float,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 1},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-
-		this.sharedResources.set('TAAHistory', this.resourceFactory.createRenderPassResource({
-			name: 'TAAHistory',
-			isTransient: false,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.RGBA32Float,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 1},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-
-		this.sharedResources.set('HDRAntialiased', this.resourceFactory.createRenderPassResource({
-			name: 'HDRAntialiased',
-			isTransient: true,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.RGBA32Float,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 1},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-
-		this.sharedResources.set('SSAO', this.resourceFactory.createRenderPassResource({
-			name: 'SSAO',
-			isTransient: true,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.RGBA8Unorm,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 1},
+						clearValue: 1,
 						loadOp: RendererTypes.AttachmentLoadOp.Clear,
 						storeOp: RendererTypes.AttachmentStoreOp.Store
 					}
-				]
-			})
-		}));
-
-		this.sharedResources.set('SSAOBlurTemp', this.resourceFactory.createRenderPassResource({
-			name: 'SSAOBlurTemp',
-			isTransient: true,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.RGBA8Unorm,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 1},
-						loadOp: RendererTypes.AttachmentLoadOp.Clear,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-
-		this.sharedResources.set('SSAOBlurred', this.resourceFactory.createRenderPassResource({
-			name: 'SSAOBlurred',
-			isTransient: true,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.RGBA8Unorm,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 1},
-						loadOp: RendererTypes.AttachmentLoadOp.Clear,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-
-		this.sharedResources.set('SSAOAccum', this.resourceFactory.createRenderPassResource({
-			name: 'SSAOAccum',
-			isTransient: false,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.RGBA8Unorm,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 1},
-						loadOp: RendererTypes.AttachmentLoadOp.Clear,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-
-		this.sharedResources.set('SSAOResult', this.resourceFactory.createRenderPassResource({
-			name: 'SSAOResult',
-			isTransient: true,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.R8Unorm,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 1},
-						loadOp: RendererTypes.AttachmentLoadOp.Clear,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-
-		this.sharedResources.set('SSAOPrevDepth', this.resourceFactory.createRenderPassResource({
-			name: 'SSAOPrevDepth',
-			isTransient: false,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [],
-				depthAttachment: {
-					texture: new TextureResourceDescriptor({
-						type: TextureResourceType.Texture2D,
-						width: 1,
-						height: 1,
-						format: RendererTypes.TextureFormat.Depth32Float,
-						minFilter: RendererTypes.MinFilter.Nearest,
-						magFilter: RendererTypes.MagFilter.Nearest,
-						mipmaps: false
-					}),
-					clearValue: 0,
-					loadOp: RendererTypes.AttachmentLoadOp.Load,
-					storeOp: RendererTypes.AttachmentStoreOp.Store
-				}
-			})
-		}));
-
-		this.sharedResources.set('SelectionMask', this.resourceFactory.createRenderPassResource({
-			name: 'SelectionMask',
-			isTransient: true,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.R8Unorm,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 1},
-						loadOp: RendererTypes.AttachmentLoadOp.Clear,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-
-		this.sharedResources.set('SelectionBlurTemp', this.resourceFactory.createRenderPassResource({
-			name: 'SelectionBlurTemp',
-			isTransient: true,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.R8Unorm,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 1},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-
-		this.sharedResources.set('SelectionBlurred', this.resourceFactory.createRenderPassResource({
-			name: 'SelectionBlurred',
-			isTransient: true,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.R8Unorm,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 1},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-
-		this.sharedResources.set('Labels', this.resourceFactory.createRenderPassResource({
-			name: 'Labels',
-			isTransient: true,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.RGBA8Unorm,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 0},
-						loadOp: RendererTypes.AttachmentLoadOp.Clear,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-		this.sharedResources.set('AtmosphereTransmittanceLUT', this.resourceFactory.createRenderPassResource({
-			name: 'AtmosphereTransmittanceLUT',
-			isTransient: false,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 256,
-							height: 64,
-							format: RendererTypes.TextureFormat.RGBA16Float,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 0},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-		this.sharedResources.set('AtmosphereMultipleScatteringLUT', this.resourceFactory.createRenderPassResource({
-			name: 'AtmosphereMultipleScatteringLUT',
-			isTransient: false,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 32,
-							height: 32,
-							format: RendererTypes.TextureFormat.RGBA16Float,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 0},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-		this.sharedResources.set('SkyViewLUT', this.resourceFactory.createRenderPassResource({
-			name: 'SkyViewLUT',
-			isTransient: false,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 64,
-							height: 256,
-							format: RendererTypes.TextureFormat.RGBA16Float,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false,
-							wrap: RendererTypes.TextureWrap.Repeat
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 0},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-		this.sharedResources.set('AerialPerspectiveLUT', this.resourceFactory.createTextureResource({
-			name: 'AerialPerspectiveLUT',
-			isTransient: false,
-			isUsedExternally: false,
-			descriptor: new TextureResourceDescriptor({
-				type: TextureResourceType.Texture3D,
-				width: 16,
-				height: 16,
-				depth: 16,
-				format: RendererTypes.TextureFormat.RGBA16Float,
-				minFilter: RendererTypes.MinFilter.Linear,
-				magFilter: RendererTypes.MagFilter.Linear,
-				mipmaps: false,
-				wrap: RendererTypes.TextureWrap.ClampToEdge
-			})
-		}));
-		this.sharedResources.set('SSR', this.resourceFactory.createRenderPassResource({
-			name: 'SSR',
-			isTransient: false,
-			isUsedExternally: true,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.RGBA16Float,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 0},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-		this.sharedResources.set('AtmosphereSkybox', this.resourceFactory.createRenderPassResource({
-			name: 'AtmosphereSkybox',
-			isTransient: false,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.TextureCube,
-							width: 512,
-							height: 512,
-							format: RendererTypes.TextureFormat.RGBA16Float,
-							minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: true
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 1},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-		this.sharedResources.set('CoC', this.resourceFactory.createRenderPassResource({
-			name: 'CoC',
-			isTransient: true,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.RGBA32Float,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 0},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-		this.sharedResources.set('CoCHistory', this.resourceFactory.createRenderPassResource({
-			name: 'CoCHistory',
-			isTransient: false,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.RGBA32Float,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 0},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-		this.sharedResources.set('CoCAntialiased', this.resourceFactory.createRenderPassResource({
-			name: 'CoCAntialiased',
-			isTransient: true,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.RGBA32Float,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 0},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-		this.sharedResources.set('CoCWithColorDownscaled', this.resourceFactory.createRenderPassResource({
-			name: 'CoCWithColorDownscaled',
-			isTransient: true,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.RGBA32Float,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 0},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-		this.sharedResources.set('DoF', this.resourceFactory.createRenderPassResource({
-			name: 'DoF',
-			isTransient: true,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.RGBA32Float,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 0},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-		this.sharedResources.set('DoFBlurred', this.resourceFactory.createRenderPassResource({
-			name: 'DoFBlurred',
-			isTransient: true,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.RGBA32Float,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 0},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-		this.sharedResources.set('TerrainHeight', this.resourceFactory.createRenderPassResource({
-			name: 'TerrainHeight',
-			isTransient: false,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.R16Float,
-							minFilter: RendererTypes.MinFilter.NearestMipmapNearest,
-							magFilter: RendererTypes.MagFilter.Nearest,
-							wrap: RendererTypes.TextureWrap.ClampToEdge,
-							mipmaps: true
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 0},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-		this.sharedResources.set('TerrainNormal', this.resourceFactory.createRenderPassResource({
-			name: 'TerrainNormal',
-			isTransient: false,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2D,
-							width: 1,
-							height: 1,
-							format: RendererTypes.TextureFormat.RGBA16Float,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							wrap: RendererTypes.TextureWrap.ClampToEdge,
-							mipmaps: false
-						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 0},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
-		this.sharedResources.set('TerrainWater', this.resourceFactory.createRenderPassResource({
-			name: 'TerrainWater',
-			isTransient: false,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
+				})
+			}),
+			ShadowMaps: this.resourceFactory.createRenderPassResource({
+				name: 'ShadowMaps',
+				isTransient: true,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [],
+					depthAttachment: {
 						texture: new TextureResourceDescriptor({
 							type: TextureResourceType.Texture2DArray,
 							width: 1,
 							height: 1,
-							depth: 2,
-							format: RendererTypes.TextureFormat.R8Unorm,
-							minFilter: RendererTypes.MinFilter.Linear,
-							magFilter: RendererTypes.MagFilter.Linear,
-							wrap: RendererTypes.TextureWrap.ClampToEdge,
+							depth: 1,
+							format: RendererTypes.TextureFormat.Depth32Float,
+							minFilter: RendererTypes.MinFilter.Nearest,
+							magFilter: RendererTypes.MagFilter.Nearest,
 							mipmaps: false
 						}),
 						slice: 0,
-						clearValue: {r: 0, g: 0, b: 0, a: 0},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
+						clearValue: 1,
+						loadOp: RendererTypes.AttachmentLoadOp.Clear,
 						storeOp: RendererTypes.AttachmentStoreOp.Store
 					}
-				]
-			})
-		}));
-		this.sharedResources.set('TerrainTileMask', this.resourceFactory.createRenderPassResource({
-			name: 'TerrainTileMask',
-			isTransient: false,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
+				})
+			}),
+			HDR: this.resourceFactory.createRenderPassResource({
+				name: 'HDR',
+				isTransient: true,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA32Float,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 1},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			TAAHistory: this.resourceFactory.createRenderPassResource({
+				name: 'TAAHistory',
+				isTransient: false,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA32Float,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 1},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			HDRAntialiased: this.resourceFactory.createRenderPassResource({
+				name: 'HDRAntialiased',
+				isTransient: true,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA32Float,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 1},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			SSAO: this.resourceFactory.createRenderPassResource({
+				name: 'SSAO',
+				isTransient: true,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA8Unorm,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 1},
+							loadOp: RendererTypes.AttachmentLoadOp.Clear,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			SSAOBlurTemp: this.resourceFactory.createRenderPassResource({
+				name: 'SSAOBlurTemp',
+				isTransient: true,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA8Unorm,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 1},
+							loadOp: RendererTypes.AttachmentLoadOp.Clear,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			SSAOBlurred: this.resourceFactory.createRenderPassResource({
+				name: 'SSAOBlurred',
+				isTransient: true,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA8Unorm,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 1},
+							loadOp: RendererTypes.AttachmentLoadOp.Clear,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			SSAOAccum: this.resourceFactory.createRenderPassResource({
+				name: 'SSAOAccum',
+				isTransient: false,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA8Unorm,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 1},
+							loadOp: RendererTypes.AttachmentLoadOp.Clear,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			SSAOResult: this.resourceFactory.createRenderPassResource({
+				name: 'SSAOResult',
+				isTransient: true,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.R8Unorm,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 1},
+							loadOp: RendererTypes.AttachmentLoadOp.Clear,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			SSAOPrevDepth: this.resourceFactory.createRenderPassResource({
+				name: 'SSAOPrevDepth',
+				isTransient: false,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [],
+					depthAttachment: {
 						texture: new TextureResourceDescriptor({
 							type: TextureResourceType.Texture2D,
-							width: Config.TerrainWaterMaskResolution,
-							height: Config.TerrainWaterMaskResolution,
-							format: RendererTypes.TextureFormat.R8Unorm,
+							width: 1,
+							height: 1,
+							format: RendererTypes.TextureFormat.Depth32Float,
 							minFilter: RendererTypes.MinFilter.Nearest,
 							magFilter: RendererTypes.MagFilter.Nearest,
-							wrap: RendererTypes.TextureWrap.ClampToEdge,
 							mipmaps: false
 						}),
-						clearValue: {r: 0, g: 0, b: 0, a: 0},
+						clearValue: 0,
 						loadOp: RendererTypes.AttachmentLoadOp.Load,
 						storeOp: RendererTypes.AttachmentStoreOp.Store
 					}
-				]
+				})
+			}),
+			SelectionMask: this.resourceFactory.createRenderPassResource({
+				name: 'SelectionMask',
+				isTransient: true,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.R8Unorm,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 1},
+							loadOp: RendererTypes.AttachmentLoadOp.Clear,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			SelectionBlurTemp: this.resourceFactory.createRenderPassResource({
+				name: 'SelectionBlurTemp',
+				isTransient: true,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.R8Unorm,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 1},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			SelectionBlurred: this.resourceFactory.createRenderPassResource({
+				name: 'SelectionBlurred',
+				isTransient: true,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.R8Unorm,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 1},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			Labels: this.resourceFactory.createRenderPassResource({
+				name: 'Labels',
+				isTransient: true,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA8Unorm,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Clear,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			AtmosphereTransmittanceLUT: this.resourceFactory.createRenderPassResource({
+				name: 'AtmosphereTransmittanceLUT',
+				isTransient: false,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 256,
+								height: 64,
+								format: RendererTypes.TextureFormat.RGBA16Float,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			AtmosphereMultipleScatteringLUT: this.resourceFactory.createRenderPassResource({
+				name: 'AtmosphereMultipleScatteringLUT',
+				isTransient: false,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 32,
+								height: 32,
+								format: RendererTypes.TextureFormat.RGBA16Float,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			SkyViewLUT: this.resourceFactory.createRenderPassResource({
+				name: 'SkyViewLUT',
+				isTransient: false,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 64,
+								height: 256,
+								format: RendererTypes.TextureFormat.RGBA16Float,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false,
+								wrap: RendererTypes.TextureWrap.Repeat
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			AerialPerspectiveLUT: this.resourceFactory.createTextureResource({
+				name: 'AerialPerspectiveLUT',
+				isTransient: false,
+				isUsedExternally: false,
+				descriptor: new TextureResourceDescriptor({
+					type: TextureResourceType.Texture3D,
+					width: 16,
+					height: 16,
+					depth: 16,
+					format: RendererTypes.TextureFormat.RGBA16Float,
+					minFilter: RendererTypes.MinFilter.Linear,
+					magFilter: RendererTypes.MagFilter.Linear,
+					mipmaps: false,
+					wrap: RendererTypes.TextureWrap.ClampToEdge
+				})
+			}),
+			AtmosphereSkybox: this.resourceFactory.createRenderPassResource({
+				name: 'AtmosphereSkybox',
+				isTransient: false,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.TextureCube,
+								width: 512,
+								height: 512,
+								format: RendererTypes.TextureFormat.RGBA16Float,
+								minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: true
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 1},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			SSR: this.resourceFactory.createRenderPassResource({
+				name: 'SSR',
+				isTransient: false,
+				isUsedExternally: true,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA16Float,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			CoC: this.resourceFactory.createRenderPassResource({
+				name: 'CoC',
+				isTransient: true,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA32Float,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			CoCHistory: this.resourceFactory.createRenderPassResource({
+				name: 'CoCHistory',
+				isTransient: false,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA32Float,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			CoCAntialiased: this.resourceFactory.createRenderPassResource({
+				name: 'CoCAntialiased',
+				isTransient: true,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA32Float,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			CoCWithColorDownscaled: this.resourceFactory.createRenderPassResource({
+				name: 'CoCWithColorDownscaled',
+				isTransient: true,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA32Float,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			DoFRaw: this.resourceFactory.createRenderPassResource({
+				name: 'DoFRaw',
+				isTransient: true,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA16Float,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			DoFBlurred: this.resourceFactory.createRenderPassResource({
+				name: 'DoFBlurred',
+				isTransient: true,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA16Float,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			DoF: this.resourceFactory.createRenderPassResource({
+				name: 'DoF',
+				isTransient: true,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA16Float,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			BloomHighLuminosity: this.resourceFactory.createRenderPassResource({
+				name: 'BloomHighLuminosity',
+				isTransient: true,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA16Float,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			Bloom: this.resourceFactory.createRenderPassResource({
+				name: 'Bloom',
+				isTransient: true,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA16Float,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			TerrainHeight: this.resourceFactory.createRenderPassResource({
+				name: 'TerrainHeight',
+				isTransient: false,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.R16Float,
+								minFilter: RendererTypes.MinFilter.NearestMipmapNearest,
+								magFilter: RendererTypes.MagFilter.Nearest,
+								wrap: RendererTypes.TextureWrap.ClampToEdge,
+								mipmaps: true,
+								isImmutable: true,
+								immutableLevels: 6
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			TerrainNormal: this.resourceFactory.createRenderPassResource({
+				name: 'TerrainNormal',
+				isTransient: false,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA16Float,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								wrap: RendererTypes.TextureWrap.ClampToEdge,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			TerrainWater: this.resourceFactory.createRenderPassResource({
+				name: 'TerrainWater',
+				isTransient: false,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2DArray,
+								width: 1,
+								height: 1,
+								depth: 2,
+								format: RendererTypes.TextureFormat.R8Unorm,
+								minFilter: RendererTypes.MinFilter.Linear,
+								magFilter: RendererTypes.MagFilter.Linear,
+								wrap: RendererTypes.TextureWrap.ClampToEdge,
+								mipmaps: false
+							}),
+							slice: 0,
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			TerrainTileMask: this.resourceFactory.createRenderPassResource({
+				name: 'TerrainTileMask',
+				isTransient: false,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: Config.TerrainWaterMaskResolution,
+								height: Config.TerrainWaterMaskResolution,
+								format: RendererTypes.TextureFormat.R8Unorm,
+								minFilter: RendererTypes.MinFilter.Nearest,
+								magFilter: RendererTypes.MagFilter.Nearest,
+								wrap: RendererTypes.TextureWrap.ClampToEdge,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
+			}),
+			TerrainRingHeight: this.resourceFactory.createRenderPassResource({
+				name: 'TerrainRingHeight',
+				isTransient: false,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2DArray,
+								width: Config.TerrainRingSegmentCount * 2 + 1,
+								height: Config.TerrainRingSegmentCount * 2 + 1,
+								depth: Config.TerrainRingCount,
+								format: RendererTypes.TextureFormat.R32Float,
+								minFilter: RendererTypes.MinFilter.Nearest,
+								magFilter: RendererTypes.MagFilter.Nearest,
+								wrap: RendererTypes.TextureWrap.ClampToEdge,
+								mipmaps: false
+							}),
+							slice: 0,
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
 			})
-		}));
-		this.sharedResources.set('TerrainRingHeight', this.resourceFactory.createRenderPassResource({
-			name: 'TerrainRingHeight',
-			isTransient: false,
-			isUsedExternally: false,
-			descriptor: new RenderPassResourceDescriptor({
-				colorAttachments: [
-					{
-						texture: new TextureResourceDescriptor({
-							type: TextureResourceType.Texture2DArray,
-							width: Config.TerrainRingSegmentCount * 2 + 1,
-							height: Config.TerrainRingSegmentCount * 2 + 1,
-							depth: Config.TerrainRingCount,
-							format: RendererTypes.TextureFormat.R32Float,
-							minFilter: RendererTypes.MinFilter.Nearest,
-							magFilter: RendererTypes.MagFilter.Nearest,
-							wrap: RendererTypes.TextureWrap.ClampToEdge,
-							mipmaps: false
-						}),
-						slice: 0,
-						clearValue: {r: 0, g: 0, b: 0, a: 0},
-						loadOp: RendererTypes.AttachmentLoadOp.Load,
-						storeOp: RendererTypes.AttachmentStoreOp.Store
-					}
-				]
-			})
-		}));
+		}
+
+		for (const [key, value] of Object.entries(resourcesList)) {
+			this.sharedResources.set(key as keyof SharedResources, value);
+		}
 	}
 
 	public resize(): void {
@@ -957,7 +1079,10 @@ export default class PassManager {
 		this.sharedResources.get('CoCHistory').descriptor.setSize(resolutionScene.x, resolutionScene.y);
 		this.sharedResources.get('CoCAntialiased').descriptor.setSize(resolutionScene.x, resolutionScene.y);
 		this.sharedResources.get('CoCWithColorDownscaled').descriptor.setSize(resolutionSceneHalf.x, resolutionSceneHalf.y);
-		this.sharedResources.get('DoF').descriptor.setSize(resolutionSceneHalf.x, resolutionSceneHalf.y);
+		this.sharedResources.get('DoFRaw').descriptor.setSize(resolutionSceneHalf.x, resolutionSceneHalf.y);
 		this.sharedResources.get('DoFBlurred').descriptor.setSize(resolutionSceneHalf.x, resolutionSceneHalf.y);
+		this.sharedResources.get('DoF').descriptor.setSize(resolutionScene.x, resolutionScene.y);
+		this.sharedResources.get('BloomHighLuminosity').descriptor.setSize(resolutionScene.x, resolutionScene.y);
+		this.sharedResources.get('Bloom').descriptor.setSize(resolutionScene.x, resolutionScene.y);
 	}
 }

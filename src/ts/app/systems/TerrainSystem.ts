@@ -11,12 +11,11 @@ import TileAreaLoader from "~/app/world/terrain/TileAreaLoader";
 export interface TerrainAreaLoaders {
 	water0: TileAreaLoader<WaterTileSource>;
 	water1: TileAreaLoader<WaterTileSource>;
-	height: TileAreaLoader<HeightTileSource>;
+	height0: TileAreaLoader<HeightTileSource>;
+	height1: TileAreaLoader<HeightTileSource>;
 }
 
 export default class TerrainSystem extends System {
-	public heightSourceTiles: Map<string, HeightTileSource> = new Map();
-	public waterSourceTiles: Map<string, WaterTileSource> = new Map();
 	public lastPivotPosition: Vec2 = null;
 	public lastPivotPositionMeters: Vec2 = null;
 	public lastHeightTilePivot: Vec2 = null;
@@ -33,21 +32,28 @@ export default class TerrainSystem extends System {
 				zoom: 13,
 				maxStoredTiles: 100,
 				viewportSize: 4,
-				bufferSize: 2
+				bufferSize: 1
 			}),
 			water1: new TileAreaLoader({
 				sourceClass: WaterTileSource,
 				zoom: 9,
 				maxStoredTiles: 100,
 				viewportSize: 4,
-				bufferSize: 2
+				bufferSize: 1
 			}),
-			height: new TileAreaLoader({
+			height0: new TileAreaLoader({
 				sourceClass: HeightTileSource,
-				zoom: 11,
+				zoom: 12,
 				maxStoredTiles: 100,
-				viewportSize: 8,
-				bufferSize: 2
+				viewportSize: 4,
+				bufferSize: 1
+			}),
+			height1: new TileAreaLoader({
+				sourceClass: HeightTileSource,
+				zoom: 9,
+				maxStoredTiles: 100,
+				viewportSize: 4,
+				bufferSize: 1
 			}),
 		};
 	}
@@ -93,46 +99,6 @@ export default class TerrainSystem extends System {
 			(<TileAreaLoader<any>>areaLoader).update(cameraPosition2D);
 		}
 
-		const heightMapCount = Config.TerrainHeightMapCount;
-		const heightMapTotalWorldSize = Config.TerrainHeightMapCount * Config.TerrainHeightTileWorldSize;
-		const firstRing = terrain.children[0];
-
-		const pivotPosition = MathUtils.meters2tile(firstRing.position.x, firstRing.position.z, Config.TerrainHeightMapTileZoom);
-		pivotPosition.x = Math.floor(pivotPosition.x);
-		pivotPosition.y = Math.floor(pivotPosition.y);
-		const pivotPositionMeters = MathUtils.tile2meters(
-			pivotPosition.x - Math.floor(heightMapCount/ 2),
-			pivotPosition.y + Math.floor(heightMapCount/ 2) + 1,
-			Config.TerrainHeightMapTileZoom
-		);
-
-		this.lastPivotPosition = pivotPosition;
-		this.lastPivotPositionMeters = pivotPositionMeters;
-
-		const minPosX = -Math.floor(heightMapCount / 2) + pivotPosition.x;
-		const minPosY = -Math.floor(heightMapCount / 2) + pivotPosition.y;
-		const maxPosX = minPosX + heightMapCount - 1;
-		const maxPosY = minPosY + heightMapCount - 1;
-
-		this.lastHeightTilePivot = new Vec2(minPosX, minPosY);
-
-		for (const tile of this.heightSourceTiles.values()) {
-			if (tile.x < minPosX || tile.x > maxPosX || tile.y < minPosY || tile.y > maxPosY) {
-				this.deleteTileSources(tile.x, tile.y);
-			}
-		}
-
-		for (let x = 0; x < heightMapCount; x++) {
-			for (let y = 0; y < heightMapCount; y++) {
-				const nx = x - Math.floor(heightMapCount / 2) + pivotPosition.x;
-				const ny = y - Math.floor(heightMapCount / 2) + pivotPosition.y;
-
-				if (!this.getHeightTileSource(nx, ny)) {
-					this.fetchTileSources(nx, ny);
-				}
-			}
-		}
-
 		const cameraTilePosition = MathUtils.meters2tile(camera.position.x, camera.position.z);
 		const startX = Math.floor(cameraTilePosition.x) - Math.floor(Config.TerrainWaterMaskResolution / 2);
 		const startY = Math.floor(cameraTilePosition.y) - Math.floor(Config.TerrainWaterMaskResolution / 2);
@@ -142,13 +108,13 @@ export default class TerrainSystem extends System {
 		this.maskOriginMeters.set(startMeters.x, startMeters.y);
 
 		for (const ring of terrain.children) {
-			const scale = ring.size / heightMapTotalWorldSize;
+			/*const scale = ring.size / heightMapTotalWorldSize;
 			const offsetX = (ring.position.x - ring.size / 2 - pivotPositionMeters.x) / heightMapTotalWorldSize;
 			const offsetY = (ring.position.z - ring.size / 2 - pivotPositionMeters.y) / heightMapTotalWorldSize;
 
 			ring.heightTextureTransform[0] = offsetX;
 			ring.heightTextureTransform[1] = offsetY;
-			ring.heightTextureTransform[2] = scale;
+			ring.heightTextureTransform[2] = scale;*/
 
 			const maskWorldSize = Config.TileSize * Config.TerrainWaterMaskResolution;
 			const maskScale = ring.size / maskWorldSize;
@@ -171,33 +137,12 @@ export default class TerrainSystem extends System {
 				ring.size,
 				ring.waterTextureTransform1
 			);
+			this.areaLoaders.height0.transformToArray(
+				ring.position.x - ring.size / 2,
+				ring.position.z - ring.size / 2,
+				ring.size,
+				ring.heightTextureTransform0
+			);
 		}
-	}
-
-	public getHeightTileSource(x: number, y: number): HeightTileSource {
-		return this.heightSourceTiles.get(`${x} ${y}`);
-	}
-
-	public getWaterTileSource(x: number, y: number): WaterTileSource {
-		return this.waterSourceTiles.get(`${x} ${y}`);
-	}
-
-	private fetchTileSources(x: number, y: number): void {
-		const height = new HeightTileSource(x, y, Config.TerrainHeightMapTileZoom);
-		const water = new WaterTileSource(x, y, Config.TerrainHeightMapTileZoom);
-
-		this.heightSourceTiles.set(`${x} ${y}`, height);
-		this.waterSourceTiles.set(`${x} ${y}`, water);
-	}
-
-	private deleteTileSources(x: number, y: number): void {
-		const height = this.getHeightTileSource(x, y);
-		const water = this.getHeightTileSource(x, y);
-
-		height.delete();
-		water.delete();
-
-		this.heightSourceTiles.delete(`${x} ${y}`);
-		this.waterSourceTiles.delete(`${x} ${y}`);
 	}
 }

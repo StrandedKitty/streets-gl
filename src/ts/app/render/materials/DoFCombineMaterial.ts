@@ -3,46 +3,37 @@ import MaterialContainer from "~/app/render/materials/MaterialContainer";
 import {RendererTypes} from "~/renderer/RendererTypes";
 import AbstractRenderer from "~/renderer/abstract-renderer/AbstractRenderer";
 
-export default class ScreenMaterialContainer extends MaterialContainer {
+export default class DoFCombineMaterial extends MaterialContainer {
 	public constructor(renderer: AbstractRenderer) {
 		super(renderer);
 
 		this.material = this.renderer.createMaterial({
-			name: 'Screen material',
+			name: 'DoF combine material',
 			uniforms: [
 				{
-					name: 'tHDR',
+					name: 'tDoF',
 					block: null,
 					type: RendererTypes.UniformType.Texture2D,
 					value: null
 				}, {
-					name: 'tLabels',
+					name: 'tSource',
 					block: null,
 					type: RendererTypes.UniformType.Texture2D,
 					value: null
 				}, {
-					name: 'resolution',
-					block: 'Uniforms',
-					type: RendererTypes.UniformType.Float2,
-					value: new Float32Array(2)
-				}, {
-					name: 'tDebug',
+					name: 'tCoC',
 					block: null,
 					type: RendererTypes.UniformType.Texture2D,
 					value: null
 				}
 			],
-			defines: {
-				LABELS_ENABLED: '1',
-				BARREL_DISTORTION_ENABLED: '1'
-			},
 			primitive: {
 				frontFace: RendererTypes.FrontFace.CCW,
-				cullMode: RendererTypes.CullMode.Back
+				cullMode: RendererTypes.CullMode.None
 			},
 			depth: {
-				depthWrite: true,
-				depthCompare: RendererTypes.DepthCompare.LessEqual
+				depthWrite: false,
+				depthCompare: RendererTypes.DepthCompare.Always
 			},
 			blend: {
 				color: {
@@ -56,8 +47,8 @@ export default class ScreenMaterialContainer extends MaterialContainer {
 					dstFactor: RendererTypes.BlendFactor.Zero
 				}
 			},
-			vertexShaderSource: Shaders.screen.vertex,
-			fragmentShaderSource: Shaders.screen.fragment
+			vertexShaderSource: Shaders.dofCombine.vertex,
+			fragmentShaderSource: Shaders.dofCombine.fragment
 		});
 	}
 }

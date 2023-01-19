@@ -17,6 +17,11 @@ export default class SSRMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array(16)
 				}, {
+					name: 'projectionMatrixInverse',
+					block: 'MainBlock',
+					type: RendererTypes.UniformType.Matrix4,
+					value: new Float32Array(16)
+				}, {
 					name: 'noiseOffset',
 					block: 'MainBlock',
 					type: RendererTypes.UniformType.Float2,
@@ -33,6 +38,11 @@ export default class SSRMaterialContainer extends MaterialContainer {
 					value: null
 				}, {
 					name: 'tPosition',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: null
+				}, {
+					name: 'tDepth',
 					block: null,
 					type: RendererTypes.UniformType.Texture2D,
 					value: null

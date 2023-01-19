@@ -18,6 +18,12 @@ const req = (
 			return;
 		}
 
+		if (config.parent && config.parentStatusCondition) {
+			if (!config.parentStatusCondition.includes(settingsValues[parent].statusValue)) {
+				return;
+			}
+		}
+
 		const value = settingsValues[key];
 		const options = config.status || [];
 		const children = req(settingsConfig, settingsValues, key, accum, level + 1);

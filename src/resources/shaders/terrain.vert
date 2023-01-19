@@ -47,11 +47,11 @@ void main() {
 
 	vNormal = vec3(modelViewMatrix * vec4(vec3(0, 1, 0), 0));
 
-	vec2 heightUV = uv;
-	heightUV.y = 1. - heightUV.y;
+	vec2 heightUV = vec2(1. - uv.y, uv.x);
+	//heightUV.y = 1. - heightUV.y;
 
 	vNormalUV = transformHeight.xy + heightUV * transformHeight.z;
-	vDetailUV = (heightUV * size + detailTextureOffset);
+	vDetailUV = (vec2(uv.x, 1. - uv.y) * size + detailTextureOffset);
 	vMaskUV = transformMask.xy + heightUV * transformMask.z;
 	vMaskUV = vec2(vMaskUV.y, 1. - vMaskUV.x);
 

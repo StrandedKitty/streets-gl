@@ -24,8 +24,7 @@ const vec2 offsets[] = vec2[](
 	vec2(0, -1)
 );
 
-float linearize_depth(float d,float zNear,float zFar)
-{
+float linearize_depth(float d,float zNear,float zFar) {
 	float z_n = 2.0 * d - 1.0;
 	return 2.0 * zNear * zFar / (zFar + zNear - z_n * (zFar - zNear));
 }
@@ -46,8 +45,8 @@ void main() {
 		mixFactor = 1.;
 	}
 
-	float depth = linearize_depth(texture(tDepth, vUv).r, 10., 25000.);
-	float prevDepth = linearize_depth(texture(tPrevDepth, oldUV).r, 10., 25000.);
+	float depth = linearize_depth(texture(tDepth, vUv).r, 10., 100000.);
+	float prevDepth = linearize_depth(texture(tPrevDepth, oldUV).r, 10., 100000.);
 
 	float depthSimilarity = clamp(pow(prevDepth / depth, 4.) + DEPTH_MIN_SIMILARITY, 0., 1.);
 	float velocitySimilarity = clamp(length(velocity) * VELOCITY_SCALAR, 0., 1.);

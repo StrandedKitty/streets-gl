@@ -62,8 +62,6 @@ export default class ShadingPass extends Pass<{
 }> {
 	private readonly shadingMaterial: AbstractMaterial;
 	private readonly fullScreenTriangle: FullScreenTriangle;
-	private ssaoEnabled: boolean = true;
-	private ssrEnabled: boolean = true;
 
 	public constructor(manager: PassManager) {
 		super('ShadingPass', manager, {
@@ -82,38 +80,63 @@ export default class ShadingPass extends Pass<{
 
 		this.fullScreenTriangle = new FullScreenTriangle(this.renderer);
 		this.shadingMaterial = new ShadingMaterialContainer(this.renderer).material;
+	}
 
-		SettingsManager.onSettingChange('ssao', ({statusValue}) => {
-			if (statusValue === 'on') {
-				this.setResource('SSAO', manager.getSharedResource('SSAOResult'));
-				this.ssaoEnabled = true;
-				this.shadingMaterial.defines.SSAO_ENABLED = '1';
-			} else {
-				this.setResource('SSAO', null);
-				this.ssaoEnabled = false;
-				this.shadingMaterial.defines.SSAO_ENABLED = '0';
+	private getShadowMapsTexture(): AbstractTexture2DArray | null {
+		let texture = null;
+
+		if (this.getResource('ShadowMaps')) {
+			texture = <AbstractTexture2DArray>this.getPhysicalResource('ShadowMaps').depthAttachment.texture;
+		}
+
+		return texture;
+	}
+
+	private getSSAOTexture(): AbstractTexture2D | null {
+		let texture = null;
+
+		if (this.getResource('SSAO')) {
+			texture = <AbstractTexture2D>this.getPhysicalResource('SSAO').colorAttachments[0].texture;
+		}
+
+		return texture;
+	}
+
+	private getSSRTexture(): AbstractTexture2D | null {
+		let texture = null;
+
+		if (this.getResource('SSR')) {
+			texture = <AbstractTexture2D>this.getPhysicalResource('SSR').colorAttachments[0].texture;
+		}
+
+		return texture;
+	}
+
+	private updateShadingMaterialDefines(): void {
+		let needsRecompilation = false;
+
+		const newValues = {
+			SHADOW_ENABLED: this.getResource('ShadowMaps') ? '1' : '0',
+			SSAO_ENABLED: this.getResource('SSAO') ? '1' : '0',
+			SSR_ENABLED: this.getResource('SSR') ? '1' : '0'
+		};
+
+		for (const [k, v] of Object.entries(newValues)) {
+			if (this.shadingMaterial.defines[k] !== v) {
+				this.shadingMaterial.defines[k] = v;
+				needsRecompilation = true;
 			}
+		}
 
-			// @ts-ignore
+		if (needsRecompilation) {
 			this.shadingMaterial.recompile();
-		});
-		SettingsManager.onSettingChange('ssr', ({statusValue}) => {
-			if (statusValue === 'off') {
-				this.setResource('SSR', null);
-				this.ssrEnabled = false;
-				this.shadingMaterial.defines.SSR_ENABLED = '1';
-			} else {
-				this.setResource('SSR', manager.getSharedResource('SSR'));
-				this.ssrEnabled = true;
-				this.shadingMaterial.defines.SSR_ENABLED = '0';
-			}
-
-			// @ts-ignore
-			this.shadingMaterial.recompile();
-		});
+			console.log('recompile')
+		}
 	}
 
 	public render(): void {
+		this.updateShadingMaterialDefines();
+
 		const camera = this.manager.sceneSystem.objects.camera;
 		const csm = this.manager.sceneSystem.objects.csm;
 		const sunDirection = new Float32Array([...Vec3.toArray(this.manager.mapTimeSystem.sunDirection)]);
@@ -124,22 +147,14 @@ export default class ShadingPass extends Pass<{
 		const depthTexture = <AbstractTexture2D>this.getPhysicalResource('GBuffer').depthAttachment.texture;
 		const roughnessMetalnessTexture = <AbstractTexture2D>this.getPhysicalResource('GBuffer').colorAttachments[2].texture;
 		const motionTexture = <AbstractTexture2D>this.getPhysicalResource('GBuffer').colorAttachments[3].texture;
-		const shadowMapsTexture = <AbstractTexture2DArray>this.getPhysicalResource('ShadowMaps').depthAttachment.texture;
 		const selectionMaskTexture = <AbstractTexture2D>this.getPhysicalResource('SelectionMask').colorAttachments[0].texture;
 		const selectionBlurredTexture = <AbstractTexture2D>this.getPhysicalResource('SelectionBlurred').colorAttachments[0].texture;
 		const aerialPerspectiveLUT = <AbstractTexture3D>this.getPhysicalResource('AerialPerspectiveLUT');
 		const transmittanceLUT = <AbstractTexture3D>this.getPhysicalResource('TransmittanceLUT').colorAttachments[0].texture;
 		const atmosphereSkyboxTexture = <AbstractTextureCube>this.getPhysicalResource('AtmosphereSkybox').colorAttachments[0].texture;
-
-		let ssaoTexture = null;
-		if (this.ssaoEnabled) {
-			ssaoTexture = <AbstractTexture2D>this.getPhysicalResource('SSAO').colorAttachments[0].texture;
-		}
-
-		let ssrTexture = null;
-		if (this.ssrEnabled) {
-			ssrTexture = <AbstractTexture2D>this.getPhysicalResource('SSR').colorAttachments[0].texture;
-		}
+		const shadowMapsTexture = this.getShadowMapsTexture();
+		const ssaoTexture = this.getSSAOTexture();
+		const ssrTexture = this.getSSRTexture();
 
 		const csmBuffers = csm.getUniformsBuffers();
 

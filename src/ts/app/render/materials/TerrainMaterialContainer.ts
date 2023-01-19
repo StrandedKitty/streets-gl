@@ -150,19 +150,6 @@ export default class TerrainMaterialContainer extends MaterialContainer {
 						mipmaps: true
 					})
 				}, {
-					name: 'tWaterNormal2',
-					block: null,
-					type: RendererTypes.UniformType.Texture2D,
-					value: this.renderer.createTexture2D({
-						anisotropy: 16,
-						data: ResourceManager.get('waterNormal2'),
-						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
-						magFilter: RendererTypes.MagFilter.Linear,
-						wrap: RendererTypes.TextureWrap.Repeat,
-						format: RendererTypes.TextureFormat.RGBA8Unorm,
-						mipmaps: true
-					})
-				}, {
 					name: 'tBiomeMap',
 					block: null,
 					type: RendererTypes.UniformType.Texture2D,

@@ -7,7 +7,7 @@ in vec2 vUv;
 uniform sampler2D tHeight;
 
 uniform PerMesh {
-    vec3 transformHeight;
+    vec4 transformHeight;
     vec2 morphOffset;
     float size;
     float segmentCount;
@@ -21,8 +21,6 @@ float sampleHeight(sampler2D tex, vec2 offset, int level, vec2 textureSize) {
 }
 
 void main() {
-    //float height = texture(tHeight, vUv).r;
-
     vec2 vertexUV = (vUv - 0.5 / (segmentCount + 1.)) * ((segmentCount + 1.) / (segmentCount));
     vertexUV = (gl_FragCoord.xy - 0.5) / segmentCount;
 
@@ -33,13 +31,10 @@ void main() {
     morphFactor = (morphFactor - 0.25) * 4.;
     morphFactor = clamp(morphFactor, 0., 1.);
 
-    //if (levelId == 0) morphFactor = 1.;
-    //if (levelId == 1) morphFactor = 0.;
-
     vec2 heightTexSize = vec2(textureSize(tHeight, 0));
-    vec2 heightUV = vec2(vertexUV.x, 1. - vertexUV.y);
+    vec2 heightUV = vec2(1. - vertexUV.y, vertexUV.x);
 
-    vec2 heightSelfUV = transformHeight.xy + heightUV * transformHeight.z;
+    vec2 heightSelfUV = transformHeight.xy + heightUV * transformHeight.zw;
     float height = sampleHeight(tHeight, heightSelfUV, levelId, heightTexSize);
 
     vec2 t = mod(vertexUV * segmentCount + morphOffset, 2.);
@@ -59,13 +54,13 @@ void main() {
         heightSum += sampleHeight(tHeight, heightSelfUV, levelId + 1, heightTexSize);
         heightWeight += 1.;
     } else if (t.x == 1. && t.y == 0.) {
-        heightSum += sampleHeight(tHeight, offset + offsetLeft.xy * transformHeight.z, levelId + 1, heightTexSize);
-        heightSum += sampleHeight(tHeight, offset + offsetRight.xy * transformHeight.z, levelId + 1, heightTexSize);
+        heightSum += sampleHeight(tHeight, offset + offsetLeft.yx * transformHeight.z, levelId + 1, heightTexSize);
+        heightSum += sampleHeight(tHeight, offset + offsetRight.yx * transformHeight.z, levelId + 1, heightTexSize);
 
         heightWeight += 2.;
     } else if (t.x == 0. && t.y == 1.) {
-        heightSum += sampleHeight(tHeight, offset + offsetLeft.yx * transformHeight.z, levelId + 1, heightTexSize);
-        heightSum += sampleHeight(tHeight, offset + offsetRight.yx * transformHeight.z, levelId + 1, heightTexSize);
+        heightSum += sampleHeight(tHeight, offset + offsetLeft.xy * transformHeight.z, levelId + 1, heightTexSize);
+        heightSum += sampleHeight(tHeight, offset + offsetRight.xy * transformHeight.z, levelId + 1, heightTexSize);
 
         heightWeight += 2.;
     } else if (t.x == 1. && t.y == 1.) {
@@ -93,8 +88,6 @@ void main() {
     if (heightWeight != 0.) {
         height = mix(height, heightSum / heightWeight, morphFactor);
     }
-
-    //height = float(levelId) * 15.;
 
     FragColor = height;
 }

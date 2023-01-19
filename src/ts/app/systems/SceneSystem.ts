@@ -73,9 +73,6 @@ export default class SceneSystem extends System {
 			new InstancedAircraft(ModelManager.getGLTFModel('aircraftERJ135'))
 		];
 
-		// @ts-ignore
-		window.camera = camera;
-
 		this.objects = {
 			wrapper,
 			camera,

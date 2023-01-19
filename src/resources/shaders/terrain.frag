@@ -40,7 +40,6 @@ uniform sampler2D tDetailColor;
 uniform sampler2D tDetailNormal;
 uniform sampler2D tDetailNoise;
 uniform sampler2D tWaterNormal;
-uniform sampler2D tWaterNormal2;
 
 #include <packNormal>
 #include <getMotionVector>
@@ -69,6 +68,12 @@ float edgeFactor() {
     vec3 a3 = smoothstep(vec3(0), d * widthFactor, vCenter.xyz);
 
     return min(min(a3.x, a3.y), a3.z);
+}
+
+vec3 getWaterNormalMapValue(vec2 uv) {
+    vec3 col = texture(tWaterNormal, uv).rgb;
+    col.y = 1. - col.y;
+    return col * 2. - 1.;
 }
 
 void main() {
@@ -104,14 +109,13 @@ void main() {
     if (waterFactor > 0.5) {
         float waveTime = time * 0.015;
         vec3 normalValue = (
-            texture(tWaterNormal2, vDetailUV * 0.005 + waveTime).rgb * 0.45 +
-            texture(tWaterNormal2, vDetailUV * 0.020 - waveTime).rgb * 0.45 +
-            texture(tWaterNormal2, vDetailUV * 0.0005 - waveTime * 0.5).rgb * 0.1
+            getWaterNormalMapValue(vDetailUV * 0.005 + waveTime) * 0.45 +
+            getWaterNormalMapValue(vDetailUV * 0.020 - waveTime) * 0.45 +
+            getWaterNormalMapValue(vDetailUV * 0.0005 - waveTime * 0.5) * 0.1
         );
 
-        normalValue = normalValue * 2. - 1.;
         normalValue.z *= 2.;
-        outColor = vec4(0.1, 0.25, 0.35, 1);
+        outColor = vec4(0.1, 0.2, 0.3, 0.5);
 
         vec3 vNormal = vec3(modelViewMatrix * vec4(normalize(normalValue.xzy), 0));
         outNormal = packNormal(vNormal);

@@ -67,10 +67,6 @@
 		"url": "/textures/water_normal.png",
 		"type": "image"
 	},
-	"waterNormal2": {
-		"url": "/textures/water_normal_2.png",
-		"type": "image"
-	},
 	"pavementDiffuse": {
 		"url": "/textures/surfaces/pavement_diffuse.png",
 		"type": "image"

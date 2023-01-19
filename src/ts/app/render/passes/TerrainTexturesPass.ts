@@ -10,8 +10,6 @@ import {RendererTypes} from "~/renderer/RendererTypes";
 import RenderPassResource from "~/app/render/render-graph/resources/RenderPassResource";
 import TerrainNormalMaterialContainer from "~/app/render/materials/TerrainNormalMaterialContainer";
 import AbstractRenderer from "~/renderer/abstract-renderer/AbstractRenderer";
-import HeightTileSource from "~/app/world/terrain/HeightTileSource";
-import WaterTileSource from "~/app/world/terrain/WaterTileSource";
 import TerrainWaterMaterialContainer from "~/app/render/materials/TerrainWaterMaterialContainer";
 import WaterMask from "~/app/objects/WaterMask";
 import RenderableObject3D from "~/app/objects/RenderableObject3D";
@@ -19,139 +17,9 @@ import TileSystem from "~/app/systems/TileSystem";
 import Config from "~/app/Config";
 import TerrainRingHeightMaterialContainer from "~/app/render/materials/TerrainRingHeightMaterialContainer";
 import {UniformFloat1, UniformFloat2, UniformFloat3, UniformInt1} from "~/renderer/abstract-renderer/Uniform";
+import TerrainHeightDownscaleMaterialContainer from "~/app/render/materials/TerrainHeightDownscaleMaterialContainer";
 
 const TileResolution = 512;
-const MaxCachedTiles = 64;
-
-class TileTextureStorage {
-	private cache: Map<string, {
-		texture: AbstractTexture2D;
-		lastUsed: number;
-	}> = new Map();
-
-	public constructor(private system: TerrainSystem, private renderer: AbstractRenderer) {
-
-	}
-
-	public get(x: number, y: number): AbstractTexture2D {
-		const key = `${x} ${y}`;
-		const cached = this.cache.get(key);
-
-		if (cached) {
-			cached.lastUsed = performance.now();
-			return cached.texture;
-		}
-
-		const source = this.system.getHeightTileSource(x, y);
-
-		if (!source || !source.data) {
-			return null;
-		}
-
-		return this.createTexture(x, y, source.data);
-	}
-
-	private createTexture(x: number, y: number, bitmap: ImageBitmap): AbstractTexture2D {
-		const texture = this.renderer.createTexture2D({
-			width: bitmap.width,
-			height: bitmap.height,
-			format: RendererTypes.TextureFormat.RGBA8Unorm,
-			mipmaps: false,
-			data: bitmap
-		});
-		this.cache.set(`${x} ${y}`, {
-			texture,
-			lastUsed: performance.now()
-		});
-
-		if (this.cache.size > MaxCachedTiles) {
-			this.deleteLeastUsedTexture();
-		}
-
-		return texture;
-	}
-
-	private deleteLeastUsedTexture(): void {
-		let leastUsedKey: string = null;
-		let leastUsedTime: number = Infinity;
-
-		for (const [key, cached] of this.cache.entries()) {
-			if (cached.lastUsed < leastUsedTime) {
-				leastUsedKey = key;
-				leastUsedTime = cached.lastUsed;
-			}
-		}
-
-		if (leastUsedKey) {
-			const cached = this.cache.get(leastUsedKey);
-			cached.texture.delete();
-			this.cache.delete(leastUsedKey);
-		}
-	}
-}
-
-class TileMeshStorage {
-	private cache: Map<string, {
-		mesh: RenderableObject3D;
-		lastUsed: number;
-	}> = new Map();
-
-	public constructor(private system: TerrainSystem, private renderer: AbstractRenderer) {
-
-	}
-
-	public get(x: number, y: number): RenderableObject3D {
-		const key = `${x} ${y}`;
-		const cached = this.cache.get(key);
-
-		if (cached) {
-			cached.lastUsed = performance.now();
-			return cached.mesh;
-		}
-
-		const source = this.system.getWaterTileSource(x, y);
-
-		if (!source || !source.data) {
-			return null;
-		}
-
-		return this.createMesh(x, y, source.data);
-	}
-
-	private createMesh(x: number, y: number, vertices: Float32Array): RenderableObject3D {
-		const waterMask = new WaterMask(vertices);
-		waterMask.updateMesh(this.renderer);
-
-		this.cache.set(`${x} ${y}`, {
-			mesh: waterMask,
-			lastUsed: performance.now()
-		});
-
-		if (this.cache.size > MaxCachedTiles) {
-			this.deleteLeastUsedTexture();
-		}
-
-		return waterMask;
-	}
-
-	private deleteLeastUsedTexture(): void {
-		let leastUsedKey: string = null;
-		let leastUsedTime: number = Infinity;
-
-		for (const [key, cached] of this.cache.entries()) {
-			if (cached.lastUsed < leastUsedTime) {
-				leastUsedKey = key;
-				leastUsedTime = cached.lastUsed;
-			}
-		}
-
-		if (leastUsedKey) {
-			const cached = this.cache.get(leastUsedKey);
-			cached.mesh.mesh.delete();
-			this.cache.delete(leastUsedKey);
-		}
-	}
-}
 
 function compareTypedArrays(a: TypedArray, b: TypedArray): boolean {
 	let i = a.length;
@@ -194,11 +62,9 @@ export default class TerrainTexturesPass extends Pass<{
 	private quad: FullScreenQuad;
 	private heightMaterial: AbstractMaterial;
 	private ringHeightMaterial: AbstractMaterial;
+	private heightDownscaleMaterial: AbstractMaterial;
 	private normalMaterial: AbstractMaterial;
 	private waterMaterial: AbstractMaterial;
-	private heightStorage: TileTextureStorage;
-	private waterStorage: TileMeshStorage;
-	private heightMapStates: HeightMapState[];
 
 	public constructor(manager: PassManager) {
 		super('TerrainTexturesPass', manager, {
@@ -215,40 +81,20 @@ export default class TerrainTexturesPass extends Pass<{
 	private init(): void {
 		this.heightMaterial = new TerrainHeightMaterialContainer(this.renderer).material;
 		this.ringHeightMaterial = new TerrainRingHeightMaterialContainer(this.renderer).material;
+		this.heightDownscaleMaterial = new TerrainHeightDownscaleMaterialContainer(this.renderer).material;
 		this.normalMaterial = new TerrainNormalMaterialContainer(this.renderer).material;
 		this.waterMaterial = new TerrainWaterMaterialContainer(this.renderer).material;
 		this.quad = new FullScreenQuad(this.renderer);
 
-		const terrainSystem = this.manager.systemManager.getSystem(TerrainSystem);
-		const textureSize = Config.TerrainHeightMapCount * TileResolution;
+		const textureSize = 4 * 512;
 
 		this.getResource('TerrainHeight').descriptor.setSize(textureSize, textureSize);
 		this.getResource('TerrainNormal').descriptor.setSize(textureSize, textureSize);
 		this.getResource('TerrainWater').descriptor.setSize(2048, 2048, 2);
-
-		this.heightStorage = new TileTextureStorage(terrainSystem, this.renderer);
-		this.waterStorage = new TileMeshStorage(terrainSystem, this.renderer);
-
-		this.initHeightMapStates();
-	}
-
-	private initHeightMapStates(): void {
-		this.heightMapStates = [];
-
-		for (let i = 0; i < Config.TerrainHeightMapCount ** 2; i++) {
-			this.heightMapStates.push({
-				empty: true,
-				x: -1,
-				y: -1
-			});
-		}
-	}
-
-	private getHeightMapState(x: number, y: number): HeightMapState {
-		return this.heightMapStates[x + y * Config.TerrainHeightMapCount];
 	}
 
 	public render(): void {
+		const fullScreenTriangle = this.manager.renderSystem.fullScreenTriangle;
 		const camera = this.manager.sceneSystem.objects.camera;
 		const terrainSystem = this.manager.systemManager.getSystem(TerrainSystem);
 		const tileSystem = this.manager.systemManager.getSystem(TileSystem);
@@ -259,8 +105,7 @@ export default class TerrainTexturesPass extends Pass<{
 		const terrainWaterRenderPass = this.getPhysicalResource('TerrainWater');
 		const terrainRingHeightRenderPass = this.getPhysicalResource('TerrainRingHeight');
 
-		const heightTilesToRender: HeightTileSource[] = [];
-		const waterTilesToRender: WaterTileSource[] = [];
+		/*const heightTilesToRender: HeightTileSource[] = [];
 
 		for (let x = 0; x < Config.TerrainHeightMapCount; x++) {
 			for (let y = 0; y < Config.TerrainHeightMapCount; y++) {
@@ -282,7 +127,6 @@ export default class TerrainTexturesPass extends Pass<{
 				state.y = heightTile.y;
 
 				heightTilesToRender.push(heightTile);
-				waterTilesToRender.push(waterTile);
 			}
 		}
 
@@ -302,9 +146,54 @@ export default class TerrainTexturesPass extends Pass<{
 			this.heightMaterial.updateUniformBlock('MainBlock');
 
 			this.quad.mesh.draw();
+		}*/
+
+		const heightTex = <AbstractTexture2D>terrainHeightRenderPass.colorAttachments[0].texture;
+
+		{
+			const heightLoader = terrainSystem.areaLoaders.height0;
+			const dirtyTiles = heightLoader.getDirtyTileStates();
+
+			this.heightMaterial.getUniform('tMap').value = null;
+			this.renderer.useMaterial(this.heightMaterial);
+
+			terrainHeightRenderPass.colorAttachments[0].level = 0;
+			this.renderer.beginRenderPass(terrainHeightRenderPass);
+
+			for (const tileState of dirtyTiles) {
+				const x = tileState.localX;
+				const y = tileState.localY;
+				const count = heightLoader.viewportSize;
+
+				const scale = 1 / count;
+				const transform = [x * scale, (count - y - 1) * scale, scale];
+
+				this.heightMaterial.getUniform('tMap').value = tileState.tile.getTexture(this.renderer);
+				this.heightMaterial.getUniform('transform', 'MainBlock').value = new Float32Array(transform);
+				this.heightMaterial.updateUniformBlock('MainBlock');
+				this.heightMaterial.updateUniform('tMap');
+
+				this.quad.mesh.draw();
+			}
 		}
 
-		terrainHeightRenderPass.colorAttachments[0].texture.generateMipmaps();
+		for (let i = 0; i < 5; i++) {
+			terrainHeightRenderPass.colorAttachments[0].level = i + 1;
+			this.renderer.beginRenderPass(terrainHeightRenderPass);
+
+			heightTex.baseLevel = i;
+			heightTex.maxLevel = i;
+			heightTex.updateBaseAndMaxLevel();
+
+			this.heightDownscaleMaterial.getUniform('tMap').value = heightTex;
+			this.renderer.useMaterial(this.heightDownscaleMaterial);
+
+			this.manager.renderSystem.fullScreenTriangle.mesh.draw();
+		}
+
+		heightTex.baseLevel = 0;
+		heightTex.maxLevel = 10000;
+		heightTex.updateBaseAndMaxLevel();
 
 		this.ringHeightMaterial.getUniform('tHeight').value = <AbstractTexture2D>terrainHeightRenderPass.colorAttachments[0].texture;
 		this.renderer.useMaterial(this.ringHeightMaterial);
@@ -315,13 +204,13 @@ export default class TerrainTexturesPass extends Pass<{
 			terrainRingHeightRenderPass.colorAttachments[0].slice = i;
 			this.renderer.beginRenderPass(terrainRingHeightRenderPass);
 
-			this.ringHeightMaterial.getUniform<UniformFloat3>('transformHeight', 'PerMesh').value = ring.heightTextureTransform;
+			this.ringHeightMaterial.getUniform<UniformFloat3>('transformHeight', 'PerMesh').value = ring.heightTextureTransform0;
 			this.ringHeightMaterial.getUniform<UniformFloat2>('morphOffset', 'PerMesh').value = ring.morphOffset;
 			this.ringHeightMaterial.getUniform<UniformFloat1>('size', 'PerMesh').value[0] = ring.size;
 			this.ringHeightMaterial.getUniform<UniformFloat1>('segmentCount', 'PerMesh').value[0] = ring.segmentCount * 2;
 			this.ringHeightMaterial.getUniform<UniformFloat1>('isLastRing', 'PerMesh').value[0] = +ring.isLastRing;
 			this.ringHeightMaterial.getUniform('cameraPosition', 'PerMesh').value = new Float32Array([camera.position.x - ring.position.x, camera.position.z - ring.position.z]);
-			this.ringHeightMaterial.getUniform<UniformInt1>('levelId', 'PerMesh').value[0] = i;
+			this.ringHeightMaterial.getUniform<UniformInt1>('levelId', 'PerMesh').value[0] = i + 2;
 			this.ringHeightMaterial.updateUniformBlock('PerMesh');
 
 			this.quad.mesh.draw();

@@ -278,7 +278,7 @@ export default class GBufferPass extends Pass<{
 		for (const terrainRing of terrain.children) {
 			this.terrainMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(Mat4.multiply(camera.matrixWorldInverse, terrainRing.matrixWorld).values);
 			this.terrainMaterial.getUniform<UniformMatrix4>('modelViewMatrixPrev', 'PerMesh').value = new Float32Array(Mat4.multiply(this.cameraMatrixWorldInversePrev, terrainRing.matrixWorld).values);
-			this.terrainMaterial.getUniform<UniformFloat3>('transformHeight', 'PerMesh').value = terrainRing.heightTextureTransform;
+			this.terrainMaterial.getUniform<UniformFloat3>('transformHeight', 'PerMesh').value = terrainRing.heightTextureTransform0;
 			this.terrainMaterial.getUniform<UniformFloat3>('transformMask', 'PerMesh').value = terrainRing.maskTextureTransform;
 			this.terrainMaterial.getUniform<UniformFloat4>('transformWater0', 'PerMesh').value = terrainRing.waterTextureTransform0;
 			this.terrainMaterial.getUniform<UniformFloat4>('transformWater1', 'PerMesh').value = terrainRing.waterTextureTransform1;
@@ -315,9 +315,9 @@ export default class GBufferPass extends Pass<{
 			const terrainSystem = this.manager.systemManager.getSystem(TerrainSystem);
 			const lastPivotMeters = terrainSystem.lastPivotPositionMeters;
 
-			const scale = Config.TileSize / heightMapTotalWorldSize;
-			const offsetX = (tile.position.x - lastPivotMeters.x) / heightMapTotalWorldSize;
-			const offsetY = (tile.position.z - lastPivotMeters.y) / heightMapTotalWorldSize;
+			//const scale = Config.TileSize / heightMapTotalWorldSize;
+			//const offsetX = (tile.position.x - lastPivotMeters.x) / heightMapTotalWorldSize;
+			//const offsetY = (tile.position.z - lastPivotMeters.y) / heightMapTotalWorldSize;
 
 			let ring0: TerrainRing = null;
 			let ring1: TerrainRing = null;
@@ -352,7 +352,7 @@ export default class GBufferPass extends Pass<{
 
 			this.roadMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
 			this.roadMaterial.getUniform<UniformMatrix4>('modelViewMatrixPrev', 'PerMesh').value = new Float32Array(mvMatrixPrev.values);
-			this.roadMaterial.getUniform<UniformMatrix4>('transformHeight', 'PerMesh').value = new Float32Array([offsetX, offsetY, scale]);
+			//this.roadMaterial.getUniform<UniformMatrix4>('transformHeight', 'PerMesh').value = new Float32Array([offsetX, offsetY, scale]);
 			this.roadMaterial.getUniform<UniformMatrix4>('terrainRingSize', 'PerMesh').value[0] = ring0.size;
 			this.roadMaterial.getUniform<UniformMatrix4>('terrainRingOffset', 'PerMesh').value = new Float32Array(ringOffset);
 			this.roadMaterial.getUniform<UniformMatrix4>('terrainLevelId', 'PerMesh').value[0] = levelId;

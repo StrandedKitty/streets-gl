@@ -15,6 +15,7 @@ type TileSourceConstructor<T extends TileSource<any>> = {new(x: number, y: numbe
 
 export default class TileAreaLoader<T extends TileSource<any>> {
 	public readonly zoom: number;
+	public readonly bufferSize: number;
 	public readonly maxStoredTiles: number;
 	public readonly viewportSize: number;
 	private readonly states: TileAreaLoaderCellState<T>[] = [];
@@ -38,6 +39,7 @@ export default class TileAreaLoader<T extends TileSource<any>> {
 	) {
 		this.sourceClass = sourceClass;
 		this.zoom = zoom;
+		this.bufferSize = bufferSize;
 		this.maxStoredTiles = maxStoredTiles;
 		this.viewportSize = viewportSize;
 
@@ -81,11 +83,10 @@ export default class TileAreaLoader<T extends TileSource<any>> {
 		min.x = Math.round(min.x);
 		min.y = Math.round(min.y);
 
-		for (let x = 0; x < this.viewportSize; x++) {
-			for (let y = 0; y < this.viewportSize; y++) {
+		for (let x = -this.bufferSize; x < this.viewportSize + this.bufferSize; x++) {
+			for (let y = -this.bufferSize; y < this.viewportSize + this.bufferSize; y++) {
 				const tileX = x + min.x;
 				const tileY = y + min.y;
-				const state = this.getState(x, y);
 
 				if (!this.getTile(tileX, tileY)) {
 					this.fetchTile(tileX, tileY);
@@ -94,6 +95,14 @@ export default class TileAreaLoader<T extends TileSource<any>> {
 				const tile = this.getTile(tileX, tileY);
 
 				tile.markUsed();
+			}
+		}
+
+		for (let x = 0; x < this.viewportSize; x++) {
+			for (let y = 0; y < this.viewportSize; y++) {
+				const state = this.getState(x, y);
+				const tileX = x + min.x;
+				const tileY = y + min.y;
 
 				if (state.x !== tileX || state.y !== tileY) {
 					state.dirty = true;
@@ -125,6 +134,7 @@ export default class TileAreaLoader<T extends TileSource<any>> {
 	private fetchTile(x: number, y: number): void {
 		const tile = new (this.sourceClass)(x, y, this.zoom);
 		this.setTile(x, y, tile);
+		tile.markUsed();
 
 		if (this.tiles.size > this.maxStoredTiles) {
 			this.tryDeleteLeastUsedTexture();

@@ -21,6 +21,9 @@ import AtmosphereLUTPass from "~/app/render/passes/AtmosphereLUTPass";
 import SSRPass from "~/app/render/passes/SSRPass";
 import DoFPass from "~/app/render/passes/DoFPass";
 import TerrainTexturesPass from "~/app/render/passes/TerrainTexturesPass";
+import BloomPass from "~/app/render/passes/BloomPass";
+import SettingsManager from "~/app/ui/SettingsManager";
+import FullScreenTriangle from "~/app/objects/FullScreenTriangle";
 
 export default class RenderSystem extends System {
 	private renderer: AbstractRenderer;
@@ -29,6 +32,7 @@ export default class RenderSystem extends System {
 	private renderGraph: RG.RenderGraph;
 	private renderGraphResourceFactory: RenderGraphResourceFactory;
 	private passManager: PassManager;
+	public fullScreenTriangle: FullScreenTriangle;
 
 	public constructor(systemManager: SystemManager) {
 		super(systemManager);
@@ -52,22 +56,29 @@ export default class RenderSystem extends System {
 	}
 
 	private initScene(): void {
+		this.fullScreenTriangle = new FullScreenTriangle(this.renderer);
+
 		this.renderGraph = new RG.RenderGraph(this.renderer);
 		this.renderGraphResourceFactory = new RenderGraphResourceFactory(this.renderer);
 		this.passManager = new PassManager(this.systemManager, this.renderer, this.renderGraphResourceFactory, this.renderGraph);
 
-		this.passManager.addPass(new GBufferPass(this.passManager));
-		this.passManager.addPass(new TAAPass(this.passManager));
-		this.passManager.addPass(new ShadowMappingPass(this.passManager));
-		this.passManager.addPass(new ShadingPass(this.passManager));
-		this.passManager.addPass(new ScreenPass(this.passManager));
-		this.passManager.addPass(new SSAOPass(this.passManager));
-		this.passManager.addPass(new SelectionPass(this.passManager));
-		this.passManager.addPass(new LabelPass(this.passManager));
-		this.passManager.addPass(new AtmosphereLUTPass(this.passManager));
-		this.passManager.addPass(new SSRPass(this.passManager));
-		this.passManager.addPass(new DoFPass(this.passManager));
-		this.passManager.addPass(new TerrainTexturesPass(this.passManager));
+		this.passManager.addPasses(
+			new GBufferPass(this.passManager),
+			new TAAPass(this.passManager),
+			new ShadowMappingPass(this.passManager),
+			new ShadingPass(this.passManager),
+			new ScreenPass(this.passManager),
+			new SSAOPass(this.passManager),
+			new SelectionPass(this.passManager),
+			new LabelPass(this.passManager),
+			new AtmosphereLUTPass(this.passManager),
+			new SSRPass(this.passManager),
+			new DoFPass(this.passManager),
+			new BloomPass(this.passManager),
+			new TerrainTexturesPass(this.passManager)
+		);
+
+		this.passManager.listenToSettings();
 	}
 
 	private resize(): void {
@@ -86,7 +97,9 @@ export default class RenderSystem extends System {
 		const sceneSystem = this.systemManager.getSystem(SceneSystem);
 		const tiles = sceneSystem.objects.tiles.children as Tile[];
 
-		sceneSystem.objects.labels.updateFromTiles(tiles, sceneSystem.objects.camera, this.resolutionScene);
+		if (SettingsManager.getSetting('labels').statusValue === 'on') {
+			sceneSystem.objects.labels.updateFromTiles(tiles, sceneSystem.objects.camera, this.resolutionScene);
+		}
 
 		for (const object of sceneSystem.getObjectsToUpdateMesh()) {
 			object.updateMesh(this.renderer);

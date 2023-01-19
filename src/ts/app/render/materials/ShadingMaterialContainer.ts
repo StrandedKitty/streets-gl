@@ -12,6 +12,7 @@ export default class ShadingMaterialContainer extends MaterialContainer {
 		this.material = this.renderer.createMaterial({
 			name: 'Shading material',
 			defines: {
+				SHADOW_ENABLED: '1',
 				SHADOW_CASCADES: '3',
 				SHADOW_CAMERA_NEAR: `${Config.CSMShadowCameraNear}.`,
 				SHADOW_CAMERA_FAR: `${Config.CSMShadowCameraFar}.`,

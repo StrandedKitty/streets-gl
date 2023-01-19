@@ -17,8 +17,8 @@ export default class TerrainRingHeightMaterialContainer extends MaterialContaine
 			}, {
 				name: 'transformHeight',
 				block: 'PerMesh',
-				type: RendererTypes.UniformType.Float3,
-				value: new Float32Array(3)
+				type: RendererTypes.UniformType.Float4,
+				value: new Float32Array(4)
 			}, {
 				name: 'morphOffset',
 				block: 'PerMesh',

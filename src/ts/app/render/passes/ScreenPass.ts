@@ -19,20 +19,12 @@ export default class ScreenPass extends Pass<{
 		type: InternalResourceType.Input;
 		resource: RenderPassResource;
 	};
-	CoC: {
-		type: InternalResourceType.Input;
-		resource: RenderPassResource;
-	};
-	DoF: {
-		type: InternalResourceType.Input;
+	TerrainHeight: {
+		type: RG.InternalResourceType.Input;
 		resource: RenderPassResource;
 	};
 	Output: {
 		type: RG.InternalResourceType.Output;
-		resource: RenderPassResource;
-	};
-	TerrainWater: {
-		type: RG.InternalResourceType.Input;
 		resource: RenderPassResource;
 	};
 }> {
@@ -41,32 +33,58 @@ export default class ScreenPass extends Pass<{
 
 	public constructor(manager: PassManager) {
 		super('ScreenPass', manager, {
-			HDR: {type: InternalResourceType.Input, resource: manager.getSharedResource('HDRAntialiased')},
+			HDR: {type: InternalResourceType.Input, resource: manager.getSharedResource('Bloom')},
 			Labels: {type: InternalResourceType.Input, resource: manager.getSharedResource('Labels')},
-			CoC: {type: InternalResourceType.Input, resource: manager.getSharedResource('CoCAntialiased')},
-			DoF: {type: InternalResourceType.Input, resource: manager.getSharedResource('DoFBlurred')},
-			Output: {type: InternalResourceType.Output, resource: manager.getSharedResource('BackbufferRenderPass')},
-			TerrainWater: {type: InternalResourceType.Input, resource: manager.getSharedResource('TerrainWater')},
+			TerrainHeight: {type: InternalResourceType.Input, resource: manager.getSharedResource('TerrainHeight')},
+			Output: {type: InternalResourceType.Output, resource: manager.getSharedResource('BackbufferRenderPass')}
 		});
 
 		this.fullScreenTriangle = new FullScreenTriangle(this.renderer);
 		this.material = new ScreenMaterialContainer(this.renderer).material;
 	}
 
+	private getLabelsTexture(): AbstractTexture2D | null {
+		let texture = null;
+
+		if (this.getResource('Labels')) {
+			texture = <AbstractTexture2D>this.getPhysicalResource('Labels').colorAttachments[0].texture;
+		}
+
+		return texture;
+	}
+
+	private updateMaterialDefines(): void {
+		let needsRecompilation = false;
+
+		const newValues = {
+			LABELS_ENABLED: this.getResource('Labels') ? '1' : '0'
+		};
+
+		for (const [k, v] of Object.entries(newValues)) {
+			if (this.material.defines[k] !== v) {
+				this.material.defines[k] = v;
+				needsRecompilation = true;
+			}
+		}
+
+		if (needsRecompilation) {
+			this.material.recompile();
+			console.log('recompile screen')
+		}
+	}
+
 	public render(): void {
+		this.updateMaterialDefines();
+
 		const sourceTexture = <AbstractTexture2D>this.getPhysicalResource('HDR').colorAttachments[0].texture;
-		const labelsTexture = <AbstractTexture2D>this.getPhysicalResource('Labels').colorAttachments[0].texture;
-		const cocTexture = <AbstractTexture2D>this.getPhysicalResource('CoC').colorAttachments[0].texture;
-		const dofTexture = <AbstractTexture2D>this.getPhysicalResource('DoF').colorAttachments[0].texture;
+		const labelsTexture = this.getLabelsTexture();
 		const uiResolution = this.manager.renderSystem.resolutionUI;
 
 		this.renderer.beginRenderPass(this.getPhysicalResource('Output'));
 
 		this.material.getUniform('tHDR').value = sourceTexture;
 		this.material.getUniform('tLabels').value = labelsTexture;
-		this.material.getUniform('tCoC').value = cocTexture;
-		this.material.getUniform('tDoF').value = dofTexture;
-		this.material.getUniform('tDebug').value = <AbstractTexture2DArray>this.getPhysicalResource('TerrainWater').colorAttachments[0].texture;
+		this.material.getUniform('tDebug').value = <AbstractTexture2D>this.getPhysicalResource('TerrainHeight').colorAttachments[0].texture;
 		this.material.getUniform<UniformFloat2>('resolution', 'Uniforms').value[0] = uiResolution.x;
 		this.material.getUniform<UniformFloat2>('resolution', 'Uniforms').value[1] = uiResolution.y;
 		this.material.updateUniformBlock('Uniforms');
