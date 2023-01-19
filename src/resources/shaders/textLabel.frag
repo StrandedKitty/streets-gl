@@ -13,11 +13,11 @@ uniform Uniforms {
 
 uniform sampler2D tSDF;
 
-const float bufferValue = 0.47;
-const float outlineBufferValue = 0.3;
+const float bufferValue = 0.45;
+const float outlineBufferValue = 0.25;
+const float smoothing = 0.075;
 
 void main() {
-    float smoothing = 0.075;
     float distance = texture(tSDF, vUv).r;
     float alpha = smoothstep(bufferValue - smoothing, bufferValue + smoothing, distance);
     float outlineAlpha = smoothstep(outlineBufferValue - smoothing, outlineBufferValue + smoothing, distance);
