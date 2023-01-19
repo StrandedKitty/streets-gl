@@ -6,7 +6,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
 
 module.exports = [{
-	entry: './src/ts/app/App.ts',
+	entry: './src/app/App.ts',
 	output: {
 		filename: './js/main.js',
 		path: path.resolve(__dirname, 'build')
@@ -70,7 +70,7 @@ module.exports = [{
 	resolve: {
 		extensions: ['.ts', '.js', '.tsx'],
 		alias: {
-			'~': path.resolve(__dirname, 'src/ts')
+			'~': path.resolve(__dirname, 'src')
 		}
 	}
 }];
