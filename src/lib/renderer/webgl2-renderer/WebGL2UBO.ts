@@ -93,6 +93,10 @@ export default class WebGL2UBO {
 			throw new Error(`Uniform ${uniformName} in block ${this.blockName} is not present in the shader`);
 		}
 
+		if (offset + value.buffer.byteLength > this.dataView.byteLength) {
+			return;
+		}
+
 		this.dataView.set(new Uint8Array(value.buffer), offset);
 	}
 

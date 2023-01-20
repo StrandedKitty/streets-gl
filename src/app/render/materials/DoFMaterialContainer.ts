@@ -17,6 +17,9 @@ export default class DoFMaterialContainer extends MaterialContainer {
 					value: null
 				}
 			],
+			defines: {
+				QUALITY: '0'
+			},
 			primitive: {
 				frontFace: RendererTypes.FrontFace.CCW,
 				cullMode: RendererTypes.CullMode.None

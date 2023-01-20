@@ -22,6 +22,11 @@ export default class CoCMaterialContainer extends MaterialContainer {
 					value: new Float32Array(16)
 				}
 			],
+			defines: {
+				SENSOR_HEIGHT: '0.024', // 35mm film
+				F_NUMBER: '0.01',
+				FOCAL_LENGTH: '0.033'
+			},
 			primitive: {
 				frontFace: RendererTypes.FrontFace.CCW,
 				cullMode: RendererTypes.CullMode.None

@@ -1,9 +1,5 @@
 #include <versionPrecision>
 
-#define SENSOR_HEIGHT 0.024
-#define FOCAL_LENGTH 0.033 // vertical FOV 40 degrees
-#define F_NUMBER 0.01
-
 out vec4 FragColor;
 
 in vec2 vUv;

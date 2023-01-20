@@ -10,6 +10,7 @@ import TreeDepthMaterialContainer from "../materials/TreeDepthMaterialContainer"
 import AircraftDepthMaterialContainer from "../materials/AircraftDepthMaterialContainer";
 import VehicleSystem from "../../systems/VehicleSystem";
 import BuildingDepthMaterial from "../materials/BuildingDepthMaterial";
+import SettingsManager from "~/app/ui/SettingsManager";
 
 export default class ShadowMappingPass extends Pass<{
 	ShadowMaps: {
@@ -30,8 +31,30 @@ export default class ShadowMappingPass extends Pass<{
 		this.treeMaterial = new TreeDepthMaterialContainer(this.renderer).material;
 		this.aircraftMaterial = new AircraftDepthMaterialContainer(this.renderer).material;
 
-		const csm = this.manager.sceneSystem.objects.csm;
+		SettingsManager.onSettingChange('shadows', ({statusValue}) => {
+			const csm = this.manager.sceneSystem.objects.csm;
 
+			if (statusValue === 'low') {
+				csm.cascades = 1;
+				csm.resolution = 2048;
+				csm.far = 3000;
+			} else if (statusValue === 'medium') {
+				csm.cascades = 3;
+				csm.resolution = 2048;
+				csm.far = 4000;
+			} else {
+				csm.cascades = 3;
+				csm.resolution = 4096;
+				csm.far = 5000;
+			}
+
+			csm.updateCascades();
+			this.updateShadowMapDescriptor();
+		});
+	}
+
+	private updateShadowMapDescriptor(): void {
+		const csm = this.manager.sceneSystem.objects.csm;
 		this.getResource('ShadowMaps').descriptor.setSize(csm.resolution, csm.resolution, csm.cascades);
 	}
 
@@ -59,21 +82,21 @@ export default class ShadowMappingPass extends Pass<{
 				this.treeMaterial.updateUniformBlock('MainBlock');
 
 				trees.mesh.draw();
-			}
 
-			for (let i = 0; i < aircraftList.length; i++) {
-				const aircraft = aircraftList[i];
+				for (let i = 0; i < aircraftList.length; i++) {
+					const aircraft = aircraftList[i];
 
-				if (aircraft.mesh && aircraft.mesh.instanceCount > 0) {
-					const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, aircraft.matrixWorld);
+					if (aircraft.mesh && aircraft.mesh.instanceCount > 0) {
+						const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, aircraft.matrixWorld);
 
-					this.renderer.useMaterial(this.aircraftMaterial);
+						this.renderer.useMaterial(this.aircraftMaterial);
 
-					this.aircraftMaterial.getUniform('projectionMatrix', 'MainBlock').value = new Float32Array(camera.projectionMatrix.values);
-					this.aircraftMaterial.getUniform('modelViewMatrix', 'MainBlock').value = new Float32Array(mvMatrix.values);
-					this.aircraftMaterial.updateUniformBlock('MainBlock');
+						this.aircraftMaterial.getUniform('projectionMatrix', 'MainBlock').value = new Float32Array(camera.projectionMatrix.values);
+						this.aircraftMaterial.getUniform('modelViewMatrix', 'MainBlock').value = new Float32Array(mvMatrix.values);
+						this.aircraftMaterial.updateUniformBlock('MainBlock');
 
-					aircraft.mesh.draw();
+						aircraft.mesh.draw();
+					}
 				}
 			}
 

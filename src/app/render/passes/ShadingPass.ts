@@ -118,7 +118,10 @@ export default class ShadingPass extends Pass<{
 		const newValues = {
 			SHADOW_ENABLED: this.getResource('ShadowMaps') ? '1' : '0',
 			SSAO_ENABLED: this.getResource('SSAO') ? '1' : '0',
-			SSR_ENABLED: this.getResource('SSR') ? '1' : '0'
+			SSR_ENABLED: this.getResource('SSR') ? '1' : '0',
+			SHADOW_CASCADES: this.getResource('ShadowMaps') ?
+				this.getResource('ShadowMaps').descriptor.depthAttachment.texture.depth.toString() :
+				this.shadingMaterial.defines.SHADOW_CASCADES
 		};
 
 		for (const [k, v] of Object.entries(newValues)) {
@@ -130,7 +133,6 @@ export default class ShadingPass extends Pass<{
 
 		if (needsRecompilation) {
 			this.shadingMaterial.recompile();
-			console.log('recompile')
 		}
 	}
 

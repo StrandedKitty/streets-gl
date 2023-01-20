@@ -69,7 +69,6 @@ export default class ScreenPass extends Pass<{
 
 		if (needsRecompilation) {
 			this.material.recompile();
-			console.log('recompile screen')
 		}
 	}
 

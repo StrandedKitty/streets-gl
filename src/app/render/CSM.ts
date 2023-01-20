@@ -14,15 +14,15 @@ const FadeOffsetFactor = 250;
 
 export default class CSM extends Object3D {
 	private readonly camera: PerspectiveCamera;
-	private readonly near: number;
-	private readonly far: number;
-	public readonly cascades: number;
-	public readonly resolution: number;
+	public near: number;
+	public far: number;
+	public cascades: number;
+	public resolution: number;
 	private readonly shadowBias: number;
 	private readonly shadowNormalBias: number;
 	public direction: Vec3;
 	public intensity: number = 0;
-	public cascadeCameras: CSMCascadeCamera[] = [];
+	public cascadeCameras: CSMCascadeCamera[];
 	private mainFrustum: Frustum;
 	private frustums: Frustum[];
 	private breaks: number[][];
@@ -60,12 +60,19 @@ export default class CSM extends Object3D {
 		this.shadowNormalBias = shadowNormalBias;
 		this.direction = direction;
 
+		this.updateCascades();
+	}
+
+	public updateCascades(): void {
 		this.createCameras();
 		this.updateBreaks();
 		this.updateFrustums();
 	}
 
 	private createCameras(): void {
+		this.remove(...this.children);
+		this.cascadeCameras = [];
+
 		for (let i = 0; i < this.cascades; i++) {
 			const camera = new CSMCascadeCamera({
 				size: 0,

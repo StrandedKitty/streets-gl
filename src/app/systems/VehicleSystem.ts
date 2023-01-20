@@ -4,6 +4,7 @@ import TileSystem from "./TileSystem";
 import Vec2 from "~/lib/math/Vec2";
 import MathUtils from "~/lib/math/MathUtils";
 import HeightProvider from "../world/HeightProvider";
+import SettingsManager from "~/app/ui/SettingsManager";
 
 interface QueryAircraft {
 	id: string;
@@ -50,13 +51,20 @@ const QueryInterval = 10000;
 export default class VehicleSystem extends System {
 	public aircraftMap: Map<string, AircraftEntry> = new Map();
 	private lastUpdateTimestamp: number = 0;
+	private enabled: boolean = true;
 
 	public constructor(systemManager: SystemManager) {
 		super(systemManager);
 
 		setInterval(() => {
-			this.fetchData();
+			if (this.enabled) {
+				this.fetchData();
+			}
 		}, QueryInterval);
+
+		SettingsManager.onSettingChange('airTraffic', ({statusValue}) => {
+			this.enabled = statusValue === 'on';
+		});
 	}
 
 	public postInit(): void {
@@ -142,6 +150,10 @@ export default class VehicleSystem extends System {
 	}
 
 	public getAircraftBuffer(origin: Vec2, type: number): Float32Array {
+		if (!this.enabled) {
+			return new Float32Array();
+		}
+
 		const aircraftOfType: AircraftEntry[] = [];
 
 		for (const aircraft of this.aircraftMap.values()) {
@@ -151,7 +163,7 @@ export default class VehicleSystem extends System {
 		}
 
 		if (aircraftOfType.length === 0) {
-			return null;
+			return new Float32Array();
 		}
 
 		const buffer = new Float32Array(aircraftOfType.length * 4);

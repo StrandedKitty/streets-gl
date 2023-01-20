@@ -12,6 +12,13 @@ import DoFMaterialContainer from "../materials/DoFMaterialContainer";
 import DoFBlurMaterialContainer from "../materials/DoFBlurMaterialContainer";
 import CoCAntialiasMaterialContainer from "../materials/CoCAntialiasMaterialContainer";
 import DoFCombineMaterial from "../materials/DoFCombineMaterial";
+import SettingsManager from "~/app/ui/SettingsManager";
+import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
+import MathUtils from "~/lib/math/MathUtils";
+
+const getFocalLength = (sensorSize: number, cameraFoV: number): number => {
+	return sensorSize / (Math.tan(MathUtils.toRad(cameraFoV) / 2) * 2);
+};
 
 export default class DoFPass extends Pass<{
 	HDR: {
@@ -80,9 +87,41 @@ export default class DoFPass extends Pass<{
 		this.dofCombineMaterial = new DoFCombineMaterial(this.renderer).material;
 
 		this.fullScreenTriangle = this.manager.renderSystem.fullScreenTriangle;
+
+		SettingsManager.onSettingChange('dof', ({statusValue}) => {
+			const quality = statusValue === 'low' ? '0' : '1';
+
+			if (this.dofMaterial.defines.QUALITY !== quality) {
+				this.dofMaterial.defines.QUALITY = quality;
+				this.dofMaterial.recompile();
+			}
+		});
+	}
+
+	private updateCoCDefines(camera: PerspectiveCamera): void {
+		const defines = {
+			F_NUMBER: SettingsManager.getSetting('dofAperture').numberValue.toFixed(16),
+			FOCAL_LENGTH: getFocalLength(+this.cocMaterial.defines.SENSOR_HEIGHT, camera.fov).toFixed(16)
+		};
+
+		let needsRecompile = false;
+
+		for (const [key, value] of Object.entries(defines)) {
+			if (this.cocMaterial.defines[key] !== value) {
+				needsRecompile = true;
+			}
+
+			this.cocMaterial.defines[key] = value;
+		}
+
+		if (needsRecompile) {
+			this.cocMaterial.recompile();
+		}
 	}
 
 	public render(): void {
+		this.updateCoCDefines(this.manager.sceneSystem.objects.camera);
+
 		this.renderCoC();
 		this.antialiasCoC();
 		this.downscaleCoC();

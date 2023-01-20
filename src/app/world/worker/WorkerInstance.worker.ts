@@ -111,14 +111,14 @@ function load(x: number, y: number): void {
 		.all out body qt;
 	`;
 
-	url = `http://localhost:3000/tile?x=${x}&y=${y}`;
+	//url = `http://localhost:3000/tile?x=${x}&y=${y}`;
 
 	const httpRequest = new XMLHttpRequest();
 
 	httpRequest.onreadystatechange = function (): void {
 		if (httpRequest.readyState === XMLHttpRequest.DONE) {
 			if (httpRequest.status === 200) {
-				buildGeometry(x, y, JSON.parse(httpRequest.responseText));
+				buildGeometry(x, y, JSON.parse(httpRequest.responseText).elements);
 			} else {
 				sendMessage({
 					type: WorkerMessageIncomingType.Error,

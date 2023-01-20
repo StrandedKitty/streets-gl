@@ -242,13 +242,14 @@ export default class GBufferPass extends Pass<{
 
 			const vehicleSystem = this.manager.systemManager.getSystem(VehicleSystem);
 			const buffer = vehicleSystem.getAircraftBuffer(instancesOrigin, i);
+			const instanceCount = buffer.length / 4;
 
-			if (buffer) {
-				aircraft.position.set(instancesOrigin.x, 0, instancesOrigin.y);
-				aircraft.updateMatrix();
-				aircraft.updateMatrixWorld();
-				aircraft.setInstancesInterleavedBuffer(buffer, buffer.length / 4);
+			aircraft.position.set(instancesOrigin.x, 0, instancesOrigin.y);
+			aircraft.updateMatrix();
+			aircraft.updateMatrixWorld();
+			aircraft.setInstancesInterleavedBuffer(buffer, buffer.length / 4);
 
+			if (instanceCount > 0) {
 				const mvMatrixPrev = Mat4.multiply(this.cameraMatrixWorldInversePrev, aircraft.matrixWorld);
 
 				this.renderer.useMaterial(this.aircraftMaterial);

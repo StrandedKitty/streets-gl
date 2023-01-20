@@ -1,6 +1,20 @@
 import React, {useEffect, useReducer, useState} from "react";
 import {IoCloseOutline} from 'react-icons/io5';
-import SettingsManager, {SettingsConfigType, SettingsValues} from "./SettingsManager";
+import SettingsManager, {SettingsConfigType, SettingsSelectRangeScale, SettingsValues} from "./SettingsManager";
+
+const logToLinear = (min: number, max: number, value: number): number => {
+	const norm = (value - min) / (max - min);
+	return min + Math.pow(norm, 1 / 5) * (max - min);
+};
+
+const linearToLog = (min: number, max: number, value: number): number => {
+	const norm = (value - min) / (max - min);
+	return min + Math.pow(norm, 5) * (max - min);
+};
+
+const toFixedWithoutZeros = (num: number, precision: number): string => {
+	return num.toFixed(precision).replace(/(\.0+|0+)$/, '');
+};
 
 const req = (
 	settingsConfig: SettingsConfigType,
@@ -59,18 +73,25 @@ const req = (
 						{
 							config.selectRange && (
 								<div className={'modal-settings-range-container'}>
-									<div className={'modal-settings-range-value'}>{value.numberValue}</div>
+									<div className={'modal-settings-range-value'}>{toFixedWithoutZeros(value.numberValue, 4)}</div>
 									<input
 										className={'modal-settings-range'}
 										type='range'
 										min={config.selectRange[0]}
 										max={config.selectRange[1]}
 										step={config.selectRange[2]}
-										value={value.numberValue}
+										value={config.selectRangeScale === SettingsSelectRangeScale.Logarithmic ?
+											logToLinear(config.selectRange[0], config.selectRange[1], value.numberValue) :
+											value.numberValue
+										}
 										onChange={(e): void => {
+											const numberValue = config.selectRangeScale === SettingsSelectRangeScale.Logarithmic ?
+												linearToLog(config.selectRange[0], config.selectRange[1], +e.target.value) :
+												+e.target.value;
+
 											SettingsManager.updateSetting(key, {
 												...value,
-												numberValue: +e.target.value
+												numberValue
 											});
 										}}
 									/>

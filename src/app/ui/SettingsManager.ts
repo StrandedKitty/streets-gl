@@ -5,6 +5,10 @@ export interface SettingsValuesEntry {
 	numberValue?: number;
 }
 export type SettingsValues = Record<string, SettingsValuesEntry>;
+export enum SettingsSelectRangeScale {
+	Linear,
+	Logarithmic
+}
 export type SettingsConfigEntryType = {
 	label: string;
 	parent?: string;
@@ -14,6 +18,7 @@ export type SettingsConfigEntryType = {
 	statusDefault?: string;
 	selectRange?: [number, number, number];
 	selectRangeDefault?: number;
+	selectRangeScale?: SettingsSelectRangeScale;
 };
 export type SettingsConfigType = Record<string, SettingsConfigEntryType>;
 const SettingsConfig: SettingsConfigType = {
@@ -21,12 +26,6 @@ const SettingsConfig: SettingsConfigType = {
 		label: 'Vertical field of view',
 		selectRange: [10, 120, 1],
 		selectRangeDefault: 40
-	},
-	barrelDistortion: {
-		label: 'Camera barrel distortion',
-		status: ['off', 'on'],
-		statusLabels: ['Disabled', 'Enabled'],
-		statusDefault: 'off'
 	},
 	labels: {
 		label: 'Text labels',
@@ -57,7 +56,8 @@ const SettingsConfig: SettingsConfigType = {
 		parent: 'dof',
 		parentStatusCondition: ['low', 'high'],
 		selectRange: [0.001, 1, 0.001],
-		selectRangeDefault: 0.1
+		selectRangeDefault: 0.01,
+		selectRangeScale: SettingsSelectRangeScale.Logarithmic
 	},
 	dofMode: {
 		label: 'Focusing mode',

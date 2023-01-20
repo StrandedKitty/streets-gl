@@ -390,8 +390,8 @@ export default class WebGL2Renderer implements AbstractRenderer {
 
 	public get resolution(): {x: number; y: number} {
 		return {
-			x: this.gl.canvas.width / 2,
-			y: this.gl.canvas.height / 2
+			x: this.gl.canvas.width,
+			y: this.gl.canvas.height
 		};
 	}
 

@@ -73,9 +73,11 @@ export default class WebGL2Material implements AbstractMaterial {
 	public recompile(): void {
 		this.program.recompileShaders();
 		this.uniformLocations.clear();
+		this.createUBOs();
 	}
 
 	private createUBOs(): void {
+		this.ubos.clear();
 		const blocksCount = this.gl.getProgramParameter(this.program.WebGLProgram, WebGL2Constants.ACTIVE_UNIFORM_BLOCKS);
 
 		for (let i = 0; i < blocksCount; i++) {
