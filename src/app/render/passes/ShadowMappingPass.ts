@@ -9,7 +9,7 @@ import Mat4 from "~/lib/math/Mat4";
 import TreeDepthMaterialContainer from "../materials/TreeDepthMaterialContainer";
 import AircraftDepthMaterialContainer from "../materials/AircraftDepthMaterialContainer";
 import VehicleSystem from "../../systems/VehicleSystem";
-import BuildingDepthMaterial from "../materials/BuildingDepthMaterial";
+import BuildingDepthMaterialContainer from "../materials/BuildingDepthMaterialContainer";
 import SettingsManager from "~/app/ui/SettingsManager";
 
 export default class ShadowMappingPass extends Pass<{
@@ -27,7 +27,7 @@ export default class ShadowMappingPass extends Pass<{
 			ShadowMaps: {type: InternalResourceType.Output, resource: manager.getSharedResource('ShadowMaps')}
 		});
 
-		this.buildingDepthMaterial = new BuildingDepthMaterial(this.renderer).material;
+		this.buildingDepthMaterial = new BuildingDepthMaterialContainer(this.renderer).material;
 		this.treeMaterial = new TreeDepthMaterialContainer(this.renderer).material;
 		this.aircraftMaterial = new AircraftDepthMaterialContainer(this.renderer).material;
 

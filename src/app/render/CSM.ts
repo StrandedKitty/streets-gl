@@ -3,8 +3,6 @@ import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 import Vec3 from "~/lib/math/Vec3";
 import Frustum from "~/lib/core/Frustum";
 import AABB from "~/lib/core/AABB";
-import Material, {UniformType} from "~/lib/renderer/Material";
-import Texture2DArray from "~/lib/renderer/Texture2DArray";
 import CSMCascadeCamera from "./CSMCascadeCamera";
 import Config from "../Config";
 import Mat4 from "~/lib/math/Mat4";

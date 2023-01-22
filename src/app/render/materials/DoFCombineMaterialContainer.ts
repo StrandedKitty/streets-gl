@@ -3,23 +3,28 @@ import MaterialContainer from "./MaterialContainer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 
-export default class BuildingDepthMaterial extends MaterialContainer {
+export default class DoFCombineMaterialContainer extends MaterialContainer {
 	public constructor(renderer: AbstractRenderer) {
 		super(renderer);
 
 		this.material = this.renderer.createMaterial({
-			name: 'Building and buildings depth material',
+			name: 'DoF combine material',
 			uniforms: [
 				{
-					name: 'modelViewMatrix',
-					block: 'PerMesh',
-					type: RendererTypes.UniformType.Matrix4,
-					value: new Float32Array(16)
+					name: 'tDoF',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: null
 				}, {
-					name: 'projectionMatrix',
-					block: 'PerMaterial',
-					type: RendererTypes.UniformType.Matrix4,
-					value: new Float32Array(16)
+					name: 'tSource',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: null
+				}, {
+					name: 'tCoC',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: null
 				}
 			],
 			primitive: {
@@ -27,8 +32,8 @@ export default class BuildingDepthMaterial extends MaterialContainer {
 				cullMode: RendererTypes.CullMode.None
 			},
 			depth: {
-				depthWrite: true,
-				depthCompare: RendererTypes.DepthCompare.LessEqual
+				depthWrite: false,
+				depthCompare: RendererTypes.DepthCompare.Always
 			},
 			blend: {
 				color: {
@@ -42,8 +47,8 @@ export default class BuildingDepthMaterial extends MaterialContainer {
 					dstFactor: RendererTypes.BlendFactor.Zero
 				}
 			},
-			vertexShaderSource: Shaders.buildingDepth.vertex,
-			fragmentShaderSource: Shaders.buildingDepth.fragment
+			vertexShaderSource: Shaders.dofCombine.vertex,
+			fragmentShaderSource: Shaders.dofCombine.fragment
 		});
 	}
 }

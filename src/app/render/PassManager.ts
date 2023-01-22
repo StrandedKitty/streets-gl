@@ -643,7 +643,8 @@ export default class PassManager {
 								minFilter: RendererTypes.MinFilter.Linear,
 								magFilter: RendererTypes.MagFilter.Linear,
 								mipmaps: false,
-								wrap: RendererTypes.TextureWrap.Repeat
+								wrapS: RendererTypes.TextureWrap.Repeat,
+								wrapT: RendererTypes.TextureWrap.ClampToEdge
 							}),
 							clearValue: {r: 0, g: 0, b: 0, a: 0},
 							loadOp: RendererTypes.AttachmentLoadOp.Load,

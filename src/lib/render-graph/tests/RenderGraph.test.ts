@@ -199,7 +199,6 @@ test(`should not attach physical resources to resources if they are already atta
 	graph.render();
 
 	expect(resource.attachPhysicalResource).toBeCalledTimes(0);
-	//expect(resource.attachedPhysicalResource).toBe(physicalResource);
 });
 
 test(`should call render on used passes`, () => {

@@ -11,7 +11,7 @@ import CoCDownscaleMaterialContainer from "../materials/CoCDownscaleMaterialCont
 import DoFMaterialContainer from "../materials/DoFMaterialContainer";
 import DoFBlurMaterialContainer from "../materials/DoFBlurMaterialContainer";
 import CoCAntialiasMaterialContainer from "../materials/CoCAntialiasMaterialContainer";
-import DoFCombineMaterial from "../materials/DoFCombineMaterial";
+import DoFCombineMaterialContainer from "../materials/DoFCombineMaterialContainer";
 import SettingsManager from "~/app/ui/SettingsManager";
 import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 import MathUtils from "~/lib/math/MathUtils";
@@ -84,7 +84,7 @@ export default class DoFPass extends Pass<{
 		this.cocDownscaleMaterial = new CoCDownscaleMaterialContainer(this.renderer).material;
 		this.dofMaterial = new DoFMaterialContainer(this.renderer).material;
 		this.dofBlurMaterial = new DoFBlurMaterialContainer(this.renderer).material;
-		this.dofCombineMaterial = new DoFCombineMaterial(this.renderer).material;
+		this.dofCombineMaterial = new DoFCombineMaterialContainer(this.renderer).material;
 
 		this.fullScreenTriangle = this.manager.renderSystem.fullScreenTriangle;
 

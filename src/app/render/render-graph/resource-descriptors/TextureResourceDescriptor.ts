@@ -17,6 +17,9 @@ export default class TextureResourceDescriptor implements RG.ResourceDescriptor 
 	public minFilter: RendererTypes.MinFilter;
 	public magFilter: RendererTypes.MagFilter;
 	public wrap: RendererTypes.TextureWrap;
+	public wrapS: RendererTypes.TextureWrap;
+	public wrapT: RendererTypes.TextureWrap;
+	public wrapR: RendererTypes.TextureWrap;
 	public format: RendererTypes.TextureFormat;
 	public flipY: boolean;
 	public mipmaps: boolean;
@@ -33,6 +36,9 @@ export default class TextureResourceDescriptor implements RG.ResourceDescriptor 
 			minFilter = RendererTypes.MinFilter.LinearMipmapLinear,
 			magFilter = RendererTypes.MagFilter.Linear,
 			wrap = RendererTypes.TextureWrap.ClampToEdge,
+			wrapS = wrap,
+			wrapT = wrap,
+			wrapR = wrap,
 			format = RendererTypes.TextureFormat.RGBA8Unorm,
 			flipY = false,
 			mipmaps = false,
@@ -47,6 +53,9 @@ export default class TextureResourceDescriptor implements RG.ResourceDescriptor 
 			minFilter?: RendererTypes.MinFilter;
 			magFilter?: RendererTypes.MagFilter;
 			wrap?: RendererTypes.TextureWrap;
+			wrapS?: RendererTypes.TextureWrap;
+			wrapT?: RendererTypes.TextureWrap;
+			wrapR?: RendererTypes.TextureWrap;
 			format?: RendererTypes.TextureFormat;
 			flipY?: boolean;
 			mipmaps?: boolean;
@@ -62,6 +71,9 @@ export default class TextureResourceDescriptor implements RG.ResourceDescriptor 
 		this.minFilter = minFilter;
 		this.magFilter = magFilter;
 		this.wrap = wrap;
+		this.wrapS = wrapS;
+		this.wrapT = wrapT;
+		this.wrapR = wrapR;
 		this.format = format;
 		this.flipY = flipY;
 		this.mipmaps = mipmaps;

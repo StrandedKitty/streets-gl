@@ -19,13 +19,6 @@ vec3 getFaceUVW(vec2 uv, float faceId) {
     float a = 2. * uv.x;
     float b = 2. * uv.y;
 
-    /*if (faceId == 0.) return vec3(-a + 1., 1., 1. - b);// right
-    if (faceId == 1.) return vec3(a - 1., -1., 1. - b);// left
-    if (faceId == 2.) return vec3(-b + 1., a - 1., -1.);// top
-    if (faceId == 3.) return vec3(b - 1., a - 1., 1.);// bottom
-    if (faceId == 4.) return vec3(1., a - 1., 1. - b);// front
-    if (faceId == 5.) return vec3(-1., 1. - a, 1. - b);// back*/
-
     if (faceId == 0.) return vec3(-1., b - 1., a - 1.);
     if (faceId == 1.) return vec3(1., b - 1., 1. - a);
     if (faceId == 2.) return vec3(1. - a, -1., 1. - b);
