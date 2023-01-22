@@ -168,12 +168,12 @@ export default class FreeControlsNavigator extends ControlsNavigator {
 		this.yaw = MathUtils.normalizeAngle(this.yaw);
 	}
 
-	public enable(): void {
+	public override enable(): void {
 		super.enable();
 		this.element.requestPointerLock();
 	}
 
-	public disable(): void {
+	public override disable(): void {
 		super.disable();
 		document.exitPointerLock();
 		this.forwardKeyPressed = this.backwardKeyPressed = this.leftKeyPressed = this.rightKeyPressed = false;

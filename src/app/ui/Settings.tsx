@@ -29,12 +29,12 @@ const req = (
 
 	return Object.entries(settingsConfig).map(([key, config]) => {
 		if (config.parent !== parent) {
-			return;
+			return null;
 		}
 
 		if (config.parent && config.parentStatusCondition) {
 			if (!config.parentStatusCondition.includes(settingsValues[parent].statusValue)) {
-				return;
+				return null;
 			}
 		}
 

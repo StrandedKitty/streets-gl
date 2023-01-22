@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"module": "es6",
+		"module": "esnext",
 		"target": "es6",
 		"lib": [
 			"es2021",
@@ -16,6 +16,8 @@
 		"strictFunctionTypes": true,
 		"resolveJsonModule": true,
 		"allowSyntheticDefaultImports": true,
+		"noImplicitOverride": true,
+		"noImplicitReturns": true,
 		"jsx": "react",
 		"baseUrl": "./src",
 		"paths": {

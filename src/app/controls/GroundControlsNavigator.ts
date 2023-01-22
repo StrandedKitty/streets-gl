@@ -299,7 +299,7 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		};
 	}
 
-	public disable(): void {
+	public override disable(): void {
 		super.disable();
 		this.cursorStyleSystem.disableGrabbing();
 		this.LMBDownPosition = null;
