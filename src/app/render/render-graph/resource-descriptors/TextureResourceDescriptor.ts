@@ -1,4 +1,4 @@
-import ResourceDescriptor from "~/lib/render-graph/ResourceDescriptor";
+import * as RG from "~/lib/render-graph";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 
 export enum TextureResourceType {
@@ -8,7 +8,7 @@ export enum TextureResourceType {
 	Texture3D
 }
 
-export default class TextureResourceDescriptor extends ResourceDescriptor {
+export default class TextureResourceDescriptor implements RG.ResourceDescriptor {
 	public type: TextureResourceType;
 	public width: number;
 	public height: number;
@@ -54,8 +54,6 @@ export default class TextureResourceDescriptor extends ResourceDescriptor {
 			immutableLevels?: number;
 		}
 	) {
-		super();
-
 		this.type = type;
 		this.width = width;
 		this.height = height;
@@ -75,10 +73,6 @@ export default class TextureResourceDescriptor extends ResourceDescriptor {
 		this.width = width;
 		this.height = height;
 		this.depth = depth;
-	}
-
-	public memorySize(): number {
-		return this.width * this.height * this.depth * 4;
 	}
 
 	public deserialize(): string {

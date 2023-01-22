@@ -10,6 +10,7 @@ export default class TexturePhysicalResourceBuilder extends RG.PhysicalResourceB
 
 	public constructor(renderer: AbstractRenderer) {
 		super();
+
 		this.renderer = renderer;
 	}
 

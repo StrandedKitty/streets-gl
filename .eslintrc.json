@@ -14,6 +14,7 @@
 	"overrides": [
 		{
 			"files": ["**/*.ts", "**/*.tsx"],
+			"excludedFiles": ["**/jest.config.ts"],
 			"extends": [
 				"plugin:@typescript-eslint/recommended"
 			],
@@ -22,7 +23,7 @@
 				"project": ["./tsconfig.json"]
 			},
 			"rules": {
-				"indent": ["warn", "tab", {"SwitchCase": 1}],
+				"indent": ["off", "tab", {"SwitchCase": 1}],
 				"@typescript-eslint/no-unused-vars": [
 					"off",
 					{

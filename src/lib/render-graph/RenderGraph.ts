@@ -3,15 +3,19 @@ import Resource from "./Resource";
 import Node from "./Node";
 import {Queue} from "./Utils";
 import ResourcePool from "./PhysicalResourcePool";
-import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 
 export default class RenderGraph {
-	private resourcePool: ResourcePool = new ResourcePool();
+	private readonly resourcePool: ResourcePool;
 	public passes: Set<Pass<any>> = new Set();
 	public lastGraph: Set<Node> = null;
 	public lastSortedPassList: Pass<any>[] = null;
+	public indegreeSets: Map<Node, Set<Node>> = new Map();
+	public outdegreeSets: Map<Node, Set<Node>> = new Map();
+	private nextNodes: Map<Node, Set<Node>> = new Map();
+	private previousNodes: Map<Node, Set<Node>> = new Map();
 
-	public constructor(private renderer: AbstractRenderer) {
+	public constructor(resourcePool: ResourcePool = new ResourcePool(2)) {
+		this.resourcePool = resourcePool;
 	}
 
 	public addPass(pass: Pass<any>): void {
@@ -24,7 +28,7 @@ export default class RenderGraph {
 		const queue = new Queue<Node>();
 
 		for (const node of nodes) {
-			if (node.tempIndegreeSet.size === 0) {
+			if (this.indegreeSets.get(node).size === 0) {
 				queue.push(node);
 			}
 		}
@@ -40,10 +44,12 @@ export default class RenderGraph {
 				topOrder.push(node);
 			}
 
-			for (const adjacentNode of node.tempOutdegreeSet) {
-				adjacentNode.tempIndegreeSet.delete(node);
+			for (const adjacentNode of this.outdegreeSets.get(node)) {
+				const adjacentIndegreeSet = this.indegreeSets.get(adjacentNode);
 
-				if (adjacentNode.tempIndegreeSet.size === 0) {
+				adjacentIndegreeSet.delete(node);
+
+				if (adjacentIndegreeSet.size === 0) {
 					queue.push(adjacentNode);
 				}
 			}
@@ -76,9 +82,12 @@ export default class RenderGraph {
 		const nodes: Node[] = Array.from(this.getResourcesUsedExternally(passes));
 		const graph: Set<Node> = new Set();
 
+		this.indegreeSets.clear();
+		this.outdegreeSets.clear();
+
 		for (const node of nodes) {
-			node.tempIndegreeSet.clear();
-			node.tempOutdegreeSet.clear();
+			this.indegreeSets.set(node, new Set());
+			this.outdegreeSets.set(node, new Set());
 
 			graph.add(node);
 		}
@@ -86,33 +95,35 @@ export default class RenderGraph {
 		while (nodes.length > 0) {
 			const node = nodes.shift();
 
-			for (const prevNode of node.previousNodes) {
+			for (const prevNode of this.previousNodes.get(node)) {
 				if (!graph.has(prevNode)) {
-					prevNode.tempIndegreeSet.clear();
-					prevNode.tempOutdegreeSet.clear();
+					this.indegreeSets.set(prevNode, new Set());
+					this.outdegreeSets.set(prevNode, new Set());
 
 					graph.add(prevNode);
 					nodes.push(prevNode);
 				}
 
-				node.tempIndegreeSet.add(prevNode);
-
-				prevNode.tempOutdegreeSet.add(node);
+				this.indegreeSets.get(node).add(prevNode);
+				this.outdegreeSets.get(prevNode).add(node);
 			}
 		}
 
 		return graph;
 	}
 
-	public updateAllNodesVertices(): void {
+	private updateAllNodesVertices(): void {
 		const allResources: Set<Resource<any, any>> = new Set();
+
+		this.nextNodes.clear();
+		this.previousNodes.clear();
 
 		for (const pass of this.passes) {
 			const inputResources = pass.getAllResourcesOfType(InternalResourceType.Input);
 			const outputResources = pass.getAllResourcesOfType(InternalResourceType.Output);
 
-			pass.previousNodes = inputResources;
-			pass.nextNodes = outputResources;
+			this.previousNodes.set(pass, inputResources);
+			this.nextNodes.set(pass, outputResources);
 
 			for (const resource of [...inputResources, ...outputResources]) {
 				allResources.add(resource);
@@ -120,18 +131,50 @@ export default class RenderGraph {
 		}
 
 		for (const resource of allResources) {
-			resource.nextNodes.clear();
-			resource.previousNodes.clear();
+			this.nextNodes.set(resource, new Set());
+			this.previousNodes.set(resource, new Set());
 		}
 
 		for (const pass of this.passes) {
-			for (const resource of pass.previousNodes) {
-				resource.nextNodes.add(pass);
+			for (const resource of this.previousNodes.get(pass)) {
+				this.nextNodes.get(resource).add(pass);
 			}
 
-			for (const resource of pass.nextNodes) {
-				resource.previousNodes.add(pass);
+			for (const resource of this.nextNodes.get(pass)) {
+				this.previousNodes.get(resource).add(pass);
 			}
+		}
+	}
+
+	private attachPhysicalResources(resources: Set<Resource<any, any>>): void {
+		for (const resource of resources) {
+			const currentResourceId = resource.attachedPhysicalResourceId;
+			const newResourceId = resource.descriptor.deserialize();
+
+			if (resource.attachedPhysicalResource && currentResourceId === newResourceId) {
+				continue;
+			}
+
+			if (resource.attachedPhysicalResource) {
+				this.resourcePool.pushPhysicalResource(currentResourceId, resource.attachedPhysicalResource);
+			}
+
+			resource.attachPhysicalResource(this.resourcePool);
+		}
+	}
+
+	private resetPhysicalResources(resources: Set<Resource<any, any>>): void {
+		for (const resource of resources) {
+			if (resource.isTransient && resource.attachedPhysicalResource) {
+				this.resourcePool.pushPhysicalResource(resource.attachedPhysicalResourceId, resource.attachedPhysicalResource);
+				resource.resetAttachedPhysicalResource();
+			}
+		}
+	}
+
+	private renderPasses(passes: Pass<any>[]): void {
+		for (const pass of passes) {
+			pass.render();
 		}
 	}
 
@@ -154,34 +197,11 @@ export default class RenderGraph {
 			}
 		}
 
-		for (const resource of allResources) {
-			const currentResourceId = resource.attachedPhysicalResourceId;
-			const newResourceId = resource.descriptor.deserialize();
+		this.attachPhysicalResources(allResources);
 
-			if (resource.attachedPhysicalResource && currentResourceId === newResourceId) {
-				continue;
-			}
-
-			if (resource.attachedPhysicalResource) {
-				this.resourcePool.pushPhysicalResource(currentResourceId, resource.attachedPhysicalResource);
-			}
-
-			resource.attachedPhysicalResource = this.resourcePool.getPhysicalResource(resource);
-			resource.attachedPhysicalResourceId = newResourceId;
-		}
-
-		for (const pass of sorted) {
-			pass.render();
-		}
-
+		this.renderPasses(sorted);
 		this.resourcePool.update();
 
-		for (const resource of allResources) {
-			if (resource.isTransient && resource.attachedPhysicalResource) {
-				this.resourcePool.pushPhysicalResource(resource.attachedPhysicalResourceId, resource.attachedPhysicalResource);
-				resource.attachedPhysicalResource = null;
-				resource.attachedPhysicalResourceId = '';
-			}
-		}
+		this.resetPhysicalResources(allResources);
 	}
 }

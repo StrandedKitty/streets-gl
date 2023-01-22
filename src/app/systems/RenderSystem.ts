@@ -24,6 +24,7 @@ import TerrainTexturesPass from "../render/passes/TerrainTexturesPass";
 import BloomPass from "../render/passes/BloomPass";
 import SettingsManager from "../ui/SettingsManager";
 import FullScreenTriangle from "../objects/FullScreenTriangle";
+import Node from "../../lib/render-graph/Node";
 
 export default class RenderSystem extends System {
 	private renderer: AbstractRenderer;
@@ -58,7 +59,7 @@ export default class RenderSystem extends System {
 	private initScene(): void {
 		this.fullScreenTriangle = new FullScreenTriangle(this.renderer);
 
-		this.renderGraph = new RG.RenderGraph(this.renderer);
+		this.renderGraph = new RG.RenderGraph();
 		this.renderGraphResourceFactory = new RenderGraphResourceFactory(this.renderer);
 		this.passManager = new PassManager(this.systemManager, this.renderer, this.renderGraphResourceFactory, this.renderGraph);
 
@@ -120,6 +121,16 @@ export default class RenderSystem extends System {
 
 	public getLastRenderGraphPassList(): RG.Pass<any>[] {
 		return this.renderGraph.lastSortedPassList;
+	}
+
+	public getRenderGraphNodeConnectionSets(): {
+		indegree: Map<Node, Set<Node>>;
+		outdegree: Map<Node, Set<Node>>;
+	} {
+		return {
+			indegree: this.renderGraph.indegreeSets,
+			outdegree: this.renderGraph.outdegreeSets
+		};
 	}
 
 	/*private updateTiles(): void {

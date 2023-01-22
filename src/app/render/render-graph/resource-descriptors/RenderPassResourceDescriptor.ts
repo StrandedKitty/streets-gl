@@ -18,7 +18,7 @@ export interface DepthAttachmentDescriptor extends AttachmentDescriptor {
 	clearValue: number;
 }
 
-export default class RenderPassResourceDescriptor extends RG.ResourceDescriptor {
+export default class RenderPassResourceDescriptor implements RG.ResourceDescriptor {
 	public colorAttachments: ColorAttachmentDescriptor[];
 	public depthAttachment: DepthAttachmentDescriptor;
 
@@ -31,8 +31,6 @@ export default class RenderPassResourceDescriptor extends RG.ResourceDescriptor 
 			depthAttachment?: DepthAttachmentDescriptor;
 		}
 	) {
-		super();
-
 		this.colorAttachments = colorAttachments;
 		this.depthAttachment = depthAttachment;
 	}
@@ -43,10 +41,6 @@ export default class RenderPassResourceDescriptor extends RG.ResourceDescriptor 
 		}
 
 		return JSON.stringify({...attachment, texture: attachment.texture.deserialize()});
-	}
-
-	public memorySize(): number {
-		return 0;
 	}
 
 	public deserialize(): string {

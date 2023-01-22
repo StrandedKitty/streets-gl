@@ -1,8 +1,6 @@
 import PhysicalResource from "./PhysicalResource";
 import Resource from "./Resource";
 
-const UnusedResourceLifeTime = 2;
-
 class PhysicalResourceEntry {
 	public frameCount = 0;
 
@@ -13,6 +11,9 @@ class PhysicalResourceEntry {
 export default class PhysicalResourcePool {
 	private resourcesMap: Map<string, PhysicalResourceEntry[]> = new Map();
 
+	public constructor(private unusedResourceLifeTime: number) {
+	}
+
 	public pushPhysicalResource(id: string, physicalResource: PhysicalResource): void {
 		if (!this.resourcesMap.get(id)) {
 			this.resourcesMap.set(id, []);
@@ -21,11 +22,9 @@ export default class PhysicalResourcePool {
 		this.resourcesMap.get(id).push(new PhysicalResourceEntry(physicalResource));
 	}
 
-	public getPhysicalResource(resource: Resource<any, any>): PhysicalResource {
-		const id = resource.descriptor.deserialize();
-
+	public getPhysicalResource(id: string): PhysicalResource {
 		if (!this.resourcesMap.get(id)) {
-			return resource.createPhysicalResource();
+			return null;
 		}
 
 		const entries = this.resourcesMap.get(id);
@@ -45,7 +44,7 @@ export default class PhysicalResourcePool {
 
 				++resourceEntry.frameCount;
 
-				if (resourceEntry.frameCount > UnusedResourceLifeTime) {
+				if (resourceEntry.frameCount > this.unusedResourceLifeTime) {
 					resourceEntry.resource.delete();
 
 					resourceArray.splice(i, 1);

@@ -115,10 +115,12 @@ export default class UISystem extends System {
 			return null;
 		}
 
+		const {indegree, outdegree} = renderSystem.getRenderGraphNodeConnectionSets();
+
 		return <RenderGraphSnapshot>{
 			graph: Array.from(sourceGraph).map(node => {
-				const prev = Array.from(node.tempIndegreeSet).map(n => n.name);
-				const next = Array.from(node.tempOutdegreeSet).map(n => n.name);
+				const prev = Array.from(indegree.get(node)).map(n => n.name);
+				const next = Array.from(outdegree.get(node)).map(n => n.name);
 				const metadata: Record<string, string> = {};
 				let localResources: Record<string, string>[] = null;
 				let type: string = '';
