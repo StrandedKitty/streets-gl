@@ -95,10 +95,10 @@ export default class MathUtils {
 		const endX = Math.floor(b.x);
 		const endY = Math.floor(b.y);
 
-		const points: Vec2[] = [new Vec2(x, y)];
+		const points: Vec2[] = [];
 
 		if (x === endX && y === endY) {
-			return points;
+			return [new Vec2(x, y)];
 		}
 
 		const stepX = Math.sign(b.x - a.x);

@@ -16,10 +16,10 @@ in vec3 vBiomeColor;
 uniform PerMesh {
     mat4 modelViewMatrix;
     mat4 modelViewMatrixPrev;
-    vec3 transformHeight;
-    vec3 transformMask;
+    vec4 transformNormal;
     vec4 transformWater0;
     vec4 transformWater1;
+    vec3 transformMask;
     float size;
     float segmentCount;
     vec2 detailTextureOffset;
@@ -32,8 +32,7 @@ uniform PerMaterial {
     float time;
 };
 
-uniform sampler2DArray tRingHeight;
-uniform sampler2D tNormal;
+uniform sampler2DArray tNormal;
 uniform sampler2DArray tWater;
 uniform sampler2D tWaterMask;
 uniform sampler2D tDetailColor;
@@ -48,7 +47,7 @@ uniform sampler2D tWaterNormal;
 #include <textureNoTile>
 
 vec3 getNormal(vec3 normalTextureValue) {
-    vec3 heightMapNormal = sampleCatmullRom(tNormal, vNormalUV, vec2(textureSize(tNormal, 0))).xyz;
+    vec3 heightMapNormal = sampleCatmullRom(tNormal, vec3(vNormalUV, levelId < 2 ? 0 : 1), vec2(textureSize(tNormal, 0))).xyz;
     vec3 kindaVNormal = vec3(modelViewMatrix * vec4(heightMapNormal, 0));
 
     mat3 tbn = getTBN(normalize(kindaVNormal), vPosition, vDetailUV);
@@ -101,7 +100,6 @@ void main() {
     float waterSample = texture(tWater, waterUV).r;
     float waterFactor = waterSample * waterMask;
 
-    outColor = vec4(fract(waterUV.xyz), 1);
     outColor = vec4(detailColor, 1);
     outNormal = packNormal(detailNormal);
     outRoughnessMetalness = vec2(0.9, 0);

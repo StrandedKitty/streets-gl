@@ -16,9 +16,6 @@ export interface TerrainAreaLoaders {
 }
 
 export default class TerrainSystem extends System {
-	public lastPivotPosition: Vec2 = null;
-	public lastPivotPositionMeters: Vec2 = null;
-	public lastHeightTilePivot: Vec2 = null;
 	public maskOriginMeters: Vec2 = new Vec2();
 	public maskOriginTiles: Vec2 = new Vec2();
 	public readonly areaLoaders: Readonly<TerrainAreaLoaders>;
@@ -108,18 +105,10 @@ export default class TerrainSystem extends System {
 		this.maskOriginMeters.set(startMeters.x, startMeters.y);
 
 		for (const ring of terrain.children) {
-			/*const scale = ring.size / heightMapTotalWorldSize;
-			const offsetX = (ring.position.x - ring.size / 2 - pivotPositionMeters.x) / heightMapTotalWorldSize;
-			const offsetY = (ring.position.z - ring.size / 2 - pivotPositionMeters.y) / heightMapTotalWorldSize;
-
-			ring.heightTextureTransform[0] = offsetX;
-			ring.heightTextureTransform[1] = offsetY;
-			ring.heightTextureTransform[2] = scale;*/
-
 			const maskWorldSize = Config.TileSize * Config.TerrainWaterMaskResolution;
 			const maskScale = ring.size / maskWorldSize;
-			const maskOffsetX = (ring.position.x - ring.size / 2 - this.maskOriginMeters.x) / maskWorldSize;
-			const maskOffsetY = (ring.position.z - ring.size / 2 - this.maskOriginMeters.y) / maskWorldSize;
+			const maskOffsetX = (ring.position.x - ring.size / 2 - startMeters.x) / maskWorldSize;
+			const maskOffsetY = (ring.position.z - ring.size / 2 - startMeters.y) / maskWorldSize;
 
 			ring.maskTextureTransform[0] = maskOffsetX;
 			ring.maskTextureTransform[1] = maskOffsetY;
@@ -142,6 +131,12 @@ export default class TerrainSystem extends System {
 				ring.position.z - ring.size / 2,
 				ring.size,
 				ring.heightTextureTransform0
+			);
+			this.areaLoaders.height1.transformToArray(
+				ring.position.x - ring.size / 2,
+				ring.position.z - ring.size / 2,
+				ring.size,
+				ring.heightTextureTransform1
 			);
 		}
 	}

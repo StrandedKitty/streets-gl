@@ -12,7 +12,7 @@ export default class TerrainRingHeightMaterialContainer extends MaterialContaine
 			uniforms: [{
 				name: 'tHeight',
 				block: null,
-				type: RendererTypes.UniformType.Texture2D,
+				type: RendererTypes.UniformType.Texture2DArray,
 				value: null
 			}, {
 				name: 'transformHeight',
@@ -46,6 +46,11 @@ export default class TerrainRingHeightMaterialContainer extends MaterialContaine
 				value: new Float32Array(2)
 			}, {
 				name: 'levelId',
+				block: 'PerMesh',
+				type: RendererTypes.UniformType.Int1,
+				value: new Int32Array(1)
+			}, {
+				name: 'layerId',
 				block: 'PerMesh',
 				type: RendererTypes.UniformType.Int1,
 				value: new Int32Array(1)

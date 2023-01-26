@@ -4,9 +4,10 @@ out vec4 FragColor;
 
 in vec2 vUv;
 
-uniform sampler2D tHeight;
+uniform sampler2DArray tHeight;
 
 uniform MainBlock {
+    int layer;
     float heightMapWorldSize;
 };
 
@@ -16,10 +17,12 @@ const ivec3 off = ivec3(-1,0,1);
 void main() {
     vec2 texelSize = 1. / vec2(textureSize(tHeight, 0));
 
-    float top = textureOffset(tHeight, vUv, ivec2(0, 1)).r;
-    float bottom = textureOffset(tHeight, vUv, ivec2(0, -1)).r;
-    float left = textureOffset(tHeight, vUv, ivec2(-1, 0)).r;
-    float right = textureOffset(tHeight, vUv, ivec2(1, 0)).r;
+    vec3 origin = vec3(vUv, layer);
+
+    float top = textureOffset(tHeight, origin, ivec2(0, 1)).r;
+    float bottom = textureOffset(tHeight, origin, ivec2(0, -1)).r;
+    float left = textureOffset(tHeight, origin, ivec2(-1, 0)).r;
+    float right = textureOffset(tHeight, origin, ivec2(1, 0)).r;
 
     vec3 n = normalize(vec3(left - right, texelSize.x * heightMapWorldSize, bottom - top));
 

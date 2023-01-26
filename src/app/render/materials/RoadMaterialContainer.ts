@@ -61,7 +61,7 @@ export default class RoadMaterialContainer extends MaterialContainer {
 				}, {
 					name: 'tNormal',
 					block: null,
-					type: RendererTypes.UniformType.Texture2D,
+					type: RendererTypes.UniformType.Texture2DArray,
 					value: null
 				}, {
 					name: 'transformHeight',

@@ -23,7 +23,7 @@ uniform PerMesh {
 };
 
 uniform sampler2DArray tMap;
-uniform sampler2D tNormal;
+uniform sampler2DArray tNormal;
 
 #include <packNormal>
 #include <getMotionVector>
@@ -59,7 +59,7 @@ void main() {
 		//discard;
 	}
 
-	vec3 heightMapNormal = sampleCatmullRom(tNormal, vNormalUV, vec2(textureSize(tNormal, 0))).xyz;
+	vec3 heightMapNormal = sampleCatmullRom(tNormal, vec3(vNormalUV, 0), vec2(textureSize(tNormal, 0))).xyz;
 	vec3 kindaVNormal = vec3(modelViewMatrix * vec4(heightMapNormal, 0));
 
 	outColor = color;

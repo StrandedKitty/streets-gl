@@ -18,10 +18,10 @@ out vec3 vBiomeColor;
 uniform PerMesh {
 	mat4 modelViewMatrix;
 	mat4 modelViewMatrixPrev;
-	vec3 transformHeight;
-	vec3 transformMask;
+	vec4 transformNormal;
 	vec4 transformWater0;
 	vec4 transformWater1;
+	vec3 transformMask;
 	float size;
 	float segmentCount;
 	vec2 detailTextureOffset;
@@ -35,7 +35,6 @@ uniform PerMaterial {
 };
 
 uniform sampler2DArray tRingHeight;
-uniform sampler2D tNormal;
 uniform sampler2D tBiomeMap;
 
 void main() {
@@ -50,9 +49,9 @@ void main() {
 	vec2 heightUV = vec2(1. - uv.y, uv.x);
 	//heightUV.y = 1. - heightUV.y;
 
-	vNormalUV = transformHeight.xy + heightUV * transformHeight.z;
+	vNormalUV = transformNormal.xy + heightUV * transformNormal.zw;
 	vDetailUV = (vec2(uv.x, 1. - uv.y) * size + detailTextureOffset);
-	vMaskUV = transformMask.xy + heightUV * transformMask.z;
+	vMaskUV = transformMask.xy + vec2(uv.x, 1. - uv.y) * transformMask.z;
 	vMaskUV = vec2(vMaskUV.y, 1. - vMaskUV.x);
 
 	vUv = vec2(1. - uv.y, uv.x);

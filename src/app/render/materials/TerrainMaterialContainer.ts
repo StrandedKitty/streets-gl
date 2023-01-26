@@ -38,7 +38,7 @@ export default class TerrainMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Float1,
 					value: new Float32Array(1)
 				}, {
-					name: 'transformHeight',
+					name: 'transformNormal',
 					block: 'PerMesh',
 					type: RendererTypes.UniformType.Float3,
 					value: new Float32Array(3)
@@ -85,7 +85,7 @@ export default class TerrainMaterialContainer extends MaterialContainer {
 				}, {
 					name: 'tNormal',
 					block: null,
-					type: RendererTypes.UniformType.Texture2D,
+					type: RendererTypes.UniformType.Texture2DArray,
 					value: null
 				}, {
 					name: 'tWater',

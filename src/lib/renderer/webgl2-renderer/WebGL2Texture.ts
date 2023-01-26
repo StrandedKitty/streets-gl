@@ -154,6 +154,7 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 
 	public delete(): void {
 		this.gl.deleteTexture(this.WebGLTexture);
+		this.WebGLTexture = null;
 		this.deleted = true;
 	}
 

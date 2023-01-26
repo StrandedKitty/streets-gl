@@ -12,8 +12,13 @@ export default class TerrainHeightDownscaleMaterialContainer extends MaterialCon
 			uniforms: [{
 				name: 'tMap',
 				block: null,
-				type: RendererTypes.UniformType.Texture2D,
+				type: RendererTypes.UniformType.Texture2DArray,
 				value: null
+			}, {
+				name: 'layer',
+				block: 'MainBlock',
+				type: RendererTypes.UniformType.Int1,
+				value: new Int32Array(1)
 			}],
 			primitive: {
 				frontFace: RendererTypes.FrontFace.CCW,

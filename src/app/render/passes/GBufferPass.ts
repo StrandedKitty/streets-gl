@@ -112,7 +112,7 @@ export default class GBufferPass extends Pass<{
 		const skyRotationMatrix = new Float32Array(this.manager.mapTimeSystem.skyDirectionMatrix.values);
 		const atmosphereSkyboxTexture = <AbstractTextureCube>this.getPhysicalResource('AtmosphereSkybox').colorAttachments[0].texture;
 		const transmittanceLUT = <AbstractTexture2D>this.getPhysicalResource('Transmittance').colorAttachments[0].texture;
-		const terrainNormal = <AbstractTexture2D>this.getPhysicalResource('TerrainNormal').colorAttachments[0].texture;
+		const terrainNormal = <AbstractTexture2DArray>this.getPhysicalResource('TerrainNormal').colorAttachments[0].texture;
 		const terrainWater = <AbstractTexture2DArray>this.getPhysicalResource('TerrainWater').colorAttachments[0].texture;
 		const terrainTileMask = <AbstractTexture2D>this.getPhysicalResource('TerrainTileMask').colorAttachments[0].texture;
 		const terrainRingHeight = <AbstractTexture2DArray>this.getPhysicalResource('TerrainRingHeight').colorAttachments[0].texture;
@@ -276,23 +276,28 @@ export default class GBufferPass extends Pass<{
 		this.terrainMaterial.getUniform<UniformFloat1>('time', 'PerMaterial').value[0] = performance.now() * 0.001;
 		this.terrainMaterial.updateUniformBlock('PerMaterial');
 
-		for (const terrainRing of terrain.children) {
-			this.terrainMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(Mat4.multiply(camera.matrixWorldInverse, terrainRing.matrixWorld).values);
-			this.terrainMaterial.getUniform<UniformMatrix4>('modelViewMatrixPrev', 'PerMesh').value = new Float32Array(Mat4.multiply(this.cameraMatrixWorldInversePrev, terrainRing.matrixWorld).values);
-			this.terrainMaterial.getUniform<UniformFloat3>('transformHeight', 'PerMesh').value = terrainRing.heightTextureTransform0;
-			this.terrainMaterial.getUniform<UniformFloat3>('transformMask', 'PerMesh').value = terrainRing.maskTextureTransform;
-			this.terrainMaterial.getUniform<UniformFloat4>('transformWater0', 'PerMesh').value = terrainRing.waterTextureTransform0;
-			this.terrainMaterial.getUniform<UniformFloat4>('transformWater1', 'PerMesh').value = terrainRing.waterTextureTransform1;
-			this.terrainMaterial.getUniform<UniformFloat1>('size', 'PerMesh').value[0] = terrainRing.size;
-			this.terrainMaterial.getUniform<UniformFloat1>('segmentCount', 'PerMesh').value[0] = terrainRing.segmentCount * 2;
+		for (let i = 0; i < terrain.children.length; i++) {
+			const ring = terrain.children[i];
+			const normalTransform = i < 2 ? ring.heightTextureTransform0 : ring.heightTextureTransform1;
+
+			this.terrainMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value =
+				new Float32Array(Mat4.multiply(camera.matrixWorldInverse, ring.matrixWorld).values);
+			this.terrainMaterial.getUniform<UniformMatrix4>('modelViewMatrixPrev', 'PerMesh').value =
+				new Float32Array(Mat4.multiply(this.cameraMatrixWorldInversePrev, ring.matrixWorld).values);
+			this.terrainMaterial.getUniform<UniformFloat3>('transformNormal', 'PerMesh').value = normalTransform;
+			this.terrainMaterial.getUniform<UniformFloat3>('transformMask', 'PerMesh').value = ring.maskTextureTransform;
+			this.terrainMaterial.getUniform<UniformFloat4>('transformWater0', 'PerMesh').value = ring.waterTextureTransform0;
+			this.terrainMaterial.getUniform<UniformFloat4>('transformWater1', 'PerMesh').value = ring.waterTextureTransform1;
+			this.terrainMaterial.getUniform<UniformFloat1>('size', 'PerMesh').value[0] = ring.size;
+			this.terrainMaterial.getUniform<UniformFloat1>('segmentCount', 'PerMesh').value[0] = ring.segmentCount * 2;
 			this.terrainMaterial.getUniform('detailTextureOffset', 'PerMesh').value = new Float32Array([
-				terrainRing.position.x % 10000 - terrainRing.size / 2,
-				terrainRing.position.z % 10000 - terrainRing.size / 2,
+				ring.position.x % 10000 - ring.size / 2,
+				ring.position.z % 10000 - ring.size / 2,
 			]);
-			this.terrainMaterial.getUniform<UniformInt1>('levelId', 'PerMesh').value[0] = terrain.children.indexOf(terrainRing);
+			this.terrainMaterial.getUniform<UniformInt1>('levelId', 'PerMesh').value[0] = i;
 			this.terrainMaterial.updateUniformBlock('PerMesh');
 
-			terrainRing.draw();
+			ring.draw();
 		}
 
 		this.roadMaterial.getUniform('tRingHeight').value = terrainRingHeight;
@@ -310,15 +315,6 @@ export default class GBufferPass extends Pass<{
 
 			const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, tile.matrixWorld);
 			const mvMatrixPrev = Mat4.multiply(this.cameraMatrixWorldInversePrev, tile.matrixWorld);
-
-			const heightMapCount = Config.TerrainHeightMapCount;
-			const heightMapTotalWorldSize = heightMapCount * Config.TerrainHeightTileWorldSize;
-			const terrainSystem = this.manager.systemManager.getSystem(TerrainSystem);
-			const lastPivotMeters = terrainSystem.lastPivotPositionMeters;
-
-			//const scale = Config.TileSize / heightMapTotalWorldSize;
-			//const offsetX = (tile.position.x - lastPivotMeters.x) / heightMapTotalWorldSize;
-			//const offsetY = (tile.position.z - lastPivotMeters.y) / heightMapTotalWorldSize;
 
 			let ring0: TerrainRing = null;
 			let ring1: TerrainRing = null;

@@ -14,8 +14,13 @@ export default class TerrainNormalMaterialContainer extends MaterialContainer {
 				{
 					name: 'tHeight',
 					block: null,
-					type: RendererTypes.UniformType.Texture2D,
+					type: RendererTypes.UniformType.Texture2DArray,
 					value: null
+				}, {
+					name: 'layer',
+					block: 'MainBlock',
+					type: RendererTypes.UniformType.Int1,
+					value: new Int32Array(1)
 				}, {
 					name: 'heightMapWorldSize',
 					block: 'MainBlock',

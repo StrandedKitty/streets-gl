@@ -54,18 +54,29 @@ export default class WebGL2Texture2DArray extends WebGL2Texture implements Abstr
 	private writeFromBuffer(data: TypedArray): void {
 		const {format, internalFormat, type} = WebGL2Texture.convertFormatToWebGLConstants(this.format);
 
-		this.gl.texImage3D(
-			this.textureTypeConstant,
-			0,
-			internalFormat,
-			this.width,
-			this.height,
-			this.depth,
-			0,
-			format,
-			type,
-			data
-		);
+		if (this.isImmutable) {
+			this.gl.texStorage3D(
+				this.textureTypeConstant,
+				this.immutableLevels,
+				internalFormat,
+				this.width,
+				this.height,
+				this.depth
+			)
+		} else {
+			this.gl.texImage3D(
+				this.textureTypeConstant,
+				0,
+				internalFormat,
+				this.width,
+				this.height,
+				this.depth,
+				0,
+				format,
+				type,
+				data
+			);
+		}
 	}
 
 	private writeSliceFromImage(image: HTMLImageElement, slice: number): void {

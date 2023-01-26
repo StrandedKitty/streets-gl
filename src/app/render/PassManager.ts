@@ -930,9 +930,10 @@ export default class PassManager {
 					colorAttachments: [
 						{
 							texture: new TextureResourceDescriptor({
-								type: TextureResourceType.Texture2D,
+								type: TextureResourceType.Texture2DArray,
 								width: 1,
 								height: 1,
+								depth: 1,
 								format: RendererTypes.TextureFormat.R16Float,
 								minFilter: RendererTypes.MinFilter.NearestMipmapNearest,
 								magFilter: RendererTypes.MagFilter.Nearest,
@@ -956,7 +957,7 @@ export default class PassManager {
 					colorAttachments: [
 						{
 							texture: new TextureResourceDescriptor({
-								type: TextureResourceType.Texture2D,
+								type: TextureResourceType.Texture2DArray,
 								width: 1,
 								height: 1,
 								format: RendererTypes.TextureFormat.RGBA16Float,

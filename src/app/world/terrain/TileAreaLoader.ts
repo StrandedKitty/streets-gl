@@ -165,7 +165,7 @@ export default class TileAreaLoader<T extends TileSource<any>> {
 		quadSize: number,
 		array: TypedArray
 	): void {
-		const areaSize = 40075016.68 / (1 << this.zoom) * this.viewportSize;
+		const areaSize = this.getSizeInMeters();
 		const scale = quadSize / areaSize;
 		const originState = this.getState(0, 0);
 		const originPosition = MathUtils.tile2meters(originState.x, originState.y + this.viewportSize, this.zoom);
@@ -181,5 +181,9 @@ export default class TileAreaLoader<T extends TileSource<any>> {
 		array[1] = transform.offsetY;
 		array[2] = transform.scaleX;
 		array[3] = transform.scaleY;
+	}
+
+	public getSizeInMeters(): number {
+		return 40075016.68 / (1 << this.zoom) * this.viewportSize;
 	}
 }

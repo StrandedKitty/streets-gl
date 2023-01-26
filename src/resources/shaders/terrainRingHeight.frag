@@ -4,7 +4,7 @@ out float FragColor;
 
 in vec2 vUv;
 
-uniform sampler2D tHeight;
+uniform sampler2DArray tHeight;
 
 uniform PerMesh {
     vec4 transformHeight;
@@ -14,10 +14,11 @@ uniform PerMesh {
     float isLastRing;
     vec2 cameraPosition;
     int levelId;
+    int layerId;
 };
 
-float sampleHeight(sampler2D tex, vec2 offset, int level, vec2 textureSize) {
-    return texelFetch(tex, ivec2(offset * textureSize) / int(pow(2., float(level))), level).r;
+float sampleHeight(sampler2DArray tex, vec2 offset, int level, vec2 textureSize) {
+    return texelFetch(tex, ivec3(ivec2(offset * textureSize) / int(pow(2., float(level))), layerId), level).r;
 }
 
 void main() {
@@ -39,8 +40,6 @@ void main() {
 
     vec2 t = mod(vertexUV * segmentCount + morphOffset, 2.);
     vec2 t2 = mod(vertexUV * segmentCount + morphOffset, 4.);
-    //t = round(t);
-    //t2 = round(t2);
 
     float heightSum = 0.;
     float heightWeight = 0.;

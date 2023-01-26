@@ -30,7 +30,6 @@ uniform PerMaterial {
 };
 
 uniform sampler2DArray tRingHeight;
-uniform sampler2D tNormal;
 
 float sampleHeight(vec2 uv, int level) {
 	uv.y = 1. - uv.y;

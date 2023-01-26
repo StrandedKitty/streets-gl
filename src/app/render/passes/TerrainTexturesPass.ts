@@ -6,20 +6,14 @@ import TerrainHeightMaterialContainer from "../materials/TerrainHeightMaterialCo
 import TerrainSystem from "../../systems/TerrainSystem";
 import FullScreenQuad from "../../objects/FullScreenQuad";
 import AbstractTexture2D from "~/lib/renderer/abstract-renderer/AbstractTexture2D";
-import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import RenderPassResource from "../render-graph/resources/RenderPassResource";
 import TerrainNormalMaterialContainer from "../materials/TerrainNormalMaterialContainer";
-import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 import TerrainWaterMaterialContainer from "../materials/TerrainWaterMaterialContainer";
-import WaterMask from "../../objects/WaterMask";
-import RenderableObject3D from "../../objects/RenderableObject3D";
 import TileSystem from "../../systems/TileSystem";
-import Config from "../../Config";
 import TerrainRingHeightMaterialContainer from "../materials/TerrainRingHeightMaterialContainer";
 import {UniformFloat1, UniformFloat2, UniformFloat3, UniformInt1} from "~/lib/renderer/abstract-renderer/Uniform";
 import TerrainHeightDownscaleMaterialContainer from "../materials/TerrainHeightDownscaleMaterialContainer";
-
-const TileResolution = 512;
+import AbstractTexture2DArray from "~/lib/renderer/abstract-renderer/AbstractTexture2DArray";
 
 function compareTypedArrays(a: TypedArray, b: TypedArray): boolean {
 	let i = a.length;
@@ -31,15 +25,9 @@ function compareTypedArrays(a: TypedArray, b: TypedArray): boolean {
 	return true;
 }
 
-interface HeightMapState {
-	empty: boolean;
-	x: number;
-	y: number;
-}
-
 export default class TerrainTexturesPass extends Pass<{
 	TerrainHeight: {
-		type: RG.InternalResourceType.Output;
+		type: RG.InternalResourceType.Local;
 		resource: RenderPassResource;
 	};
 	TerrainNormal: {
@@ -68,7 +56,7 @@ export default class TerrainTexturesPass extends Pass<{
 
 	public constructor(manager: PassManager) {
 		super('TerrainTexturesPass', manager, {
-			TerrainHeight: {type: RG.InternalResourceType.Output, resource: manager.getSharedResource('TerrainHeight')},
+			TerrainHeight: {type: RG.InternalResourceType.Local, resource: manager.getSharedResource('TerrainHeight')},
 			TerrainNormal: {type: RG.InternalResourceType.Output, resource: manager.getSharedResource('TerrainNormal')},
 			TerrainWater: {type: RG.InternalResourceType.Output, resource: manager.getSharedResource('TerrainWater')},
 			TerrainTileMask: {type: RG.InternalResourceType.Output, resource: manager.getSharedResource('TerrainTileMask')},
@@ -88,13 +76,12 @@ export default class TerrainTexturesPass extends Pass<{
 
 		const textureSize = 4 * 512;
 
-		this.getResource('TerrainHeight').descriptor.setSize(textureSize, textureSize);
-		this.getResource('TerrainNormal').descriptor.setSize(textureSize, textureSize);
+		this.getResource('TerrainHeight').descriptor.setSize(textureSize, textureSize, 2);
+		this.getResource('TerrainNormal').descriptor.setSize(textureSize, textureSize, 2);
 		this.getResource('TerrainWater').descriptor.setSize(2048, 2048, 2);
 	}
 
 	public render(): void {
-		const fullScreenTriangle = this.manager.renderSystem.fullScreenTriangle;
 		const camera = this.manager.sceneSystem.objects.camera;
 		const terrainSystem = this.manager.systemManager.getSystem(TerrainSystem);
 		const tileSystem = this.manager.systemManager.getSystem(TileSystem);
@@ -105,60 +92,25 @@ export default class TerrainTexturesPass extends Pass<{
 		const terrainWaterRenderPass = this.getPhysicalResource('TerrainWater');
 		const terrainRingHeightRenderPass = this.getPhysicalResource('TerrainRingHeight');
 
-		/*const heightTilesToRender: HeightTileSource[] = [];
-
-		for (let x = 0; x < Config.TerrainHeightMapCount; x++) {
-			for (let y = 0; y < Config.TerrainHeightMapCount; y++) {
-				const heightTile = terrainSystem.getHeightTileSource(x + terrainSystem.lastHeightTilePivot.x, y + terrainSystem.lastHeightTilePivot.y);
-				const waterTile = terrainSystem.getWaterTileSource(x + terrainSystem.lastHeightTilePivot.x, y + terrainSystem.lastHeightTilePivot.y);
-
-				if (!heightTile || !heightTile.data || !waterTile || !waterTile.data) {
-					continue;
-				}
-
-				const state = this.getHeightMapState(x, y);
-
-				if (state.x === heightTile.x && state.y === heightTile.y) {
-					continue;
-				}
-
-				state.empty = false;
-				state.x = heightTile.x;
-				state.y = heightTile.y;
-
-				heightTilesToRender.push(heightTile);
-			}
-		}
-
-		this.renderer.beginRenderPass(terrainHeightRenderPass);
-		this.renderer.useMaterial(this.heightMaterial);
-
-		for (const tile of heightTilesToRender) {
-			const x = tile.x - terrainSystem.lastHeightTilePivot.x;
-			const y = tile.y - terrainSystem.lastHeightTilePivot.y;
-
-			const scale = 1 / Config.TerrainHeightMapCount;
-			const transform = [(Config.TerrainHeightMapCount - y) * scale, x * scale, scale];
-
-			this.heightMaterial.getUniform('tMap').value = this.heightStorage.get(tile.x, tile.y);
-			this.heightMaterial.getUniform('transform', 'MainBlock').value = new Float32Array(transform);
-			this.heightMaterial.updateUniform('tMap');
-			this.heightMaterial.updateUniformBlock('MainBlock');
-
-			this.quad.mesh.draw();
-		}*/
-
 		const heightTex = <AbstractTexture2D>terrainHeightRenderPass.colorAttachments[0].texture;
 
-		{
-			const heightLoader = terrainSystem.areaLoaders.height0;
+		const heightLoaders = [terrainSystem.areaLoaders.height0, terrainSystem.areaLoaders.height1];
+		const heightLoadersUpdateFlags = [false, false];
+
+		this.heightMaterial.getUniform('tMap').value = null;
+		this.renderer.useMaterial(this.heightMaterial);
+
+		for (let layer = 0; layer < heightLoaders.length; layer++) {
+			const heightLoader = heightLoaders[layer];
 			const dirtyTiles = heightLoader.getDirtyTileStates();
 
-			this.heightMaterial.getUniform('tMap').value = null;
-			this.renderer.useMaterial(this.heightMaterial);
-
 			terrainHeightRenderPass.colorAttachments[0].level = 0;
+			terrainHeightRenderPass.colorAttachments[0].slice = layer;
 			this.renderer.beginRenderPass(terrainHeightRenderPass);
+
+			if (dirtyTiles.length > 0) {
+				heightLoadersUpdateFlags[layer] = true;
+			}
 
 			for (const tileState of dirtyTiles) {
 				const x = tileState.localX;
@@ -177,25 +129,56 @@ export default class TerrainTexturesPass extends Pass<{
 			}
 		}
 
-		for (let i = 0; i < 5; i++) {
-			terrainHeightRenderPass.colorAttachments[0].level = i + 1;
-			this.renderer.beginRenderPass(terrainHeightRenderPass);
+		this.renderer.useMaterial(this.heightDownscaleMaterial);
 
-			heightTex.baseLevel = i;
-			heightTex.maxLevel = i;
-			heightTex.updateBaseAndMaxLevel();
+		for (let layer = 0; layer < 2; layer++) {
+			if (!heightLoadersUpdateFlags[layer]) {
+				continue;
+			}
 
-			this.heightDownscaleMaterial.getUniform('tMap').value = heightTex;
-			this.renderer.useMaterial(this.heightDownscaleMaterial);
+			this.heightDownscaleMaterial.getUniform<UniformInt1>('layer', 'MainBlock').value[0] = layer;
+			this.heightDownscaleMaterial.updateUniformBlock('MainBlock');
 
-			this.manager.renderSystem.fullScreenTriangle.mesh.draw();
+			for (let i = 0; i < 5; i++) {
+				terrainHeightRenderPass.colorAttachments[0].level = i + 1;
+				terrainHeightRenderPass.colorAttachments[0].slice = layer;
+				this.renderer.beginRenderPass(terrainHeightRenderPass);
+
+				heightTex.baseLevel = i;
+				heightTex.maxLevel = i;
+				heightTex.updateBaseAndMaxLevel();
+
+				this.heightDownscaleMaterial.getUniform('tMap').value = heightTex;
+				this.heightDownscaleMaterial.updateUniform('tMap');
+
+				this.manager.renderSystem.fullScreenTriangle.mesh.draw();
+			}
 		}
 
 		heightTex.baseLevel = 0;
 		heightTex.maxLevel = 10000;
 		heightTex.updateBaseAndMaxLevel();
 
-		this.ringHeightMaterial.getUniform('tHeight').value = <AbstractTexture2D>terrainHeightRenderPass.colorAttachments[0].texture;
+		this.renderer.useMaterial(this.normalMaterial);
+
+		for (let layer = 0; layer < 2; layer++) {
+			if (!heightLoadersUpdateFlags[layer]) {
+				continue;
+			}
+
+			terrainNormalRenderPass.colorAttachments[0].slice = layer;
+			this.renderer.beginRenderPass(terrainNormalRenderPass);
+
+			this.normalMaterial.getUniform('tHeight').value = <AbstractTexture2DArray>terrainHeightRenderPass.colorAttachments[0].texture;
+			this.normalMaterial.getUniform<UniformInt1>('layer', 'MainBlock').value[0] = layer;
+			this.normalMaterial.getUniform<UniformFloat1>('heightMapWorldSize', 'MainBlock').value[0] = heightLoaders[layer].getSizeInMeters();
+			this.normalMaterial.updateUniform('tHeight');
+			this.normalMaterial.updateUniformBlock('MainBlock');
+
+			this.quad.mesh.draw();
+		}
+
+		this.ringHeightMaterial.getUniform('tHeight').value = heightTex;
 		this.renderer.useMaterial(this.ringHeightMaterial);
 
 		for (let i = 0; i < terrain.children.length; i++) {
@@ -204,13 +187,18 @@ export default class TerrainTexturesPass extends Pass<{
 			terrainRingHeightRenderPass.colorAttachments[0].slice = i;
 			this.renderer.beginRenderPass(terrainRingHeightRenderPass);
 
-			this.ringHeightMaterial.getUniform<UniformFloat3>('transformHeight', 'PerMesh').value = ring.heightTextureTransform0;
+			const heightLayer = i < 2 ? 0 : 1;
+			const heightLevel = heightLayer === 0 ? (i + 2) : (i - 1);
+			const transform = heightLayer === 0 ? ring.heightTextureTransform0 : ring.heightTextureTransform1;
+
+			this.ringHeightMaterial.getUniform<UniformFloat3>('transformHeight', 'PerMesh').value = transform;
 			this.ringHeightMaterial.getUniform<UniformFloat2>('morphOffset', 'PerMesh').value = ring.morphOffset;
 			this.ringHeightMaterial.getUniform<UniformFloat1>('size', 'PerMesh').value[0] = ring.size;
 			this.ringHeightMaterial.getUniform<UniformFloat1>('segmentCount', 'PerMesh').value[0] = ring.segmentCount * 2;
 			this.ringHeightMaterial.getUniform<UniformFloat1>('isLastRing', 'PerMesh').value[0] = +ring.isLastRing;
 			this.ringHeightMaterial.getUniform('cameraPosition', 'PerMesh').value = new Float32Array([camera.position.x - ring.position.x, camera.position.z - ring.position.z]);
-			this.ringHeightMaterial.getUniform<UniformInt1>('levelId', 'PerMesh').value[0] = i + 2;
+			this.ringHeightMaterial.getUniform<UniformInt1>('levelId', 'PerMesh').value[0] = heightLevel;
+			this.ringHeightMaterial.getUniform<UniformInt1>('layerId', 'PerMesh').value[0] = heightLayer;
 			this.ringHeightMaterial.updateUniformBlock('PerMesh');
 
 			this.quad.mesh.draw();
@@ -260,11 +248,6 @@ export default class TerrainTexturesPass extends Pass<{
 				mesh.draw();
 			}
 		}
-
-		this.renderer.beginRenderPass(terrainNormalRenderPass);
-		this.normalMaterial.getUniform('tHeight').value = <AbstractTexture2D>terrainHeightRenderPass.colorAttachments[0].texture;
-		this.renderer.useMaterial(this.normalMaterial);
-		this.quad.mesh.draw();
 
 		this.updateTileMask(terrainSystem, tileSystem);
 	}
