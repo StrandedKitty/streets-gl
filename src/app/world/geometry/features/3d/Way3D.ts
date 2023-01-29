@@ -303,7 +303,7 @@ export default class Way3D extends Feature3D {
 	}
 
 	public getLabel(): {x: number; y: number; z: number; text: string; priority: number} {
-		if (!this.visible || this.tags.type !== 'building' || !this.tags.name) {
+		if (!this.visible || this.tags.type !== 'building' || !this.tags.name || this.rings.length === 0) {
 			return null;
 		}
 

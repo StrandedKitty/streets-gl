@@ -34,15 +34,7 @@ export default class SceneSystem extends System {
 	public objects: SceneObjects;
 	public pivotDelta: Vec2 = new Vec2();
 
-	public constructor(systemManager: SystemManager) {
-		super(systemManager);
-
-		this.init();
-
-		window.addEventListener('resize', () => this.resize());
-	}
-
-	private init(): void {
+	public postInit(): void {
 		this.scene = new Object3D();
 
 		const wrapper = new Object3D();
@@ -99,10 +91,8 @@ export default class SceneSystem extends System {
 			camera.updateProjectionMatrix();
 			csm.updateFrustums();
 		});
-	}
 
-	public postInit(): void {
-
+		window.addEventListener('resize', () => this.resize());
 	}
 
 	public getObjectsToUpdateMesh(): RenderableObject3D[] {

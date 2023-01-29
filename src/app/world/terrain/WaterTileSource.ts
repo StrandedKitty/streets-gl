@@ -49,30 +49,6 @@ export default class WaterTileSource extends TileSource<Float32Array> {
 	}
 
 	private async load(): Promise<void> {
-		/*const nextZoom = Config.TerrainHeightMapTileZoom + 1;
-		const nextZoomX = this.x * 2;
-		const nextZoomY = this.y * 2;
-
-		const tiles = await Promise.all(
-			HalfTileOffsets.map(offset => {
-				return this.fetchTile(nextZoomX + offset.x, nextZoomY + offset.y, nextZoom, 0.5);
-			})
-		);
-
-		if (this.deleted) {
-			return;
-		}
-
-		let combinedVertices: number[] = [];
-
-		for (let i = 0; i < tiles.length; i++) {
-			const tris = this.polygonsToTriangles(tiles[i], 0.5 - HalfTileOffsets[i].y * 0.5, HalfTileOffsets[i].x * 0.5);
-
-			combinedVertices = combinedVertices.concat(tris)
-		}
-
-		this.vertices = new Float32Array(combinedVertices);*/
-
 		const tiles = await this.fetchTile(this.x, this.y, this.zoom, 1);
 		const tris = this.polygonsToTriangles(tiles, 0, 0);
 		this.data = new Float32Array(tris);

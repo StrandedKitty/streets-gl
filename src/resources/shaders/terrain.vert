@@ -2,23 +2,24 @@
 
 in vec3 position;
 in vec2 uv;
+
 out vec4 vClipPos;
 out vec4 vClipPosPrev;
-
-out vec2 vNormalUV;
+out vec4 vNormalUV;
 out vec2 vDetailUV;
-out vec3 vWaterUV;
-out vec2 vUv;
+out vec2 vWaterUV;
 out vec2 vMaskUV;
 out vec3 vNormal;
 out vec3 vPosition;
 out vec3 vCenter;
 out vec3 vBiomeColor;
+out float vMixFactor;
 
 uniform PerMesh {
 	mat4 modelViewMatrix;
 	mat4 modelViewMatrixPrev;
-	vec4 transformNormal;
+	vec4 transformNormal0;
+	vec4 transformNormal1;
 	vec4 transformWater0;
 	vec4 transformWater1;
 	vec3 transformMask;
@@ -26,6 +27,7 @@ uniform PerMesh {
 	float segmentCount;
 	vec2 detailTextureOffset;
 	int levelId;
+	vec2 cameraPosition;
 };
 
 uniform PerMaterial {
@@ -49,12 +51,16 @@ void main() {
 	vec2 heightUV = vec2(1. - uv.y, uv.x);
 	//heightUV.y = 1. - heightUV.y;
 
-	vNormalUV = transformNormal.xy + heightUV * transformNormal.zw;
+	vNormalUV = vec4(
+		transformNormal0.xy + heightUV * transformNormal0.zw,
+		transformNormal1.xy + heightUV * transformNormal1.zw
+	);
 	vDetailUV = (vec2(uv.x, 1. - uv.y) * size + detailTextureOffset);
 	vMaskUV = transformMask.xy + vec2(uv.x, 1. - uv.y) * transformMask.z;
 	vMaskUV = vec2(vMaskUV.y, 1. - vMaskUV.x);
+	vWaterUV = vec2(1. - uv.y, uv.x);
 
-	vUv = vec2(1. - uv.y, uv.x);
+	vMixFactor = max(abs(cameraPosition.x - position.x), abs(cameraPosition.y - position.z));
 
 	float height = texture(tRingHeight, vec3(uv * segmentCount / (segmentCount + 1.), levelId)).r;
 

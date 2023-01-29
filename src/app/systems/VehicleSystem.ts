@@ -53,9 +53,7 @@ export default class VehicleSystem extends System {
 	private lastUpdateTimestamp: number = 0;
 	private enabled: boolean = true;
 
-	public constructor(systemManager: SystemManager) {
-		super(systemManager);
-
+	public postInit(): void {
 		setInterval(() => {
 			if (this.enabled) {
 				this.fetchData();
@@ -65,10 +63,6 @@ export default class VehicleSystem extends System {
 		SettingsManager.onSettingChange('airTraffic', ({statusValue}) => {
 			this.enabled = statusValue === 'on';
 		});
-	}
-
-	public postInit(): void {
-
 	}
 
 	public update(deltaTime: number): void {

@@ -16,8 +16,8 @@ export default class PickingSystem extends System {
 	public selectedTileBuilding: TileBuilding = null;
 	public pointerDownPosition: Vec2 = new Vec2();
 
-	public constructor(systemManager: SystemManager) {
-		super(systemManager);
+	public constructor() {
+		super();
 
 		const canvas = document.getElementById('canvas');
 

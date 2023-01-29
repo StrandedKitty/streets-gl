@@ -49,23 +49,13 @@ export default class UISystem extends System {
 	};
 	private fpsUpdateTimer = 0;
 
-	public constructor(systemManager: SystemManager) {
-		super(systemManager);
-
-		this.init();
-	}
-
-	private init(): void {
+	public postInit(): void {
 		document.getElementById('ui').addEventListener('click', event => {
 			event.stopPropagation();
 		});
 
 		UI.setInitialGlobalState(this.globalState);
 		this.updateDOM();
-	}
-
-	public postInit(): void {
-
 	}
 
 	private updateDOM(): void {

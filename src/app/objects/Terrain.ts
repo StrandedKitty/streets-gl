@@ -11,7 +11,7 @@ export default class Terrain extends Object3D {
 		for (let i = 0; i < Config.TerrainRingCount; i++) {
 			const ring = new TerrainRing(
 				Config.TerrainRingSegmentCount,
-				i === 0 ? 0 : Config.TerrainRingHoleSegmentCount,
+				i === 0 ? 0 : (Config.TerrainRingSegmentCount / 2),
 				Config.TerrainRingSize * (2 ** i)
 			);
 

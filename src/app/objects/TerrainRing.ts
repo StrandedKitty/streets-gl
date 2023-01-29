@@ -32,8 +32,6 @@ export default class TerrainRing extends RenderableObject3D {
 		if (!this.mesh) {
 			const buffers = this.getBuffers();
 
-			console.log(buffers.position.length / 3)
-
 			this.mesh = renderer.createMesh({
 				attributes: [
 					renderer.createAttribute({

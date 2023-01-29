@@ -28,7 +28,7 @@ class App {
 	private init(): void {
 		this.systemManager = new SystemManager();
 
-		this.systemManager.addSystems([UISystem]);
+		this.systemManager.addSystems(UISystem);
 
 		ResourceManager.addFromJSON(resourcesList as ResourceJSON);
 		ResourceManager.load({
@@ -36,7 +36,7 @@ class App {
 				this.systemManager.getSystem(UISystem).setResourcesLoadingProgress(loaded / total);
 			}
 		}).then(() => {
-			this.systemManager.addSystems([
+			this.systemManager.addSystems(
 				ControlsSystem,
 				MapTimeSystem,
 				TerrainSystem,
@@ -49,7 +49,7 @@ class App {
 				MapWorkerSystem,
 				StaticGeometryLoadingSystem,
 				VehicleSystem
-			]);
+			);
 		});
 
 		this.update();

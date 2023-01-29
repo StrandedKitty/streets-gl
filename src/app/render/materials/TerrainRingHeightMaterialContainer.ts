@@ -15,7 +15,12 @@ export default class TerrainRingHeightMaterialContainer extends MaterialContaine
 				type: RendererTypes.UniformType.Texture2DArray,
 				value: null
 			}, {
-				name: 'transformHeight',
+				name: 'transformHeight0',
+				block: 'PerMesh',
+				type: RendererTypes.UniformType.Float4,
+				value: new Float32Array(4)
+			}, {
+				name: 'transformHeight1',
 				block: 'PerMesh',
 				type: RendererTypes.UniformType.Float4,
 				value: new Float32Array(4)
@@ -45,15 +50,10 @@ export default class TerrainRingHeightMaterialContainer extends MaterialContaine
 				type: RendererTypes.UniformType.Float2,
 				value: new Float32Array(2)
 			}, {
-				name: 'levelId',
+				name: 'levelLayer',
 				block: 'PerMesh',
-				type: RendererTypes.UniformType.Int1,
-				value: new Int32Array(1)
-			}, {
-				name: 'layerId',
-				block: 'PerMesh',
-				type: RendererTypes.UniformType.Int1,
-				value: new Int32Array(1)
+				type: RendererTypes.UniformType.Int4,
+				value: new Int32Array(4)
 			}],
 			primitive: {
 				frontFace: RendererTypes.FrontFace.CCW,

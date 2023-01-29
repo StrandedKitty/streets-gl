@@ -64,10 +64,15 @@ export default class RoadMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Texture2DArray,
 					value: null
 				}, {
-					name: 'transformHeight',
+					name: 'transformNormal0',
 					block: 'PerMesh',
-					type: RendererTypes.UniformType.Float3,
-					value: new Float32Array(3)
+					type: RendererTypes.UniformType.Float4,
+					value: new Float32Array(4)
+				}, {
+					name: 'transformNormal1',
+					block: 'PerMesh',
+					type: RendererTypes.UniformType.Float4,
+					value: new Float32Array(4)
 				}, {
 					name: 'terrainRingSize',
 					block: 'PerMesh',
@@ -88,10 +93,17 @@ export default class RoadMaterialContainer extends MaterialContainer {
 					block: 'PerMesh',
 					type: RendererTypes.UniformType.Float1,
 					value: new Float32Array(1)
+				}, {
+					name: 'cameraPosition',
+					block: 'PerMesh',
+					type: RendererTypes.UniformType.Float2,
+					value: new Float32Array(2)
 				}
 			],
 			defines: {
-				TILE_SIZE: Config.TileSize.toString()
+				TILE_SIZE: Config.TileSize.toFixed(10),
+				NORMAL_MIX_FROM: Config.TerrainNormalMixRange[0].toFixed(1),
+				NORMAL_MIX_TO: Config.TerrainNormalMixRange[1].toFixed(1)
 			},
 			primitive: {
 				frontFace: RendererTypes.FrontFace.CCW,

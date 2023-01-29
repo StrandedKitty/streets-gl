@@ -12,17 +12,20 @@ out vec3 vNormal;
 out vec4 vClipPos;
 out vec4 vClipPosPrev;
 out vec3 vCenter;
-out vec2 vNormalUV;
+out vec4 vNormalUV;
 flat out int vTextureId;
+out float vNormalMixFactor;
 
 uniform PerMesh {
 	mat4 modelViewMatrix;
 	mat4 modelViewMatrixPrev;
-	vec3 transformHeight;
+	vec4 transformNormal0;
+	vec4 transformNormal1;
 	float terrainRingSize;
 	vec4 terrainRingOffset;
 	int terrainLevelId;
 	float segmentCount;
+	vec2 cameraPosition;
 };
 
 uniform PerMaterial {
@@ -54,8 +57,12 @@ void main() {
 	vNormal = vec3(modelViewMatrix * vec4(normal, 0));
 	vLocalPosition = position;
 
-	vec2 heightUV = position.xz / TILE_SIZE;
-	vNormalUV = transformHeight.xy + heightUV * transformHeight.z;
+	vec2 normalUV = position.zx / TILE_SIZE;
+	vNormalUV = vec4(
+		transformNormal0.xy + normalUV * transformNormal0.zw,
+		transformNormal1.xy + normalUV * transformNormal1.zw
+	);
+	vNormalMixFactor = max(abs(cameraPosition.x - position.x), abs(cameraPosition.y - position.z));
 
 	int level = terrainLevelId;
 	vec2 positionUV = (terrainRingOffset.xy + terrainRingSize / 2. + position.xz) / terrainRingSize;

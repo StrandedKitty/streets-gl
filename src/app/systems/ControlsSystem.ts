@@ -42,8 +42,8 @@ export default class ControlsSystem extends System {
 	private freeNavigator: FreeControlsNavigator;
 	private activeNavigator: ControlsNavigator = null;
 
-	public constructor(systemManager: SystemManager) {
-		super(systemManager);
+	public constructor() {
+		super();
 
 		this.element = <HTMLCanvasElement>document.getElementById('canvas');
 
@@ -54,6 +54,10 @@ export default class ControlsSystem extends System {
 	}
 
 	public postInit(): void {
+
+	}
+
+	private initCameraAndNavigators(): void {
 		this.camera = this.systemManager.getSystem(SceneSystem).objects.camera;
 
 		const cursorStyleSystem = this.systemManager.getSystem(CursorStyleSystem);
@@ -159,7 +163,9 @@ export default class ControlsSystem extends System {
 	}
 
 	public update(deltaTime: number): void {
-		this.camera = this.systemManager.getSystem(SceneSystem).objects.camera;
+		if (!this.camera) {
+			this.initCameraAndNavigators();
+		}
 
 		if (this.activeNavigator) {
 			this.activeNavigator.update(deltaTime);

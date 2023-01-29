@@ -1,21 +1,14 @@
 import MapWorker from "../world/worker/MapWorker";
 import System from "../System";
-import SystemManager from "../SystemManager";
 import Config from "../Config";
 
 export default class MapWorkerSystem extends System {
 	private workers: MapWorker[] = [];
 
-	public constructor(systemManager: SystemManager) {
-		super(systemManager);
-
+	public postInit(): void {
 		for(let i = 0; i < Config.WebWorkersNumber; i++) {
 			this.workers.push(new MapWorker());
 		}
-	}
-
-	public postInit(): void {
-
 	}
 
 	public getFreeWorker(): MapWorker {

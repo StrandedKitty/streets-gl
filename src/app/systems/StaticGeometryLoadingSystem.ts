@@ -11,10 +11,6 @@ interface queueEntry {
 export default class StaticGeometryLoadingSystem extends System {
 	private queue: queueEntry[] = [];
 
-	public constructor(systemManager: SystemManager) {
-		super(systemManager);
-	}
-
 	public postInit(): void {
 
 	}

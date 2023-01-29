@@ -18,17 +18,9 @@ export default class TileSystem extends System {
 	private cameraFrustum: Frustum;
 	private objectsManager: TileObjectsSystem;
 
-	public constructor(systemManager: SystemManager) {
-		super(systemManager);
-
-		this.init();
-	}
-
-	private init(): void {
-		window.addEventListener('resize', () => this.onResize());
-	}
-
 	public postInit(): void {
+		window.addEventListener('resize', () => this.onResize());
+
 		this.objectsManager = this.systemManager.getSystem(TileObjectsSystem);
 
 		this.camera = this.systemManager.getSystem(SceneSystem).objects.camera;

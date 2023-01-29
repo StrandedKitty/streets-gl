@@ -35,13 +35,7 @@ export default class RenderSystem extends System {
 	private passManager: PassManager;
 	public fullScreenTriangle: FullScreenTriangle;
 
-	public constructor(systemManager: SystemManager) {
-		super(systemManager);
-
-		this.init();
-	}
-
-	private init(): void {
+	public postInit(): void {
 		const canvas = <HTMLCanvasElement>document.getElementById('canvas');
 
 		this.renderer = new WebGL2Renderer(canvas.getContext('webgl2', {powerPreference: "high-performance"}));
@@ -50,9 +44,7 @@ export default class RenderSystem extends System {
 		console.log(`Vendor: ${this.renderer.rendererInfo[0]} \nRenderer: ${this.renderer.rendererInfo[1]}`);
 
 		window.addEventListener('resize', () => this.resize());
-	}
 
-	public postInit(): void {
 		this.initScene();
 	}
 

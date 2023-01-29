@@ -38,7 +38,6 @@ export default class MapTimeSystem extends System {
 	public moonDirection: Vec3 = null;
 	public skyDirection: [Vec3, Vec3, Vec3] = null;
 
-
 	public skyDirectionTarget: [Vec3, Vec3, Vec3] = null;
 	public skyDirectionMatrix: Mat4 = Mat4.identity();
 
@@ -46,10 +45,6 @@ export default class MapTimeSystem extends System {
 	private sunTransitionStart: Vec3 = null;
 	private moonTransitionStart: Vec3 = null;
 	private skyTransitionStart: [Vec3, Vec3, Vec3] = null;
-
-	public constructor(systemManager: SystemManager) {
-		super(systemManager);
-	}
 
 	public postInit(): void {
 

@@ -7,6 +7,8 @@ import Config from "../Config";
 import HeightTileSource from "../world/terrain/HeightTileSource";
 import WaterTileSource from "../world/terrain/WaterTileSource";
 import TileAreaLoader from "../world/terrain/TileAreaLoader";
+import Terrain from "~/app/objects/Terrain";
+import Object3D from "~/lib/core/Object3D";
 
 export interface TerrainAreaLoaders {
 	water0: TileAreaLoader<WaterTileSource>;
@@ -16,13 +18,10 @@ export interface TerrainAreaLoaders {
 }
 
 export default class TerrainSystem extends System {
-	public maskOriginMeters: Vec2 = new Vec2();
-	public maskOriginTiles: Vec2 = new Vec2();
-	public readonly areaLoaders: Readonly<TerrainAreaLoaders>;
+	public maskOrigin: Vec2 = new Vec2();
+	public areaLoaders: Readonly<TerrainAreaLoaders>;
 
-	public constructor(systemManager: SystemManager) {
-		super(systemManager);
-
+	public postInit(): void {
 		this.areaLoaders = {
 			water0: new TileAreaLoader({
 				sourceClass: WaterTileSource,
@@ -55,13 +54,24 @@ export default class TerrainSystem extends System {
 		};
 	}
 
-	public postInit(): void {
-
-	}
-
 	public update(deltaTime: number): void {
 		const terrain = this.systemManager.getSystem(SceneSystem).objects.terrain;
 		const camera = this.systemManager.getSystem(SceneSystem).objects.camera;
+
+		this.updateAreaLoaders(camera);
+		this.updateRingPositions(terrain, camera);
+		this.updateRingAreaTransforms(terrain);
+		this.updateRingMaskTransforms(terrain, camera);
+	}
+
+	private updateAreaLoaders(camera: Object3D): void {
+		const cameraPosition2D = new Vec2(camera.position.x, camera.position.z);
+		for (const areaLoader of Object.values(this.areaLoaders)) {
+			(<TileAreaLoader<any>>areaLoader).update(cameraPosition2D);
+		}
+	}
+
+	private updateRingPositions(terrain: Terrain, camera: Object3D): void {
 		let currentStepX: number, currentStepY: number;
 
 		for (let i = 0; i < terrain.children.length; i++) {
@@ -90,30 +100,10 @@ export default class TerrainSystem extends System {
 			currentStepX = Math.floor(currentStepX / 2);
 			currentStepY = Math.floor(currentStepY / 2);
 		}
+	}
 
-		const cameraPosition2D = new Vec2(camera.position.x, camera.position.z);
-		for (const areaLoader of Object.values(this.areaLoaders)) {
-			(<TileAreaLoader<any>>areaLoader).update(cameraPosition2D);
-		}
-
-		const cameraTilePosition = MathUtils.meters2tile(camera.position.x, camera.position.z);
-		const startX = Math.floor(cameraTilePosition.x) - Math.floor(Config.TerrainWaterMaskResolution / 2);
-		const startY = Math.floor(cameraTilePosition.y) - Math.floor(Config.TerrainWaterMaskResolution / 2);
-		const startMeters = MathUtils.tile2meters(startX, startY + Config.TerrainWaterMaskResolution);
-
-		this.maskOriginTiles.set(startX, startY);
-		this.maskOriginMeters.set(startMeters.x, startMeters.y);
-
+	private updateRingAreaTransforms(terrain: Terrain): void {
 		for (const ring of terrain.children) {
-			const maskWorldSize = Config.TileSize * Config.TerrainWaterMaskResolution;
-			const maskScale = ring.size / maskWorldSize;
-			const maskOffsetX = (ring.position.x - ring.size / 2 - startMeters.x) / maskWorldSize;
-			const maskOffsetY = (ring.position.z - ring.size / 2 - startMeters.y) / maskWorldSize;
-
-			ring.maskTextureTransform[0] = maskOffsetX;
-			ring.maskTextureTransform[1] = maskOffsetY;
-			ring.maskTextureTransform[2] = maskScale;
-
 			this.areaLoaders.water0.transformToArray(
 				ring.position.x - ring.size / 2,
 				ring.position.z - ring.size / 2,
@@ -138,6 +128,26 @@ export default class TerrainSystem extends System {
 				ring.size,
 				ring.heightTextureTransform1
 			);
+		}
+	}
+
+	private updateRingMaskTransforms(terrain: Terrain, camera: Object3D): void {
+		const cameraTilePosition = MathUtils.meters2tile(camera.position.x, camera.position.z);
+		const startX = Math.floor(cameraTilePosition.x) - Math.floor(Config.TerrainWaterMaskResolution / 2);
+		const startY = Math.floor(cameraTilePosition.y) - Math.floor(Config.TerrainWaterMaskResolution / 2);
+		const startMeters = MathUtils.tile2meters(startX, startY + Config.TerrainWaterMaskResolution);
+
+		this.maskOrigin.set(startX, startY);
+
+		for (const ring of terrain.children) {
+			const maskWorldSize = Config.TileSize * Config.TerrainWaterMaskResolution;
+			const maskScale = ring.size / maskWorldSize;
+			const maskOffsetX = (ring.position.x - ring.size / 2 - startMeters.x) / maskWorldSize;
+			const maskOffsetY = (ring.position.z - ring.size / 2 - startMeters.y) / maskWorldSize;
+
+			ring.maskTextureTransform[0] = maskOffsetX;
+			ring.maskTextureTransform[1] = maskOffsetY;
+			ring.maskTextureTransform[2] = maskScale;
 		}
 	}
 }

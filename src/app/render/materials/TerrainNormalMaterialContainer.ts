@@ -25,7 +25,7 @@ export default class TerrainNormalMaterialContainer extends MaterialContainer {
 					name: 'heightMapWorldSize',
 					block: 'MainBlock',
 					type: RendererTypes.UniformType.Float1,
-					value: new Float32Array([Config.TerrainHeightMapCount * Config.TerrainHeightTileWorldSize])
+					value: new Float32Array(1)
 				},
 			],
 			primitive: {

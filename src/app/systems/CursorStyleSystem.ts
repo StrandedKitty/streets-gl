@@ -14,14 +14,8 @@ export default class CursorStyleSystem extends System {
 	private grabbingEnabled = false;
 	private pointerEnabled = false;
 
-	public constructor(systemManager: SystemManager) {
-		super(systemManager);
-
-		this.element = <HTMLCanvasElement>document.getElementById('canvas');
-	}
-
 	public postInit(): void {
-
+		this.element = <HTMLCanvasElement>document.getElementById('canvas');
 	}
 
 	public enableGrabbing(): void {

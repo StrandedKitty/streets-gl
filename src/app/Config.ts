@@ -35,14 +35,11 @@ const Config = {
 	CameraFOVZoomFactor: 2,
 	CSMShadowCameraNear: 1,
 	CSMShadowCameraFar: 20000,
-	TerrainHeightMapTileZoom: 11,
-	TerrainHeightMapCount: 8,
-	TerrainHeightTileWorldSize: 40075016.68 / (1 << 11),
 	TerrainRingCount: 5,
 	TerrainRingSegmentCount: 64,
-	TerrainRingHoleSegmentCount: 32,
 	TerrainRingSize: 40075016.68 / (1 << 12),
-	TerrainWaterMaskResolution: 32
+	TerrainWaterMaskResolution: 32,
+	TerrainNormalMixRange: [10000, 14500]
 };
 
 export default Config;

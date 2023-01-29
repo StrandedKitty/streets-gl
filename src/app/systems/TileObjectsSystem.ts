@@ -7,10 +7,6 @@ import SystemManager from "../SystemManager";
 export default class TileObjectsSystem extends System {
 	private buildingsList: Map<number, TileBuilding> = new Map();
 
-	public constructor(systemManager: SystemManager) {
-		super(systemManager);
-	}
-
 	public postInit(): void {
 
 	}

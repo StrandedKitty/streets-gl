@@ -7,18 +7,41 @@ in vec2 vUv;
 uniform sampler2DArray tHeight;
 
 uniform PerMesh {
-    vec4 transformHeight;
+    vec4 transformHeight0;
+    vec4 transformHeight1;
     vec2 morphOffset;
     float size;
     float segmentCount;
     float isLastRing;
     vec2 cameraPosition;
-    int levelId;
-    int layerId;
+    ivec4 levelLayer;
 };
 
-float sampleHeight(sampler2DArray tex, vec2 offset, int level, vec2 textureSize) {
-    return texelFetch(tex, ivec3(ivec2(offset * textureSize) / int(pow(2., float(level))), layerId), level).r;
+float sampleHeight0(vec2 offset) {
+    int level = levelLayer.x;
+    int layer = levelLayer.y;
+    vec2 textureSize = vec2(textureSize(tHeight, 0));
+    return texelFetch(
+        tHeight,
+        ivec3(
+            ivec2(offset * textureSize) / int(pow(2., float(level))),
+            layer
+        ),
+        level
+    ).r;
+}
+float sampleHeight1(vec2 offset) {
+    int level = levelLayer.z;
+    int layer = levelLayer.w;
+    vec2 textureSize = vec2(textureSize(tHeight, 0));
+    return texelFetch(
+        tHeight,
+        ivec3(
+            ivec2(offset * textureSize) / int(pow(2., float(level))),
+            layer
+        ),
+        level
+    ).r;
 }
 
 void main() {
@@ -35,8 +58,9 @@ void main() {
     vec2 heightTexSize = vec2(textureSize(tHeight, 0));
     vec2 heightUV = vec2(1. - vertexUV.y, vertexUV.x);
 
-    vec2 heightSelfUV = transformHeight.xy + heightUV * transformHeight.zw;
-    float height = sampleHeight(tHeight, heightSelfUV, levelId, heightTexSize);
+    vec2 heightSelfUV0 = transformHeight0.xy + heightUV * transformHeight0.zw;
+    vec2 heightSelfUV1 = transformHeight1.xy + heightUV * transformHeight1.zw;
+    float height = sampleHeight0(heightSelfUV0);
 
     vec2 t = mod(vertexUV * segmentCount + morphOffset, 2.);
     vec2 t2 = mod(vertexUV * segmentCount + morphOffset, 4.);
@@ -47,19 +71,19 @@ void main() {
     vec2 offsetLeft = vec2(-1. / segmentCount, 0);
     vec2 offsetRight = vec2(1. / segmentCount, 0);
 
-    vec2 offset = heightSelfUV;
+    vec2 offset = heightSelfUV1;
 
     if (t.x == 0. && t.y == 0.) {
-        heightSum += sampleHeight(tHeight, heightSelfUV, levelId + 1, heightTexSize);
+        heightSum += sampleHeight1(offset);
         heightWeight += 1.;
     } else if (t.x == 1. && t.y == 0.) {
-        heightSum += sampleHeight(tHeight, offset + offsetLeft.yx * transformHeight.z, levelId + 1, heightTexSize);
-        heightSum += sampleHeight(tHeight, offset + offsetRight.yx * transformHeight.z, levelId + 1, heightTexSize);
+        heightSum += sampleHeight1(offset + offsetLeft.yx * transformHeight1.z);
+        heightSum += sampleHeight1(offset + offsetRight.yx * transformHeight1.z);
 
         heightWeight += 2.;
     } else if (t.x == 0. && t.y == 1.) {
-        heightSum += sampleHeight(tHeight, offset + offsetLeft.xy * transformHeight.z, levelId + 1, heightTexSize);
-        heightSum += sampleHeight(tHeight, offset + offsetRight.xy * transformHeight.z, levelId + 1, heightTexSize);
+        heightSum += sampleHeight1(offset + offsetLeft.xy * transformHeight1.z);
+        heightSum += sampleHeight1(offset + offsetRight.xy * transformHeight1.z);
 
         heightWeight += 2.;
     } else if (t.x == 1. && t.y == 1.) {
@@ -69,16 +93,16 @@ void main() {
             vec2 offset0 = vec2(-1. / segmentCount, -1. / segmentCount);
             vec2 offset1 = vec2(1. / segmentCount, 1. / segmentCount);
 
-            heightSum += sampleHeight(tHeight, offset + offset0 * transformHeight.z, levelId + 1, heightTexSize);
-            heightSum += sampleHeight(tHeight, offset + offset1 * transformHeight.z, levelId + 1, heightTexSize);
+            heightSum += sampleHeight1(offset + offset0 * transformHeight1.z);
+            heightSum += sampleHeight1(offset + offset1 * transformHeight1.z);
 
             heightWeight += 2.;
         } else {
             vec2 offset0 = vec2(-1. / segmentCount, 1. / segmentCount);
             vec2 offset1 = vec2(1. / segmentCount, -1. / segmentCount);
 
-            heightSum += sampleHeight(tHeight, offset + offset0 * transformHeight.z, levelId + 1, heightTexSize);
-            heightSum += sampleHeight(tHeight, offset + offset1 * transformHeight.z, levelId + 1, heightTexSize);
+            heightSum += sampleHeight1(offset + offset0 * transformHeight1.z);
+            heightSum += sampleHeight1(offset + offset1 * transformHeight1.z);
 
             heightWeight += 2.;
         }

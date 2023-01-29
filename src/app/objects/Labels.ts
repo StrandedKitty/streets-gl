@@ -187,10 +187,4 @@ export default class Labels extends RenderableObject3D {
 
 		this.attributeBuffersDirty = true;
 	}
-
-	public dispose(): void {
-		if (this.mesh) {
-			this.mesh.delete();
-		}
-	}
 }

@@ -1,16 +1,22 @@
 import System from "./System";
 
-type AbstractSystemType = { new(s: SystemManager): System };
+type AbstractSystemType = { new(): System };
 
 export default class SystemManager {
 	private systems: Map<AbstractSystemType, System> = new Map();
 
-	public addSystems(systemTypes: AbstractSystemType[]): void {
+	public addSystems(...systemTypes: AbstractSystemType[]): void {
+		const addedSystems = [];
+
 		for (const systemType of systemTypes) {
-			this.systems.set(systemType, new systemType(this));
+			const system = new systemType();
+			system.systemManager = this;
+
+			this.systems.set(systemType, system);
+			addedSystems.push(system);
 		}
 
-		for (const system of this.systems.values()) {
+		for (const system of addedSystems) {
 			system.postInit();
 		}
 	}
@@ -21,7 +27,7 @@ export default class SystemManager {
 		}
 	}
 
-	public getSystem<T extends System>(systemType: { new(s: SystemManager): T }): T {
+	public getSystem<T extends System>(systemType: { new(): T }): T {
 		return <T>this.systems.get(systemType);
 	}
 }

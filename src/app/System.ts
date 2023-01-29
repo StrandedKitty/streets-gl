@@ -1,11 +1,7 @@
 import SystemManager from "./SystemManager";
 
 export default abstract class System {
-	protected systemManager: SystemManager;
-
-	protected constructor(systemManager: SystemManager) {
-		this.systemManager = systemManager;
-	}
+	public systemManager: SystemManager; // injected
 
 	public abstract postInit(): void;
 

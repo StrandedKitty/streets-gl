@@ -11,7 +11,13 @@ import TerrainNormalMaterialContainer from "../materials/TerrainNormalMaterialCo
 import TerrainWaterMaterialContainer from "../materials/TerrainWaterMaterialContainer";
 import TileSystem from "../../systems/TileSystem";
 import TerrainRingHeightMaterialContainer from "../materials/TerrainRingHeightMaterialContainer";
-import {UniformFloat1, UniformFloat2, UniformFloat3, UniformInt1} from "~/lib/renderer/abstract-renderer/Uniform";
+import {
+	UniformFloat1,
+	UniformFloat2,
+	UniformFloat3,
+	UniformInt1,
+	UniformInt4
+} from "~/lib/renderer/abstract-renderer/Uniform";
 import TerrainHeightDownscaleMaterialContainer from "../materials/TerrainHeightDownscaleMaterialContainer";
 import AbstractTexture2DArray from "~/lib/renderer/abstract-renderer/AbstractTexture2DArray";
 
@@ -187,18 +193,24 @@ export default class TerrainTexturesPass extends Pass<{
 			terrainRingHeightRenderPass.colorAttachments[0].slice = i;
 			this.renderer.beginRenderPass(terrainRingHeightRenderPass);
 
-			const heightLayer = i < 2 ? 0 : 1;
-			const heightLevel = heightLayer === 0 ? (i + 2) : (i - 1);
-			const transform = heightLayer === 0 ? ring.heightTextureTransform0 : ring.heightTextureTransform1;
+			const lut = [
+				[2, 0, 3, 0],
+				[3, 0, 0, 1],
+				[0, 1, 1, 1],
+				[1, 1, 2, 1],
+				[2, 1, 3, 1],
+			];
+			const transformHeight0 = lut[i][1] === 0 ? ring.heightTextureTransform0 : ring.heightTextureTransform1;
+			const transformHeight1 = lut[i][3] === 0 ? ring.heightTextureTransform0 : ring.heightTextureTransform1;
 
-			this.ringHeightMaterial.getUniform<UniformFloat3>('transformHeight', 'PerMesh').value = transform;
+			this.ringHeightMaterial.getUniform<UniformFloat3>('transformHeight0', 'PerMesh').value = transformHeight0;
+			this.ringHeightMaterial.getUniform<UniformFloat3>('transformHeight1', 'PerMesh').value = transformHeight1;
 			this.ringHeightMaterial.getUniform<UniformFloat2>('morphOffset', 'PerMesh').value = ring.morphOffset;
 			this.ringHeightMaterial.getUniform<UniformFloat1>('size', 'PerMesh').value[0] = ring.size;
 			this.ringHeightMaterial.getUniform<UniformFloat1>('segmentCount', 'PerMesh').value[0] = ring.segmentCount * 2;
 			this.ringHeightMaterial.getUniform<UniformFloat1>('isLastRing', 'PerMesh').value[0] = +ring.isLastRing;
 			this.ringHeightMaterial.getUniform('cameraPosition', 'PerMesh').value = new Float32Array([camera.position.x - ring.position.x, camera.position.z - ring.position.z]);
-			this.ringHeightMaterial.getUniform<UniformInt1>('levelId', 'PerMesh').value[0] = heightLevel;
-			this.ringHeightMaterial.getUniform<UniformInt1>('layerId', 'PerMesh').value[0] = heightLayer;
+			this.ringHeightMaterial.getUniform<UniformInt4>('levelLayer', 'PerMesh').value = new Int32Array(lut[i]);
 			this.ringHeightMaterial.updateUniformBlock('PerMesh');
 
 			this.quad.mesh.draw();
@@ -255,7 +267,7 @@ export default class TerrainTexturesPass extends Pass<{
 	private updateTileMask(terrainSystem: TerrainSystem, tileSystem: TileSystem): void {
 		const tileMaskTexture = <AbstractTexture2D>this.getPhysicalResource('TerrainTileMask').colorAttachments[0].texture;
 		const buffer = new Uint8Array(tileMaskTexture.width * tileMaskTexture.height);
-		const start = terrainSystem.maskOriginTiles;
+		const start = terrainSystem.maskOrigin;
 
 		for (let x = 0; x < tileMaskTexture.width; x++) {
 			for (let y = 0; y < tileMaskTexture.height; y++) {

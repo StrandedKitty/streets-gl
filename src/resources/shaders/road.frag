@@ -9,17 +9,20 @@ in vec3 vColor;
 in vec4 vClipPos;
 in vec4 vClipPosPrev;
 in vec3 vCenter;
-in vec2 vNormalUV;
+in vec4 vNormalUV;
 flat in int vTextureId;
+in float vNormalMixFactor;
 
 uniform PerMesh {
 	mat4 modelViewMatrix;
 	mat4 modelViewMatrixPrev;
-	vec3 transformHeight;
+	vec4 transformNormal0;
+	vec4 transformNormal1;
 	float terrainRingSize;
 	vec4 terrainRingOffset;
 	int terrainLevelId;
 	float segmentCount;
+	vec2 cameraPosition;
 };
 
 uniform sampler2DArray tMap;
@@ -29,6 +32,15 @@ uniform sampler2DArray tNormal;
 #include <getMotionVector>
 #include <sampleCatmullRom>
 #include <getTBN>
+
+vec3 sampleNormalMap() {
+	vec2 size = vec2(textureSize(tNormal, 0));
+	vec3 level0 = sampleCatmullRom(tNormal, vec3(vNormalUV.xy, 0), size).xyz;
+	vec3 level1 = sampleCatmullRom(tNormal, vec3(vNormalUV.zw, 1), size).xyz;
+	float factor = smoothstep(NORMAL_MIX_FROM, NORMAL_MIX_TO, vNormalMixFactor);
+
+	return mix(level0, level1, factor);
+}
 
 float edgeFactor() {
 	float widthFactor = 1.;
@@ -59,7 +71,7 @@ void main() {
 		//discard;
 	}
 
-	vec3 heightMapNormal = sampleCatmullRom(tNormal, vec3(vNormalUV, 0), vec2(textureSize(tNormal, 0))).xyz;
+	vec3 heightMapNormal = sampleNormalMap();
 	vec3 kindaVNormal = vec3(modelViewMatrix * vec4(heightMapNormal, 0));
 
 	outColor = color;
