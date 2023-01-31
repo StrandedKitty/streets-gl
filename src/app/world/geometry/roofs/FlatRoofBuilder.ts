@@ -3,7 +3,7 @@ import RoofBuilder, {RoofGeometry} from "./RoofBuilder";
 import Config from "../../../Config";
 import Utils from "../../../Utils";
 
-export default new class FlatRoofBuilder extends RoofBuilder {
+export default class FlatRoofBuilder implements RoofBuilder {
 	public build(way: Way3D): RoofGeometry {
 		const footprint = way.triangulateFootprint();
 		const isFootprintTextured = way.getTotalArea() > Config.MinTexturedRoofArea && way.aabb.getArea() < Config.MaxTexturedRoofAABBArea;

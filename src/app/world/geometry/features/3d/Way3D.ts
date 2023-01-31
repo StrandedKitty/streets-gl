@@ -10,10 +10,7 @@ import Utils from "../../../../Utils";
 import Vec2 from "~/lib/math/Vec2";
 import {CalcConvexHull, ComputeOMBB, Vector} from "~/lib/math/OMBB";
 import SeededRandom from "~/lib/math/SeededRandom";
-import Config from "../../../../Config";
 import RoadPolylineBuilder from "../../RoadPolylineBuilder";
-import Vec3 from "~/lib/math/Vec3";
-import StraightSkeletonBuilder from "../../StraightSkeletonBuilder";
 import {RoofGeometry} from "../../roofs/RoofBuilder";
 import FlatRoofBuilder from "../../roofs/FlatRoofBuilder";
 import HippedRoofBuilder from "../../roofs/HippedRoofBuilder";
@@ -34,6 +31,12 @@ enum RoofShape {
 	Pyramidal,
 	Skillion
 }
+
+const flatRoofBuilder = new FlatRoofBuilder();
+const hippedRoofBuilder = new HippedRoofBuilder();
+const gabledRoofBuilder = new GabledRoofBuilder();
+const pyramidalRoofBuilder = new PyramidalRoofBuilder();
+const skillionRoofBuilder = new SkillionRoofBuilder();
 
 export default class Way3D extends Feature3D {
 	public vertices: [number, number][];
@@ -516,10 +519,10 @@ export default class Way3D extends Feature3D {
 	private buildRoof(): RoofGeometry {
 		switch (this.roofShape) {
 			case RoofShape.Flat: {
-				return FlatRoofBuilder.build(this);
+				return flatRoofBuilder.build(this);
 			}
 			case RoofShape.Hipped: {
-				const roof = HippedRoofBuilder.build(this);
+				const roof = hippedRoofBuilder.build(this);
 
 				if (!roof) {
 					this.roofShape = RoofShape.Flat;
@@ -529,7 +532,7 @@ export default class Way3D extends Feature3D {
 				return roof;
 			}
 			case RoofShape.Gabled: {
-				const roof = GabledRoofBuilder.build(this);
+				const roof = gabledRoofBuilder.build(this);
 
 				if (!roof) {
 					this.roofShape = RoofShape.Flat;
@@ -539,10 +542,10 @@ export default class Way3D extends Feature3D {
 				return roof;
 			}
 			case RoofShape.Pyramidal: {
-				return PyramidalRoofBuilder.build(this);
+				return pyramidalRoofBuilder.build(this);
 			}
 			case RoofShape.Skillion: {
-				return SkillionRoofBuilder.build(this);
+				return skillionRoofBuilder.build(this);
 			}
 		}
 

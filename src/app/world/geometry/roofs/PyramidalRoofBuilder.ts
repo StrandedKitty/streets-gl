@@ -7,7 +7,7 @@ import Vec3 from "~/lib/math/Vec3";
 import Vec2 from "~/lib/math/Vec2";
 import polylabel from "polylabel";
 
-export default new class PyramidalRoofBuilder extends RoofBuilder {
+export default class PyramidalRoofBuilder implements RoofBuilder {
 	public build(way: Way3D): RoofGeometry {
 		const outerRing = way.rings.find(r => r.type === RingType.Outer);
 

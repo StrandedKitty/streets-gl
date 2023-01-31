@@ -1,12 +1,13 @@
-import Way3D from "../features/3d/Way3D";
-import RoofBuilder, {RoofGeometry} from "./RoofBuilder";
-import Config from "../../../Config";
-import Utils from "../../../Utils";
-import StraightSkeletonBuilder from "../StraightSkeletonBuilder";
+import RoofBuilder, {RoofGeometry} from "~/app/world/geometry/roofs/RoofBuilder";
+import Way3D from "~/app/world/geometry/features/3d/Way3D";
 import Vec3 from "~/lib/math/Vec3";
 import MathUtils from "~/lib/math/MathUtils";
+import StraightSkeletonBuilder from "~/app/world/geometry/StraightSkeletonBuilder";
+import Utils from "~/app/Utils";
+import {EdgeResult} from "straight-skeleton";
+import earcut from "earcut";
 
-export default new class HippedRoofBuilder extends RoofBuilder {
+export default class HippedRoofBuilder implements RoofBuilder {
 	public build(way: Way3D): RoofGeometry {
 		const skeleton = StraightSkeletonBuilder.buildFromWay(way);
 
@@ -17,7 +18,6 @@ export default new class HippedRoofBuilder extends RoofBuilder {
 		const heightMap: Map<string, number> = new Map();
 		const roofHeight = (+way.tags.roofHeight || 8) * way.heightFactor;
 		const minHeight = way.minGroundHeight + (+way.tags.height || 6) * way.heightFactor - roofHeight;
-		const useRoofHeight = roofHeight > 0;
 		let maxHeight = 0;
 
 		for (const [point, distance] of skeleton.Distances.entries()) {
@@ -28,38 +28,10 @@ export default new class HippedRoofBuilder extends RoofBuilder {
 		const vertices: number[] = [];
 
 		for (const edge of skeleton.Edges) {
-			for (let i = 2; i < edge.Polygon.length; i++) {
-				vertices.push(
-					edge.Polygon[0].X, 0, edge.Polygon[0].Y,
-					edge.Polygon[i].X, 0, edge.Polygon[i].Y,
-					edge.Polygon[i - 1].X, 0, edge.Polygon[i - 1].Y
-				);
-			}
+			this.getEdgeTriangles(way, edge, minHeight, maxHeight, roofHeight, heightMap, vertices);
 		}
 
-		for (let i = 0; i < vertices.length; i += 3) {
-			const x = vertices[i];
-			const z = vertices[i + 2];
-			const y = heightMap.get(`${x} ${z}`) || 0;
-			const height = useRoofHeight ? (y / maxHeight * roofHeight) : (y * 0.5);
-
-			vertices[i + 1] = height * way.heightFactor + minHeight;
-		}
-
-		const normals = new Float32Array(vertices.length);
-
-		for (let i = 0; i < vertices.length; i += 9) {
-			const a = new Vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
-			const b = new Vec3(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
-			const c = new Vec3(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
-
-			const normal: [number, number, number] = Vec3.toArray(MathUtils.calculateNormal(a, b, c));
-
-			for (let j = i; j < i + 9; j++) {
-				normals[j] = normal[j % 3];
-			}
-		}
-
+		const normals = this.calculateNormals(vertices);
 		const vertexCount = vertices.length / 3;
 
 		return {
@@ -68,5 +40,51 @@ export default new class HippedRoofBuilder extends RoofBuilder {
 			uv: new Float32Array(vertexCount * 2),
 			textureId: Utils.fillTypedArraySequence(new Uint8Array(vertexCount), new Uint8Array([0]))
 		};
+	}
+
+	protected getEdgeTriangles(
+		way: Way3D,
+		edge: EdgeResult,
+		minHeight: number,
+		maxHeight: number,
+		roofHeight: number,
+		heightMap: Map<string, number>,
+		vertexOut: number[]
+	): void {
+		const polygonVertices: number[] = [];
+
+		for (let i = 0; i < edge.Polygon.length; i++) {
+			polygonVertices.push(edge.Polygon[i].X, edge.Polygon[i].Y);
+		}
+
+		const triangles = earcut(polygonVertices).reverse();
+
+		for (let i = 0; i < triangles.length; i++) {
+			const index = triangles[i];
+			const x = polygonVertices[index * 2];
+			const z = polygonVertices[index * 2 + 1];
+			const y = heightMap.get(`${x} ${z}`) || 0;
+			const height = minHeight + y / maxHeight * roofHeight;
+
+			vertexOut.push(x, height, z);
+		}
+	}
+
+	private calculateNormals(vertices: number[]): Float32Array {
+		const normals = new Float32Array(vertices.length);
+
+		for (let i = 0; i < vertices.length; i += 9) {
+			const a = new Vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
+			const b = new Vec3(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
+			const c = new Vec3(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
+
+			const normal = Vec3.toArray(MathUtils.calculateNormal(a, b, c));
+
+			for (let j = i; j < i + 9; j++) {
+				normals[j] = normal[j % 3];
+			}
+		}
+
+		return normals;
 	}
 }

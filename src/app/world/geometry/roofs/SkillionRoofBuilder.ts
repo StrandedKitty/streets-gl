@@ -5,7 +5,7 @@ import MathUtils from "~/lib/math/MathUtils";
 import Vec2 from "~/lib/math/Vec2";
 import Vec3 from "~/lib/math/Vec3";
 
-export default new class SkillionRoofBuilder extends RoofBuilder {
+export default class SkillionRoofBuilder implements RoofBuilder {
 	public build(way: Way3D): RoofGeometry {
 		const footprint = way.triangulateFootprint();
 		const rotation = -MathUtils.toRad(+way.tags.roofDirection || 0) - Math.PI / 2;

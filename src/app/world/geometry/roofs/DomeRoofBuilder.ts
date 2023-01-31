@@ -9,7 +9,7 @@ import Vec2 from "~/lib/math/Vec2";
 
 const DomeSteps = 8;
 
-export default new class DomeRoofBuilder extends RoofBuilder {
+export default class DomeRoofBuilder implements RoofBuilder {
 	public build(way: Way3D): RoofGeometry {
 		const outerRing = way.rings.find(r => r.type === RingType.Outer);
 

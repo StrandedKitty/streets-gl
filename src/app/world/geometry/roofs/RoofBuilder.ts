@@ -7,6 +7,6 @@ export interface RoofGeometry {
 	textureId: Uint8Array;
 }
 
-export default abstract class RoofBuilder {
-	public abstract build(way: Way3D): RoofGeometry;
+export default interface RoofBuilder {
+	build(way: Way3D): RoofGeometry;
 }
