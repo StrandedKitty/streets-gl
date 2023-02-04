@@ -24,7 +24,7 @@ void main() {
     float left = textureOffset(tHeight, origin, ivec2(-1, 0)).r;
     float right = textureOffset(tHeight, origin, ivec2(1, 0)).r;
 
-    vec3 n = normalize(vec3(left - right, texelSize.x * heightMapWorldSize, bottom - top));
+    vec3 n = normalize(vec3(bottom - top, texelSize.x * heightMapWorldSize, left - right));
 
     FragColor = vec4(n, 1);
 }

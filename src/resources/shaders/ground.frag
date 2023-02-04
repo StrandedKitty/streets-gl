@@ -57,7 +57,7 @@ void main() {
         texture(waterNormal, vUv * 9. + uvOffsets[2]).rgb * 0.1;
 
     outNormal = packNormal(getNormal(textureNoTile(grassNoise, grassNormal, vUv, 6.)));
-    outRoughnessMetalness = vec2(0.9, 0);
+    outRoughnessMetalnessF0 = vec3(0.9, 0, 0.03);
     outMotion = getMotionVector(vClipPos, vClipPosPrev);
     outObjectId = 0u;
 }

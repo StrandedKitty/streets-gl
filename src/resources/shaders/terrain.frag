@@ -59,9 +59,9 @@ vec3 sampleNormalMap() {
 
 vec3 getNormal(vec3 normalTextureValue) {
     vec3 heightMapNormal = sampleNormalMap();
-    vec3 kindaVNormal = vec3(modelViewMatrix * vec4(heightMapNormal, 0));
+    vec3 kindaVNormal = normalize(vec3(modelViewMatrix * vec4(heightMapNormal, 0)));
 
-    mat3 tbn = getTBN(normalize(kindaVNormal), vPosition, vDetailUV);
+    mat3 tbn = getTBN(kindaVNormal, vPosition, vDetailUV);
     vec3 mapValue = normalTextureValue * 2. - 1.;
     mapValue.x *= 0.2;
     mapValue.y *= 0.2;
@@ -69,7 +69,7 @@ vec3 getNormal(vec3 normalTextureValue) {
 
     normal *= float(gl_FrontFacing) * 2. - 1.;
 
-    return normal;
+    return kindaVNormal;
 }
 
 float edgeFactor() {
@@ -113,7 +113,7 @@ void main() {
 
     outColor = vec4(detailColor, 1);
     outNormal = packNormal(detailNormal);
-    outRoughnessMetalness = vec2(0.9, 0);
+    outRoughnessMetalnessF0 = vec3(0.9, 0, 0.001);
 
     if (waterFactor > 0.5) {
         float waveTime = time * 0.015;
@@ -128,7 +128,7 @@ void main() {
 
         vec3 vNormal = vec3(modelViewMatrix * vec4(normalize(normalValue.xzy), 0));
         outNormal = packNormal(vNormal);
-        outRoughnessMetalness = vec2(0.05, 0);
+        outRoughnessMetalnessF0 = vec3(0.05, 0, 0.03);
     }
 
     outMotion = getMotionVector(vClipPos, vClipPosPrev);

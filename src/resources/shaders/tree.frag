@@ -67,7 +67,7 @@ void main() {
 
     outColor = vec4(color.rgb, 1);
     outNormal = packNormal(vNormal * (float(gl_FrontFacing) * 2.0 - 1.0));
-    outRoughnessMetalness = vec2(0.9, 0);
+    outRoughnessMetalnessF0 = vec3(0.9, 0, 0.03);
     outMotion = getMotionVector(vClipPos, vClipPosPrev);
     outObjectId = 0u;
 }

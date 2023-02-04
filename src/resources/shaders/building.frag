@@ -52,7 +52,7 @@ void main() {
         outNormal = packNormal(getRoofNormal());
     }
 
-    outRoughnessMetalness = vec2(0.9, 0);
+    outRoughnessMetalnessF0 = vec3(0.9, 0, 0.03);
     outMotion = getMotionVector(vClipPos, vClipPosPrev);
     outObjectId = vObjectId;
 }

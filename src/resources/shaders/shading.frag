@@ -290,7 +290,7 @@ void main() {
 	vec4 baseColor = SRGBtoLINEAR(texture(tColor, vUv));
 	vec3 normal = unpackNormal(texture(tNormal, vUv).xyz);
 	vec3 position = reconstructPositionFromDepth(vUv, texture(tDepth, vUv).r, projectionMatrixInverse);
-	vec2 roughnessMetalness = texture(tRoughnessMetalness, vUv).rg;
+	vec3 roughnessMetalness = texture(tRoughnessMetalness, vUv).rgb;
 
 	vec3 worldPosition = vec3(viewMatrix * vec4(position, 1));
 	vec3 view = normalize(-position);
@@ -306,7 +306,7 @@ void main() {
 
 	float perceptualRoughness = roughnessMetalness.x;
 	float metallic = roughnessMetalness.y;
-	vec3 f0 = vec3(0.03);
+	vec3 f0 = vec3(roughnessMetalness.z);
 	vec3 diffuseColor = baseColor.rgb * (vec3(1.) - f0) * (1. - metallic);
 	vec3 specularColor = mix(f0, baseColor.rgb, metallic);
 
