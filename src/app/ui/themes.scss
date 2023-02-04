@@ -1,0 +1,27 @@
+$theme-map: null;
+
+$themes: (
+	light: (
+		panel-border-color: #e1e1e1,
+		panel-bg: rgba(255, 255, 255, 0.3),
+		text-color: #fff
+	),
+	dark: (
+		panel-border-color: #222,
+		panel-bg: rgba(47, 47, 47, 0.5),
+		text-color: #7c7c7c
+	),
+);
+
+@mixin themify($themes) {
+	@each $name, $values in $themes {
+		.#{$name}-theme {
+			$theme-map: $values !global;
+			@content;
+		}
+	}
+}
+
+@function themed($key) {
+	@return map-get($theme-map, $key);
+}

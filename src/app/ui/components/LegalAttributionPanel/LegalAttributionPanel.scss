@@ -1,0 +1,15 @@
+@import "./../../common.scss";
+
+.attribution-panel {
+	bottom: 4px;
+	right: 4px;
+	font-size: 12px;
+	color: #fff;
+	opacity: 0.8;
+}
+
+@include themify($themes) {
+	.attribution-panel, .attribution-panel > a {
+		color: themed('text-color');
+	}
+}

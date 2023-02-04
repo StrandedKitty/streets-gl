@@ -4,11 +4,12 @@ import SelectionInfo from "./SelectionInfo";
 import TimeInfo from "./TimeInfo";
 import Search from "./Search";
 import RenderGraphViewer from "./RenderGraphViewer";
-import LegalAttribution from "./LegalAttribution";
 import Nav from "./Nav";
 import UI from "./UI";
 import Info from "./Info";
 import Settings from "./Settings";
+import CompassPanel from "~/app/ui/components/CompassPanel";
+import LegalAttributionPanel from "~/app/ui/components/LegalAttributionPanel";
 
 const UIRoot: React.FC<{
 	updateRenderGraph: () => void;
@@ -26,6 +27,29 @@ const UIRoot: React.FC<{
 
 	useEffect(() => {
 		UI.listenToField('resourcesLoadingProgress', (v: number) => setLoadingProgress(v));
+	}, []);
+
+	useEffect(() => {
+		const match = window.matchMedia("(prefers-color-scheme: dark)");
+
+		const setColorTheme = (theme: 'light' | 'dark'): void => {
+			if (theme === 'dark') {
+				document.body.className = 'dark-theme';
+			} else {
+				document.body.className = 'light-theme';
+			}
+		}
+
+		const themeListener = (): void => {
+			setColorTheme(match.matches ? "dark" : "light");
+		};
+		themeListener();
+
+		match.addEventListener("change", themeListener);
+
+		return () => {
+			match.removeEventListener("change", themeListener);
+		}
 	}, []);
 
 	useEffect(() => {
@@ -50,7 +74,7 @@ const UIRoot: React.FC<{
 			<div className='loading-screen-center'>
 				<div className='loading-screen-title'>Streets GL</div>
 				<div className='loading-screen-progress'>
-					<div className='loading-screen-progress-inner' style={{width: `${loadingProgress * 100}%`}} />
+					<div className='loading-screen-progress-inner' style={{width: `${loadingProgress * 100}%`}}/>
 				</div>
 				<div className='loading-screen-info'>
 					<a href={'https://github.com/StrandedKitty/streets-gl'} target={'_blank'}>GitHub repository</a>
@@ -97,7 +121,8 @@ const UIRoot: React.FC<{
 					/>
 				)
 			}
-			<LegalAttribution/>
+			<LegalAttributionPanel/>
+			{/* <CompassPanel direction={123}/> */}
 		</div>
 	);
 }

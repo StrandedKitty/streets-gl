@@ -1,0 +1,33 @@
+@import "./../../common.scss";
+
+$north-color: #de1616;
+$south-color: #f0f0f0;
+
+.compass {
+	@extend %panel-bg;
+	@extend %panel-border;
+	width: 64px;
+	height: 64px;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	border-radius: 50%;
+}
+
+.compass-arrows {
+	.arrow-up {
+		width: 0;
+		height: 0;
+		border-style: solid;
+		border-width: 0 10px 30px 10px;
+		border-color: transparent transparent $north-color transparent;
+	}
+
+	.arrow-down {
+		width: 0;
+		height: 0;
+		border-style: solid;
+		border-width: 30px 10px 0 10px;
+		border-color: $south-color transparent transparent transparent;
+	}
+}

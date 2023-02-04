@@ -1,11 +1,13 @@
 import React from "react";
+import Panel from "~/app/ui/components/Panel";
+import './LegalAttributionPanel.scss';
 
 const LegalAttribution: React.FC = () => {
-	return <div className={'attribution'}>
+	return <Panel className={'attribution-panel'}>
 		© <a href={'https://www.openstreetmap.org/copyright'} target={'_blank'}>OpenStreetMap</a>
 		{' '}
 		© <a href={'https://www.mapbox.com/about/maps/'} target={'_blank'}>Mapbox</a>
-	</div>
+	</Panel>
 }
 
-export default LegalAttribution;
+export default React.memo(LegalAttribution);

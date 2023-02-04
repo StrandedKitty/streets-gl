@@ -15,6 +15,9 @@ module.exports = [{
 		maxEntrypointSize: 8000000,
 		maxAssetSize: 8000000
 	},
+	devServer: {
+		hot: true
+	},
 	devtool: 'inline-source-map',
 	plugins: [
 		new CleanWebpackPlugin(),
@@ -54,6 +57,14 @@ module.exports = [{
 			{
 				test: /\.css$/i,
 				use: [MiniCssExtractPlugin.loader, 'css-loader']
+			},
+			{
+				test: /\.s[ac]ss$/i,
+				use: [
+					"style-loader",
+					"css-loader",
+					"sass-loader"
+				],
 			},
 			{
 				test: /\.worker\.ts$/,

@@ -1,0 +1,25 @@
+@import "./themes.scss";
+
+%panel-bg {
+	backdrop-filter: blur(8px);
+}
+@include themify($themes) {
+	%panel-bg {
+		background-color: themed('panel-bg');
+	}
+}
+
+%panel-border-radius {
+	border-radius: 8px;
+}
+
+@include themify($themes) {
+	%panel-border {
+		border: 1px solid themed('panel-border-color');
+	}
+}
+
+%panel {
+	@extend %panel-bg;
+	@extend %panel-border;
+}

@@ -1,173 +1,173 @@
 * {
-    box-sizing: border-box;
+	box-sizing: border-box;
 }
 
 * {
-    font-family: 'Inter', sans-serif;
+	font-family: 'Inter', sans-serif;
 }
 
 input:focus, button:focus, select:focus {
-    outline: none !important;
+	outline: none !important;
 }
 
 button {
-    cursor: pointer;
+	cursor: pointer;
 }
 
 body {
-    margin: 0;
-    color: #111111;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    touch-action: none;
-    font-family: 'Inter', sans-serif;
+	margin: 0;
+	color: #111111;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	touch-action: none;
+	font-family: 'Inter', sans-serif;
 }
 
 #canvas {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    overflow: hidden;
-    z-index: -1;
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	overflow: hidden;
+	z-index: -1;
 }
 
 .debug-info {
-    position: absolute;
-    bottom: 20px;
-    right: 4px;
-    font-size: 12px;
-    color: white;
+	position: absolute;
+	bottom: 20px;
+	right: 4px;
+	font-size: 12px;
+	color: white;
 }
 
 .debug-info-item {
-    width: 50px;
-    display: inline-block;
-    text-align: right;
+	width: 50px;
+	display: inline-block;
+	text-align: right;
 }
 
 .debug-info-item-small {
-    width: 25px;
+	width: 25px;
 }
 
 .selection-info-wrapper {
-    pointer-events: none;
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
+	pointer-events: none;
+	position: absolute;
+	bottom: 0;
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
 }
 
 .selection-info {
-    pointer-events: auto;
-    width: 500px;
-    max-width: 90%;
-    background: rgba(0, 0, 0, 0.75);
-    border-radius: 16px 16px 0 0;
-    box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.25);
-    padding: 24px;
-    color: white;
+	pointer-events: auto;
+	width: 500px;
+	max-width: 90%;
+	background: rgba(0, 0, 0, 0.75);
+	border-radius: 16px 16px 0 0;
+	box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.25);
+	padding: 24px;
+	color: white;
 }
 
 .selection-info-header {
-    font-size: 24px;
-    font-weight: 600;
+	font-size: 24px;
+	font-weight: 600;
 }
 
 .time-info {
-    position: absolute;
-    bottom: 16px;
-    left: 16px;
-    font-size: 14px;
-    background: rgba(0, 0, 0, 0.75);
-    border-radius: 24px;
-    color: white;
-    padding: 16px;
-    user-select: none;
-    border: 1px solid #eee;
+	position: absolute;
+	bottom: 16px;
+	left: 16px;
+	font-size: 14px;
+	background: rgba(0, 0, 0, 0.75);
+	border-radius: 24px;
+	color: white;
+	padding: 16px;
+	user-select: none;
+	border: 1px solid #eee;
 }
 
 .time-info-presets {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
 }
 
 .time-info-header {
-    margin: 0 0 12px 0;
-    font-size: 18px;
-    font-weight: 900;
+	margin: 0 0 12px 0;
+	font-size: 18px;
+	font-weight: 900;
 }
 
 .time-controls {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    margin: 24px 0 8px 0;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	margin: 24px 0 8px 0;
 }
 
 .time-controls-button {
-    display: block;
-    margin: 0 8px 0 0;
-    color: white;
-    background: transparent;
+	display: block;
+	margin: 0 8px 0 0;
+	color: white;
+	background: transparent;
 }
 
 .time-controls-button-text {
-    border: 1px solid white;
-    border-radius: 4px;
-    padding: 2px 4px;
-    font-size: 12px;
-    min-width: 36px;
-    line-height: 18px;
+	border: 1px solid white;
+	border-radius: 4px;
+	padding: 2px 4px;
+	font-size: 12px;
+	min-width: 36px;
+	line-height: 18px;
 }
 
 .time-controls-button-active {
-    background: white;
-    color: #111;
+	background: white;
+	color: #111;
 }
 
 .time-controls-button-icon {
-    border: none;
-    padding: 0;
+	border: none;
+	padding: 0;
 }
 
 .time-inputs {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
 }
 
 .time-inputs > * {
-    margin: 0 8px 0 0;
+	margin: 0 8px 0 0;
 }
 
 .time-input {
-    display: block;
-    margin: 0 8px 0 0;
-    color: white;
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid white;
-    border-radius: 0;
-    padding: 4px 4px;
-    font-size: 16px;
-    width: 100px;
-    text-align: center;
-    cursor: not-allowed;
+	display: block;
+	margin: 0 8px 0 0;
+	color: white;
+	background: transparent;
+	border: none;
+	border-bottom: 1px solid white;
+	border-radius: 0;
+	padding: 4px 4px;
+	font-size: 16px;
+	width: 100px;
+	text-align: center;
+	cursor: not-allowed;
 }
 
 .time-input-small {
-    width: 85px;
+	width: 85px;
 }
 
 .time-input-active {
-    cursor: text;
+	cursor: text;
 }
 
 .time-input-edit-button {
@@ -175,188 +175,188 @@ body {
 }
 
 .time-reset {
-    font-size: 12px;
-    margin: 6px 0 0 0;
-    display: inline-block;
-    text-decoration: underline;
+	font-size: 12px;
+	margin: 6px 0 0 0;
+	display: inline-block;
+	text-decoration: underline;
 }
 
 .svg-icon-wrapper {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 }
 
 .svg-icon-wrapper > svg {
-    display: block;
+	display: block;
 }
 
 input[type="time"]::-webkit-calendar-picker-indicator {
-    background: none;
-    display: none;
+	background: none;
+	display: none;
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator {
-    background: none;
-    display: none;
+	background: none;
+	display: none;
 }
 
 .search {
-    position: absolute;
-    top: 16px;
-    left: 16px;
-    width: 350px;
+	position: absolute;
+	top: 16px;
+	left: 16px;
+	width: 350px;
 }
 
 .search-bar {
-    font-size: 16px;
-    color: white;
-    background: rgb(0, 0, 0, 0.75);
-    border-radius: 24px;
-    border: 1px solid #eee;
-    padding: 8px 12px;
-    display: flex;
-    flex-direction: row;
+	font-size: 16px;
+	color: white;
+	background: rgb(0, 0, 0, 0.75);
+	border-radius: 24px;
+	border: 1px solid #eee;
+	padding: 8px 12px;
+	display: flex;
+	flex-direction: row;
 }
 
 .search-bar > div:first-child {
-    margin: 0 4px 0 0;
+	margin: 0 4px 0 0;
 }
 
 .search-input {
-    display: block;
-    margin: 0;
-    color: white;
-    background: transparent;
-    border: none;
-    padding: 4px 8px;
-    font-size: 18px;
-    width: 100%;
+	display: block;
+	margin: 0;
+	color: white;
+	background: transparent;
+	border: none;
+	padding: 4px 8px;
+	font-size: 18px;
+	width: 100%;
 }
 
 .search-input::placeholder {
-    color: rgba(255, 255, 255, 0.9);
-    font-weight: 700;
+	color: rgba(255, 255, 255, 0.9);
+	font-weight: 700;
 }
 
 .search-list {
-    font-size: 16px;
-    color: white;
-    background: rgb(0, 0, 0, 0.75);
-    border-radius: 12px;
-    margin: 8px 0 0 0;
+	font-size: 16px;
+	color: white;
+	background: rgb(0, 0, 0, 0.75);
+	border-radius: 12px;
+	margin: 8px 0 0 0;
 }
 
 .search-list-item {
-    border-bottom: 1px solid white;
-    padding: 8px;
-    cursor: pointer;
+	border-bottom: 1px solid white;
+	padding: 8px;
+	cursor: pointer;
 }
 
 .search-list-item:last-child {
-    border-bottom: none;
+	border-bottom: none;
 }
 
 .search-list-item-name {
-    font-size: 16px;
-    margin: 0 0 4px 0;
+	font-size: 16px;
+	margin: 0 0 4px 0;
 }
 
 .search-list-item-name-small {
-    font-size: 14px;
+	font-size: 14px;
 }
 
 .search-list-item-type {
-    font-size: 12px;
+	font-size: 12px;
 }
 
 .nav {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    display: flex;
-    flex-direction: row;
-    justify-content: end;
+	position: absolute;
+	top: 16px;
+	right: 16px;
+	display: flex;
+	flex-direction: row;
+	justify-content: end;
 }
 
 .nav-icon {
-    display: block;
-    margin: 0 0 0 8px;
-    width: 48px;
-    height: 48px;
-    background: rgb(0, 0, 0, 0.75);
-    border-radius: 24px;
-    border: 1px solid #eee;
-    text-align: center;
-    color: #fff;
-    padding: 11px;
+	display: block;
+	margin: 0 0 0 8px;
+	width: 48px;
+	height: 48px;
+	background: rgb(0, 0, 0, 0.75);
+	border-radius: 24px;
+	border: 1px solid #eee;
+	text-align: center;
+	color: #fff;
+	padding: 11px;
 }
 
 .nav-icon-active {
-    background: #eee;
-    color: #000;
+	background: #eee;
+	color: #000;
 }
 
 .render-graph-viewer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    flex-direction: column;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.7);
+	display: flex;
+	flex-direction: column;
 }
 
 .render-graph-viewer-header {
-    padding: 16px;
+	padding: 16px;
 }
 
 .render-graph-viewer-title {
-    font-size: 24px;
-    margin: 0 0 12px 0;
-    color: #fff;
+	font-size: 24px;
+	margin: 0 0 12px 0;
+	color: #fff;
 }
 
 .render-graph-viewer-nav > button {
-    margin: 0 12px 0 0;
-    font-size: 16px;
-    background: transparent;
-    color: #fff;
-    border: 1px solid white;
-    border-radius: 4px;
-    padding: 4px 8px;
+	margin: 0 12px 0 0;
+	font-size: 16px;
+	background: transparent;
+	color: #fff;
+	border: 1px solid white;
+	border-radius: 4px;
+	padding: 4px 8px;
 }
 
 .render-graph-viewer-body {
-    width: 100%;
-    flex: 1 1;
+	width: 100%;
+	flex: 1 1;
 }
 
 #graph-svg {
-    width: 100%;
-    height: 100%;
+	width: 100%;
+	height: 100%;
 }
 
 g.type-TK > rect {
-    fill: #00ffd0;
+	fill: #00ffd0;
 }
 
 .node rect {
-    stroke: #fff;
-    fill: rgba(0, 0, 0, 0.7);
-    stroke-width: 1.5px;
+	stroke: #fff;
+	fill: rgba(0, 0, 0, 0.7);
+	stroke-width: 1.5px;
 }
 
 .node {
-    font-size: 12px;
-    color: #fff;
+	font-size: 12px;
+	color: #fff;
 }
 
 .node header {
-    font-size: 16px;
-    color: #fff;
-    margin: 0 0 4px 0;
+	font-size: 16px;
+	color: #fff;
+	margin: 0 0 4px 0;
 }
 
 .node main {
@@ -364,165 +364,166 @@ g.type-TK > rect {
 }
 
 .node main > .metadata {
-    margin: 0 0 4px 0;
-    white-space: pre-line;
+	margin: 0 0 4px 0;
+	white-space: pre-line;
 }
 
 .node main > .local-resources > .local-resource {
-    white-space: pre-line;
-    border: 1px solid rgb(255, 255, 255, 0.7);
-    border-radius: 6px;
-    padding: 4px;
-    font-size: 10px;
-    margin: 4px 0 0 0;
+	white-space: pre-line;
+	border: 1px solid rgb(255, 255, 255, 0.7);
+	border-radius: 6px;
+	padding: 4px;
+	font-size: 10px;
+	margin: 4px 0 0 0;
 }
 
 .node-pass rect {
-    stroke: #ff0090;
-    fill: rgba(194, 0, 109, 0.7);
+	stroke: #ff0090;
+	fill: rgba(194, 0, 109, 0.7);
 }
 
 .node-pass text {
-    fill: #fff;
+	fill: #fff;
 }
 
 .node-resource rect {
-    stroke: #00d3ff;
-    fill: rgba(0, 121, 148, 0.7);
+	stroke: #00d3ff;
+	fill: rgba(0, 121, 148, 0.7);
 }
 
 .node-resource text {
-    fill: #fff;
-    font-size: 10px;
+	fill: #fff;
+	font-size: 10px;
 }
 
 .edgePath path {
-    stroke: #eee;
-    stroke-width: 1.5px;
+	stroke: #eee;
+	stroke-width: 1.5px;
 }
 
 .attribution {
-    position: absolute;
-    bottom: 4px;
-    right: 4px;
-    font-size: 12px;
-    color: #fff;
-    opacity: 0.8;
+	position: absolute;
+	bottom: 4px;
+	right: 4px;
+	font-size: 12px;
+	color: #fff;
+	opacity: 0.8;
 }
 
 .attribution a {
-    color: #fff;
+	color: #fff;
 }
 
 .loading-screen {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    background: #000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	background: #000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
 }
 
 .loading-screen-center {
-    text-align: center;
+	text-align: center;
 }
 
 .loading-screen-title {
-    font-size: 36px;
-    font-weight: bold;
-    margin: 0 0 32px 0;
+	font-size: 36px;
+	font-weight: bold;
+	margin: 0 0 32px 0;
 }
 
 .loading-screen-progress {
-    width: 300px;
-    height: 5px;
-    background-color: #222;
-    overflow: hidden;
-    border-radius: 5px;
+	width: 300px;
+	height: 5px;
+	background-color: #222;
+	overflow: hidden;
+	border-radius: 5px;
 }
 
 .loading-screen-progress-inner {
-    background: #fff;
-    height: 100%;
-    width: 0;
-    border-radius: 5px;
+	background: #fff;
+	height: 100%;
+	width: 0;
+	border-radius: 5px;
 }
 
 .loading-screen-info {
-    margin: 32px 0 0 0;
-    font-size: 14px;
-    opacity: 0.75;
+	margin: 32px 0 0 0;
+	font-size: 14px;
+	opacity: 0.75;
 }
 
 .loading-screen-info a {
-    color: #fff;
+	color: #fff;
 }
 
 .modal {
-    position: absolute;
-    top: 96px;
-    max-height: calc(100% - 192px);
-    right: 16px;
-    padding: 16px;
-    background: rgba(0, 0, 0, 0.75);
-    border-radius: 24px;
-    color: #fff;
-    border: 1px solid #eee;
-    width: 600px;
-    font-size: 14px;
+	position: absolute;
+	top: 96px;
+	max-height: calc(100% - 192px);
+	right: 16px;
+	padding: 16px;
+	background: rgba(0, 0, 0, 0.75);
+	border-radius: 24px;
+	color: #fff;
+	border: 1px solid #eee;
+	width: 600px;
+	font-size: 14px;
 }
 
 .modal-header {
-    font-size: 18px;
-    font-weight: bold;
-    margin: 0 0 16px 0;
-    position: relative;
-    width: 90%;
+	font-size: 18px;
+	font-weight: bold;
+	margin: 0 0 16px 0;
+	position: relative;
+	width: 90%;
 }
 
 .modal-close {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    cursor: pointer;
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	cursor: pointer;
 }
 
 .modal-close > svg {
-    display: block;
+	display: block;
 }
 
 .modal-p {
-    margin: 0 0 16px 0;
-    line-height: 24px;
+	margin: 0 0 16px 0;
+	line-height: 24px;
 }
 
 .modal-p a {
-    color: #fff;
+	color: #fff;
 }
 
 .modal-p a > svg {
-    margin: 0 4px -3px 0;
+	margin: 0 4px -3px 0;
 }
 
 .modal-keys {
-    line-height: 24px;
-    table-layout: fixed;
-    border-spacing: 0;
-    border-collapse: collapse;
-    width: 100%;
+	line-height: 24px;
+	table-layout: fixed;
+	border-spacing: 0;
+	border-collapse: collapse;
+	width: 100%;
 }
 
 .modal-keys td {
-    padding: 8px 4px;
+	padding: 8px 4px;
 }
+
 .modal-keys tr {
-    border-bottom: 1px solid #ccc;
+	border-bottom: 1px solid #ccc;
 }
 
 .modal-keys tr:last-child {
-    border: 0;
+	border: 0;
 }
 
 .modal-key-label {
@@ -530,67 +531,67 @@ g.type-TK > rect {
 }
 
 .modal-settings-range {
-    width: 100%;
-    display: block;
-    margin: 0;
+	width: 100%;
+	display: block;
+	margin: 0;
 }
 
 .modal-settings-range-container {
-    width: 200px;
+	width: 200px;
 }
 
 .modal-settings-range-value {
-    width: 100%;
-    text-align: center;
-    font-size: 12px;
-    line-height: 12px;
+	width: 100%;
+	text-align: center;
+	font-size: 12px;
+	line-height: 12px;
 }
 
 .modal-settings-range-footer {
-    width: 100%;
+	width: 100%;
 }
 
 .modal-settings-range-min-max {
-    font-size: 8px;
-    line-height: 12px;
+	font-size: 8px;
+	line-height: 12px;
 }
 
 .modal-settings-reset {
-    border: 1px solid white;
-    border-radius: 4px;
-    padding: 2px 4px;
-    font-size: 12px;
-    min-width: 36px;
-    line-height: 18px;
-    display: block;
-    color: white;
-    background: transparent;
-    float: right;
-    margin: 16px 0 0 0;
+	border: 1px solid white;
+	border-radius: 4px;
+	padding: 2px 4px;
+	font-size: 12px;
+	min-width: 36px;
+	line-height: 18px;
+	display: block;
+	color: white;
+	background: transparent;
+	float: right;
+	margin: 16px 0 0 0;
 }
 
 .modal-settings-select {
-    border: 1px solid white;
-    border-radius: 4px;
-    padding: 2px 4px;
-    font-size: 12px;
-    min-width: 200px;
-    line-height: 18px;
-    display: block;
-    color: white;
-    background: transparent;
+	border: 1px solid white;
+	border-radius: 4px;
+	padding: 2px 4px;
+	font-size: 12px;
+	min-width: 200px;
+	line-height: 18px;
+	display: block;
+	color: white;
+	background: transparent;
 }
 
 kbd {
-    border: 1px solid #fff;
-    box-shadow: 0 1px 0 1px #fff;
-    font-size: .85em;
-    line-height: .85em;
-    display: inline-block;
-    font-weight: 600;
-    letter-spacing: .05em;
-    padding: 4px 5px;
-    white-space: nowrap;
-    border-radius: 4px;
-    font-family: monospace;
+	border: 1px solid #fff;
+	box-shadow: 0 1px 0 1px #fff;
+	font-size: .85em;
+	line-height: .85em;
+	display: inline-block;
+	font-weight: 600;
+	letter-spacing: .05em;
+	padding: 4px 5px;
+	white-space: nowrap;
+	border-radius: 4px;
+	font-family: monospace;
 }
