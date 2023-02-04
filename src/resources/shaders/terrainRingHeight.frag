@@ -52,8 +52,8 @@ void main() {
 
     vec2 dst = abs(cameraPosition - position);
     float morphFactor = max(dst.x, dst.y) / (size / 2.) * 2. - 1.;
-    morphFactor = (morphFactor - 0.25) * 4.;
-    morphFactor = clamp(morphFactor, 0., 1.);
+    morphFactor = (morphFactor - 0.1) * 1.25;
+    morphFactor = clamp(smoothstep(0., 1., morphFactor), 0., 1.);
 
     vec2 heightTexSize = vec2(textureSize(tHeight, 0));
     vec2 heightUV = vec2(1. - vertexUV.y, vertexUV.x);
