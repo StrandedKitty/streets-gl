@@ -1,8 +1,9 @@
-import React, {useEffect, useState} from "react";
-import {IoPlayOutline, IoPauseOutline, IoCalendarClearOutline} from 'react-icons/io5';
+import React, {useState} from "react";
+import {IoCalendarClearOutline, IoPauseOutline, IoPlayOutline} from 'react-icons/io5';
 import {FiEdit2} from 'react-icons/fi';
 import {AiOutlineSave} from 'react-icons/ai';
-import UI from "./UI";
+import {useRecoilState} from "recoil";
+import atoms from "~/app/ui/state/atoms";
 
 const presets = [0, 1, 2, 3];
 const presetLabels = ['Dynamic/realtime', 'Morning', 'Noon', 'Evening', 'Night'];
@@ -16,21 +17,14 @@ function dateToLocalISOString(date: Date): string {
 	return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString();
 }
 
-const TimeInfo: React.FC<{
-	setTimeState: (state: number) => void;
-}> = ({setTimeState}) => {
-	const [time, setTime] = useState<number>(0);
-	const [timeMultiplier, setTimeMultiplier] = useState<number>(0);
+const TimeInfo: React.FC = () => {
+	const [time, setTime] = useRecoilState(atoms.mapTime);
+	const [timeMode, setTimeMode] = useRecoilState(atoms.mapTimeMode);
+	const [timeMultiplier, setTimeMultiplier] = useRecoilState(atoms.mapTimeMultiplier);
 	const [timeEditEnabled, setTimeEditEnabled] = useState<boolean>(false);
 	const [timeEditDate, setTimeEditDate] = useState<string>('');
 	const [timeEditTime, setTimeEditTime] = useState<string>('');
-	const [selectedPreset, setSelectedPreset] = useState<number>(0);
 	const dateInputRef = React.createRef<HTMLInputElement>();
-
-	useEffect(() => {
-		UI.listenToField('mapTime', (v: number) => setTime(v));
-		UI.listenToField('mapTimeMultiplier', (v: number) => setTimeMultiplier(v));
-	}, []);
 
 	const date = new Date(time);
 	const timeString = `${formatTimeComponent(date.getHours())}:${formatTimeComponent(date.getMinutes())}:${formatTimeComponent(date.getSeconds())}`;
@@ -42,7 +36,7 @@ const TimeInfo: React.FC<{
 			<div className='time-info-header'>Time of day</div>
 			<div className='time-info-presets'>
 				{presets.map((presetId, i) => {
-					const isActive = selectedPreset === presetId;
+					const isActive = timeMode === presetId;
 					let classList = 'time-controls-button time-controls-button-text';
 
 					if (isActive) {
@@ -53,25 +47,20 @@ const TimeInfo: React.FC<{
 						<button
 							className={classList}
 							onClick={(): void => {
-								setSelectedPreset(presetId);
-								setTimeState(presetId);
+								setTimeMode(presetId);
 							}}
 							key={presetId}
 						>{presetLabels[i]}</button>
 					);
 				})}
 			</div>
-			{selectedPreset === 0 && (
+			{timeMode === 0 && (
 				<>
 					<div className='time-controls'>
 						<button
 							className='time-controls-button time-controls-button-icon'
 							onClick={(): void => {
-								if (timeMultiplier === 0) {
-									UI.setGlobalStateField('mapTimeMultiplier', 1);
-								} else {
-									UI.setGlobalStateField('mapTimeMultiplier', 0);
-								}
+								setTimeMultiplier(timeMultiplier === 0 ? 1 : 0);
 							}}
 						>
 							<div className='svg-icon-wrapper'>
@@ -91,7 +80,7 @@ const TimeInfo: React.FC<{
 									<button
 										className={classList}
 										onClick={(): void => {
-											UI.setGlobalStateField('mapTimeMultiplier', speed);
+											setTimeMultiplier(speed);
 										}}
 										key={speed}
 									>x{speed}</button>
@@ -131,7 +120,7 @@ const TimeInfo: React.FC<{
 								const timeStrings = timeEditTime.split(':');
 								const timeOffset = +timeStrings[0] * 3600000 + +timeStrings[1] * 60000 + +timeStrings[2] * 1000;
 
-								UI.setGlobalStateField('mapTime', dateOffset + timeOffset);
+								setTime(dateOffset + timeOffset);
 							}
 
 							setTimeEditEnabled(!timeEditEnabled);
@@ -145,7 +134,7 @@ const TimeInfo: React.FC<{
 							setTimeEditDate(dateString);
 						}
 
-						UI.setGlobalStateField('mapTime', Date.now());
+						setTime(Date.now());
 					}}>
 						Reset to current date and time
 					</div>

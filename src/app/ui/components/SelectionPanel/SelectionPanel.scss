@@ -1,0 +1,34 @@
+@import "./../../common.scss";
+
+.selection-info-panel {
+	pointer-events: none;
+	bottom: 0;
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+}
+
+.selection-info {
+	pointer-events: auto;
+	width: 500px;
+	max-width: 90%;
+	background: rgba(0, 0, 0, 0.75);
+	border-radius: 16px 16px 0 0;
+	padding: 24px;
+	color: white;
+
+	@extend %panel-bg;
+	@extend %panel-border;
+
+	border-bottom: none !important;
+
+	.header {
+		font-size: 24px;
+		font-weight: 600;
+	}
+
+	.link {
+
+	}
+}

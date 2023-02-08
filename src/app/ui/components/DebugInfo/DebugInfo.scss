@@ -1,0 +1,21 @@
+.debug-info {
+	position: absolute;
+	bottom: 20px;
+	right: 4px;
+	font-size: 12px;
+	color: white;
+
+	.item {
+		width: 50px;
+		display: inline-block;
+		text-align: right;
+	}
+
+	.item-small {
+		width: 25px;
+	}
+
+	.item-clickable {
+		cursor: pointer;
+	}
+}

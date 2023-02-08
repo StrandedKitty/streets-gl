@@ -11,6 +11,7 @@ import {createTimeOfInterest} from "astronomy-bundle/time";
 import {createStar} from "astronomy-bundle/stars";
 import {createLocation} from "astronomy-bundle/earth";
 import Mat4 from "~/lib/math/Mat4";
+import UI from "~/app/ui/UI";
 
 const StaticPresets: [Vec3, Vec3][] = [
 	[new Vec3(-1, -1, -1).normalize(), new Vec3(0, 1, 0).normalize()],
@@ -47,10 +48,12 @@ export default class MapTimeSystem extends System {
 	private skyTransitionStart: [Vec3, Vec3, Vec3] = null;
 
 	public postInit(): void {
-
+		UI.addListener('mapTimeMode', value => {
+			this.setState(value);
+		});
 	}
 
-	public setState(state: number): void {
+	private setState(state: number): void {
 		if (state === 0) {
 			this.state = MapTimeState.Dynamic;
 			return;

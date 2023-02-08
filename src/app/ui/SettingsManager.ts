@@ -1,5 +1,3 @@
-import {UIGlobalState} from "../systems/UISystem";
-
 export interface SettingsValuesEntry {
 	statusValue?: string;
 	numberValue?: number;

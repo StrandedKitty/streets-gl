@@ -45,6 +45,10 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		document.addEventListener('keyup', (e: KeyboardEvent) => this.keyUpEvent(e));
 	}
 
+	public lookAtNorth(): void {
+		this.yaw = 0;
+	}
+
 	private mouseDownEvent(e: MouseEvent): void {
 		if (!this.isEnabled) {
 			return;

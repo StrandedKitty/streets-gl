@@ -11,6 +11,7 @@ import GroundControlsNavigator from "../controls/GroundControlsNavigator";
 import ControlsNavigator from "../controls/ControlsNavigator";
 import FreeControlsNavigator from "../controls/FreeControlsNavigator";
 import CursorStyleSystem from "./CursorStyleSystem";
+import UI from "~/app/ui/UI";
 
 const WheelZoomFactor = 6;
 
@@ -55,6 +56,12 @@ export default class ControlsSystem extends System {
 
 	public postInit(): void {
 
+	}
+
+	public lookAtNorth(): void {
+		if (this.activeNavigator) {
+			this.activeNavigator.lookAtNorth();
+		}
 	}
 
 	private initCameraAndNavigators(): void {

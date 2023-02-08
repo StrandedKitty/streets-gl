@@ -16,6 +16,7 @@ import ModelManager from "../objects/models/ModelManager";
 import InstancedAircraft from "../objects/InstancedAircraft";
 import SettingsManager from "../ui/SettingsManager";
 import Terrain from "../objects/Terrain";
+import UI from "~/app/ui/UI";
 
 interface SceneObjects {
 	wrapper: Object3D;

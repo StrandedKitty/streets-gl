@@ -31,6 +31,10 @@ export default class FreeControlsNavigator extends ControlsNavigator {
 		document.addEventListener('pointerlockchange', () => this.pointerLockChange());
 	}
 
+	public lookAtNorth(): void {
+		this.yaw = 0;
+	}
+
 	private pointerLockChange(): void {
 		this.pointerLocked = document.pointerLockElement === this.element;
 	}

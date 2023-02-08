@@ -25,7 +25,12 @@ export default abstract class ControlsNavigator {
 	}
 
 	protected abstract syncWithCamera(): void;
+
 	public abstract syncWithState(state: ControlsState): void;
+
 	public abstract getCurrentState(): ControlsState;
+
+	public abstract lookAtNorth(): void;
+
 	public abstract update(deltaTime: number): void;
 }

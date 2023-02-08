@@ -1,9 +1,11 @@
-import React, {useEffect, useRef, useState} from "react";
-import {RenderGraphSnapshot} from "../systems/UISystem";
+import React, {useContext, useEffect, useRef, useState} from "react";
 import dagre from "dagre";
 import dagreD3 from "dagre-d3";
 import * as d3 from "d3";
-import UI from "./UI";
+import {useRecoilValue} from "recoil";
+import {RenderGraphSnapshot} from "~/app/systems/UISystem";
+import './RenderGraphViewer.scss';
+import {AtomsContext} from "~/app/ui/UI";
 
 const stringifyRecord = <K extends string, V>(record: Record<K, V>): string => {
 	let result = '';
@@ -61,13 +63,10 @@ const RenderGraphViewer: React.FC<{
 	update: () => void;
 	close: () => void;
 }> = ({update, close}) => {
+	const atoms = useContext(AtomsContext);
 	const svgRef = useRef();
-	const [data, setData] = useState<RenderGraphSnapshot>(null);
+	const data = useRecoilValue(atoms.renderGraph);
 	const [zoomHandler, setZoomHandler] = useState<d3.ZoomBehavior<Element, unknown>>(null);
-
-	useEffect(() => {
-		UI.listenToField('renderGraph', (data: RenderGraphSnapshot) => setData(data));
-	}, []);
 
 	useEffect(() => {
 		if (!data) {
@@ -100,18 +99,18 @@ const RenderGraphViewer: React.FC<{
 
 	return (
 		<div className='render-graph-viewer'>
-			<div className='render-graph-viewer-header'>
-				<div className='render-graph-viewer-title'>Render graph viewer</div>
-				<div className='render-graph-viewer-nav'>
+			<div className='header'>
+				<div className='title'>Render graph viewer</div>
+				<div className='nav'>
 					<button onClick={update}>Update from last frame</button>
 					<button onClick={close}>Exit</button>
 				</div>
 			</div>
-			<div className='render-graph-viewer-body'>
-				<svg ref={svgRef} id='graph-svg'><g /></svg>
+			<div className='body'>
+				<svg ref={svgRef} className='graph-svg'><g /></svg>
 			</div>
 		</div>
 	);
 }
 
-export default RenderGraphViewer;
+export default React.memo(RenderGraphViewer);

@@ -1,6 +1,7 @@
 {
 	"name": "streets-gl",
 	"version": "0.1.0",
+	"description": "OpenStreetMap 3D renderer",
 	"scripts": {
 		"start": "http-server ./build -p 8080",
 		"build": "webpack --config ./webpack.config.js --mode=production",
@@ -8,7 +9,11 @@
 		"lint": "npx eslint src --fix",
 		"test": "jest"
 	},
-	"author": "vHawk",
+	"author": "StrandedKitty",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/StrandedKitty/streets-gl.git"
+	},
 	"license": "MIT",
 	"devDependencies": {
 		"@types/d3": "^7.4.0",
@@ -42,18 +47,17 @@
 		"webpack": "^5.72.1",
 		"webpack-cli": "^4.9.2",
 		"webpack-dev-server": "^4.5.0",
-		"worker-loader": "^3.0.2"
-	},
-	"dependencies": {
-		"@downpourdigital/bmfont-utils": "0.0.3",
-		"@loaders.gl/core": "^3.2.10",
-		"@loaders.gl/gltf": "^3.2.10",
+		"worker-loader": "^3.0.2",
 		"@types/earcut": "^2.1.1",
 		"@types/geojson": "^7946.0.7",
 		"@types/node": "^14.14.31",
 		"@types/polylabel": "^1.0.5",
 		"@types/react": "^17.0.2",
-		"@types/react-dom": "^17.0.1",
+		"@types/react-dom": "^17.0.1"
+	},
+	"dependencies": {
+		"@loaders.gl/core": "^3.2.10",
+		"@loaders.gl/gltf": "^3.2.10",
 		"astronomy-bundle": "^7.5.5",
 		"d3": "^7.6.1",
 		"dagre": "^0.8.5",
@@ -66,6 +70,7 @@
 		"react": "^17.0.1",
 		"react-dom": "^17.0.1",
 		"react-icons": "^4.4.0",
+		"recoil": "^0.7.6",
 		"simplify-js": "^1.2.4",
 		"straight-skeleton": "^1.0.1",
 		"suncalc": "^1.8.0"
