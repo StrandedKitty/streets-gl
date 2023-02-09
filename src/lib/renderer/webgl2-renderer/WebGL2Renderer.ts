@@ -90,35 +90,35 @@ export default class WebGL2Renderer implements AbstractRenderer {
 		}
 	}
 
-	public createTexture2D(params: AbstractTexture2DParams): AbstractTexture2D {
+	public createTexture2D(params: AbstractTexture2DParams): WebGL2Texture2D {
 		return new WebGL2Texture2D(this, params);
 	}
 
-	public createTexture2DArray(params: AbstractTexture2DArrayParams): AbstractTexture2DArray {
+	public createTexture2DArray(params: AbstractTexture2DArrayParams): WebGL2Texture2DArray {
 		return new WebGL2Texture2DArray(this, params);
 	}
 
-	public createTexture3D(params: AbstractTexture3DParams): AbstractTexture3D {
+	public createTexture3D(params: AbstractTexture3DParams): WebGL2Texture3D {
 		return new WebGL2Texture3D(this, params);
 	}
 
-	public createTextureCube(params: AbstractTextureCubeParams): AbstractTextureCube {
+	public createTextureCube(params: AbstractTextureCubeParams): WebGL2TextureCube {
 		return new WebGL2TextureCube(this, params);
 	}
 
-	public createMaterial(params: AbstractMaterialParams): AbstractMaterial {
+	public createMaterial(params: AbstractMaterialParams): WebGL2Material {
 		return new WebGL2Material(this, params);
 	}
 
-	public createAttribute(params: AbstractAttributeParams): AbstractAttribute {
+	public createAttribute(params: AbstractAttributeParams): WebGL2Attribute {
 		return new WebGL2Attribute(this, params);
 	}
 
-	public createMesh(params: AbstractMeshParams): AbstractMesh {
+	public createMesh(params: AbstractMeshParams): WebGL2Mesh {
 		return new WebGL2Mesh(this, params);
 	}
 
-	public createRenderPass(params: AbstractRenderPassParams): AbstractRenderPass {
+	public createRenderPass(params: AbstractRenderPassParams): WebGL2RenderPass {
 		return new WebGL2RenderPass(this, params);
 	}
 

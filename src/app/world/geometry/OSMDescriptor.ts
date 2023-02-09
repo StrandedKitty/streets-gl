@@ -29,7 +29,7 @@ export default class OSMDescriptor {
 							newValue = this.parseUnits(value);
 							break;
 						case '@color':
-							newValue = colors[value.toLowerCase()] || Utils.hexToRgb(value);
+							newValue = colors[value.replaceAll('_', '').replaceAll('-', '').replaceAll(' ', '').toLowerCase()] || Utils.hexToRgb(value);
 							break;
 						case '@int':
 							newValue = parseInt(value);

@@ -1,6 +1,5 @@
 import Vec2 from "~/lib/math/Vec2";
 import System from "../System";
-import SystemManager from "../SystemManager";
 import PickingSystem from "./PickingSystem";
 import GBufferPass from "../render/passes/GBufferPass";
 import WebGL2Renderer from "~/lib/renderer/webgl2-renderer/WebGL2Renderer";
@@ -125,16 +124,18 @@ export default class RenderSystem extends System {
 		};
 	}
 
-	private pickObjectId(): number {
+	private pickObjectId(): void {
 		const picking = this.systemManager.getSystem(PickingSystem);
 		const pass = <GBufferPass>this.passManager.getPass('GBufferPass');
+
+		if (!pass) {
+			return;
+		}
 
 		pass.objectIdX = picking.pointerPosition.x;
 		pass.objectIdY = picking.pointerPosition.y;
 
 		this.systemManager.getSystem(PickingSystem).readObjectId(pass.objectIdBuffer);
-
-		return this.systemManager.getSystem(PickingSystem).selectedObjectId;
 	}
 
 	public get resolutionUI(): Vec2 {

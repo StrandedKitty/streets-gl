@@ -2,14 +2,16 @@ $theme-map: null;
 
 $themes: (
 	light: (
-		panel-border-color: #e1e1e1,
-		panel-bg: rgba(255, 255, 255, 0.3),
-		text-color: #fff
+		panel-border-color: rgba(255, 255, 255, 0.8),
+		panel-bg: rgba(127, 127, 127, 0.3),
+		text-color: #fff,
+		text-color-opposite: #111,
 	),
 	dark: (
 		panel-border-color: #222,
-		panel-bg: rgba(47, 47, 47, 0.5),
-		text-color: #7c7c7c
+		panel-bg: rgba(0, 0, 0, 0.3),
+		text-color: #eee,
+		text-color-opposite: #111,
 	),
 );
 

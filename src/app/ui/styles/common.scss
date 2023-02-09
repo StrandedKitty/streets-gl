@@ -10,11 +10,11 @@
 }
 
 %panel-border-radius {
-	border-radius: 8px;
+	border-radius: 24px;
 }
 
 @include themify($themes) {
 	%panel-border {
-		border: 1px solid themed('panel-border-color');
+		border: 2px solid themed('panel-border-color');
 	}
 }

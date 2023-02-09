@@ -7,7 +7,8 @@ import ControlsSystem from "./ControlsSystem";
 import SceneSystem from "~/app/systems/SceneSystem";
 import Vec3 from "~/lib/math/Vec3";
 import Vec2 from "~/lib/math/Vec2";
-import atoms from "~/app/ui/state/atoms";
+import {getAtoms} from "~/app/ui/state/atoms";
+import MapTimeSystem from "~/app/systems/MapTimeSystem";
 
 export interface RenderGraphSnapshot {
 	graph: {
@@ -44,6 +45,7 @@ export interface UIActions {
 const FPSUpdateInterval = 0.4;
 
 export default class UISystem extends System {
+	private ui: UI;
 	private state: UISystemState = {
 		activeFeatureType: null,
 		activeFeatureId: null,
@@ -60,15 +62,20 @@ export default class UISystem extends System {
 	private fpsUpdateTimer = 0;
 
 	public postInit(): void {
-		document.getElementById('ui').addEventListener('click', event => {
-			event.stopPropagation();
-		});
-
-		UI.setInitialGlobalState(this.state);
+		this.ui = new UI(this.state);
 		this.updateDOM();
+
+		this.ui.addListener('mapTimeMode', value => {
+			const system = this.systemManager.getSystem(MapTimeSystem);
+
+			if (system) {
+				system.setState(value);
+			}
+		});
 	}
 
 	private updateDOM(): void {
+		const atoms = getAtoms(this.ui);
 		const actions: UIActions = {
 			updateRenderGraph: () => this.updateRenderGraph(),
 			goToLatLon: (lat: number, lon: number): void => {
@@ -79,28 +86,28 @@ export default class UISystem extends System {
 			}
 		}
 
-		UI.update(atoms, actions);
+		this.ui.update(atoms, actions);
 	}
 
 	public setResourcesLoadingProgress(progress: number): void {
-		UI.setStateFieldValue('resourcesLoadingProgress', progress);
+		this.ui.setStateFieldValue('resourcesLoadingProgress', progress);
 	}
 
 	public setActiveFeature(type: number, id: number): void {
 		console.log(`feature ${type} ${id}`);
 
-		UI.setStateFieldValue('activeFeatureId', id);
-		UI.setStateFieldValue('activeFeatureType', type);
+		this.ui.setStateFieldValue('activeFeatureId', id);
+		this.ui.setStateFieldValue('activeFeatureType', type);
 	}
 
 	public clearActiveFeature(): void {
-		UI.setStateFieldValue('activeFeatureId', null);
-		UI.setStateFieldValue('activeFeatureType', null);
+		this.ui.setStateFieldValue('activeFeatureId', null);
+		this.ui.setStateFieldValue('activeFeatureType', null);
 	}
 
 	public updateFrameTime(frameTime: number): void {
 		const value = MathUtils.lerp(this.state.frameTime, frameTime, 0.1);
-		UI.setStateFieldValue('frameTime', value);
+		this.ui.setStateFieldValue('frameTime', value);
 	}
 
 	public get mapTime(): number {
@@ -155,22 +162,22 @@ export default class UISystem extends System {
 	}
 
 	public updateRenderGraph(): void {
-		UI.setStateFieldValue('renderGraph', this.getRenderGraph());
+		this.ui.setStateFieldValue('renderGraph', this.getRenderGraph());
 	}
 
 	public update(deltaTime: number): void {
 		const newFps = Math.min(Math.round(1 / deltaTime), 1e3);
-		UI.setStateFieldValue('fps', MathUtils.lerp(this.state.fps, newFps, 0.1));
+		this.ui.setStateFieldValue('fps', MathUtils.lerp(this.state.fps, newFps, 0.1));
 
 		if (this.fpsUpdateTimer >= FPSUpdateInterval) {
 			this.fpsUpdateTimer = 0;
-			UI.setStateFieldValue('fpsSmooth', this.state.fps);
+			this.ui.setStateFieldValue('fpsSmooth', this.state.fps);
 		}
 
 		this.fpsUpdateTimer += deltaTime;
 
 		const newMapTime = this.state.mapTime + deltaTime * 1000 * this.state.mapTimeMultiplier;
-		UI.setStateFieldValue('mapTime', newMapTime);
+		this.ui.setStateFieldValue('mapTime', newMapTime);
 
 		const scene = this.systemManager.getSystem(SceneSystem);
 
@@ -178,7 +185,7 @@ export default class UISystem extends System {
 			const camera = this.systemManager.getSystem(SceneSystem).objects.camera;
 			const dir = Vec3.applyMatrix4(new Vec3(0, 0, -1), camera.matrixWorld);
 			const angle = new Vec2(dir.x, dir.z).getAngle();
-			UI.setStateFieldValue('northDirection', Math.round(-MathUtils.toDeg(angle)));
+			this.ui.setStateFieldValue('northDirection', Math.round(-MathUtils.toDeg(angle)));
 		}
 	}
 }

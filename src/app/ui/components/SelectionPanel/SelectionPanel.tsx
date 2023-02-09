@@ -32,4 +32,4 @@ const SelectionPanel: React.FC = () => {
 	);
 }
 
-export default SelectionPanel;
+export default React.memo(SelectionPanel);

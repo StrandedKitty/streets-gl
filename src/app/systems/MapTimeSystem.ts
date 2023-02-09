@@ -48,12 +48,10 @@ export default class MapTimeSystem extends System {
 	private skyTransitionStart: [Vec3, Vec3, Vec3] = null;
 
 	public postInit(): void {
-		UI.addListener('mapTimeMode', value => {
-			this.setState(value);
-		});
+
 	}
 
-	private setState(state: number): void {
+	public setState(state: number): void {
 		if (state === 0) {
 			this.state = MapTimeState.Dynamic;
 			return;

@@ -11,9 +11,7 @@ const CompassPanel: React.FC = () => {
 	const direction = useRecoilValue(atoms.northDirection);
 
 	return <Panel className={'compass-panel'}>
-		<Compass direction={direction} onReset={(): void => {
-			actions.lookAtNorth();
-		}}/>
+		<Compass direction={direction} onReset={actions.lookAtNorth}/>
 	</Panel>;
 }
 

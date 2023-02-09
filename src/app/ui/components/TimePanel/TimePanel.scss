@@ -1,0 +1,152 @@
+@import "../../styles/common.scss";
+
+.time-panel {
+	position: absolute;
+	bottom: 16px;
+	left: 16px;
+	font-size: 14px;
+	padding: 16px;
+	user-select: none;
+
+	@extend %panel-bg;
+	@extend %panel-border;
+	@extend %panel-border-radius;
+
+	.time-panel-presets {
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+	}
+
+	.time-panel-header {
+		margin: 0 0 12px 0;
+		font-size: 18px;
+		font-weight: 900;
+	}
+}
+
+@include themify($themes) {
+	.time-panel {
+		color: themed('text-color');
+	}
+}
+
+.time-controls {
+
+}
+
+.time-modes {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	margin: 24px 0 8px 0;
+}
+
+.time-button {
+	display: block;
+	margin: 0 8px 0 0;
+	background: transparent;
+}
+
+@include themify($themes) {
+	.time-button {
+		color: themed('text-color');
+	}
+}
+
+.time-button-text {
+	border-radius: 4px;
+	padding: 2px 4px;
+	font-size: 12px;
+	min-width: 36px;
+	line-height: 18px;
+}
+
+@include themify($themes) {
+	.time-button-text {
+		border: 1px solid themed('text-color');
+	}
+}
+
+.time-button-icon {
+	border: none;
+	padding: 0;
+}
+
+.time-button-active {
+	background: white;
+	color: #111;
+}
+
+@include themify($themes) {
+	.time-button-active {
+		background: themed('text-color');
+		color: themed('text-color-opposite');
+	}
+}
+
+.time-inputs {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+
+	> * {
+		margin: 0 8px 0 0;
+	}
+}
+
+.time-input {
+	display: block;
+	margin: 0 8px 0 0;
+	color: white;
+	background: transparent;
+	border: none;
+	border-bottom: 1px solid white;
+	border-radius: 0;
+	padding: 4px 4px;
+	font-size: 16px;
+	width: 100px;
+	text-align: center;
+	cursor: not-allowed;
+
+	&::-webkit-calendar-picker-indicator {
+		background: none;
+		display: none;
+	}
+}
+
+@include themify($themes) {
+	.time-input {
+		color: themed('text-color');
+	}
+}
+
+.time-input-small {
+	width: 85px;
+}
+
+.time-input-active {
+	cursor: text;
+}
+
+.time-input-button {
+	cursor: pointer;
+}
+
+.time-reset {
+	font-size: 12px;
+	margin: 6px 0 0 0;
+	display: inline-block;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.svg-icon-wrapper {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+
+	> svg {
+		display: block;
+	}
+}

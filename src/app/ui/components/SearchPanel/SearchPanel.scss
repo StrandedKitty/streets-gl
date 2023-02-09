@@ -1,0 +1,92 @@
+@import "../../styles/common.scss";
+
+.search {
+	position: absolute;
+	top: 16px;
+	left: 16px;
+	width: 350px;
+}
+
+@include themify($themes) {
+	.search {
+		color: themed('text-color');
+	}
+}
+
+.search-bar {
+	font-size: 16px;
+	padding: 8px 12px;
+	display: flex;
+	flex-direction: row;
+
+	@extend %panel-bg;
+	@extend %panel-border;
+	@extend %panel-border-radius;
+
+	& > div:first-child {
+		margin: 0 4px 0 0;
+	}
+}
+
+.search-input {
+	display: block;
+	margin: 0;
+	background: transparent;
+	border: none;
+	padding: 4px 8px;
+	font-size: 18px;
+	width: 100%;
+
+	&::placeholder {
+		opacity: 0.9;
+		font-weight: 700;
+	}
+}
+
+@include themify($themes) {
+	.search-input {
+		color: themed('text-color');
+	}
+
+	.search-input::placeholder {
+		color: themed('text-color');
+	}
+}
+
+@include themify($themes) {
+	.search-list .search-list-item {
+		border-bottom: 1px solid themed('panel-border-color');
+	}
+}
+
+.search-list {
+	font-size: 16px;
+	margin: 8px 0 0 0;
+
+	@extend %panel-bg;
+	@extend %panel-border;
+	@extend %panel-border-radius;
+
+	.search-list-item {
+		padding: 12px;
+		cursor: pointer;
+
+		&:last-child {
+			border-bottom: none;
+		}
+
+		.search-list-item-name {
+			font-size: 16px;
+			margin: 0 0 4px 0;
+			font-weight: 600;
+		}
+
+		.search-list-item-name-small {
+			font-size: 14px;
+		}
+
+		.search-list-item-type {
+			font-size: 12px;
+		}
+	}
+}

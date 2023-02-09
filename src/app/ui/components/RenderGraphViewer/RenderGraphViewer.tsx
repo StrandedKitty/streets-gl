@@ -6,21 +6,12 @@ import {useRecoilValue} from "recoil";
 import {RenderGraphSnapshot} from "~/app/systems/UISystem";
 import './RenderGraphViewer.scss';
 import {AtomsContext} from "~/app/ui/UI";
-
-const stringifyRecord = <K extends string, V>(record: Record<K, V>): string => {
-	let result = '';
-
-	for (const [k, v] of Object.entries(record)) {
-		result += `${k}: ${v}\n`;
-	}
-
-	return result;
-}
+import stringifyRecord from "~/app/ui/components/RenderGraphViewer/stringifyRecord";
 
 const constructGraphFromData = (data: RenderGraphSnapshot): dagre.graphlib.Graph => {
-	const g = new dagre.graphlib.Graph({ compound: true });
+	const g = new dagre.graphlib.Graph({compound: true});
 
-	g.setGraph({ rankdir: "LR", ranker: 'longest-path' });
+	g.setGraph({rankdir: "LR", ranker: 'longest-path'});
 	g.setDefaultEdgeLabel('');
 
 	for (const node of data.graph) {
@@ -47,14 +38,14 @@ const constructGraphFromData = (data: RenderGraphSnapshot): dagre.graphlib.Graph
 			class: node.type === 'pass' ? 'node-pass' : 'node-resource'
 		});
 		for (const prev of node.prev) {
-			g.setEdge(prev, node.name, { curve: d3.curveBasis });
+			g.setEdge(prev, node.name, {curve: d3.curveBasis});
 		}
 		for (const next of node.next) {
-			g.setEdge(node.name, next, { curve: d3.curveBasis });
+			g.setEdge(node.name, next, {curve: d3.curveBasis});
 		}
 	}
 
-	dagre.layout(g, { rankdir: "LR" });
+	dagre.layout(g, {rankdir: "LR"});
 
 	return g;
 }
@@ -64,9 +55,9 @@ const RenderGraphViewer: React.FC<{
 	close: () => void;
 }> = ({update, close}) => {
 	const atoms = useContext(AtomsContext);
-	const svgRef = useRef();
 	const data = useRecoilValue(atoms.renderGraph);
-	const [zoomHandler, setZoomHandler] = useState<d3.ZoomBehavior<Element, unknown>>(null);
+	const [isZoomHandlerSet, setIsZoomHandlerSet] = useState<boolean>(null);
+	const svgRef = useRef();
 
 	useEffect(() => {
 		if (!data) {
@@ -87,13 +78,13 @@ const RenderGraphViewer: React.FC<{
 			svgGroup.attr("transform", lastTransform);
 		}
 
-		if (!zoomHandler) {
+		if (!isZoomHandlerSet) {
 			const zoom = d3.zoom().on("zoom", (e) => {
 				svgGroup.attr("transform", e.transform);
 			});
 			svg.call(zoom as any);
 
-			setZoomHandler(zoomHandler);
+			setIsZoomHandlerSet(true);
 		}
 	}, [data]);
 
@@ -107,7 +98,9 @@ const RenderGraphViewer: React.FC<{
 				</div>
 			</div>
 			<div className='body'>
-				<svg ref={svgRef} className='graph-svg'><g /></svg>
+				<svg ref={svgRef} className='graph-svg'>
+					<g/>
+				</svg>
 			</div>
 		</div>
 	);

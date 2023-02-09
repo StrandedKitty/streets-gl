@@ -1,0 +1,67 @@
+.modal-settings-range {
+	width: 100%;
+	display: block;
+	margin: 0;
+}
+
+.modal-settings-range-container {
+	width: 200px;
+}
+
+.modal-settings-range-value {
+	width: 100%;
+	text-align: center;
+	font-size: 12px;
+	line-height: 12px;
+}
+
+.modal-settings-range-footer {
+	width: 100%;
+}
+
+.modal-settings-range-min-max {
+	font-size: 8px;
+	line-height: 12px;
+}
+
+.modal-settings-reset {
+	border: 1px solid white;
+	border-radius: 4px;
+	padding: 2px 4px;
+	font-size: 12px;
+	min-width: 36px;
+	line-height: 18px;
+	display: block;
+	color: white;
+	background: transparent;
+	float: right;
+	margin: 16px 0 0 0;
+}
+
+.modal-settings-select {
+	border: 1px solid white;
+	border-radius: 4px;
+	padding: 2px 4px;
+	font-size: 12px;
+	min-width: 200px;
+	line-height: 18px;
+	display: block;
+	color: white;
+	background: transparent;
+}
+
+kbd {
+	border: 1px solid #b8b8b8;
+	box-shadow: 0 1px 0 1px #d4d4d4;
+	font-size: .85em;
+	line-height: .85em;
+	display: inline-block;
+	font-weight: 600;
+	letter-spacing: .05em;
+	padding: 4px 5px;
+	white-space: nowrap;
+	border-radius: 4px;
+	font-family: monospace;
+	background: #e8e8e8;
+	color: #111;
+}

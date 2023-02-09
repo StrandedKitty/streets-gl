@@ -1,6 +1,7 @@
 import React, {useEffect, useReducer, useState} from "react";
-import {IoCloseOutline} from 'react-icons/io5';
-import SettingsManager, {SettingsConfigType, SettingsSelectRangeScale, SettingsValues} from "./SettingsManager";
+import ModalPanel from "~/app/ui/components/ModalPanel";
+import SettingsManager, {SettingsConfigType, SettingsSelectRangeScale, SettingsValues} from "~/app/ui/SettingsManager";
+import './SettingsModalPanel.scss';
 
 const logToLinear = (min: number, max: number, value: number): number => {
 	const norm = (value - min) / (max - min);
@@ -16,7 +17,7 @@ const toFixedWithoutZeros = (num: number, precision: number): string => {
 	return num.toFixed(precision).replace(/(\.0+|0+)$/, '');
 };
 
-const req = (
+const getSettingsFields = (
 	settingsConfig: SettingsConfigType,
 	settingsValues: SettingsValues,
 	parent?: string,
@@ -40,7 +41,7 @@ const req = (
 
 		const value = settingsValues[key];
 		const options = config.status || [];
-		const children = req(settingsConfig, settingsValues, key, accum, level + 1);
+		const children = getSettingsFields(settingsConfig, settingsValues, key, accum, level + 1);
 
 		return (
 			<React.Fragment key={key}>
@@ -110,7 +111,9 @@ const req = (
 	});
 }
 
-const Settings: React.FC<{onClose: () => void}> = (
+const SettingsModalPanel: React.FC<{
+	onClose: () => void;
+}> = (
 	{
 		onClose
 	}
@@ -126,30 +129,21 @@ const Settings: React.FC<{onClose: () => void}> = (
 		});
 	}, []);
 
-	return (
-		<div className='modal'>
-			<div
-				className='modal-close'
-				onClick={onClose}
-			>
-				<IoCloseOutline size={36}/>
-			</div>
-			<div className='modal-header'>Settings</div>
-			<table className='modal-keys'>
-				<tbody>
-					{
-						values && req(settingsConfig, values)
-					}
-				</tbody>
-			</table>
-			<button
-				className={'modal-settings-reset'}
-				onClick={(): void => {
-					SettingsManager.resetAllSettings();
-				}}
-			>Reset to default values</button>
-		</div>
-	);
+	return <ModalPanel title={'Settings'} onClose={onClose}>
+		<table className='modal-keys'>
+			<tbody>
+				{
+					values && getSettingsFields(settingsConfig, values)
+				}
+			</tbody>
+		</table>
+		<button
+			className={'modal-settings-reset'}
+			onClick={(): void => {
+				SettingsManager.resetAllSettings();
+			}}
+		>Reset to default values</button>
+	</ModalPanel>;
 }
 
-export default Settings;
+export default React.memo(SettingsModalPanel);

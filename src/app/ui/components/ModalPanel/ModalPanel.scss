@@ -1,0 +1,72 @@
+@import "../../styles/common.scss";
+
+.modal {
+	position: absolute;
+	top: 96px;
+	max-height: calc(100% - 192px);
+	right: 16px;
+	padding: 16px;
+	color: #fff;
+	border: 1px solid #eee;
+	width: 600px;
+	font-size: 14px;
+	@extend %panel-bg;
+	@extend %panel-border;
+	@extend %panel-border-radius;
+
+	.modal-header {
+		font-size: 18px;
+		font-weight: bold;
+		margin: 0 0 16px 0;
+		position: relative;
+		width: 90%;
+	}
+
+	.modal-close {
+		position: absolute;
+		top: 8px;
+		right: 8px;
+		cursor: pointer;
+
+		> svg {
+			display: block;
+		}
+	}
+}
+
+.modal-p {
+	margin: 0 0 16px 0;
+	line-height: 24px;
+}
+
+.modal-p a {
+	color: #fff;
+}
+
+.modal-p a > svg {
+	margin: 0 4px -3px 0;
+}
+
+.modal-keys {
+	line-height: 24px;
+	table-layout: fixed;
+	border-spacing: 0;
+	border-collapse: collapse;
+	width: 100%;
+}
+
+.modal-keys td {
+	padding: 8px 4px;
+}
+
+.modal-keys tr {
+	border-bottom: 1px solid #ccc;
+}
+
+.modal-keys tr:last-child {
+	border: 0;
+}
+
+.modal-key-label {
+
+}

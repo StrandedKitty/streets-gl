@@ -1,4 +1,3 @@
-import '../styles/style.css';
 import RenderSystem from "./systems/RenderSystem";
 import TileSystem from "./systems/TileSystem";
 import ControlsSystem from "./systems/ControlsSystem";

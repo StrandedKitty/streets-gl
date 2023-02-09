@@ -1,23 +1,30 @@
-import {UISystemState} from "~/app/systems/UISystem";
 import {AtomEffect} from "recoil";
-import UI from "~/app/ui/UI";
 
-export const bidirectionalSyncEffect = <T extends keyof UISystemState>(key: T): AtomEffect<UISystemState[T]> => ({setSelf, trigger, onSet}) => {
+interface Storage {
+	getStateFieldValue(key: string): any;
+	setStateFieldValue(key: string, value: any): void;
+	addListener(key: string, listener: (value: any) => void): void;
+	removeListener(key: string, listener: (value: any) => void): void;
+}
+
+export const bidirectionalSyncEffect = (key: any, storage: Storage): AtomEffect<any> => (
+	{setSelf, trigger, onSet}
+) => {
 	if (trigger === 'get') {
-		setSelf(UI.getStateFieldValue(key));
+		setSelf(storage.getStateFieldValue(key));
 	}
 
 	onSet((newValue) => {
-		UI.setStateFieldValue(key, newValue);
+		storage.setStateFieldValue(key, newValue);
 	});
 
 	const listener = (newValue: any): void => {
 		setSelf(newValue);
 	}
 
-	UI.addListener(key, listener);
+	storage.addListener(key, listener);
 
 	return () => {
-		UI.removeListener(key, listener);
+		storage.removeListener(key, listener);
 	};
 };

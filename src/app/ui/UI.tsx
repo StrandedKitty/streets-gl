@@ -1,4 +1,4 @@
-import UIRoot from "./UIRoot";
+import Root from "./Root";
 import {UIActions, UISystemState} from "../systems/UISystem";
 import React from "react";
 import ReactDOM from "react-dom";
@@ -12,30 +12,36 @@ type Listeners = {
 export const AtomsContext = React.createContext<AtomsCollection>(null);
 export const ActionsContext = React.createContext<UIActions>(null);
 
-export default new class UI {
-	private state: UISystemState;
-	private listeners: Listeners = {};
+export default class UI {
+	private readonly state: UISystemState;
+	private readonly listeners: Listeners = {};
+
+	public constructor(state: UISystemState) {
+		this.state = state;
+	}
 
 	public update(
 		atoms: AtomsCollection,
 		actions: UIActions
 	): void {
+		const element = document.getElementById('ui');
+
 		ReactDOM.render(
 			<React.StrictMode>
 				<AtomsContext.Provider value={atoms}>
 					<ActionsContext.Provider value={actions}>
 						<RecoilRoot>
-							<UIRoot/>
+							<Root/>
 						</RecoilRoot>
 					</ActionsContext.Provider>
 				</AtomsContext.Provider>
 			</React.StrictMode>,
-			document.getElementById('ui')
+			element
 		);
-	}
 
-	public setInitialGlobalState(state: UISystemState): void {
-		this.state = state;
+		element.addEventListener('click', event => {
+			event.stopPropagation();
+		});
 	}
 
 	public setStateFieldValue<T extends keyof UISystemState>(key: T, value: UISystemState[T]): void {

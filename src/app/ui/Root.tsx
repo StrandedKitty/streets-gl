@@ -1,8 +1,9 @@
 import React, {useEffect} from "react";
 import LoadingScreen from "~/app/ui/components/LoadingScreen";
 import MainScreen from "~/app/ui/components/MainScreen";
+import './styles/root.scss';
 
-const UIRoot: React.FC = () => {
+const Root: React.FC = () => {
 	useEffect(() => {
 		const match = window.matchMedia("(prefers-color-scheme: dark)");
 
@@ -32,4 +33,4 @@ const UIRoot: React.FC = () => {
 	</>;
 }
 
-export default UIRoot;
+export default Root;
