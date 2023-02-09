@@ -1,9 +1,10 @@
+@import "../../styles/common.scss";
+
 .debug-info {
 	position: absolute;
 	bottom: 20px;
 	right: 4px;
 	font-size: 12px;
-	color: white;
 
 	.item {
 		width: 50px;
@@ -17,5 +18,11 @@
 
 	.item-clickable {
 		cursor: pointer;
+	}
+}
+
+@include themify($themes) {
+	.debug-info {
+		color: themed('text-color');
 	}
 }

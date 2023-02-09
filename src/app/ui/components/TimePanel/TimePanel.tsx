@@ -4,7 +4,7 @@ import {AtomsContext} from "~/app/ui/UI";
 import './TimePanel.scss';
 import TimeControls from "~/app/ui/components/TimePanel/TimeControls";
 
-const presets = ['Dynamic/realtime', 'Morning', 'Noon', 'Evening'];
+const presets = ['Dynamic', 'Morning', 'Noon', 'Evening'];
 
 const TimePanel: React.FC = () => {
 	const atoms = useContext(AtomsContext);
