@@ -1,5 +1,4 @@
 import React from "react";
-import {IoCloseOutline} from "react-icons/io5";
 import './ModalPanel.scss';
 
 const ModalPanel: React.FC<{
@@ -15,12 +14,10 @@ const ModalPanel: React.FC<{
 ) => {
 	return (
 		<div className='modal'>
-			<div
+			<button
 				className='modal-close'
 				onClick={onClose}
-			>
-				<IoCloseOutline size={36}/>
-			</div>
+			>×</button>
 			<div className='modal-header'>{title}</div>
 			<div className='modal-body'>{children}</div>
 		</div>

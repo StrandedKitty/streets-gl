@@ -4,8 +4,7 @@ import {bidirectionalSyncEffect} from "~/app/ui/state/utils";
 import UI from "~/app/ui/UI";
 
 export interface AtomsCollection {
-	activeFeatureType: RecoilState<number>;
-	activeFeatureId: RecoilState<number>;
+	activeFeature: RecoilState<{type: number; id: number}>;
 	fps: RecoilState<number>;
 	frameTime: RecoilState<number>;
 	mapTime: RecoilState<number>;
@@ -18,43 +17,39 @@ export interface AtomsCollection {
 
 export const getAtoms = (ui: UI): AtomsCollection => {
 	return {
-		activeFeatureId: atom<number>({
-			key: 'activeFeatureId',
-			effects: [bidirectionalSyncEffect('activeFeatureId', ui)]
+		activeFeature: atom({
+			key: 'activeFeature',
+			effects: [bidirectionalSyncEffect('activeFeature', ui)]
 		}),
-		activeFeatureType: atom<number>({
-			key: 'activeFeatureType',
-			effects: [bidirectionalSyncEffect('activeFeatureType', ui)]
-		}),
-		fps: atom<number>({
+		fps: atom({
 			key: 'fps',
 			effects: [bidirectionalSyncEffect('fpsSmooth', ui)]
 		}),
-		frameTime: atom<number>({
+		frameTime: atom({
 			key: 'frameTime',
 			effects: [bidirectionalSyncEffect('frameTime', ui)]
 		}),
-		mapTime: atom<number>({
+		mapTime: atom({
 			key: 'mapTime',
 			effects: [bidirectionalSyncEffect('mapTime', ui)]
 		}),
-		mapTimeMultiplier: atom<number>({
+		mapTimeMultiplier: atom({
 			key: 'mapTimeMultiplier',
 			effects: [bidirectionalSyncEffect('mapTimeMultiplier', ui)]
 		}),
-		mapTimeMode: atom<number>({
+		mapTimeMode: atom({
 			key: 'mapTimeMode',
 			effects: [bidirectionalSyncEffect('mapTimeMode', ui)]
 		}),
-		resourcesLoadingProgress: atom<number>({
+		resourcesLoadingProgress: atom({
 			key: 'resourcesLoadingProgress',
 			effects: [bidirectionalSyncEffect('resourcesLoadingProgress', ui)]
 		}),
-		renderGraph: atom<RenderGraphSnapshot>({
+		renderGraph: atom({
 			key: 'renderGraph',
 			effects: [bidirectionalSyncEffect('renderGraph', ui)]
 		}),
-		northDirection: atom<number>({
+		northDirection: atom({
 			key: 'northDirection',
 			effects: [bidirectionalSyncEffect('northDirection', ui)]
 		})

@@ -9,6 +9,7 @@ import Vec3 from "~/lib/math/Vec3";
 import Vec2 from "~/lib/math/Vec2";
 import {getAtoms} from "~/app/ui/state/atoms";
 import MapTimeSystem from "~/app/systems/MapTimeSystem";
+import PickingSystem from "~/app/systems/PickingSystem";
 
 export interface RenderGraphSnapshot {
 	graph: {
@@ -23,8 +24,7 @@ export interface RenderGraphSnapshot {
 }
 
 export interface UISystemState {
-	activeFeatureType: number;
-	activeFeatureId: number;
+	activeFeature: {type: number; id: number};
 	fps: number;
 	fpsSmooth: number;
 	frameTime: number;
@@ -47,8 +47,7 @@ const FPSUpdateInterval = 0.4;
 export default class UISystem extends System {
 	private ui: UI;
 	private state: UISystemState = {
-		activeFeatureType: null,
-		activeFeatureId: null,
+		activeFeature: null,
 		fps: 0,
 		fpsSmooth: 0,
 		frameTime: 0,
@@ -70,6 +69,14 @@ export default class UISystem extends System {
 
 			if (system) {
 				system.setState(value);
+			}
+		});
+
+		this.ui.addListener('activeFeature', value => {
+			const system = this.systemManager.getSystem(PickingSystem);
+
+			if (system && !value) {
+				system.clearSelection();
 			}
 		});
 	}
@@ -96,13 +103,11 @@ export default class UISystem extends System {
 	public setActiveFeature(type: number, id: number): void {
 		console.log(`feature ${type} ${id}`);
 
-		this.ui.setStateFieldValue('activeFeatureId', id);
-		this.ui.setStateFieldValue('activeFeatureType', type);
+		this.ui.setStateFieldValue('activeFeature', {type, id});
 	}
 
 	public clearActiveFeature(): void {
-		this.ui.setStateFieldValue('activeFeatureId', null);
-		this.ui.setStateFieldValue('activeFeatureType', null);
+		this.ui.setStateFieldValue('activeFeature', null);
 	}
 
 	public updateFrameTime(frameTime: number): void {

@@ -15,7 +15,7 @@
 	@extend %panel-border-radius;
 
 	.modal-header {
-		font-size: 18px;
+		font-size: 20px;
 		font-weight: bold;
 		margin: 0 0 16px 0;
 		position: relative;
@@ -24,12 +24,24 @@
 
 	.modal-close {
 		position: absolute;
-		top: 8px;
-		right: 8px;
+		top: 16px;
+		right: 16px;
+		border-radius: 100px;
+		background: rgba(255, 255, 255, 0.2);
+		width: 32px;
+		height: 32px;
+		color: #fff;
+		text-align: center;
+		padding: 0;
 		cursor: pointer;
+		font-size: 20px;
+		border: none;
+		display: block;
+		line-height: 0;
+		transition: background-color 300ms;
 
-		> svg {
-			display: block;
+		&:hover {
+			background-color: rgba(255, 255, 255, 0.4);
 		}
 	}
 }

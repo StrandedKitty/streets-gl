@@ -70,6 +70,7 @@
 		"react": "^17.0.1",
 		"react-dom": "^17.0.1",
 		"react-icons": "^4.4.0",
+		"react-loading-skeleton": "^3.1.0",
 		"recoil": "^0.7.6",
 		"simplify-js": "^1.2.4",
 		"straight-skeleton": "^1.0.1",
