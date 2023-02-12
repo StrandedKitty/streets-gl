@@ -52,7 +52,7 @@ export default class UISystem extends System {
 		fpsSmooth: 0,
 		frameTime: 0,
 		mapTime: Date.now(),
-		mapTimeMode: 0,
+		mapTimeMode: +localStorage.getItem('mapTimeMode') ?? 0,
 		mapTimeMultiplier: 1,
 		renderGraph: null,
 		resourcesLoadingProgress: 0,
@@ -64,20 +64,19 @@ export default class UISystem extends System {
 		this.ui = new UI(this.state);
 		this.updateDOM();
 
-		this.ui.addListener('mapTimeMode', value => {
-			const system = this.systemManager.getSystem(MapTimeSystem);
-
-			if (system) {
+		this.systemManager.onSystemReady(MapTimeSystem, system => {
+			this.ui.addStateFieldListener('mapTimeMode', value => {
 				system.setState(value);
-			}
+				localStorage.setItem('mapTimeMode', value.toString());
+			});
 		});
 
-		this.ui.addListener('activeFeature', value => {
-			const system = this.systemManager.getSystem(PickingSystem);
-
-			if (system && !value) {
-				system.clearSelection();
-			}
+		this.systemManager.onSystemReady(PickingSystem, system => {
+			this.ui.addStateFieldListener('activeFeature', value => {
+				if (!value) {
+					system.clearSelection();
+				}
+			});
 		});
 	}
 

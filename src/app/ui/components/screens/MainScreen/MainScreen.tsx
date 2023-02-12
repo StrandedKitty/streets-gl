@@ -11,6 +11,7 @@ import TimePanel from "~/app/ui/components/TimePanel";
 import NavPanel from "~/app/ui/components/NavPanel";
 import InfoModalPanel from "~/app/ui/components/InfoModalPanel";
 import SettingsModalPanel from "~/app/ui/components/SettingsModalPanel";
+import GeolocationButton from "~/app/ui/components/GeolocationButton";
 
 const MainScreen: React.FC = () => {
 	const atoms = useContext(AtomsContext);
@@ -61,6 +62,7 @@ const MainScreen: React.FC = () => {
 			<SelectionPanel/>
 			<LegalAttributionPanel/>
 			<CompassPanel/>
+			<GeolocationButton/>
 			{
 				isRenderGraphVisible && (
 					<RenderGraphViewer

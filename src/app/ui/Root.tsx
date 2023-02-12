@@ -1,6 +1,6 @@
 import React, {useEffect} from "react";
-import LoadingScreen from "~/app/ui/components/LoadingScreen";
-import MainScreen from "~/app/ui/components/MainScreen";
+import LoadingScreen from "~/app/ui/components/screens/LoadingScreen";
+import MainScreen from "~/app/ui/components/screens/MainScreen";
 import './styles/root.scss';
 
 const Root: React.FC = () => {

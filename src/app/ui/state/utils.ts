@@ -3,8 +3,8 @@ import {AtomEffect} from "recoil";
 interface Storage {
 	getStateFieldValue(key: string): any;
 	setStateFieldValue(key: string, value: any): void;
-	addListener(key: string, listener: (value: any) => void): void;
-	removeListener(key: string, listener: (value: any) => void): void;
+	addStateFieldListener(key: string, listener: (value: any) => void): void;
+	removeStateFieldListener(key: string, listener: (value: any) => void): void;
 }
 
 export const bidirectionalSyncEffect = (key: any, storage: Storage): AtomEffect<any> => (
@@ -22,9 +22,9 @@ export const bidirectionalSyncEffect = (key: any, storage: Storage): AtomEffect<
 		setSelf(newValue);
 	}
 
-	storage.addListener(key, listener);
+	storage.addStateFieldListener(key, listener);
 
 	return () => {
-		storage.removeListener(key, listener);
+		storage.removeStateFieldListener(key, listener);
 	};
 };

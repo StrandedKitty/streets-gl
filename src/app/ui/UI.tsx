@@ -62,7 +62,7 @@ export default class UI {
 		return this.state[key];
 	}
 
-	public addListener<T extends keyof UISystemState>(key: T, callback: (value: UISystemState[T]) => void): void {
+	public addStateFieldListener<T extends keyof UISystemState>(key: T, callback: (value: UISystemState[T]) => void): void {
 		if (!this.listeners[key]) {
 			this.listeners[key] = [];
 		}
@@ -71,7 +71,7 @@ export default class UI {
 		callback(this.state[key]);
 	}
 
-	public removeListener<T extends keyof UISystemState>(key: T, callback: (value: UISystemState[T]) => void): void {
+	public removeStateFieldListener<T extends keyof UISystemState>(key: T, callback: (value: UISystemState[T]) => void): void {
 		if (!this.listeners[key]) {
 			return;
 		}
