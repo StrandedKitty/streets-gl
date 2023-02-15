@@ -1,0 +1,51 @@
+@import "../../styles/common.scss";
+
+.searchBar {
+	font-size: 16px;
+	padding: 8px 12px;
+	display: flex;
+	flex-direction: row;
+
+	@extend %panel-bg;
+	@extend %panel-border;
+	@extend %panel-border-radius;
+
+	&__leftIcon {
+		margin: 0 4px 0 0;
+	}
+
+	&__input {
+		display: block;
+		margin: 0;
+		background: transparent;
+		border: none;
+		padding: 4px 8px;
+		font-size: 18px;
+		width: 100%;
+
+		&::placeholder {
+			opacity: 0.9;
+			font-weight: 700;
+		}
+	}
+}
+
+@include themify($themes) {
+	.searchBar__input {
+		color: themed('text-color');
+
+		&::placeholder {
+			color: themed('text-color');
+		}
+	}
+}
+
+.icon {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+
+	> svg {
+		display: block;
+	}
+}

@@ -61,14 +61,21 @@ module.exports = [{
 			{
 				test: /\.s[ac]ss$/i,
 				use: [
-					"style-loader",
-					"css-loader",
-					"sass-loader"
+					'style-loader',
+					{
+						loader: 'css-loader',
+						options: {
+							importLoaders: 1,
+							modules: true
+						},
+					},
+					'sass-loader'
 				],
+				sideEffects: true
 			},
 			{
 				test: /\.worker\.ts$/,
-				use: {loader: 'worker-loader'}
+				use: {loader: 'worker-loader'},
 			},
 			{
 				test: /\.ts|.tsx$/,

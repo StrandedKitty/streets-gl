@@ -27,7 +27,7 @@ export const getAtoms = (ui: UI): AtomsCollection => {
 		}),
 		frameTime: atom({
 			key: 'frameTime',
-			effects: [bidirectionalSyncEffect('frameTime', ui)]
+			effects: [bidirectionalSyncEffect('frameTimeSmooth', ui)]
 		}),
 		mapTime: atom({
 			key: 'mapTime',

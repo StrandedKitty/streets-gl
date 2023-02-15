@@ -1,5 +1,7 @@
 import React from "react";
-import './ModalPanel.scss';
+import styles from './ModalPanel.scss';
+import ParStyles from './ModalPar.scss';
+import TableStyles from './ModalTable.scss';
 
 const ModalPanel: React.FC<{
 	title: string;
@@ -13,15 +15,16 @@ const ModalPanel: React.FC<{
 	}
 ) => {
 	return (
-		<div className='modal'>
+		<div className={styles.modal}>
 			<button
-				className='modal-close'
+				className={styles.modal__close}
 				onClick={onClose}
 			>×</button>
-			<div className='modal-header'>{title}</div>
-			<div className='modal-body'>{children}</div>
+			<div className={styles.modal__header}>{title}</div>
+			<div className={styles.modal__body}>{children}</div>
 		</div>
 	);
 }
 
+export {ParStyles, TableStyles};
 export default React.memo(ModalPanel);

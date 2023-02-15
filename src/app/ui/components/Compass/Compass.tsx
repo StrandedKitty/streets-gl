@@ -1,5 +1,5 @@
 import React from "react";
-import './Compass.scss';
+import styles from './Compass.scss';
 
 const directionToTransformStyle = (direction: number): string => {
 	return `rotate(${direction}deg)`;
@@ -10,7 +10,7 @@ const Compass: React.FC<{
 	onReset?: () => void;
 }> = ({direction, onReset}) => {
 	return <div
-		className={'compass'}
+		className={styles.compass}
 		onClick={(): void => {
 			onReset && onReset();
 		}}
@@ -18,9 +18,9 @@ const Compass: React.FC<{
 			transform: directionToTransformStyle(direction)
 		}}
 	>
-		<div className={'compass-arrows'}>
-			<div className={'arrow-up'}>{}</div>
-			<div className={'arrow-down'}>{}</div>
+		<div>
+			<div className={styles.compass__arrowUp}>{}</div>
+			<div className={styles.compass__arrowDown}>{}</div>
 		</div>
 	</div>;
 }

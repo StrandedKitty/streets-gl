@@ -1,7 +1,7 @@
 import React, {useContext} from "react";
 import Panel from "~/app/ui/components/Panel";
 import Compass from "~/app/ui/components/Compass";
-import './CompassPanel.scss';
+import styles from './CompassPanel.scss';
 import {useRecoilValue} from "recoil";
 import {ActionsContext, AtomsContext} from "~/app/ui/UI";
 
@@ -10,7 +10,7 @@ const CompassPanel: React.FC = () => {
 	const actions = useContext(ActionsContext);
 	const direction = useRecoilValue(atoms.northDirection);
 
-	return <Panel className={'compass-panel'}>
+	return <Panel className={styles.compassPanel}>
 		<Compass direction={direction} onReset={actions.lookAtNorth}/>
 	</Panel>;
 }

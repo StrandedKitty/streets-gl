@@ -1,28 +1,28 @@
 @import "../../styles/common.scss";
 
-.debug-info {
+.debugInfo {
 	position: absolute;
 	bottom: 20px;
 	right: 4px;
 	font-size: 12px;
 
-	.item {
+	&__item {
 		width: 50px;
 		display: inline-block;
 		text-align: right;
-	}
 
-	.item-small {
-		width: 25px;
-	}
+		&--small {
+			width: 25px;
+		}
 
-	.item-clickable {
-		cursor: pointer;
+		&--clickable {
+			cursor: pointer;
+		}
 	}
 }
 
 @include themify($themes) {
-	.debug-info {
+	.debugInfo {
 		color: themed('text-color');
 	}
 }

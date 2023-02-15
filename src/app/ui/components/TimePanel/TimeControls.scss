@@ -1,0 +1,66 @@
+@import "../../styles/common.scss";
+
+.controls {
+	&__modes {
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+		margin: 24px 0 8px 0;
+	}
+
+	&__inputs {
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+
+		&__block {
+			margin: 0 8px 0 0;
+		}
+
+		&__button {
+			cursor: pointer;
+			height: 100%;
+		}
+	}
+}
+
+.timeInput {
+	display: block;
+	color: white;
+	background: transparent;
+	border: none;
+	border-bottom: 1px solid white;
+	border-radius: 0;
+	padding: 4px 4px;
+	font-size: 16px;
+	width: 100px;
+	text-align: center;
+	cursor: not-allowed;
+
+	&::-webkit-calendar-picker-indicator {
+		background: none;
+		display: none;
+	}
+
+	&--small {
+		width: 85px;
+	}
+
+	&--active {
+		cursor: text;
+	}
+}
+
+@include themify($themes) {
+	.timeInput {
+		color: themed('text-color');
+	}
+}
+
+.timeReset {
+	font-size: 12px;
+	margin: 6px 0 0 0;
+	display: inline-block;
+	text-decoration: underline;
+	cursor: pointer;
+}

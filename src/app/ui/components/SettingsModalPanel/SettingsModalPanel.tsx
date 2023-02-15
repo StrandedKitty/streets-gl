@@ -1,7 +1,7 @@
 import React, {useEffect, useReducer, useState} from "react";
-import ModalPanel from "~/app/ui/components/ModalPanel";
+import ModalPanel, {TableStyles} from "~/app/ui/components/ModalPanel";
 import SettingsManager, {SettingsConfigType, SettingsSelectRangeScale, SettingsValues} from "~/app/ui/SettingsManager";
-import './SettingsModalPanel.scss';
+import styles from './SettingsModalPanel.scss';
 
 const logToLinear = (min: number, max: number, value: number): number => {
 	const norm = (value - min) / (max - min);
@@ -51,7 +51,7 @@ const getSettingsFields = (
 						{
 							options.length !== 0 && (
 								<select
-									className={'modal-settings-select'}
+									className={styles.select}
 									value={value.statusValue}
 									onChange={(e): void => {
 										SettingsManager.updateSetting(key, {
@@ -73,10 +73,10 @@ const getSettingsFields = (
 						}
 						{
 							config.selectRange && (
-								<div className={'modal-settings-range-container'}>
-									<div className={'modal-settings-range-value'}>{toFixedWithoutZeros(value.numberValue, 4)}</div>
+								<div className={styles.range}>
+									<div className={styles.range__value}>{toFixedWithoutZeros(value.numberValue, 4)}</div>
 									<input
-										className={'modal-settings-range'}
+										className={styles.range__input}
 										type='range'
 										min={config.selectRange[0]}
 										max={config.selectRange[1]}
@@ -96,9 +96,13 @@ const getSettingsFields = (
 											});
 										}}
 									/>
-									<div className={'modal-settings-range-footer'}>
-										<span className={'modal-settings-range-min-max'} style={{float: 'left'}}>{config.selectRange[0]}</span>
-										<span className={'modal-settings-range-min-max'} style={{float: 'right'}}>{config.selectRange[1]}</span>
+									<div className={styles.range__footer}>
+										<span className={styles.range__footer__minMax + ' ' + styles['range__footer__minMax--left']}>
+											{config.selectRange[0]}
+										</span>
+										<span className={styles.range__footer__minMax + ' ' + styles['range__footer__minMax--right']}>
+											{config.selectRange[1]}
+										</span>
 									</div>
 								</div>
 							)
@@ -130,15 +134,13 @@ const SettingsModalPanel: React.FC<{
 	}, []);
 
 	return <ModalPanel title={'Settings'} onClose={onClose}>
-		<table className='modal-keys'>
+		<table className={TableStyles.modalTable}>
 			<tbody>
-				{
-					values && getSettingsFields(settingsConfig, values)
-				}
+				{values && getSettingsFields(settingsConfig, values)}
 			</tbody>
 		</table>
 		<button
-			className={'modal-settings-reset'}
+			className={styles.resetButton}
 			onClick={(): void => {
 				SettingsManager.resetAllSettings();
 			}}

@@ -1,7 +1,13 @@
 @import "../../styles/common.scss";
 
-$north-color: #de1616;
-$south-color: #f0f0f0;
+$northColor: #de1616;
+$southColor: #f0f0f0;
+
+%arrow {
+	width: 0;
+	height: 0;
+	border-style: solid;
+}
 
 .compass {
 	@extend %panel-bg;
@@ -13,22 +19,16 @@ $south-color: #f0f0f0;
 	justify-content: center;
 	border-radius: 50%;
 	cursor: pointer;
-}
 
-.compass-arrows {
-	.arrow-up {
-		width: 0;
-		height: 0;
-		border-style: solid;
+	&__arrowUp {
+		@extend %arrow;
 		border-width: 0 10px 30px 10px;
-		border-color: transparent transparent $north-color transparent;
+		border-color: transparent transparent $northColor transparent;
 	}
 
-	.arrow-down {
-		width: 0;
-		height: 0;
-		border-style: solid;
+	&__arrowDown {
+		@extend %arrow;
 		border-width: 30px 10px 0 10px;
-		border-color: $south-color transparent transparent transparent;
+		border-color: $southColor transparent transparent transparent;
 	}
 }

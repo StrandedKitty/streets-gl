@@ -1,6 +1,6 @@
 import React, {useContext, useState} from "react";
-import './GeolocationButton.scss';
-import {ActionsContext, AtomsContext} from "~/app/ui/UI";
+import styles from './GeolocationButton.scss';
+import {ActionsContext} from "~/app/ui/UI";
 import {ImSpinner2} from "react-icons/im";
 import {MdOutlineMyLocation} from "react-icons/md";
 
@@ -30,10 +30,10 @@ const GeolocationButton: React.FC = () => {
 		return null;
 	}
 
-	let buttonClassNames = 'geolocation-button';
+	let buttonClassNames = styles.geolocationButton;
 
 	if (isLoading) {
-		buttonClassNames += ' geolocation-button-disabled';
+		buttonClassNames += ' ' + styles['geolocationButton--disabled'];
 	}
 
 	return <div className={buttonClassNames} onClick={(): void => {
@@ -47,12 +47,12 @@ const GeolocationButton: React.FC = () => {
 				actions.goToLatLon(pos[0], pos[1]);
 			}
 
-			setIsLoading(false);
+			//setIsLoading(false);
 		});
 	}}>
-		<div className={'icon'}>
+		<div className={styles.geolocationButton__icon}>
 			{
-				isLoading ? <ImSpinner2 className={'spinner'}/> : <MdOutlineMyLocation/>
+				isLoading ? <ImSpinner2 className={styles.spinner}/> : <MdOutlineMyLocation/>
 			}
 		</div>
 	</div>

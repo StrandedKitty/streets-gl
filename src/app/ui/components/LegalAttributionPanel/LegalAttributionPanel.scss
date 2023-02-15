@@ -1,6 +1,6 @@
 @import "../../styles/common.scss";
 
-.attribution-panel {
+.attributionPanel {
 	bottom: 4px;
 	right: 4px;
 	font-size: 12px;
@@ -9,7 +9,7 @@
 }
 
 @include themify($themes) {
-	.attribution-panel, .attribution-panel > a {
+	.attributionPanel {
 		color: themed('text-color');
 	}
 }

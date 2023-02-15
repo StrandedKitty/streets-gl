@@ -1,0 +1,23 @@
+.modalInfo {
+	&__subheader {
+		font-size: 18px;
+		font-weight: bold;
+		margin: 0 0 16px 0;
+	}
+}
+
+.keyboardKey {
+	border: 1px solid #b8b8b8;
+	box-shadow: 0 1px 0 1px #d4d4d4;
+	font-size: .85em;
+	line-height: .85em;
+	display: inline-block;
+	font-weight: 600;
+	letter-spacing: .05em;
+	padding: 4px 5px;
+	white-space: nowrap;
+	border-radius: 4px;
+	font-family: monospace;
+	background: #e8e8e8;
+	color: #111;
+}

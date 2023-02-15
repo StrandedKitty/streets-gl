@@ -1,6 +1,6 @@
 import React, {useCallback, useContext, useEffect, useState} from "react";
 import {useRecoilState} from "recoil";
-import "./SelectionPanel.scss";
+import styles from "./SelectionPanel.scss";
 import Panel from "~/app/ui/components/Panel";
 import {AtomsContext} from "~/app/ui/UI";
 import Skeleton, {SkeletonTheme} from "react-loading-skeleton";
@@ -30,7 +30,7 @@ const getType = (tags: Record<string, string>): string => {
 	return buildingTypes[tags.building] ?? buildingTypes.yes;
 }
 
-const Tags = (tags: Record<string, string>): JSX.Element => {
+const getTags = (tags: Record<string, string>): JSX.Element => {
 	const rows = Object.entries(tags).map(([key, value], i) => {
 		return (
 			<tr key={i}>
@@ -41,7 +41,7 @@ const Tags = (tags: Record<string, string>): JSX.Element => {
 	});
 
 	return (
-		<table className="tags-table">
+		<table className={styles.tags__table}>
 			<tbody>
 				{rows}
 			</tbody>
@@ -105,66 +105,85 @@ const SelectionPanel: React.FC = () => {
 		});
 	}, [activeFeature]);
 
-	let innerClassNames = 'selection-info';
+	let innerClassNames = styles.selectionInfo;
 	if (activeFeature === null) {
-		innerClassNames += ' selection-info-hidden';
+		innerClassNames += ' ' + styles['selectionInfo--hidden'];
 	}
 
-	const tags = description ? Tags(description.tags) : null;
+	const tags = description ? getTags(description.tags) : null;
 
 	return (
-		<Panel className='selection-info-panel'>
+		<Panel className={styles.selectionInfoPanel}>
 			<div className={innerClassNames} onTransitionEnd={closeCallback}>
 				<button
-					className='selection-info-close'
+					className={styles.selectionInfo__close}
 					onClick={(): void => {
 						setActiveFeature(null);
 					}}
-				>×</button>
+				>×
+				</button>
 				<SkeletonTheme
 					baseColor="#fff"
 					highlightColor="#ddd"
 					duration={2}
 				>
-					<div className='header'>
+					<div className={styles.selectionInfo__header}>
 						{
 							description ?
 								description.name :
-								<Skeleton className={'selection-skeleton'} width={'50%'}/>
+								<Skeleton className={styles.skeleton} width={'50%'}/>
 						}
 					</div>
-					<div className='osm-info'>
+					<div className={styles.selectionInfo__description}>
 						{
 							description ?
 								description.typeAndID :
-								<Skeleton className={'selection-skeleton'} width={'55%'}/>
+								<Skeleton className={styles.skeleton} width={'55%'}/>
 						}
 					</div>
-					<div className='links'>
+					<div className={styles.links}>
 						{
 							description ? (
-								<a href={description.osmURL} target='_blank'>
-									<div className='link link-type-a'>Open on openstreetmap.org</div>
+								<a className={styles.links__anchor} href={description.osmURL} target='_blank'>
+									<button
+										className={styles.links__button + ' ' + styles['links__button--primary']}
+									>
+										Open on openstreetmap.org
+									</button>
 								</a>
 							) : (
-								<Skeleton className={'selection-skeleton'} width={'210px'} height={'29px'}
-								          borderRadius={'100px'}/>
+								<Skeleton
+									className={styles.skeleton + ' ' + styles['skeleton--button']}
+									width={'210px'}
+									height={'29px'}
+									borderRadius={'100px'}
+								/>
 							)
 						}
 						{
 							description ? (
-								<a href={description.idURL} target='_blank'>
-									<div className='link link-type-b'>Edit in iD</div>
+								<a className={styles.links__anchor} href={description.idURL} target='_blank'>
+									<button
+										className={styles.links__button + ' ' + styles['links__button--secondary']}
+									>
+										Edit in iD
+									</button>
 								</a>
 							) : (
-								<Skeleton className={'selection-skeleton'} width={'80px'} height={'29px'}
-								          borderRadius={'100px'}/>
+								<Skeleton
+									className={styles.skeleton + ' ' + styles['skeleton--button']}
+									width={'80px'}
+									height={'29px'}
+									borderRadius={'100px'}
+								/>
 							)
 						}
 					</div>
 					{
-						tags ? <div className='tags'>{tags}</div> : (
-							<Skeleton className={'selection-skeleton'} height={'135px'} borderRadius={'12px'}/>
+						tags ? (
+							<div className={styles.tags}>{tags}</div>
+						) : (
+							<Skeleton className={styles.skeleton} height={'135px'} borderRadius={'12px'}/>
 						)
 					}
 				</SkeletonTheme>

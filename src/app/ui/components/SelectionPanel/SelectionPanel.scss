@@ -1,6 +1,6 @@
 @import "../../styles/common.scss";
 
-.selection-info-panel {
+.selectionInfoPanel {
 	pointer-events: none;
 	bottom: 0;
 	width: 100%;
@@ -9,7 +9,7 @@
 	justify-content: center;
 }
 
-.selection-info {
+.selectionInfo {
 	pointer-events: auto;
 	width: 500px;
 	max-width: 90%;
@@ -17,6 +17,8 @@
 	padding: 24px;
 	color: white;
 	position: relative;
+	transition: transform 400ms;
+	min-height: 321.5px;
 
 	@extend %panel-bg;
 	@extend %panel-border;
@@ -24,10 +26,13 @@
 
 	border-bottom-left-radius: 0;
 	border-bottom-right-radius: 0;
-
 	border-bottom: none !important;
 
-	.header {
+	&--hidden {
+		transform: translateY(150%);
+	}
+
+	&__header {
 		font-size: 24px;
 		font-weight: 600;
 		margin: 0 0 8px 0;
@@ -35,112 +40,119 @@
 		word-break: break-word;
 	}
 
-	.tags {
+	&__description {
+		font-size: 14px;
+		margin: 8px 0;
+	}
+
+	&__close {
+		position: absolute;
+		top: 16px;
+		right: 16px;
+		border-radius: 100px;
+		background-color: rgba(255, 255, 255, 0.2);
+		width: 32px;
+		height: 32px;
+		color: #fff;
+		text-align: center;
+		padding: 0;
+		cursor: pointer;
+		font-size: 20px;
+		border: none;
+		display: block;
+		line-height: 0;
+		transition: background-color 300ms;
+
+		&:hover {
+			background-color: rgba(255, 255, 255, 0.4);
+		}
+	}
+
+	&__tags {
 		max-height: 140px;
 		overflow-y: auto;
 		border-radius: 12px;
 	}
+}
 
-	.tags-table {
+.links {
+	display: flex;
+	flex-direction: row;
+	margin: 24px 0;
+
+	&__anchor {
+		display: block;
+		margin: 0 8px 0 0;
+		text-decoration: none;
+	}
+
+	&__button {
+		border-radius: 20px;
+		border: 2px solid #111;
+		color: #111;
+		font-size: 14px;
+		padding: 4px 8px;
+		background-color: rgb(255 255 255 / 85%);
+		font-weight: 600;
+		transition: background-color ease-in 200ms;
+
+		&--primary {
+			border: 2px solid #3152bd;
+			color: #3152bd;
+		}
+
+		&--secondary {
+			border: 2px solid #c73fa7;
+			color: #c73fa7;
+		}
+
+		&:hover {
+			background-color: rgb(255 255 255 / 100%);
+		}
+	}
+}
+
+.tags {
+	max-height: 140px;
+	overflow-y: auto;
+	border-radius: 12px;
+
+	&__table {
 		background: rgb(255 255 255 / 75%);
 		color: #111;
 		font-size: 12px;
 		table-layout: fixed;
 		border-collapse: collapse;
 		width: 100%;
-	}
 
-	table td {
-		border: 1px solid black;
-		padding: 4px 8px;
-		word-break: break-word;
-	}
-	table tr:first-child td {
-		border-top: 0;
-	}
-	table tr td:first-child {
-		border-left: 0;
-	}
-	table tr:last-child td {
-		border-bottom: 0;
-	}
-	table tr td:last-child {
-		border-right: 0;
-	}
-
-	.links {
-		display: flex;
-		flex-direction: row;
-		margin: 24px 0;
-
-		> * {
-			display: block;
-			margin: 0 8px 0 0;
-			text-decoration: none;
-		}
-
-		.link {
-			border-radius: 20px;
-			border: 2px solid #111;
-			color: #111;
-			font-size: 14px;
+		td {
+			border: 1px solid black;
 			padding: 4px 8px;
-			background-color: rgb(255 255 255 / 85%);
-			font-weight: 600;
-			transition: background-color ease-in 200ms;
+			word-break: break-word;
 		}
 
-		.link-type-a {
-			border: 2px solid #3152bd;
-			color: #3152bd;
+		tr:first-child td {
+			border-top: 0;
 		}
 
-		.link-type-b {
-			border: 2px solid #c73fa7;
-			color: #c73fa7;
+		tr td:first-child {
+			border-left: 0;
 		}
 
-		.link:hover {
-			background-color: rgb(255 255 255 / 100%);
+		tr:last-child td {
+			border-bottom: 0;
+		}
+
+		tr td:last-child {
+			border-right: 0;
 		}
 	}
-
-	.osm-info {
-		font-size: 14px;
-		margin: 8px 0;
-	}
-
-	transition: transform 400ms;
-	min-height: 321.5px;
 }
 
-.selection-info-hidden {
-	transform: translateY(150%);
-}
-
-.selection-skeleton {
+.skeleton {
 	opacity: 0.5;
-}
 
-.selection-info-close {
-	position: absolute;
-	top: 16px;
-	right: 16px;
-	border-radius: 100px;
-	background-color: rgba(255, 255, 255, 0.2);
-	width: 32px;
-	height: 32px;
-	color: #fff;
-	text-align: center;
-	padding: 0;
-	cursor: pointer;
-	font-size: 20px;
-	border: none;
-	display: block;
-	line-height: 0;
-	transition: background-color 300ms;
-
-	&:hover {
-		background-color: rgba(255, 255, 255, 0.4);
+	&--button {
+		margin: 0 8px 0 0;
 	}
 }

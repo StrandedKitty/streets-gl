@@ -1,5 +1,6 @@
 import {IoCloseOutline, IoSearch} from "react-icons/io5";
 import React, {useRef} from "react";
+import styles from './SearchBar.scss';
 
 const SearchBar: React.FC<{
 	search: (query: string) => void;
@@ -7,11 +8,11 @@ const SearchBar: React.FC<{
 }> = ({search, reset}) => {
 	const inputRef = useRef<HTMLInputElement>(null);
 
-	return <div className='search-bar'>
-		<div className='svg-icon-wrapper'><IoSearch size={20}/></div>
+	return <div className={styles.searchBar}>
+		<div className={styles.searchBar__leftIcon + ' ' + styles.icon}><IoSearch size={20}/></div>
 		<input
 			type={'text'}
-			className={'search-input'}
+			className={styles.searchBar__input}
 			placeholder={'Search any place'}
 			ref={inputRef}
 			onKeyPress={(e): void => {
@@ -27,7 +28,7 @@ const SearchBar: React.FC<{
 		/>
 		{inputRef.current && inputRef.current.value.length > 0 && (
 			<div
-				className='svg-icon-wrapper'
+				className={styles.icon}
 				style={{cursor: 'pointer'}}
 				onClick={(): void => {
 					inputRef.current.value = '';

@@ -4,7 +4,7 @@ import dagreD3 from "dagre-d3";
 import * as d3 from "d3";
 import {useRecoilValue} from "recoil";
 import {RenderGraphSnapshot} from "~/app/systems/UISystem";
-import './RenderGraphViewer.scss';
+import styles from './RenderGraphViewer.scss';
 import {AtomsContext} from "~/app/ui/UI";
 import stringifyRecord from "~/app/ui/components/RenderGraphViewer/stringifyRecord";
 
@@ -89,16 +89,16 @@ const RenderGraphViewer: React.FC<{
 	}, [data]);
 
 	return (
-		<div className='render-graph-viewer'>
-			<div className='header'>
-				<div className='title'>Render graph viewer</div>
-				<div className='nav'>
-					<button onClick={update}>Update from last frame</button>
-					<button onClick={close}>Exit</button>
+		<div className={styles.viewer}>
+			<div className={styles.viewer__header}>
+				<div className={styles.viewer__header__title}>Render graph viewer</div>
+				<div className={styles.nav}>
+					<button className={styles.nav__button} onClick={update}>Update from last frame</button>
+					<button className={styles.nav__button} onClick={close}>Exit</button>
 				</div>
 			</div>
-			<div className='body'>
-				<svg ref={svgRef} className='graph-svg'>
+			<div className={styles.viewer__body}>
+				<svg ref={svgRef} className={styles.graph}>
 					<g/>
 				</svg>
 			</div>

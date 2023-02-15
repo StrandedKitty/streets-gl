@@ -1,3 +1,5 @@
-.main-screen-hidden {
-	display: none;
+.mainScreen {
+	&--hidden {
+		display: none;
+	}
 }

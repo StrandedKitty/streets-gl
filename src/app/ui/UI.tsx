@@ -1,7 +1,7 @@
 import Root from "./Root";
 import {UIActions, UISystemState} from "../systems/UISystem";
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from 'react-dom/client';
 import {RecoilRoot} from "recoil";
 import {AtomsCollection} from "~/app/ui/state/atoms";
 
@@ -25,8 +25,9 @@ export default class UI {
 		actions: UIActions
 	): void {
 		const element = document.getElementById('ui');
+		const root = createRoot(element);
 
-		ReactDOM.render(
+		root.render(
 			<React.StrictMode>
 				<AtomsContext.Provider value={atoms}>
 					<ActionsContext.Provider value={actions}>
@@ -35,8 +36,7 @@ export default class UI {
 						</RecoilRoot>
 					</ActionsContext.Provider>
 				</AtomsContext.Provider>
-			</React.StrictMode>,
-			element
+			</React.StrictMode>
 		);
 
 		element.addEventListener('click', event => {

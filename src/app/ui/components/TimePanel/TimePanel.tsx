@@ -1,7 +1,8 @@
 import React, {useContext} from "react";
 import {useRecoilState} from "recoil";
 import {AtomsContext} from "~/app/ui/UI";
-import './TimePanel.scss';
+import styles from './TimePanel.scss';
+import timeButtonStyles from './TimeButton.scss';
 import TimeControls from "~/app/ui/components/TimePanel/TimeControls";
 
 const presets = ['Dynamic', 'Morning', 'Noon', 'Evening'];
@@ -11,15 +12,15 @@ const TimePanel: React.FC = () => {
 	const [timeMode, setTimeMode] = useRecoilState(atoms.mapTimeMode);
 
 	return (
-		<div className='time-panel'>
-			<div className='time-panel-header'>Time of day</div>
-			<div className='time-panel-presets'>
+		<div className={styles.timePanel}>
+			<div className={styles.timePanel__header}>Time of day</div>
+			<div className={styles.timePanel__presets}>
 				{presets.map((presetName, i) => {
 					const isActive = timeMode === i;
-					let classList = 'time-button time-button-text';
+					let classList = timeButtonStyles.timeButton + ' ' + timeButtonStyles['timeButton--text'];
 
 					if (isActive) {
-						classList += ' time-button-active';
+						classList += ' ' + timeButtonStyles['timeButton--active'];
 					}
 
 					return (

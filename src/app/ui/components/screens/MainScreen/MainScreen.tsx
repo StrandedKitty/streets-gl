@@ -12,6 +12,7 @@ import NavPanel from "~/app/ui/components/NavPanel";
 import InfoModalPanel from "~/app/ui/components/InfoModalPanel";
 import SettingsModalPanel from "~/app/ui/components/SettingsModalPanel";
 import GeolocationButton from "~/app/ui/components/GeolocationButton";
+import styles from './MainScreen.scss';
 
 const MainScreen: React.FC = () => {
 	const atoms = useContext(AtomsContext);
@@ -44,8 +45,14 @@ const MainScreen: React.FC = () => {
 		};
 	}, [isUIVisible]);
 
+	let containerClassNames = styles.mainScreen;
+
+	if (!isUIVisible || loadingProgress < 1.) {
+		containerClassNames += ' ' + styles['mainScreen--hidden'];
+	}
+
 	return (
-		<div className={(isUIVisible || loadingProgress < 1.) ? 'main-screen-hidden' : ''}>
+		<div className={containerClassNames}>
 			<SearchPanel/>
 			<NavPanel
 				setActiveModalWindow={setActiveModalWindow}

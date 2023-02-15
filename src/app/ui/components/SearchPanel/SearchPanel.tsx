@@ -2,7 +2,7 @@ import React, {useCallback, useState} from "react";
 import {debounce} from "~/app/ui/utils";
 import SearchBar from "~/app/ui/components/SearchPanel/SearchBar";
 import SearchResults from "~/app/ui/components/SearchPanel/SearchResults";
-import './SearchPanel.scss';
+import styles from './SearchPanel.scss';
 import parseLatLon from "~/app/ui/components/SearchPanel/parseLatLon";
 
 interface SearchResult {
@@ -69,11 +69,9 @@ const SearchPanel: React.FC = () => {
 	}, []);
 
 	return (
-		<div className='search'>
+		<div className={styles.search}>
 			<SearchBar search={searchCallback} reset={resetCallback}/>
-			{currentResults.length > 0 && (
-				<SearchResults list={currentResults}/>
-			)}
+			{currentResults.length > 0 && <SearchResults list={currentResults}/>}
 		</div>
 	);
 }

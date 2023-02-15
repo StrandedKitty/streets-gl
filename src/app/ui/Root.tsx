@@ -9,14 +9,14 @@ const Root: React.FC = () => {
 
 		const setColorTheme = (theme: 'light' | 'dark'): void => {
 			if (theme === 'dark') {
-				document.body.className = 'dark-theme';
+				document.body.className = 'darkTheme';
 			} else {
-				document.body.className = 'light-theme';
+				document.body.className = 'lightTheme';
 			}
 		}
 
 		const themeListener = (): void => {
-			setColorTheme(match.matches ? "dark" : "light");
+			setColorTheme(match.matches ? 'dark' : 'light');
 		};
 		themeListener();
 

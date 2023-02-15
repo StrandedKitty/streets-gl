@@ -1,0 +1,39 @@
+@import "../../styles/common.scss";
+
+.searchList {
+	font-size: 16px;
+	margin: 8px 0 0 0;
+
+	@extend %panel-bg;
+	@extend %panel-border;
+	@extend %panel-border-radius;
+
+	&__item {
+		padding: 12px;
+		cursor: pointer;
+
+		&:last-child {
+			border-bottom: none;
+		}
+
+		&__name {
+			font-size: 16px;
+			margin: 0 0 4px 0;
+			font-weight: 600;
+
+			&--small {
+				font-size: 14px;
+			}
+		}
+
+		&__type {
+			font-size: 12px;
+		}
+	}
+}
+
+@include themify($themes) {
+	.search-list__item {
+		border-bottom: 1px solid themed('panel-border-color');
+	}
+}

@@ -1,6 +1,6 @@
 import React from "react";
 import {IoInformationOutline, IoSettingsOutline} from 'react-icons/io5';
-import './NavPanel.scss';
+import styles from './NavPanel.scss';
 
 const buttons = [
 	{
@@ -22,13 +22,13 @@ const NavPanel: React.FC<{
 	}
 ) => {
 	return (
-		<div className='nav'>
+		<div className={styles.nav}>
 			{
 				buttons.map(({name, icon}) => {
-					let className = 'nav-icon';
+					let className = styles.nav__icon;
 
 					if (activeModalWindow === name) {
-						className += ' nav-icon-active';
+						className += ' ' + styles['nav__icon--active'];
 					}
 
 					return <button

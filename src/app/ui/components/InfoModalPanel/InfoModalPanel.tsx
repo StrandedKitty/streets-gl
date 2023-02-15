@@ -1,9 +1,13 @@
 import React from "react";
-import './InfoModalPanel.scss';
-import ModalPanel from "~/app/ui/components/ModalPanel";
+import styles from './InfoModalPanel.scss';
+import ModalPanel, {ParStyles, TableStyles} from "~/app/ui/components/ModalPanel";
 import {IoLogoGithub} from "react-icons/io5";
 
 const RepositoryURL = 'https://github.com/StrandedKitty/streets-gl';
+
+const Key: React.FC<{text: string}> = ({text}) => {
+	return <kbd className={styles.keyboardKey}>{text}</kbd>;
+};
 
 const InfoModalPanel: React.FC<{
 	onClose: () => void;
@@ -13,32 +17,39 @@ const InfoModalPanel: React.FC<{
 	}
 ) => {
 	return <ModalPanel title={'Information'} onClose={onClose}>
-		<div className='modal-p'>WIP</div>
-		<div className='modal-p'>
-			<a href={RepositoryURL} target={'_blank'}><IoLogoGithub size={16} />GitHub repository</a>
+		<div className={ParStyles.modalPar}>WIP</div>
+		<div className={ParStyles.modalPar}>
+			<a
+				href={RepositoryURL}
+				target={'_blank'}
+				className={ParStyles.modalPar__anchor}
+			>
+				<IoLogoGithub size={16} className={ParStyles.modalPar__anchor__icon}/>
+				GitHub repository
+			</a>
 		</div>
-		<div className='modal-header'>Keyboard and mouse controls</div>
-		<table className='modal-keys'>
+		<div className={styles.modalInfo__subheader}>Keyboard and mouse controls</div>
+		<table className={TableStyles.modalTable}>
 			<tbody>
 				<tr>
-					<td><kbd>Ctrl</kbd> + <kbd>U</kbd></td>
-					<td><span className='modal-key-label'>Toggle UI visibility</span></td>
+					<td><Key text='Ctrl'/> + <Key text='U'/></td>
+					<td>Toggle UI visibility</td>
 				</tr>
 				<tr>
-					<td><kbd>Tab</kbd></td>
-					<td><span className='modal-key-label'>Toggle between ground camera mode (default) and free camera mode</span></td>
+					<td><Key text='Tab'/></td>
+					<td>Toggle between ground camera mode (default) and free camera mode</td>
 				</tr>
 				<tr>
-					<td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> (+ <kbd>Shift</kbd> ) or left mouse button</td>
-					<td><span className='modal-key-label'>Camera movement</span></td>
+					<td><Key text='W'/> <Key text='A'/> <Key text='S'/> <Key text='D'/> (+ <Key text='Shift'/> ) or left mouse button</td>
+					<td>Camera movement</td>
 				</tr>
 				<tr>
-					<td><kbd>Q</kbd> <kbd>E</kbd> <kbd>R</kbd> <kbd>F</kbd> or right mouse button</td>
-					<td><span className='modal-key-label'>Camera pitch and yaw</span></td>
+					<td><Key text='Q'/> <Key text='E'/> <Key text='R'/> <Key text='F'/> or right mouse button</td>
+					<td>Camera pitch and yaw</td>
 				</tr>
 				<tr>
 					<td>Middle mouse button</td>
-					<td><span className='modal-key-label'>2x camera zoom</span></td>
+					<td>2x camera zoom</td>
 				</tr>
 			</tbody>
 		</table>

@@ -17,7 +17,7 @@ $themes: (
 
 @mixin themify($themes) {
 	@each $name, $values in $themes {
-		.#{$name}-theme {
+		[class~=#{$name}Theme] {
 			$theme-map: $values !global;
 			@content;
 		}

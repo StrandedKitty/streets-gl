@@ -1,6 +1,6 @@
 import React, {useContext} from "react";
 import {useRecoilValue} from "recoil";
-import './DebugInfo.scss';
+import styles from './DebugInfo.scss';
 import {AtomsContext} from "~/app/ui/UI";
 
 const DebugInfo: React.FC<{showRenderGraph: () => void}> = ({showRenderGraph}) => {
@@ -9,14 +9,14 @@ const DebugInfo: React.FC<{showRenderGraph: () => void}> = ({showRenderGraph}) =
 	const frameTime = useRecoilValue(atoms.frameTime);
 
 	return (
-		<div className='debug-info'>
-			<div className='item'>{Math.round(fps)} FPS</div>
-			<div className='item'>{frameTime.toFixed(1)} ms</div>
+		<div className={styles.debugInfo}>
+			<div className={styles.debugInfo__item}>{Math.round(fps)} FPS</div>
+			<div className={styles.debugInfo__item}>{frameTime.toFixed(1)} ms</div>
 			<div
-				className='item item-small item-clickable'
-				onClick={(): void => {
-					showRenderGraph();
-				}}
+				className={
+					styles.debugInfo__item + ' ' + styles['debugInfo__item--small'] + ' ' + styles['debugInfo__item--clickable']
+				}
+				onClick={showRenderGraph}
 			>
 				RG
 			</div>

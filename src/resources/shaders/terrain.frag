@@ -124,7 +124,7 @@ void main() {
         );
 
         normalValue.z *= 2.;
-        outColor = vec4(0.1, 0.2, 0.3, 0.5);
+        outColor = vec4(0.15, 0.2, 0.25, 0.5);
 
         vec3 vNormal = vec3(modelViewMatrix * vec4(normalize(normalValue.xzy), 0));
         outNormal = packNormal(vNormal);

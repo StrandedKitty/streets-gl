@@ -1,0 +1,44 @@
+@import "../../styles/common.scss";
+
+.timeButton {
+	display: block;
+	margin: 0 4px 0 0;
+	background: transparent;
+
+	&--text {
+		border-radius: 20px;
+		padding: 2px 6px;
+		font-size: 12px;
+		min-width: 36px;
+		line-height: 18px;
+
+		&:last-child {
+			margin: 0;
+		}
+	}
+
+	&--active {
+		background: white;
+		color: #111;
+	}
+
+	&--icon {
+		border: none;
+		padding: 0;
+	}
+}
+
+@include themify($themes) {
+	.timeButton {
+		color: themed('text-color');
+	}
+
+	.timeButton--text {
+		border: 1px solid themed('text-color');
+	}
+
+	.timeButton--active {
+		background: themed('text-color');
+		color: themed('text-color-opposite');
+	}
+}

@@ -28,6 +28,7 @@ export interface UISystemState {
 	fps: number;
 	fpsSmooth: number;
 	frameTime: number;
+	frameTimeSmooth: number;
 	mapTime: number;
 	mapTimeMultiplier: number;
 	mapTimeMode: number;
@@ -40,6 +41,7 @@ export interface UIActions {
 	updateRenderGraph: () => void;
 	goToLatLon: (lat: number, lon: number) => void;
 	lookAtNorth: () => void;
+	setTime: (time: number) => void;
 }
 
 const FPSUpdateInterval = 0.4;
@@ -51,6 +53,7 @@ export default class UISystem extends System {
 		fps: 0,
 		fpsSmooth: 0,
 		frameTime: 0,
+		frameTimeSmooth: 0,
 		mapTime: Date.now(),
 		mapTimeMode: +localStorage.getItem('mapTimeMode') ?? 0,
 		mapTimeMultiplier: 1,
@@ -89,6 +92,9 @@ export default class UISystem extends System {
 			},
 			lookAtNorth: () => {
 				this.systemManager.getSystem(ControlsSystem).lookAtNorth();
+			},
+			setTime: (time: number) => {
+				this.ui.setStateFieldValue('mapTime', time);
 			}
 		}
 
@@ -176,6 +182,7 @@ export default class UISystem extends System {
 		if (this.fpsUpdateTimer >= FPSUpdateInterval) {
 			this.fpsUpdateTimer = 0;
 			this.ui.setStateFieldValue('fpsSmooth', this.state.fps);
+			this.ui.setStateFieldValue('frameTimeSmooth', this.state.frameTime);
 		}
 
 		this.fpsUpdateTimer += deltaTime;
