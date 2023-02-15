@@ -150,6 +150,10 @@ export default new class SettingsManager {
 		return this.values[key];
 	}
 
+	public getAllSettings(): SettingsValues {
+		return this.values;
+	}
+
 	public updateSetting(key: string, value: SettingsValuesEntry): void {
 		this.values[key] = value;
 
@@ -177,6 +181,5 @@ export default new class SettingsManager {
 
 	public onAnySettingChange(callback: (value: SettingsValues) => void): void {
 		this.globalListeners.push(callback);
-		callback(this.values);
 	}
 }

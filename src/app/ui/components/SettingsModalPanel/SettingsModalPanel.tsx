@@ -122,13 +122,12 @@ const SettingsModalPanel: React.FC<{
 		onClose
 	}
 ) => {
-	const [values, setValues] = useState<SettingsValues>(null);
 	const [, forceUpdate] = useReducer(x => x + 1, 0);
 	const settingsConfig = SettingsManager.config;
+	const values = SettingsManager.getAllSettings();
 
 	useEffect(() => {
 		SettingsManager.onAnySettingChange(v => {
-			setValues(v);
 			forceUpdate();
 		});
 	}, []);
