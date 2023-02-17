@@ -9,12 +9,9 @@ import {
 } from "./WorkerMessageTypes";
 import Vec2 from "~/lib/math/Vec2";
 import Config from "../../Config";
-import CombinedUniversalFeatureProvider
-	from "../universal-features/providers/CombinedUniversalFeatureProvider";
-import GroundGeometryBuilder, {
-	GroundGeometryData
-} from "../universal-features/providers/GroundGeometryBuilder";
+import CombinedUniversalFeatureProvider from "../universal-features/providers/CombinedUniversalFeatureProvider";
 import Tile3DBuilder from "../tile3d/Tile3DBuilder";
+import Tile3DFromVectorProvider from "~/lib/tile-processing/tile3d/providers/Tile3DFromVectorProvider";
 
 const ctx: Worker = self as any;
 const heightViewer = new HeightViewer();
@@ -24,9 +21,6 @@ heightViewer.requestHeightFunction = (x: number, y: number): void => {
 		tile: [x, y]
 	});
 };
-
-const provider = new CombinedUniversalFeatureProvider();
-const tile3d = new Tile3DBuilder();
 
 ctx.addEventListener('message', async event => {
 	const data = event.data as WorkerMessageOutgoing;
@@ -83,14 +77,14 @@ function load(x: number, y: number): void {
 	const bbox = position[0].lat + ',' + position[0].lon + ',' + position[1].lat + ',' + position[1].lon;
 
 	const urls = [
-		//'http://overpass.openstreetmap.ru/cgi/interpreter?data=',
-		'https://overpass.kumi.systems/api/interpreter?data='
-		//'https://overpass.nchc.org.tw/api/interpreter?data=',
-		//'https://lz4.overpass-api.de/api/interpreter?data=',
-		//'https://z.overpass-api.de/api/interpreter?data='
+		//'http://overpass.openstreetmap.ru/cgi/interpreter',
+		'https://overpass.kumi.systems/api/interpreter'
+		//'https://overpass.nchc.org.tw/api/interpreter',
+		//'https://lz4.overpass-api.de/api/interpreter',
+		//'https://z.overpass-api.de/api/interpreter'
 	];
-	let url = urls[Math.floor(urls.length * Math.random())];
-	url += `
+	const url = urls[Math.floor(urls.length * Math.random())];
+	const body = `
 		[out:json][timeout:${Math.floor(Config.OverpassRequestTimeout / 1000)}];
 		(
 			node(${bbox});
@@ -99,39 +93,32 @@ function load(x: number, y: number): void {
 		 	rel["type"="multipolygon"]["building"](${bbox});
 		 	rel["type"="multipolygon"]["building:part"](${bbox});
 		 	rel["type"="multipolygon"]["highway"](${bbox});
-		)->.data;
+		);
 		
-		.data > ->.dataMembers;
-		
-		(
-			.data;
-			.dataMembers;
-		)->.all;
-		
-		.all out body qt;
+		out body qt;
+		>>;
+		out body qt;
 	`;
 
-	//url = `http://localhost:3000/tile?x=${x}&y=${y}`;
+	fetch(url, {
+		method: 'POST',
+		body: body
+	}).then(result => {
+		return result.json()
+	}).then(data => {
+		buildGeometry(x, y, data.elements);
+	}).catch(e => {
+		console.error(e);
 
-	const httpRequest = new XMLHttpRequest();
+		sendMessage({
+			type: WorkerMessageIncomingType.Error,
+			tile: [x, y],
+			result: {errorCode: e}
+		});
+	});
 
-	httpRequest.onreadystatechange = function (): void {
-		if (httpRequest.readyState === XMLHttpRequest.DONE) {
-			if (httpRequest.status === 200) {
-				buildGeometry(x, y, JSON.parse(httpRequest.responseText).elements);
-			} else {
-				sendMessage({
-					type: WorkerMessageIncomingType.Error,
-					tile: [x, y],
-					result: {errorCode: httpRequest.status}
-				});
-			}
-		}
-	};
-
-	httpRequest.timeout = Config.OverpassRequestTimeout;
-	httpRequest.open('GET', url);
-	httpRequest.send();
+	//const provider = new Tile3DFromVectorProvider();
+	//provider.getCollection({x, y, zoom: 16});
 }
 
 async function buildGeometry(x: number, y: number, data: any): Promise<void> {
