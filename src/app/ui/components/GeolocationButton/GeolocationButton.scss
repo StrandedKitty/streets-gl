@@ -17,7 +17,7 @@
 	@extend %panel-border;
 
 	&--disabled {
-		cursor: not-allowed;
+		cursor: progress;
 	}
 
 	&__icon {

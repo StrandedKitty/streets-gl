@@ -47,7 +47,7 @@ const GeolocationButton: React.FC = () => {
 				actions.goToLatLon(pos[0], pos[1]);
 			}
 
-			//setIsLoading(false);
+			setIsLoading(false);
 		});
 	}}>
 		<div className={styles.geolocationButton__icon}>
