@@ -33,7 +33,7 @@
 }
 
 @include themify($themes) {
-	.search-list__item {
+	.searchList__item {
 		border-bottom: 1px solid themed('panel-border-color');
 	}
 }
