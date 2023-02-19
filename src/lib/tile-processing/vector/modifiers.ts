@@ -1,0 +1,23 @@
+import {
+	VectorAreaDescriptor,
+	VectorNodeDescriptor,
+	VectorPolylineDescriptor
+} from "~/lib/tile-processing/vector/descriptors";
+
+export enum ModifierType {
+	NodeRow
+}
+
+interface BaseModifier {
+	type: ModifierType;
+	descriptor: VectorNodeDescriptor | VectorAreaDescriptor | VectorPolylineDescriptor;
+}
+
+export interface NodeRowModifier extends BaseModifier {
+	type: ModifierType.NodeRow;
+	spacing: number;
+	randomness: number;
+	descriptor: VectorNodeDescriptor;
+}
+
+export type Modifier = NodeRowModifier;

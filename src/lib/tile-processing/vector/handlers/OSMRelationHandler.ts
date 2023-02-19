@@ -4,6 +4,10 @@ import Handler from "~/lib/tile-processing/vector/handlers/Handler";
 import VectorArea, {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
+import {VectorNodeDescriptor} from "~/lib/tile-processing/vector/descriptors";
+import {cleanupTags} from "~/lib/tile-processing/vector/tagsUtils";
+import VectorPolyline from "~/lib/tile-processing/vector/features/VectorPolyline";
+import {ContainerType, VectorDescriptorFactory} from "~/lib/tile-processing/vector/VectorDescriptorFactory";
 
 const removeFirstEl = (arr: VectorNode[]): VectorNode[] => {
 	return arr.slice(1);
@@ -81,6 +85,87 @@ export class Ring {
 			nodes: this.nodes
 		};
 	}
+
+	private calculateLength(): number {
+		let length = 0;
+
+		for (let i = 0; i < this.nodes.length - 1; i++) {
+			let point1 = this.nodes[i];
+			let point2 = this.nodes[i + 1];
+			length += Math.sqrt((point2.x - point1.x) ** 2 + (point2.y - point1.y) ** 2);
+		}
+
+		return length;
+	}
+
+	public distributeNodes(interval: number, randomness: number, descriptor: VectorNodeDescriptor): VectorNode[] {
+		const length = this.calculateLength();
+		const count = Math.floor(length / interval);
+		const points: [number, number][] = [];
+
+		if (count > 1) {
+			let distance = length / (count - 1);
+			let targetNode = 0;
+			let availableDistance = 0;
+			let edge: [VectorNode, VectorNode] = null;
+			let edgeLength = 0;
+			let cProgress = 0;
+			let nodeProgress = 0;
+
+			points.push([this.nodes[0].x, this.nodes[0].y]);
+
+			for (let i = 0; i < count - 1; i++) {
+				while (availableDistance < distance && targetNode < this.nodes.length - 1) {
+					edge = [this.nodes[targetNode], this.nodes[targetNode + 1]];
+					edgeLength = Math.hypot(edge[1].x - edge[0].x, edge[1].y - edge[0].y);
+					availableDistance += edgeLength;
+					nodeProgress += edgeLength;
+
+					targetNode++;
+				}
+
+				availableDistance -= distance;
+				cProgress += distance;
+
+				const vLength = (nodeProgress - cProgress) / edgeLength;
+
+				const vector = {
+					x: edge[1].x - edge[0].x,
+					y: edge[1].y - edge[0].y
+				};
+				const point = {
+					x: edge[1].x - vector.x * vLength,
+					y: edge[1].y - vector.y * vLength
+				};
+
+				if (randomness > 0) {
+					point.x += (Math.random() - 0.5) * randomness;
+					point.y += (Math.random() - 0.5) * randomness;
+				}
+
+				/*if(params.skipOutside) {
+					if(point.x >= 0 && point.x < this.parent.tileSize && point.z >= 0 && point.z < this.parent.tileSize) {
+						points.push(transformedPoint.x, transformedPoint.z);
+					}
+				} else {
+					points.push(transformedPoint.x, transformedPoint.z);
+				}*/
+
+				points.push([point.x, point.y]);
+			}
+		}
+
+		return points.map(([x, y]): VectorNode => {
+			return {
+				type: 'node',
+				x,
+				y,
+				rotation: 0,
+				descriptor,
+				osmReference: null
+			};
+		});
+	}
 }
 
 export default class OSMRelationHandler implements Handler {
@@ -96,7 +181,7 @@ export default class OSMRelationHandler implements Handler {
 
 	public constructor(osmElement: RelationElement) {
 		this.osmElement = osmElement;
-		this.tags = osmElement.tags ?? {};
+		this.tags = cleanupTags(osmElement.tags);
 	}
 
 	public addMember(member: RelationMember, handler: OSMWayHandler | OSMRelationHandler): void {
@@ -113,7 +198,7 @@ export default class OSMRelationHandler implements Handler {
 		for (const {handler, osmMember} of this.members) {
 			const feature = handler.getStructuralFeature();
 
-			if (feature.type === 'polyline') {
+			if (feature && feature.type === 'polyline') {
 				const type = OSMRelationHandler.getRingTypeFromRole(osmMember.role);
 
 				if (type === null) {
@@ -140,6 +225,31 @@ export default class OSMRelationHandler implements Handler {
 		this.disableFeatureOutput = true;
 	}
 
+	private getFeaturesFromAreaTags(): VectorArea[] {
+		const features: VectorArea[] = [];
+		const parsed = VectorDescriptorFactory.parseAreaTags(this.tags);
+
+		if (parsed) {
+			switch (parsed.type) {
+				case ContainerType.Descriptor: {
+					features.push({
+						type: 'area',
+						osmReference: this.getOSMReference(),
+						descriptor: parsed.data,
+						rings: this.getVectorAreaRings()
+					});
+					break;
+				}
+				case ContainerType.Modifier: {
+					console.error(`Unexpected modifier ${parsed.data.type}`);
+					break;
+				}
+			}
+		}
+
+		return features;
+	}
+
 	private getVectorAreaRings(): VectorAreaRing[] {
 		return this.getClosedRings().map(ring => ring.getVectorAreaRing());
 	}
@@ -150,17 +260,14 @@ export default class OSMRelationHandler implements Handler {
 		}
 
 		if (!this.cachedFeatures) {
+			this.cachedFeatures = [];
+
 			if (this.tags.type === 'multipolygon') {
-				this.cachedFeatures = [{
-					type: 'area',
-					descriptor: null,
-					osmReference: this.getOSMReference(),
-					rings: this.getVectorAreaRings()
-				}];
+				this.cachedFeatures.push(...this.getFeaturesFromAreaTags());
 			}
 		}
 
-		return this.cachedFeatures ?? [];
+		return this.cachedFeatures;
 	}
 
 	public getStructuralFeature(): VectorArea {

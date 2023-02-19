@@ -8,10 +8,12 @@ export default interface OverpassDataObject {
 	elements: (NodeElement | WayElement | RelationElement)[];
 }
 
+export type Tags = Record<string, string>;
+
 export interface Element {
 	type: 'node' | 'way' | 'relation';
 	id: number;
-	tags?: Record<string, string>;
+	tags?: Tags;
 }
 
 export interface NodeElement extends Element {

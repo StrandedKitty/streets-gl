@@ -18,7 +18,7 @@ module.exports = [{
 	devServer: {
 		hot: true
 	},
-	devtool: 'inline-source-map',
+	devtool: 'cheap-source-map',
 	plugins: [
 		new CleanWebpackPlugin(),
 		new HtmlWebpackPlugin({
@@ -26,9 +26,7 @@ module.exports = [{
 			template: './src/index.html',
 			minify: false
 		}),
-		new MiniCssExtractPlugin({
-			filename: 'style.css'
-		}),
+		new MiniCssExtractPlugin(),
 		new CopyPlugin({
 			patterns: [
 				{from: './src/resources/textures', to: path.resolve(__dirname, 'build/textures')},
@@ -53,12 +51,10 @@ module.exports = [{
 						},
 					},
 				]
-			},
-			{
+			}, {
 				test: /\.css$/i,
 				use: [MiniCssExtractPlugin.loader, 'css-loader']
-			},
-			{
+			}, {
 				test: /\.s[ac]ss$/i,
 				use: [
 					'style-loader',
@@ -72,12 +68,10 @@ module.exports = [{
 					'sass-loader'
 				],
 				sideEffects: true
-			},
-			{
+			}, {
 				test: /\.worker\.ts$/,
 				use: {loader: 'worker-loader'},
-			},
-			{
+			}, {
 				test: /\.ts|.tsx$/,
 				loader: 'ts-loader',
 				options: {configFile: 'tsconfig.json'},

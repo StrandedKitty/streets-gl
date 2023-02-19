@@ -3,12 +3,12 @@ import {WayElement} from "~/lib/tile-processing/vector/providers/OverpassDataObj
 import VectorArea, {VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
 import VectorPolyline from "~/lib/tile-processing/vector/features/VectorPolyline";
 import Handler from "~/lib/tile-processing/vector/handlers/Handler";
-import {
-	getAreaDescriptorFromTags,
-	getPolylineDescriptorFromTags
-} from "~/lib/tile-processing/vector/handlers/descriptors";
+import {ContainerType, VectorDescriptorFactory,} from "~/lib/tile-processing/vector/VectorDescriptorFactory";
 import {Ring} from "~/lib/tile-processing/vector/handlers/OSMRelationHandler";
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
+import {ModifierType} from "~/lib/tile-processing/vector/modifiers";
+import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
+import {cleanupTags} from "~/lib/tile-processing/vector/tagsUtils";
 
 export default class OSMWayHandler implements Handler {
 	private readonly osmElement: WayElement;
@@ -16,12 +16,12 @@ export default class OSMWayHandler implements Handler {
 	private readonly nodes: OSMNodeHandler[];
 	private disableFeatureOutput: boolean = false;
 
-	private cachedFeatures: (VectorArea | VectorPolyline)[] = null;
+	private cachedFeatures: (VectorArea | VectorPolyline | VectorNode)[] = null;
 	private cachedStructuralFeature: VectorPolyline = null;
 
 	public constructor(osmElement: WayElement, nodes: OSMNodeHandler[]) {
 		this.osmElement = osmElement;
-		this.tags = osmElement.tags ?? {};
+		this.tags = cleanupTags(osmElement.tags);
 		this.nodes = nodes;
 
 		if (nodes.some(n => !n)) {
@@ -37,45 +37,88 @@ export default class OSMWayHandler implements Handler {
 		this.disableFeatureOutput = true;
 	}
 
-	public getFeatures(): (VectorArea | VectorPolyline)[] {
+	private getFeaturesFromPolylineTags(): (VectorArea | VectorPolyline | VectorNode)[] {
+		const features: (VectorArea | VectorPolyline | VectorNode)[] = [];
+		const parsed = VectorDescriptorFactory.parsePolylineTags(this.tags);
+
+		if (parsed) {
+			switch (parsed.type) {
+				case ContainerType.Descriptor: {
+					features.push({
+						type: 'polyline',
+						osmReference: this.getOSMReference(),
+						descriptor: parsed.data,
+						nodes: this.nodes.map(n => n.getStructuralFeature())
+					});
+					break;
+				}
+				case ContainerType.Modifier: {
+					const modifier = parsed.data;
+
+					if (modifier.type === ModifierType.NodeRow) {
+						const ring = new Ring(
+							this.nodes.map(n => n.getStructuralFeature()),
+							VectorAreaRingType.Outer
+						);
+
+						const nodes = ring.distributeNodes(modifier.spacing, modifier.randomness, modifier.descriptor);
+
+						features.push(...nodes);
+					} else {
+						console.error(`Unexpected modifier ${modifier.type}`);
+					}
+					break;
+				}
+			}
+		}
+
+		return features;
+	}
+
+	private getFeaturesFromAreaTags(): (VectorArea | VectorPolyline | VectorNode)[] {
+		const features: (VectorArea | VectorPolyline | VectorNode)[] = [];
+
+		if (this.isClosed()) {
+			const parsed = VectorDescriptorFactory.parseAreaTags(this.tags);
+
+			if (parsed) {
+				switch (parsed.type) {
+					case ContainerType.Descriptor: {
+						const ring = new Ring(
+							this.nodes.map(n => n.getStructuralFeature()),
+							VectorAreaRingType.Outer
+						);
+						ring.fixDirection();
+
+						features.push({
+							type: 'area',
+							osmReference: this.getOSMReference(),
+							descriptor: parsed.data,
+							rings: [ring.getVectorAreaRing()]
+						});
+						break;
+					}
+					case ContainerType.Modifier: {
+						console.error(`Unexpected modifier ${parsed.data.type}`);
+						break;
+					}
+				}
+			}
+		}
+
+		return features;
+	}
+
+	public getFeatures(): (VectorArea | VectorPolyline | VectorNode)[] {
 		if (this.disableFeatureOutput) {
 			return [];
 		}
 
 		if (!this.cachedFeatures) {
-			const features: (VectorArea | VectorPolyline)[] = [];
-
-			const polylineDesc = getPolylineDescriptorFromTags(this.tags);
-
-			if (polylineDesc) {
-				features.push({
-					type: 'polyline',
-					osmReference: this.getOSMReference(),
-					descriptor: polylineDesc,
-					nodes: this.nodes.map(n => n.getStructuralFeature())
-				});
-			}
-
-			if (this.isClosed()) {
-				const areaDesc = getAreaDescriptorFromTags(this.tags);
-
-				if (areaDesc) {
-					const ring = new Ring(
-						this.nodes.map(n => n.getStructuralFeature()),
-						VectorAreaRingType.Outer
-					);
-					ring.fixDirection();
-
-					features.push({
-						type: 'area',
-						osmReference: this.getOSMReference(),
-						descriptor: areaDesc,
-						rings: [ring.getVectorAreaRing()]
-					});
-				}
-			}
-
-			this.cachedFeatures = features;
+			this.cachedFeatures = [
+				...this.getFeaturesFromPolylineTags(),
+				...this.getFeaturesFromAreaTags()
+			];
 		}
 
 		return this.cachedFeatures;

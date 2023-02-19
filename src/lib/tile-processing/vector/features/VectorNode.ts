@@ -8,4 +8,5 @@ export default interface VectorNode extends VectorFeature {
 	descriptor: VectorNodeDescriptor;
 	x: number;
 	y: number;
+	rotation: number;
 }

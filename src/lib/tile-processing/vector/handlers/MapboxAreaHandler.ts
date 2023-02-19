@@ -26,6 +26,7 @@ export default class MapboxAreaHandler implements Handler {
 				type: 'node',
 				x,
 				y,
+				rotation: 0,
 				osmReference: null,
 				descriptor: null
 			};

@@ -3,7 +3,8 @@ import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import VectorArea from "~/lib/tile-processing/vector/features/VectorArea";
 import Handler from './Handler';
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
-import {getNodeDescriptorFromTags} from "~/lib/tile-processing/vector/handlers/descriptors";
+import {ContainerType, VectorDescriptorFactory} from "~/lib/tile-processing/vector/VectorDescriptorFactory";
+import {cleanupTags} from "~/lib/tile-processing/vector/tagsUtils";
 
 export default class OSMNodeHandler implements Handler {
 	private readonly x: number;
@@ -19,24 +20,39 @@ export default class OSMNodeHandler implements Handler {
 		this.x = x;
 		this.y = y;
 		this.osmElement = osmElement;
-		this.tags = osmElement.tags ?? {};
+		this.tags = cleanupTags(osmElement.tags);
+	}
+
+	private getFeaturesFromTags(): (VectorNode | VectorArea)[] {
+		const features: (VectorNode | VectorArea)[] = [];
+		const parsed = VectorDescriptorFactory.parseNodeTags(this.tags);
+
+		if (parsed) {
+			switch (parsed.type) {
+				case ContainerType.Descriptor: {
+					features.push({
+						type: 'node',
+						x: this.x,
+						y: this.y,
+						rotation: 0,
+						osmReference: this.getOSMReference(),
+						descriptor: parsed.data
+					});
+					break;
+				}
+				case ContainerType.Modifier: {
+					console.error(`Unexpected modifier ${parsed.data.type}`);
+					break;
+				}
+			}
+		}
+
+		return features;
 	}
 
 	public getFeatures(): (VectorNode | VectorArea)[] {
 		if (!this.cachedFeatures) {
-			const descriptor = getNodeDescriptorFromTags(this.tags);
-
-			if (descriptor && descriptor.type) {
-				this.cachedFeatures = [{
-					type: 'node',
-					x: this.x,
-					y: this.y,
-					osmReference: this.getOSMReference(),
-					descriptor: getNodeDescriptorFromTags(this.tags)
-				}];
-			} else {
-				this.cachedFeatures = [];
-			}
+			this.cachedFeatures = this.getFeaturesFromTags();
 		}
 
 		return this.cachedFeatures;
@@ -48,6 +64,7 @@ export default class OSMNodeHandler implements Handler {
 				type: 'node',
 				x: this.x,
 				y: this.y,
+				rotation: 0,
 				osmReference: null,
 				descriptor: null
 			};
