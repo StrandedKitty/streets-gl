@@ -18,9 +18,9 @@ const Compass: React.FC<{
 			transform: directionToTransformStyle(direction)
 		}}
 	>
-		<div>
-			<div className={styles.compass__arrowUp}>{}</div>
-			<div className={styles.compass__arrowDown}>{}</div>
+		<div className={styles.compass__container}>
+			<div className={styles.compass__container__arrowUp}/>
+			<div className={styles.compass__container__arrowDown}/>
 		</div>
 	</div>;
 }

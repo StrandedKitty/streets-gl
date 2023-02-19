@@ -20,15 +20,24 @@ $southColor: #f0f0f0;
 	border-radius: 50%;
 	cursor: pointer;
 
-	&__arrowUp {
-		@extend %arrow;
-		border-width: 0 10px 30px 10px;
-		border-color: transparent transparent $northColor transparent;
+	&:hover &__container {
+		filter: drop-shadow(0 0 4px #fff);
 	}
 
-	&__arrowDown {
-		@extend %arrow;
-		border-width: 30px 10px 0 10px;
-		border-color: $southColor transparent transparent transparent;
+	&__container {
+		filter: none;
+		transition: filter 200ms;
+
+		&__arrowUp {
+			@extend %arrow;
+			border-width: 0 10px 30px 10px;
+			border-color: transparent transparent $northColor transparent;
+		}
+
+		&__arrowDown {
+			@extend %arrow;
+			border-width: 30px 10px 0 10px;
+			border-color: $southColor transparent transparent transparent;
+		}
 	}
 }
