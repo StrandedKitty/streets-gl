@@ -12,10 +12,6 @@
 		padding: 12px;
 		cursor: pointer;
 
-		&:last-child {
-			border-bottom: none;
-		}
-
 		&__name {
 			font-size: 16px;
 			margin: 0 0 4px 0;
@@ -35,5 +31,9 @@
 @include themify($themes) {
 	.searchList__item {
 		border-bottom: 1px solid themed('panel-border-color');
+
+		&:last-child {
+			border-bottom: none;
+		}
 	}
 }
