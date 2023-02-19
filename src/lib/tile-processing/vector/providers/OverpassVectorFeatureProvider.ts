@@ -231,7 +231,11 @@ export default class OverpassVectorFeatureProvider extends VectorFeatureProvider
 				continue;
 			}
 
-			const ids = result.elements.filter(el => el.type === 'relation').map(el => el.id);
+			const ids = result.elements.filter(el => {
+				return el.type === 'relation' && el.tags && (
+					el.tags.type === 'multipolygon' || el.tags.type === 'building'
+				);
+			}).map(el => el.id);
 
 			for (const id of ids) {
 				relationIds.add(id);

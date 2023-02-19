@@ -23,6 +23,7 @@
 		"@types/geojson": "^7946.0.7",
 		"@types/jest": "^26.0.24",
 		"@types/node": "^14.14.31",
+		"@types/pbf": "^3.0.2",
 		"@types/polylabel": "^1.0.5",
 		"@types/rbush": "^3.0.0",
 		"@types/react": "^18.0.28",

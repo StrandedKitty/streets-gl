@@ -23,10 +23,6 @@ export default class OSMWayHandler implements Handler {
 		this.osmElement = osmElement;
 		this.tags = cleanupTags(osmElement.tags);
 		this.nodes = nodes;
-
-		if (nodes.some(n => !n)) {
-			debugger;
-		}
 	}
 
 	private isClosed(): boolean {

@@ -18,10 +18,10 @@ export default class CombinedVectorFeatureProvider extends VectorFeatureProvider
 			zoom: number;
 		}
 	): Promise<VectorFeatureCollection> {
-		//const mapboxRequest = this.mapboxProvider.getCollection({x, y, zoom});
-		return await this.overpassProvider.getCollection({x, y, zoom});
+		const mapboxRequest = this.mapboxProvider.getCollection({x, y, zoom});
+		const overpassRequest = this.overpassProvider.getCollection({x, y, zoom});
 
-		/*return new Promise((resolve, reject) => {
+		return new Promise((resolve, reject) => {
 			Promise.allSettled([mapboxRequest, overpassRequest]).then(([mapboxData, overpassData]) => {
 				if (overpassData.status === 'fulfilled' && mapboxData.status === 'fulfilled') {
 					const merged = this.mergeCollections(overpassData.value, mapboxData.value);
@@ -31,7 +31,7 @@ export default class CombinedVectorFeatureProvider extends VectorFeatureProvider
 
 				reject();
 			})
-		});*/
+		});
 	}
 
 	private mergeCollections(...collections: VectorFeatureCollection[]): VectorFeatureCollection {

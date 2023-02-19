@@ -4,7 +4,8 @@ import VectorArea from "~/lib/tile-processing/vector/features/VectorArea";
 import PBFPolygonParser, {PBFPolygon} from "~/lib/tile-processing/vector/providers/pbf/PBFPolygonParser";
 import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/descriptors";
 import MapboxAreaHandler from "~/lib/tile-processing/vector/handlers/MapboxAreaHandler";
-const Pbf = require('pbf');
+import Pbf from 'pbf';
+
 const proto = require('./pbf/vector_tile.js').Tile;
 
 const AccessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY5YzJzczA2ejIzM29hNGQ3emFsMXgifQ.az9JUrQP7klCgD3W-ueILQ';
@@ -63,15 +64,19 @@ export default class MapboxVectorFeatureProvider extends VectorFeatureProvider {
 
 	private static async fetchTile(x: number, y: number, zoom: number): Promise<Record<keyof typeof AreasConfig, PBFPolygon[]>> {
 		const size = 40075016.68 / (1 << zoom);
+		const polygons: Record<keyof typeof AreasConfig, PBFPolygon[]> = {
+			water: []
+		};
 		const response = await fetch(getRequestURL(x, y, zoom), {
 			method: 'GET'
 		});
 
+		if (response.status === 404) {
+			return polygons;
+		}
+
 		const pbf = new Pbf(await response.arrayBuffer());
 		const obj = proto.read(pbf);
-		const polygons: Record<keyof typeof AreasConfig, PBFPolygon[]> = {
-			water: []
-		}
 
 		for (const layer of obj.layers) {
 			const name = layer.name as keyof typeof AreasConfig;
