@@ -153,20 +153,22 @@ export default class OverpassVectorFeatureProvider extends VectorFeatureProvider
 			}
 		}
 
-		console.log(x, y, OverpassVectorFeatureProvider.getFeatures([
+		const res = OverpassVectorFeatureProvider.getFeaturesFromHandlers([
 			...nodeHandlersMap.values(),
 			...wayHandlersMap.values(),
 			...relationHandlersMap.values()
-		]));
+		]);
 
-		return OverpassVectorFeatureProvider.getFeatures([
+		console.log(x, y, res);
+
+		return OverpassVectorFeatureProvider.getFeaturesFromHandlers([
 			...nodeHandlersMap.values(),
 			...wayHandlersMap.values(),
 			...relationHandlersMap.values()
 		]);
 	}
 
-	private static getFeatures(handlers: (OSMNodeHandler | OSMWayHandler | OSMRelationHandler)[]): VectorFeatureCollection {
+	private static getFeaturesFromHandlers(handlers: (OSMNodeHandler | OSMWayHandler | OSMRelationHandler)[]): VectorFeatureCollection {
 		const collection: VectorFeatureCollection = {
 			nodes: [],
 			polylines: [],

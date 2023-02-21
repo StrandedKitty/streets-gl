@@ -107,7 +107,7 @@ export default class ShadowMappingPass extends Pass<{
 				this.buildingDepthMaterial.updateUniformBlock('PerMaterial');
 
 				for (const tile of tiles) {
-					if (!tile.buildings || !tile.buildings.inCameraFrustum(camera)) {
+					if (!tile.buildings/* || !tile.buildings.inCameraFrustum(camera)*/) {
 						continue;
 					}
 

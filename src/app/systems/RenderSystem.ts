@@ -90,7 +90,7 @@ export default class RenderSystem extends System {
 		const tiles = sceneSystem.objects.tiles.children as Tile[];
 
 		if (SettingsManager.getSetting('labels').statusValue === 'on') {
-			sceneSystem.objects.labels.updateFromTiles(tiles, sceneSystem.objects.camera, this.resolutionScene);
+			//sceneSystem.objects.labels.updateFromTiles(tiles, sceneSystem.objects.camera, this.resolutionScene);
 		}
 
 		for (const object of sceneSystem.getObjectsToUpdateMesh()) {

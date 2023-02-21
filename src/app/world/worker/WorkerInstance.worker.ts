@@ -9,8 +9,6 @@ import {
 } from "./WorkerMessageTypes";
 import Vec2 from "~/lib/math/Vec2";
 import Config from "../../Config";
-import CombinedUniversalFeatureProvider from "../universal-features/providers/CombinedUniversalFeatureProvider";
-import Tile3DBuilder from "../tile3d/Tile3DBuilder";
 import Tile3DFromVectorProvider from "~/lib/tile-processing/tile3d/providers/Tile3DFromVectorProvider";
 
 const ctx: Worker = self as any;
@@ -29,15 +27,6 @@ ctx.addEventListener('message', async event => {
 
 	if (data.type === WorkerMessageOutgoingType.Start) {
 		load(x, y);
-
-		/*const ground = GroundGeometryBuilder.getGroundGeometry(x, y, heightViewer);
-
-		const universalCollection = await provider.getCollection({x, y});
-		const tile3dData = tile3d.fromUniversalFeatures({
-			collection: universalCollection,
-			heightViewer,
-			groundData: ground
-		});*/
 	} else if (data.type === WorkerMessageOutgoingType.SendHeightData) {
 		heightViewer.pushHeightTile(data.tile[0], data.tile[1], data.heightArray);
 	}
@@ -117,8 +106,8 @@ function load(x: number, y: number): void {
 		});
 	});
 
-	//const provider = new Tile3DFromVectorProvider();
-	//provider.getCollection({x, y, zoom: 16});
+	const provider = new Tile3DFromVectorProvider();
+	provider.getCollection({x, y, zoom: 16});
 }
 
 async function buildGeometry(x: number, y: number, data: any): Promise<void> {

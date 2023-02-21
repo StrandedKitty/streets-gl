@@ -2,6 +2,7 @@ import Tile, {StaticTileGeometry} from "../objects/Tile";
 import System from "../System";
 import SystemManager from "../SystemManager";
 import MapWorkerSystem from "./MapWorkerSystem";
+import Tile3DBuffers from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
 
 interface queueEntry {
 	tile: Tile;
@@ -15,12 +16,12 @@ export default class StaticGeometryLoadingSystem extends System {
 
 	}
 
-	public async getTileObjects(tile: Tile): Promise<StaticTileGeometry> {
-		return new Promise<StaticTileGeometry>((resolve) => {
+	public async getTileObjects(tile: Tile): Promise<Tile3DBuffers> {
+		return new Promise<Tile3DBuffers>((resolve) => {
 			this.queue.push({
 				tile,
-				onLoad: (data: StaticTileGeometry) => {
-					resolve(this.getObjectFromMessage(data));
+				onLoad: (data: Tile3DBuffers) => {
+					resolve(data);
 				}
 			});
 		});
@@ -56,9 +57,5 @@ export default class StaticGeometryLoadingSystem extends System {
 		});
 
 		return this.queue.pop();
-	}
-
-	private getObjectFromMessage(msg: StaticTileGeometry): StaticTileGeometry {
-		return msg;
 	}
 }

@@ -10,7 +10,7 @@ export default abstract class Tile3DFeatureProvider implements FeatureProvider<T
 		}: {
 			x: number;
 			y: number;
-			zoom: number
+			zoom: number;
 		}
 	): Promise<Tile3DFeatureCollection>;
 }

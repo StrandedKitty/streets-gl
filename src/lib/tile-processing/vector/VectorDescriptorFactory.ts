@@ -30,14 +30,16 @@ const RoofOSMShapeToType: Record<string, VectorAreaDescriptor['buildingRoofType'
 	flat: 'flat',
 	hipped: 'hipped',
 	gabled: 'gabled',
-	pyramidal: 'pyramidal'
+	pyramidal: 'pyramidal',
+	skillion: 'skillion'
 };
 
 const RoofTypeToDefaultLevels: Record<VectorAreaDescriptor['buildingRoofType'], number> = {
 	flat: 0,
 	hipped: 1,
 	gabled: 1,
-	pyramidal: 1
+	pyramidal: 1,
+	skillion: 1
 };
 
 export class VectorDescriptorFactory {
@@ -269,6 +271,7 @@ export class VectorDescriptorFactory {
 		buildingMinHeight: number;
 		buildingRoofHeight: number;
 		buildingRoofType: VectorAreaDescriptor['buildingRoofType'];
+		buildingRoofDirection: number;
 		buildingFacadeMaterial: VectorAreaDescriptor['buildingFacadeMaterial'];
 		buildingFacadeColor: number;
 		buildingRoofMaterial: VectorAreaDescriptor['buildingRoofMaterial'];
@@ -285,15 +288,17 @@ export class VectorDescriptorFactory {
 		const roofHeight = this.parseHeight(tags['roof:height'], roofLevels * levelHeight);
 		const roofColor = this.parseColor(tags['roof:colour'], fallbackRoofColor);
 		const roofMaterial = this.parseRoofMaterial(tags['building:material'], 'default');
+		const roofDirection = this.parseFloat(tags['roof:direction']) ?? 0;
 
-		const levels = this.parseUnsignedInt(tags['building:levels']) ?? fallbackLevels;
+		const minLevel = this.parseUnsignedInt(tags['building:min_level']) ?? 0;
+		const levels = (this.parseUnsignedInt(tags['building:levels']) ?? fallbackLevels + minLevel) - minLevel;
 		const height = Math.max(0,
 			this.parseHeight(
 				tags.height,
-				levels * levelHeight + roofHeight
+				(levels + minLevel) * levelHeight + roofHeight
 			) - roofHeight
 		);
-		const minHeight = this.parseHeight(tags.min_height, 0);
+		const minHeight = Math.min(this.parseHeight(tags.min_height, minLevel * levelHeight), height);
 		const color = this.parseColor(tags['building:colour'], fallbackFacadeColor);
 		const material = this.parseFacadeMaterial(tags['building:material'], 'plaster');
 		const windows = this.isBuildingHasWindows(tags);
@@ -304,6 +309,7 @@ export class VectorDescriptorFactory {
 			buildingMinHeight: minHeight,
 			buildingRoofHeight: roofHeight,
 			buildingRoofType: roofType,
+			buildingRoofDirection: roofDirection,
 			buildingFacadeMaterial: material,
 			buildingFacadeColor: color,
 			buildingRoofMaterial: roofMaterial,
@@ -355,6 +361,11 @@ export class VectorDescriptorFactory {
 
 	private static parseUnsignedInt(str: string = ''): number {
 		const value = Math.max(parseInt(str), 0);
+		return isNaN(value) ? undefined : value;
+	}
+
+	private static parseFloat(str: string = ''): number {
+		const value = parseFloat(str);
 		return isNaN(value) ? undefined : value;
 	}
 }

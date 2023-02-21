@@ -1,4 +1,4 @@
-import Worker from './WorkerInstance.worker';
+import Worker from './WorkerInstance2.worker';
 import Vec2 from "~/lib/math/Vec2";
 import HeightProvider from "../HeightProvider";
 import {

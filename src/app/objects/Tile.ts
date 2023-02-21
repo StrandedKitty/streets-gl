@@ -8,6 +8,7 @@ import TileBuildings from "./TileBuildings";
 import TileGround from "./TileGround";
 import TileRoads from "./TileRoads";
 import TileLabelBuffers from "./TileLabelBuffers";
+import Tile3DBuffers from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
 
 // position.xyz, scale, rotation
 export type InstanceBufferInterleaved = Float32Array;
@@ -67,7 +68,7 @@ export type TileInstanceBuffers = Map<InstanceType, {
 let tileCounter = 0;
 
 export default class Tile extends Object3D {
-	public staticGeometry: StaticTileGeometry;
+	public staticGeometry: Tile3DBuffers;
 	public buildingLocalToPackedMap: Map<number, number> = new Map();
 	public buildingPackedToLocalMap: Map<number, number> = new Map();
 	public buildingOffsetMap: Map<number, [number, number]> = new Map();
@@ -79,7 +80,6 @@ export default class Tile extends Object3D {
 	public distanceToCamera: number = null;
 	public disposed = false;
 	public buildings: TileBuildings;
-	public ground: TileGround;
 	public roads: TileRoads;
 	public labelBuffersList: TileLabelBuffers[] = [];
 	public buildingsNeedFiltering: boolean = true;
@@ -111,18 +111,20 @@ export default class Tile extends Object3D {
 		return Promise.all([
 			HeightProvider.prepareDataForTile(this.x, this.y),
 			tileProvider.getTileObjects(this),
-		]).then(([a, objects]: [void[], StaticTileGeometry]) => {
+		]).then(([a, objects]: [void[], Tile3DBuffers]) => {
 			this.staticGeometry = objects;
 			this.updateStaticGeometryOffsets();
 
-			this.buildings = new TileBuildings(this.staticGeometry);
-			this.ground = new TileGround(this.staticGeometry);
-			this.roads = new TileRoads(this.staticGeometry);
+			console.log(objects)
+
+			this.buildings = new TileBuildings(this.staticGeometry.extruded);
+			//this.ground = new TileGround(this.staticGeometry);
+			this.roads = new TileRoads(this.staticGeometry.projected);
 
 			this.add(this.buildings, /*this.ground,*/ this.roads);
-			this.updateLabelBufferList();
+			//this.updateLabelBufferList();
 
-			for (const [key, LOD0Value] of Object.entries(this.staticGeometry.instancesLOD0)) {
+			/*for (const [key, LOD0Value] of Object.entries(this.staticGeometry.instancesLOD0)) {
 				const LOD1Value = this.staticGeometry.instancesLOD1[key as InstanceType];
 
 				this.instanceBuffers.set(key as InstanceType, {
@@ -133,7 +135,7 @@ export default class Tile extends Object3D {
 					transformOriginLOD0: new Vec2(NaN, NaN),
 					transformOriginLOD1: new Vec2(NaN, NaN)
 				});
-			}
+			}*/
 		});
 	}
 
@@ -165,7 +167,7 @@ export default class Tile extends Object3D {
 		return transformed;
 	}
 
-	private updateLabelBufferList(): void {
+	/*private updateLabelBufferList(): void {
 		for (let i = 0; i < this.staticGeometry.labels.text.length; i++) {
 			const label = new TileLabelBuffers({
 				text: this.staticGeometry.labels.text[i],
@@ -177,7 +179,7 @@ export default class Tile extends Object3D {
 
 			this.labelBuffersList.push(label);
 		}
-	}
+	}*/
 
 	public updateDistanceToCamera(camera: Camera): void {
 		const worldPosition = MathUtils.tile2meters(this.x + 0.5, this.y + 0.5);
@@ -185,9 +187,9 @@ export default class Tile extends Object3D {
 	}
 
 	private updateStaticGeometryOffsets(): void {
-		const ids = this.staticGeometry.buildings.id;
-		const offsets = this.staticGeometry.buildings.offset;
-		const vertexCount = this.staticGeometry.buildings.position.length / 3;
+		const ids = this.staticGeometry.extruded.idBuffer;
+		const offsets = this.staticGeometry.extruded.offsetBuffer;
+		const vertexCount = this.staticGeometry.extruded.positionBuffer.length / 3;
 
 		for (let i = 0; i < ids.length; i += 2) {
 			const id = MathUtils.shiftLeft(ids[i + 1] & 0x7FFFF, 32) + ids[i];
@@ -227,10 +229,6 @@ export default class Tile extends Object3D {
 
 		if (this.buildings) {
 			this.buildings.dispose();
-		}
-
-		if (this.ground) {
-			this.ground.dispose();
 		}
 
 		if (this.parent) {

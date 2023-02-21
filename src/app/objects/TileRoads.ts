@@ -5,16 +5,23 @@ import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import {StaticTileGeometry} from "./Tile";
 import Vec3 from "~/lib/math/Vec3";
 
+interface Buffers {
+	positionBuffer: Float32Array;
+	normalBuffer: Float32Array;
+	uvBuffer: Float32Array;
+	textureIdBuffer: Uint8Array;
+}
+
 export default class TileRoads extends RenderableObject3D {
 	public mesh: AbstractMesh = null;
 
-	public constructor(private staticTileGeometry: StaticTileGeometry) {
+	public constructor(private buffers: Buffers) {
 		super();
 
-		this.setBoundingBox(
+		/*this.setBoundingBox(
 			new Vec3(...staticTileGeometry.bboxGround.min),
 			new Vec3(...staticTileGeometry.bboxGround.max)
-		);
+		);*/
 	}
 
 	public isMeshReady(): boolean {
@@ -31,7 +38,7 @@ export default class TileRoads extends RenderableObject3D {
 						type: RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
-						data: this.staticTileGeometry.roads.position
+						data: this.buffers.positionBuffer
 					}),
 					renderer.createAttribute({
 						name: 'normal',
@@ -39,7 +46,7 @@ export default class TileRoads extends RenderableObject3D {
 						type:  RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
-						data: this.staticTileGeometry.roads.normal
+						data: this.buffers.normalBuffer
 					}),
 					renderer.createAttribute({
 						name: 'uv',
@@ -47,7 +54,7 @@ export default class TileRoads extends RenderableObject3D {
 						type:  RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
-						data: this.staticTileGeometry.roads.uv
+						data: this.buffers.uvBuffer
 					}),
 					renderer.createAttribute({
 						name: 'textureId',
@@ -55,7 +62,7 @@ export default class TileRoads extends RenderableObject3D {
 						type: RendererTypes.AttributeType.UnsignedByte,
 						format: RendererTypes.AttributeFormat.Integer,
 						normalized: false,
-						data: this.staticTileGeometry.roads.textureId
+						data: this.buffers.textureIdBuffer
 					})
 				]
 			});

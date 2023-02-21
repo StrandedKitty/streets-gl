@@ -11,17 +11,28 @@ interface MeshDisplayBufferPatch {
 	value: number;
 }
 
+interface Buffers {
+	positionBuffer: Float32Array;
+	uvBuffer: Float32Array;
+	normalBuffer: Float32Array;
+	textureIdBuffer: Uint8Array;
+	colorBuffer: Uint8Array;
+	idBuffer: Uint32Array;
+	offsetBuffer: Uint32Array;
+	localIdBuffer: Uint32Array;
+}
+
 export default class TileBuildings extends RenderableObject3D {
 	public mesh: AbstractMesh = null;
 	private meshDisplayBufferPatches: MeshDisplayBufferPatch[] = [];
 
-	public constructor(private staticTileGeometry: StaticTileGeometry) {
+	public constructor(private buffers: Buffers) {
 		super();
 
-		this.setBoundingBox(
+		/*this.setBoundingBox(
 			new Vec3(...staticTileGeometry.bbox.min),
 			new Vec3(...staticTileGeometry.bbox.max)
-		);
+		);*/
 	}
 
 	public addDisplayBufferPatch(patch: MeshDisplayBufferPatch): void {
@@ -42,7 +53,7 @@ export default class TileBuildings extends RenderableObject3D {
 						type: RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
-						data: this.staticTileGeometry.buildings.position
+						data: this.buffers.positionBuffer
 					}),
 					renderer.createAttribute({
 						name: 'normal',
@@ -50,7 +61,7 @@ export default class TileBuildings extends RenderableObject3D {
 						type: RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
-						data: this.staticTileGeometry.buildings.normal
+						data: this.buffers.normalBuffer
 					}),
 					renderer.createAttribute({
 						name: 'color',
@@ -58,7 +69,7 @@ export default class TileBuildings extends RenderableObject3D {
 						type: RendererTypes.AttributeType.UnsignedByte,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: true,
-						data: this.staticTileGeometry.buildings.color
+						data: this.buffers.colorBuffer
 					}),
 					renderer.createAttribute({
 						name: 'uv',
@@ -66,7 +77,7 @@ export default class TileBuildings extends RenderableObject3D {
 						type: RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
-						data: this.staticTileGeometry.buildings.uv
+						data: this.buffers.uvBuffer
 					}),
 					renderer.createAttribute({
 						name: 'textureId',
@@ -74,7 +85,7 @@ export default class TileBuildings extends RenderableObject3D {
 						type: RendererTypes.AttributeType.UnsignedByte,
 						format: RendererTypes.AttributeFormat.Integer,
 						normalized: false,
-						data: this.staticTileGeometry.buildings.textureId
+						data: this.buffers.textureIdBuffer
 					}),
 					renderer.createAttribute({
 						name: 'localId',
@@ -82,7 +93,7 @@ export default class TileBuildings extends RenderableObject3D {
 						type: RendererTypes.AttributeType.UnsignedInt,
 						format: RendererTypes.AttributeFormat.Integer,
 						normalized: false,
-						data: this.staticTileGeometry.buildings.localId
+						data: this.buffers.localIdBuffer
 					}),
 					renderer.createAttribute({
 						name: 'display',
@@ -90,7 +101,7 @@ export default class TileBuildings extends RenderableObject3D {
 						type: RendererTypes.AttributeType.UnsignedByte,
 						format: RendererTypes.AttributeFormat.Integer,
 						normalized: false,
-						data: new Uint8Array(this.staticTileGeometry.buildings.localId.length)
+						data: new Uint8Array(this.buffers.localIdBuffer.length)
 					})
 				]
 			});

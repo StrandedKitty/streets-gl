@@ -1,8 +1,8 @@
 import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/descriptors";
 import VectorArea, {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
-import Handler from "~/lib/tile-processing/vector/handlers/Handler";
 import {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
+import Handler from "./Handler";
 
 type Ring = [number, number][];
 

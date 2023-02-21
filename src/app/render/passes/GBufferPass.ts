@@ -161,7 +161,7 @@ export default class GBufferPass extends Pass<{
 		this.buildingMaterial.updateUniformBlock('PerMaterial');
 
 		for (const tile of tiles) {
-			if (!tile.buildings || !tile.buildings.inCameraFrustum(camera)) {
+			if (!tile.buildings/* || !tile.buildings.inCameraFrustum(camera)*/) {
 				continue;
 			}
 
@@ -175,29 +175,6 @@ export default class GBufferPass extends Pass<{
 
 			tile.buildings.draw();
 		}
-
-		/*this.groundMaterial.getUniform<UniformFloat1>('time').value[0] = performance.now() * 0.001;
-
-		this.renderer.useMaterial(this.groundMaterial);
-
-		this.groundMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.jitteredProjectionMatrix.values);
-		this.groundMaterial.getUniform<UniformMatrix4>('biomeCoordinates', 'PerMaterial').value = new Float32Array([biomePos.x, biomePos.y]);
-		this.groundMaterial.updateUniformBlock('PerMaterial');
-
-		for (const tile of tiles) {
-			if (!tile.ground || !tile.ground.inCameraFrustum(camera)) {
-				continue;
-			}
-
-			const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, tile.matrixWorld);
-			const mvMatrixPrev = Mat4.multiply(this.cameraMatrixWorldInversePrev, tile.matrixWorld);
-
-			this.groundMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
-			this.groundMaterial.getUniform<UniformMatrix4>('modelViewMatrixPrev', 'PerMesh').value = new Float32Array(mvMatrixPrev.values);
-			this.groundMaterial.updateUniformBlock('PerMesh');
-
-			tile.ground.draw();
-		}*/
 
 		/*{
 			const buffers = [];
@@ -302,7 +279,7 @@ export default class GBufferPass extends Pass<{
 			this.terrainMaterial.getUniform<UniformInt1>('levelId', 'PerMesh').value[0] = i;
 			this.terrainMaterial.updateUniformBlock('PerMesh');
 
-			ring.draw();
+			//ring.draw();
 		}
 
 		this.roadMaterial.getUniform('tRingHeight').value = terrainRingHeight;
@@ -314,7 +291,7 @@ export default class GBufferPass extends Pass<{
 		this.roadMaterial.updateUniformBlock('PerMaterial');
 
 		for (const tile of tiles) {
-			if (!tile.roads || !tile.roads.inCameraFrustum(camera)) {
+			if (!tile.roads/* || !tile.roads.inCameraFrustum(camera)*/) {
 				continue;
 			}
 
