@@ -4,10 +4,13 @@ import MathUtils from "~/lib/math/MathUtils";
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
 import Vec2 from "~/lib/math/Vec2";
 import Vec3 from "~/lib/math/Vec3";
-import earcut from "earcut";
-import * as OMBB from "~/lib/math/OMBB";
-import {min} from "d3";
-import Utils from "~/app/Utils";
+import Tile3DRing, {Tile3DRingType} from "~/lib/tile-processing/tile3d/builders/Tile3DRing";
+import {colorToComponents} from "~/lib/tile-processing/tile3d/builders/utils";
+import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
+import FlatRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/FlatRoofBuilder";
+import SkillionRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/SkillionRoofBuilder";
+import RoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/RoofBuilder";
+import PyramidalRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/PyramidalRoofBuilder";
 
 export enum RoofType {
 	Flat,
@@ -16,50 +19,6 @@ export enum RoofType {
 	Pyramidal,
 	Dome,
 	Skillion
-}
-
-export enum RingType {
-	Outer,
-	Inner
-}
-
-interface EarcutInput {
-	vertices: number[];
-	holes: number[];
-}
-
-function colorToComponents(color: number): [number, number, number] {
-	return [
-		color >> 16,
-		color >> 8 & 0xff,
-		color & 0xff
-	];
-}
-
-export class Ring {
-	public readonly type: RingType;
-	public readonly nodes: Vec2[];
-
-	private cachedFlattenVertices: number[] = null;
-
-	public constructor(type: RingType, nodes: Vec2[]) {
-		this.type = type;
-		this.nodes = nodes;
-	}
-
-	public getFlattenVertices(): number[] {
-		if (!this.cachedFlattenVertices) {
-			const vertices: number[] = [];
-
-			for (const node of this.nodes) {
-				vertices.push(node.x, node.y);
-			}
-
-			this.cachedFlattenVertices = vertices;
-		}
-
-		return this.cachedFlattenVertices;
-	}
 }
 
 export default class Tile3DExtrudedGeometryBuilder {
@@ -77,24 +36,20 @@ export default class Tile3DExtrudedGeometryBuilder {
 		textureId: [],
 		color: []
 	};
-	private readonly rings: Ring[] = [];
+	private readonly rings: Tile3DRing[] = [];
+	private readonly multipolygon: Tile3DMultipolygon = new Tile3DMultipolygon();
 	private readonly boundingBox: AABB3D = new AABB3D(new Vec3(), new Vec3());
 	private smoothingThreshold: number = Infinity;
 
 	public constructor(osmReference: OSMReference) {
-		this.arrays = {
-			position: [],
-			uv: [],
-			normal: [],
-			textureId: [],
-			color: []
-		};
-
 		this.osmReference = osmReference;
 	}
 
-	public addRing(type: RingType, nodes: Vec2[]): void {
-		this.rings.push(new Ring(type, nodes));
+	public addRing(type: Tile3DRingType, nodes: Vec2[]): void {
+		const ring = new Tile3DRing(type, nodes);
+
+		this.rings.push(ring);
+		this.multipolygon.addRing(ring);
 	}
 
 	public setSmoothingThreshold(value: number): void {
@@ -109,12 +64,36 @@ export default class Tile3DExtrudedGeometryBuilder {
 			textureId
 		}: {
 			minHeight: number;
-			height: number | ((vertex: Vec2) => number);
+			height: number | number[][];
 			color: number;
 			textureId: number;
 		}
 	): void {
+		for (let i = 0; i < this.rings.length; i++) {
+			this.rings[i].buildWalls({
+				minHeight,
+				height: (typeof height === 'number') ? height : height[i],
+				color,
+				textureId
+			}, this.arrays);
+		}
 
+		if (minHeight > 0) {
+			const roof = new FlatRoofBuilder().build({
+				multipolygon: this.multipolygon,
+				height: 0,
+				minHeight: minHeight,
+				flip: true,
+				direction: 0
+			});
+			this.addAndPaintGeometry({
+				position: roof.position,
+				normal: roof.normal,
+				uv: roof.uv,
+				color,
+				textureId
+			});
+		}
 	}
 
 	public addRoof(
@@ -122,93 +101,79 @@ export default class Tile3DExtrudedGeometryBuilder {
 			type,
 			minHeight,
 			height,
+			direction,
 			color,
 			textureId
 		}: {
 			type: RoofType;
 			minHeight: number;
 			height: number;
+			direction: number;
 			color: number;
 			textureId: number;
 		}
-	): void {
+	): number[][] | null {
+		let builder: RoofBuilder;
+
 		switch (type) {
+			case RoofType.Skillion: {
+				builder = new SkillionRoofBuilder();
+				break;
+			}
+			case RoofType.Pyramidal: {
+				builder = new PyramidalRoofBuilder();
+				break;
+			}
 			default: {
-				this.addFootprint({
-					height: minHeight,
-					color: color,
-					textureId: textureId,
-					flip: false
-				});
+				builder = new FlatRoofBuilder();
 				break;
 			}
 		}
+
+		const roof = builder.build({
+			multipolygon: this.multipolygon,
+			height: height,
+			minHeight: minHeight,
+			flip: false,
+			direction: direction
+		});
+		this.addAndPaintGeometry({
+			position: roof.position,
+			normal: roof.normal,
+			uv: roof.uv,
+			color: color,
+			textureId: textureId
+		});
+
+		return roof.addSkirt ? roof.skirtHeight : null;
 	}
 
-	public addFootprint(
+	private addAndPaintGeometry(
 		{
-			height,
+			position,
+			normal,
+			uv,
 			color,
-			textureId,
-			flip
+			textureId
 		}: {
-			height: number;
+			position: number[];
+			normal: number[];
+			uv: number[];
 			color: number;
 			textureId: number;
-			flip: boolean;
 		}
 	): void {
+		this.arrays.position.push(...position);
+		this.arrays.normal.push(...normal);
+		this.arrays.uv.push(...uv);
+
+		const vertexCount = position.length / 3;
 		const colorComponents = colorToComponents(color);
-		const normalY = flip ? -1 : 1;
 
-		for (const ring of this.rings) {
-			if (ring.type !== RingType.Outer) {
-				continue;
-			}
-
-			const {vertices, holes} = this.getRingEarcutInput(
-				ring,
-				this.rings.filter(ring => ring.type === RingType.Inner)
-			);
-			const triangles = earcut(vertices, holes).reverse();
-
-			for (let i = 0; i < triangles.length; i++) {
-				this.arrays.position.push(
-					vertices[triangles[i] * 2],
-					height,
-					vertices[triangles[i] * 2 + 1]
-				);
-				this.arrays.uv.push(vertices[triangles[i] * 2], vertices[triangles[i] * 2 + 1]);
-				this.arrays.normal.push(0, normalY, 0);
-				this.arrays.color.push(...colorComponents);
-				this.arrays.textureId.push(textureId);
-			}
+		for (let i = 0; i < vertexCount; i++) {
+			this.arrays.color.push(...colorComponents);
+			this.arrays.textureId.push(textureId);
 		}
-	}
-
-	private getRingEarcutInput(outerRing: Ring, innerRings: Ring[]): EarcutInput {
-		let vertices: number[] = [...outerRing.getFlattenVertices()];
-		const holes: number[] = [];
-
-		for (const inner of innerRings) {
-			holes.push(vertices.length / 2);
-			vertices = vertices.concat(inner.getFlattenVertices());
-		}
-
-		return {vertices, holes};
-	}
-
-	private getPolygonOMBB(vertices: Vec2[]): [Vec2, Vec2, Vec2, Vec2] {
-		const vectors: OMBB.Vector[] = vertices.map(v => new OMBB.Vector(v.x, v.y));
-		const convexHull = OMBB.CalcConvexHull(vectors);
-		const ombb = OMBB.ComputeOMBB(convexHull);
-
-		return [
-			new Vec2(ombb[0].x, ombb[0].y),
-			new Vec2(ombb[1].x, ombb[1].y),
-			new Vec2(ombb[2].x, ombb[2].y),
-			new Vec2(ombb[3].x, ombb[3].y)
-		];
 	}
 
 	private getIDBuffer(): Uint32Array {
@@ -227,8 +192,6 @@ export default class Tile3DExtrudedGeometryBuilder {
 	}
 
 	public getGeometry(): Tile3DExtrudedGeometry {
-		const vertexCount = this.arrays.position.length / 3;
-
 		return {
 			type: 'extruded',
 			boundingBox: this.boundingBox,

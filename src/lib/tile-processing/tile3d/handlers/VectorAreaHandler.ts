@@ -4,11 +4,11 @@ import VectorArea, {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-process
 import OSMReference from "~/lib/tile-processing/vector/features/OSMReference";
 import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/descriptors";
 import Tile3DExtrudedGeometryBuilder, {
-	RingType,
 	RoofType
 } from "~/lib/tile-processing/tile3d/builders/Tile3DExtrudedGeometryBuilder";
 import Vec2 from "~/lib/math/Vec2";
 import Tile3DExtrudedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DExtrudedGeometry";
+import {Tile3DRingType} from "~/lib/tile-processing/tile3d/builders/Tile3DRing";
 
 export default class VectorAreaHandler implements Handler {
 	private readonly osmReference: OSMReference;
@@ -35,25 +35,26 @@ export default class VectorAreaHandler implements Handler {
 		const builder = new Tile3DExtrudedGeometryBuilder(this.osmReference);
 
 		for (const ring of this.rings) {
-			const type = ring.type === VectorAreaRingType.Inner ? RingType.Inner : RingType.Outer;
+			const type = ring.type === VectorAreaRingType.Inner ? Tile3DRingType.Inner : Tile3DRingType.Outer;
 			const nodes = ring.nodes.map(node => new Vec2(node.x, node.y));
 
 			builder.addRing(type, nodes);
 		}
 
 		builder.setSmoothingThreshold(20);
+		const skirt = builder.addRoof({
+			type: this.getRingTypeFromString(this.descriptor.buildingRoofType),
+			minHeight: this.descriptor.buildingHeight,
+			height: this.descriptor.buildingRoofHeight,
+			direction: this.descriptor.buildingRoofDirection,
+			textureId: 0,
+			color: this.descriptor.buildingRoofColor
+		});
 		builder.addWalls({
 			minHeight: this.descriptor.buildingMinHeight,
-			height: this.descriptor.buildingHeight,
+			height: skirt ? skirt : this.descriptor.buildingHeight,
 			color: this.descriptor.buildingFacadeColor,
 			textureId: 0
-		});
-		builder.addRoof({
-			type: this.getRingTypeFromString(this.descriptor.buildingRoofType),
-			minHeight: this.descriptor.buildingMinHeight + this.descriptor.buildingHeight,
-			height: this.descriptor.buildingRoofHeight,
-			textureId: 0,
-			color: ~~(Math.random() * 0xffffff)
 		});
 
 		return builder.getGeometry();

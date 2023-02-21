@@ -228,7 +228,7 @@ export default class MathUtils {
 	): [number, number][] {
 		const intersectionPoints = [];
 
-		for(let i = 0; i < triangle.length; i++) {
+		for (let i = 0; i < triangle.length; i++) {
 			const next = (i + 1 == triangle.length) ? 0 : i + 1;
 			const ip = MathUtils.getIntersectionPoint(lineStart, lineEnd, triangle[i], triangle[next]);
 
@@ -244,7 +244,7 @@ export default class MathUtils {
 		let mX = 0;
 		let mY = 0;
 
-		for(const point of points) {
+		for (const point of points) {
 			mX += point[0];
 			mY += point[1];
 		}
@@ -254,7 +254,7 @@ export default class MathUtils {
 
 		const atanValues: Map<[number, number], number> = new Map();
 
-		for(const point of points) {
+		for (const point of points) {
 			atanValues.set(point, Math.atan2(point[1] - mY, point[0] - mX));
 		}
 
@@ -269,29 +269,29 @@ export default class MathUtils {
 		const clippedCorners: [number, number][] = [];
 
 		const addPoint = (p1: [number, number]): void => {
-			if(clippedCorners.some(p2 => p1[0] === p2[0] && p1[1] === p2[1])) {
+			if (clippedCorners.some(p2 => p1[0] === p2[0] && p1[1] === p2[1])) {
 				return;
 			}
 
 			clippedCorners.push(p1);
 		}
 
-		for(const point of tri1) {
-			if(MathUtils.isPointInTriangle(point, tri2)) {
+		for (const point of tri1) {
+			if (MathUtils.isPointInTriangle(point, tri2)) {
 				addPoint(point);
 			}
 		}
 
-		for(const point of tri2) {
-			if(MathUtils.isPointInTriangle(point, tri1)) {
+		for (const point of tri2) {
+			if (MathUtils.isPointInTriangle(point, tri1)) {
 				addPoint(point);
 			}
 		}
 
-		for(let i = 0, next = 1; i < tri1.length; i++, next = (i + 1 == tri1.length) ? 0 : i + 1) {
+		for (let i = 0, next = 1; i < tri1.length; i++, next = (i + 1 == tri1.length) ? 0 : i + 1) {
 			const points = MathUtils.getIntersectionPointsLineTriangle(tri1[i], tri1[next], tri2);
 
-			for(const point of points) {
+			for (const point of points) {
 				addPoint(point);
 			}
 		}
@@ -325,6 +325,32 @@ export default class MathUtils {
 		return [x + x0, y + y0];
 	}
 
+	public static getPolygonCentroidVec2(points: Vec2[]): Vec2 {
+		//Correction for very small polygons:
+		const x0 = points[0].x, y0 = points[0].y;
+
+		let x = 0, y = 0, twiceArea = 0;
+		let prev = points[points.length - 1];
+
+		for (const next of points) {
+			const x1 = prev.x - x0, y1 = prev.y - y0,
+				x2 = next.x - x0, y2 = next.y - y0,
+				a = x1 * y2 - x2 * y1;
+
+			twiceArea += a;
+			x += (x1 + x2) * a;
+			y += (y1 + y2) * a;
+
+			prev = next;
+		}
+
+		const factor = 3 * twiceArea;  // 6 * twiceArea/2
+		x /= factor;
+		y /= factor;
+
+		return new Vec2(x + x0, y + y0);
+	}
+
 	public static isPointInsidePolygon(point: [number, number], vs: [number, number][]): boolean {
 		// https://github.com/substack/point-in-polygon
 
@@ -334,6 +360,24 @@ export default class MathUtils {
 		for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
 			const xi = vs[i][0], yi = vs[i][1];
 			const xj = vs[j][0], yj = vs[j][1];
+
+			const intersect = ((yi > y) != (yj > y))
+				&& (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+			if (intersect) inside = !inside;
+		}
+
+		return inside;
+	}
+
+	public static isPointInsidePolygonVec2(point: Vec2, vs: Vec2[]): boolean {
+		// https://github.com/substack/point-in-polygon
+
+		const {x, y} = point;
+
+		let inside = false;
+		for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+			const xi = vs[i].x, yi = vs[i].y;
+			const xj = vs[j].x, yj = vs[j].y;
 
 			const intersect = ((yi > y) != (yj > y))
 				&& (x < (xj - xi) * (y - yi) / (yj - yi) + xi);

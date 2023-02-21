@@ -20,6 +20,7 @@ import Tile3DBuffers, {
 	Tile3DBuffersProjected
 } from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
 import Utils from "~/app/Utils";
+import * as Simplify from "simplify-js";
 
 export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
 	private vectorProvider: CombinedVectorFeatureProvider = new CombinedVectorFeatureProvider();
@@ -49,14 +50,22 @@ export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
 		}
 
 		for (const feature of collection.polylines) {
+			feature.nodes = Tile3DFromVectorProvider.simplifyNodes(feature.nodes);
 			handlers.push(new VectorPolylineHandler(feature));
 		}
 
 		for (const feature of collection.areas) {
+			for (const ring of feature.rings) {
+				ring.nodes = Tile3DFromVectorProvider.simplifyNodes(ring.nodes);
+			}
 			handlers.push(new VectorAreaHandler(feature));
 		}
 
 		return handlers;
+	}
+
+	private static simplifyNodes(nodes: VectorNode[]): VectorNode[] {
+		return <VectorNode[]>Simplify(nodes, 0.5, false);
 	}
 
 	private static getFeaturesFromHandlers(
