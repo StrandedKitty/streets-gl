@@ -101,7 +101,7 @@ export default class MansardRoofBuilder extends HippedRoofBuilder {
 			edge: [Vec2, Vec2];
 		}
 	): {position: number[]; uv: number[]} {
-		const bumpHeight = this.edgeBumpFactor * this.splitProgress;
+		const bumpHeight = this.edgeBumpFactor * height;
 		const offset = bumpHeight / (1 - this.splitProgress);
 		const bottom = this.triangulatePolygon(
 			verticesBottom, minHeight, height + bumpHeight / this.splitProgress, maxSkeletonHeight, edge

@@ -27,7 +27,7 @@ export default class HippedRoofBuilder implements RoofBuilder {
 		let minHeight: number = params.minHeight;
 		let facadeHeightOverride: number = null;
 
-		if (params.angle !== null && params.angle !== undefined || true) {
+		if (params.angle !== null && params.angle !== undefined) {
 			height = maxSkeletonHeight * Math.tan(MathUtils.toRad(params.angle ?? 45));
 			minHeight = params.buildingHeight - height;
 			facadeHeightOverride = params.buildingHeight - height;
