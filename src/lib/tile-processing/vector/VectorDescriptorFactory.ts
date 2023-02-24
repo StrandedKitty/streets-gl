@@ -6,6 +6,7 @@ import {
 import {Modifier, ModifierType} from "~/lib/tile-processing/vector/modifiers";
 import ColorsList from '../../../resources/colors.json';
 import {Tags} from "~/lib/tile-processing/vector/providers/OverpassDataObject";
+import MathUtils from "~/lib/math/MathUtils";
 
 type Descriptor = VectorNodeDescriptor | VectorAreaDescriptor | VectorPolylineDescriptor;
 
@@ -31,7 +32,9 @@ const RoofOSMShapeToType: Record<string, VectorAreaDescriptor['buildingRoofType'
 	hipped: 'hipped',
 	gabled: 'gabled',
 	pyramidal: 'pyramidal',
-	skillion: 'skillion'
+	skillion: 'skillion',
+	mansard: 'mansard',
+	quadruple_saltbox: 'quadrupleSaltbox'
 };
 
 const RoofTypeToDefaultLevels: Record<VectorAreaDescriptor['buildingRoofType'], number> = {
@@ -39,7 +42,9 @@ const RoofTypeToDefaultLevels: Record<VectorAreaDescriptor['buildingRoofType'], 
 	hipped: 1,
 	gabled: 1,
 	pyramidal: 1,
-	skillion: 1
+	skillion: 1,
+	mansard: 1,
+	quadrupleSaltbox: 1
 };
 
 export class VectorDescriptorFactory {
@@ -272,6 +277,7 @@ export class VectorDescriptorFactory {
 		buildingRoofHeight: number;
 		buildingRoofType: VectorAreaDescriptor['buildingRoofType'];
 		buildingRoofDirection: number;
+		buildingRoofAngle: number;
 		buildingFacadeMaterial: VectorAreaDescriptor['buildingFacadeMaterial'];
 		buildingFacadeColor: number;
 		buildingRoofMaterial: VectorAreaDescriptor['buildingRoofMaterial'];
@@ -285,10 +291,12 @@ export class VectorDescriptorFactory {
 
 		const roofType = this.parseRoofType(tags['roof:shape'], 'flat');
 		const roofLevels = this.parseUnsignedInt(tags['roof:levels']) ?? this.getRoofDefaultLevels(roofType);
-		const roofHeight = this.parseHeight(tags['roof:height'], roofLevels * levelHeight);
 		const roofColor = this.parseColor(tags['roof:colour'], fallbackRoofColor);
 		const roofMaterial = this.parseRoofMaterial(tags['building:material'], 'default');
 		const roofDirection = this.parseFloat(tags['roof:direction']) ?? 0;
+
+		const roofHeight = this.parseHeight(tags['roof:height'], roofLevels * levelHeight);
+		const roofAngle = this.parseUnsignedFloat(tags['roof:angle']);
 
 		const minLevel = this.parseUnsignedInt(tags['building:min_level']) ?? 0;
 		const levels = (this.parseUnsignedInt(tags['building:levels']) ?? fallbackLevels + minLevel) - minLevel;
@@ -296,7 +304,7 @@ export class VectorDescriptorFactory {
 			this.parseHeight(
 				tags.height,
 				(levels + minLevel) * levelHeight + roofHeight
-			) - roofHeight
+			)
 		);
 		const minHeight = Math.min(this.parseHeight(tags.min_height, minLevel * levelHeight), height);
 		const color = this.parseColor(tags['building:colour'], fallbackFacadeColor);
@@ -310,6 +318,7 @@ export class VectorDescriptorFactory {
 			buildingRoofHeight: roofHeight,
 			buildingRoofType: roofType,
 			buildingRoofDirection: roofDirection,
+			buildingRoofAngle: roofAngle,
 			buildingFacadeMaterial: material,
 			buildingFacadeColor: color,
 			buildingRoofMaterial: roofMaterial,
@@ -366,6 +375,11 @@ export class VectorDescriptorFactory {
 
 	private static parseFloat(str: string = ''): number {
 		const value = parseFloat(str);
+		return isNaN(value) ? undefined : value;
+	}
+
+	private static parseUnsignedFloat(str: string = ''): number {
+		const value = Math.max(parseFloat(str), 0);
 		return isNaN(value) ? undefined : value;
 	}
 }

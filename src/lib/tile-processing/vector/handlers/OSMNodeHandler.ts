@@ -4,7 +4,7 @@ import VectorArea from "~/lib/tile-processing/vector/features/VectorArea";
 import Handler from './Handler';
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
 import {ContainerType, VectorDescriptorFactory} from "~/lib/tile-processing/vector/VectorDescriptorFactory";
-import {cleanupTags} from "~/lib/tile-processing/vector/tagsUtils";
+import {cleanupTags} from "~/lib/tile-processing/vector/utils";
 
 export default class OSMNodeHandler implements Handler {
 	private readonly x: number;

@@ -29,8 +29,8 @@ export default class RoadPolylineBuilder {
 				vB = Vec2.sub(next, current);
 			}
 
-			if (!vA) vA = Vec2.copy(vB);
-			if (!vB) vB = Vec2.copy(vA);
+			if (!vA) vA = Vec2.clone(vB);
+			if (!vB) vB = Vec2.clone(vA);
 
 			const aNorm = Vec2.normalize(vA);
 			const bNorm = Vec2.normalize(vB);

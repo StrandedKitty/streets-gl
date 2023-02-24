@@ -7,7 +7,7 @@ import {ContainerType, VectorDescriptorFactory,} from "~/lib/tile-processing/vec
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
 import {ModifierType} from "~/lib/tile-processing/vector/modifiers";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
-import {cleanupTags} from "~/lib/tile-processing/vector/tagsUtils";
+import {cleanupTags} from "~/lib/tile-processing/vector/utils";
 import Ring from "~/lib/tile-processing/vector/handlers/Ring";
 
 export default class OSMWayHandler implements Handler {

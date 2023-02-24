@@ -1,57 +1,59 @@
-import RoofBuilder, {RoofGeometry, RoofParams} from "./RoofBuilder";
+import RoofBuilder, {RoofGeometry, RoofParams, RoofSkirt} from "./RoofBuilder";
 import MathUtils from "~/lib/math/MathUtils";
 import Vec2 from "~/lib/math/Vec2";
 import Vec3 from "~/lib/math/Vec3";
+import AABB2D from "~/lib/math/AABB2D";
 
 export default class SkillionRoofBuilder implements RoofBuilder {
-	public build(params: RoofParams): RoofGeometry {
-		const {multipolygon, minHeight, height, direction} = params;
-		const skirtHeight: number[][] = [];
-		const footprint = multipolygon.getFootprint({
-			height: minHeight,
-			flip: false
-		});
-		const rotation = -MathUtils.toRad(direction ?? 0) - Math.PI / 2;
+	private getRoofHeightFromAngle(bbox: AABB2D, angle: number): number {
+		return (bbox.max.y - bbox.min.y) * Math.tan(MathUtils.toRad(angle));
+	}
 
-		const min = {
-			x: Infinity,
-			z: Infinity
-		};
-		const max = {
-			x: -Infinity,
-			z: -Infinity
-		};
+	public build(params: RoofParams): RoofGeometry {
+		const {multipolygon, direction} = params;
+		const skirt: RoofSkirt = new Map();
+		const rotation = -MathUtils.toRad(direction ?? 0) - Math.PI / 2;
+		const bbox = new AABB2D();
 
 		for (const ring of multipolygon.rings) {
 			for (const node of ring.nodes) {
-				const v = Vec2.rotate(node, rotation);
-
-				min.x = Math.min(min.x, v.x);
-				min.z = Math.min(min.z, v.y);
-				max.x = Math.max(max.x, v.x);
-				max.z = Math.max(max.z, v.y);
+				bbox.includePoint(Vec2.rotate(node, rotation));
 			}
 		}
+
+		let facadeHeightOverride: number = null;
+		let height = params.height;
+		let minHeight = params.minHeight;
+
+		if (params.angle !== null && params.angle !== undefined) {
+			height = this.getRoofHeightFromAngle(bbox, params.angle)
+			minHeight = params.buildingHeight - height;
+			facadeHeightOverride = params.buildingHeight - height;
+		}
+
+		const footprint = multipolygon.getFootprint({
+			height: 0,
+			flip: false
+		});
 
 		for (let i = 0; i < footprint.positions.length; i += 3) {
 			const x = footprint.positions[i];
 			const z = footprint.positions[i + 2];
-			const v = Vec2.rotate(new Vec2(x, z), rotation);
-			const y = (v.y - min.z) / (max.z - min.z);
+			const vec = Vec2.rotate(new Vec2(x, z), rotation);
+			const y = (vec.y - bbox.min.y) / (bbox.max.y - bbox.min.y);
 
 			footprint.positions[i + 1] = minHeight + y * height;
 		}
 
 		for (const ring of multipolygon.rings) {
-			const skirt: number[] = [];
-			skirtHeight.push(skirt);
+			const skirtNodes: [Vec2, number][] = [];
+			skirt.set(ring, skirtNodes);
 
 			for (const node of ring.nodes) {
-				const v = Vec2.rotate(node, rotation);
-				const y = (v.y - min.z) / (max.z - min.z);
+				const vec = Vec2.rotate(node, rotation);
+				const y = (vec.y - bbox.min.y) / (bbox.max.y - bbox.min.y);
 
-				const vertexHeight = minHeight + y * height;
-				skirt.push(vertexHeight);
+				skirtNodes.push([node, minHeight + y * height]);
 			}
 		}
 
@@ -68,7 +70,8 @@ export default class SkillionRoofBuilder implements RoofBuilder {
 
 		return {
 			addSkirt: true,
-			skirtHeight: skirtHeight,
+			skirt: skirt,
+			facadeHeightOverride: facadeHeightOverride,
 			position: footprint.positions,
 			normal: footprint.normals,
 			uv: footprint.uvs

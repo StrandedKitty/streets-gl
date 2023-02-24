@@ -41,18 +41,20 @@ export default class VectorAreaHandler implements Handler {
 			builder.addRing(type, nodes);
 		}
 
-		builder.setSmoothingThreshold(20);
-		const skirt = builder.addRoof({
+		const {skirt, facadeHeightOverride} = builder.addRoof({
 			type: this.getRingTypeFromString(this.descriptor.buildingRoofType),
-			minHeight: this.descriptor.buildingHeight,
+			buildingHeight: this.descriptor.buildingHeight,
+			minHeight: this.descriptor.buildingHeight - this.descriptor.buildingRoofHeight,
 			height: this.descriptor.buildingRoofHeight,
 			direction: this.descriptor.buildingRoofDirection,
+			angle: this.descriptor.buildingRoofAngle,
 			textureId: 0,
 			color: this.descriptor.buildingRoofColor
 		});
 		builder.addWalls({
 			minHeight: this.descriptor.buildingMinHeight,
-			height: skirt ? skirt : this.descriptor.buildingHeight,
+			height: facadeHeightOverride ?? (this.descriptor.buildingHeight - this.descriptor.buildingRoofHeight),
+			skirt: skirt,
 			color: this.descriptor.buildingFacadeColor,
 			textureId: 0
 		});
@@ -71,6 +73,8 @@ export default class VectorAreaHandler implements Handler {
 			case 'hipped': return RoofType.Hipped;
 			case 'pyramidal': return RoofType.Pyramidal;
 			case 'skillion': return RoofType.Skillion;
+			case 'mansard': return RoofType.Mansard;
+			case 'quadrupleSaltbox': return RoofType.QuadrupleSaltbox;
 		}
 
 		console.error(`Roof type ${str} is not supported`);

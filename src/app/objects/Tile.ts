@@ -115,8 +115,6 @@ export default class Tile extends Object3D {
 			this.staticGeometry = objects;
 			this.updateStaticGeometryOffsets();
 
-			console.log(objects)
-
 			this.buildings = new TileBuildings(this.staticGeometry.extruded);
 			//this.ground = new TileGround(this.staticGeometry);
 			this.roads = new TileRoads(this.staticGeometry.projected);

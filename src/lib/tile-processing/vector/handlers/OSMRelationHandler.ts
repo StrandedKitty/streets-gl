@@ -2,10 +2,8 @@ import {RelationElement, RelationMember} from "~/lib/tile-processing/vector/prov
 import OSMWayHandler from "~/lib/tile-processing/vector/handlers/OSMWayHandler";
 import Handler from "~/lib/tile-processing/vector/handlers/Handler";
 import VectorArea, {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
-import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
-import {VectorNodeDescriptor} from "~/lib/tile-processing/vector/descriptors";
-import {cleanupTags} from "~/lib/tile-processing/vector/tagsUtils";
+import {cleanupTags} from "~/lib/tile-processing/vector/utils";
 import {ContainerType, VectorDescriptorFactory} from "~/lib/tile-processing/vector/VectorDescriptorFactory";
 import Ring from "~/lib/tile-processing/vector/handlers/Ring";
 
@@ -14,7 +12,7 @@ export default class OSMRelationHandler implements Handler {
 	private readonly tags: Record<string, string>;
 	private readonly members: {
 		osmMember: RelationMember;
-		handler: OSMWayHandler | OSMRelationHandler
+		handler: OSMWayHandler | OSMRelationHandler;
 	}[] = [];
 	private disableFeatureOutput: boolean = false;
 

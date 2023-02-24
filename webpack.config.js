@@ -18,7 +18,7 @@ module.exports = [{
 	devServer: {
 		hot: true
 	},
-	devtool: 'cheap-source-map',
+	devtool: 'inline-source-map',
 	plugins: [
 		new CleanWebpackPlugin(),
 		new HtmlWebpackPlugin({

@@ -9,8 +9,18 @@ import {colorToComponents} from "~/lib/tile-processing/tile3d/builders/utils";
 import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 import FlatRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/FlatRoofBuilder";
 import SkillionRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/SkillionRoofBuilder";
-import RoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/RoofBuilder";
+import RoofBuilder, {
+	RoofGeometry,
+	RoofParams,
+	RoofSkirt
+} from "~/lib/tile-processing/tile3d/builders/roofs/RoofBuilder";
 import PyramidalRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/PyramidalRoofBuilder";
+import HippedRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/HippedRoofBuilder";
+import RoofGeometryValidator from "~/lib/tile-processing/tile3d/builders/roofs/RoofGeometryValidator";
+import GabledRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/GabledRoofBuilder";
+import MansardRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/MansardRoofBuilder";
+import QuadrupleSaltboxRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/QuadrupleSaltboxRoofBuilder";
+import WallsBuilder from "~/lib/tile-processing/tile3d/builders/WallsBuilder";
 
 export enum RoofType {
 	Flat,
@@ -18,7 +28,9 @@ export enum RoofType {
 	Hipped,
 	Pyramidal,
 	Dome,
-	Skillion
+	Skillion,
+	Mansard,
+	QuadrupleSaltbox
 }
 
 export default class Tile3DExtrudedGeometryBuilder {
@@ -39,7 +51,6 @@ export default class Tile3DExtrudedGeometryBuilder {
 	private readonly rings: Tile3DRing[] = [];
 	private readonly multipolygon: Tile3DMultipolygon = new Tile3DMultipolygon();
 	private readonly boundingBox: AABB3D = new AABB3D(new Vec3(), new Vec3());
-	private smoothingThreshold: number = Infinity;
 
 	public constructor(osmReference: OSMReference) {
 		this.osmReference = osmReference;
@@ -52,39 +63,65 @@ export default class Tile3DExtrudedGeometryBuilder {
 		this.multipolygon.addRing(ring);
 	}
 
-	public setSmoothingThreshold(value: number): void {
-		this.smoothingThreshold = value;
-	}
-
 	public addWalls(
 		{
 			minHeight,
 			height,
+			skirt,
 			color,
 			textureId
 		}: {
 			minHeight: number;
-			height: number | number[][];
+			height: number;
+			skirt: RoofSkirt;
 			color: number;
 			textureId: number;
 		}
 	): void {
-		for (let i = 0; i < this.rings.length; i++) {
-			this.rings[i].buildWalls({
-				minHeight,
-				height: (typeof height === 'number') ? height : height[i],
-				color,
-				textureId
-			}, this.arrays);
+		if (skirt) {
+			for (const [ring, points] of skirt) {
+				const nodes = points.map(point => point[0]);
+				const heights =  points.map(point => point[1]);
+
+				const walls = new WallsBuilder().build({
+					vertices: nodes,
+					minHeight,
+					height: heights
+				});
+				this.addAndPaintGeometry({
+					position: walls.position,
+					normal: walls.normal,
+					uv: walls.uv,
+					color,
+					textureId
+				});
+			}
+		} else {
+			for (const ring of this.rings) {
+				const walls = new WallsBuilder().build({
+					vertices: ring.nodes,
+					minHeight,
+					height: height
+				});
+				this.addAndPaintGeometry({
+					position: walls.position,
+					normal: walls.normal,
+					uv: walls.uv,
+					color,
+					textureId
+				});
+			}
 		}
 
 		if (minHeight > 0) {
 			const roof = new FlatRoofBuilder().build({
 				multipolygon: this.multipolygon,
+				buildingHeight: minHeight,
 				height: 0,
 				minHeight: minHeight,
 				flip: true,
-				direction: 0
+				direction: 0,
+				angle: 0
 			});
 			this.addAndPaintGeometry({
 				position: roof.position,
@@ -99,21 +136,27 @@ export default class Tile3DExtrudedGeometryBuilder {
 	public addRoof(
 		{
 			type,
+			buildingHeight,
 			minHeight,
 			height,
 			direction,
+			angle,
 			color,
 			textureId
 		}: {
 			type: RoofType;
+			buildingHeight: number;
 			minHeight: number;
 			height: number;
 			direction: number;
+			angle: number;
 			color: number;
 			textureId: number;
 		}
-	): number[][] | null {
+	): {skirt?: RoofSkirt; facadeHeightOverride?: number} {
 		let builder: RoofBuilder;
+
+		//type = RoofType.QuadrupleSaltbox as RoofType;
 
 		switch (type) {
 			case RoofType.Skillion: {
@@ -124,28 +167,59 @@ export default class Tile3DExtrudedGeometryBuilder {
 				builder = new PyramidalRoofBuilder();
 				break;
 			}
+			case RoofType.Hipped: {
+				builder = new HippedRoofBuilder();
+				break;
+			}
+			case RoofType.Gabled: {
+				builder = new GabledRoofBuilder();
+				break;
+			}
+			case RoofType.Mansard: {
+				builder = new MansardRoofBuilder();
+				break;
+			}
+			case RoofType.QuadrupleSaltbox: {
+				builder = new QuadrupleSaltboxRoofBuilder();
+				break;
+			}
 			default: {
 				builder = new FlatRoofBuilder();
 				break;
 			}
 		}
 
-		const roof = builder.build({
+		const roof = this.buildRoofSafe(builder, {
 			multipolygon: this.multipolygon,
+			buildingHeight: buildingHeight,
 			height: height,
 			minHeight: minHeight,
 			flip: false,
-			direction: direction
+			direction: direction,
+			angle: angle
 		});
 		this.addAndPaintGeometry({
 			position: roof.position,
 			normal: roof.normal,
 			uv: roof.uv,
-			color: color,
+			color: ~~(Math.random() * 0xffffff),
 			textureId: textureId
 		});
 
-		return roof.addSkirt ? roof.skirtHeight : null;
+		return {
+			skirt: roof.addSkirt ? roof.skirt : null,
+			facadeHeightOverride: roof.facadeHeightOverride
+		};
+	}
+
+	private buildRoofSafe(builder: RoofBuilder, params: RoofParams): RoofGeometry {
+		let roof = builder.build(params);
+
+		if (roof === null || !RoofGeometryValidator.validate(roof, params.multipolygon)) {
+			roof = new FlatRoofBuilder().build(params);
+		}
+
+		return roof;
 	}
 
 	private addAndPaintGeometry(

@@ -96,7 +96,7 @@ export default class Vec2 {
 		return dst;
 	}
 
-	public static copy(v: Vec2): Vec2 {
+	public static clone(v: Vec2): Vec2 {
 		return new this(v.x, v.y);
 	}
 

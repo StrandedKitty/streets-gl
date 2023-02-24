@@ -9,6 +9,7 @@ import OSMWayHandler from "~/lib/tile-processing/vector/handlers/OSMWayHandler";
 import OSMRelationHandler from "~/lib/tile-processing/vector/handlers/OSMRelationHandler";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import VectorPolyline from "~/lib/tile-processing/vector/features/VectorPolyline";
+import {applyScaleToFeatures} from "~/lib/tile-processing/vector/utils";
 
 const TileRequestMargin = 0.05;
 
@@ -153,19 +154,15 @@ export default class OverpassVectorFeatureProvider extends VectorFeatureProvider
 			}
 		}
 
-		const res = OverpassVectorFeatureProvider.getFeaturesFromHandlers([
+		const collection = OverpassVectorFeatureProvider.getFeaturesFromHandlers([
 			...nodeHandlersMap.values(),
 			...wayHandlersMap.values(),
 			...relationHandlersMap.values()
 		]);
 
-		console.log(x, y, res);
+		applyScaleToFeatures(collection, x, y, zoom);
 
-		return OverpassVectorFeatureProvider.getFeaturesFromHandlers([
-			...nodeHandlersMap.values(),
-			...wayHandlersMap.values(),
-			...relationHandlersMap.values()
-		]);
+		return collection;
 	}
 
 	private static getFeaturesFromHandlers(handlers: (OSMNodeHandler | OSMWayHandler | OSMRelationHandler)[]): VectorFeatureCollection {
@@ -294,7 +291,6 @@ export default class OverpassVectorFeatureProvider extends VectorFeatureProvider
 
 			if (isNewElement) {
 				obj0.elements.push(el);
-				console.log('patch', el)
 			}
 		}
 

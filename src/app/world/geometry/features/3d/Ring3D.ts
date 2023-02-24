@@ -87,7 +87,7 @@ export default class Ring3D extends Feature3D {
 	}
 
 	private buildVerticesFromNodes(): void {
-		const nodeVertices: Vec2[] = this.nodes.map(node => Vec2.copy(node.position));
+		const nodeVertices: Vec2[] = this.nodes.map(node => Vec2.clone(node.position));
 
 		if (nodeVertices.length <= 3) {
 			this.vertices = nodeVertices.map(p => [p.x, p.y]);

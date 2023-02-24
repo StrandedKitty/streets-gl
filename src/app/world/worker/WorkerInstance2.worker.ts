@@ -28,8 +28,6 @@ async function load(x: number, y: number): Promise<void> {
 	const collection = await provider.getCollection({x, y, zoom: 16});
 	const buffers = Tile3DFeaturesToBuffersConverter.convert(collection);
 
-	console.log(buffers)
-
 	sendMessage({
 		type: WorkerMessageIncomingType.Success,
 		tile: [x, y],
