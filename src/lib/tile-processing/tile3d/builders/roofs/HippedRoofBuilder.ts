@@ -138,12 +138,21 @@ export default class HippedRoofBuilder implements RoofBuilder {
 			const index = triangles[i];
 			const x = flatVertices[index * 2];
 			const z = flatVertices[index * 2 + 1];
-			const y = signedDstToLine(new Vec2(x, z), edgeLine);
+			const vertex = new Vec2(x, z);
+			const dst = signedDstToLine(vertex, edgeLine);
 
-			const vertexHeight = minHeight + y / maxSkeletonHeight * height;
+			const vertexHeight = minHeight + dst / maxSkeletonHeight * height;
 
 			position.push(x, vertexHeight, z);
-			uv.push(x, z);
+
+			const lineNormal: [Vec2, Vec2] = [
+				edgeLine[0],
+				Vec2.add(edgeLine[0], Vec2.rotateRight(Vec2.sub(edgeLine[1], edgeLine[0])))
+			];
+			const uvX = signedDstToLine(vertex, lineNormal);
+			const uvYScale = Math.sin(Math.atan(maxSkeletonHeight / height));
+
+			uv.push(uvX, dst / uvYScale);
 		}
 
 		return {position, uv};
@@ -168,5 +177,11 @@ export default class HippedRoofBuilder implements RoofBuilder {
 		}
 
 		return normals;
+	}
+
+	protected getVertexHeightFromEdge(vertex: Vec2, edge: [Vec2, Vec2], skeletonHeight: number, roofHeight: number): number {
+		const dst = signedDstToLine(vertex, edge);
+
+		return dst / skeletonHeight * roofHeight;
 	}
 }

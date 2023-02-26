@@ -11,7 +11,7 @@ export default class SkillionRoofBuilder implements RoofBuilder {
 
 	public build(params: RoofParams): RoofGeometry {
 		const {multipolygon, direction} = params;
-		const skirt: RoofSkirt = new Map();
+		const skirt: RoofSkirt = [[]];
 		const rotation = -MathUtils.toRad(direction ?? 0) - Math.PI / 2;
 		const bbox = new AABB2D();
 
@@ -45,15 +45,27 @@ export default class SkillionRoofBuilder implements RoofBuilder {
 			footprint.positions[i + 1] = minHeight + y * height;
 		}
 
-		for (const ring of multipolygon.rings) {
-			const skirtNodes: [Vec2, number][] = [];
-			skirt.set(ring, skirtNodes);
+		const bboxHeight = bbox.max.y - bbox.min.y;
+		const uvYScale = Math.sin(Math.atan(bboxHeight / height));
 
+		for (let i = 0; i < footprint.uvs.length; i += 2) {
+			const x = footprint.uvs[i];
+			const y = footprint.uvs[i + 1];
+			const vec = Vec2.rotate(new Vec2(x, y), rotation);
+
+			footprint.uvs[i] = vec.x - bbox.min.x;
+			footprint.uvs[i + 1] = (vec.y - bbox.min.y) / uvYScale;
+		}
+
+		for (const ring of multipolygon.rings) {
 			for (const node of ring.nodes) {
 				const vec = Vec2.rotate(node, rotation);
 				const y = (vec.y - bbox.min.y) / (bbox.max.y - bbox.min.y);
 
-				skirtNodes.push([node, minHeight + y * height]);
+				skirt[0].push({
+					position: node,
+					height: minHeight + y * height
+				});
 			}
 		}
 

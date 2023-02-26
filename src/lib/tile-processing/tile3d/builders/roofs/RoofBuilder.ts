@@ -1,8 +1,12 @@
 import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 import Vec2 from "~/lib/math/Vec2";
-import Tile3DRing from "~/lib/tile-processing/tile3d/builders/Tile3DRing";
 
-export type RoofSkirt = Map<Tile3DRing, [Vec2, number][]>;
+export interface RoofSkirtPoint {
+	position: Vec2;
+	height: number;
+}
+export type RoofSkirtPolyline = RoofSkirtPoint[];
+export type RoofSkirt = RoofSkirtPolyline[];
 
 export interface RoofGeometry {
 	addSkirt: boolean;

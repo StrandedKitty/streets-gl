@@ -8,11 +8,15 @@ export default class WallsBuilder {
 		{
 			vertices,
 			minHeight,
-			height
+			height,
+			levels,
+			windowWidth
 		}: {
 			vertices: Vec2[];
 			minHeight: number;
 			height: number | number[];
+			levels: number;
+			windowWidth: number;
 		}
 	): {position: number[]; uv: number[]; normal: number[]} {
 		const positions: number[] = [];
@@ -44,7 +48,6 @@ export default class WallsBuilder {
 				nextVertexHeight = height[i + 1];
 			}
 
-			const uvMaxY = vertexHeight - nextVertexHeight;
 			const segmentLength = Vec2.distance(vertex, nextVertex);
 
 			positions.push(nextVertex.x, minHeight, nextVertex.y);
@@ -58,14 +61,14 @@ export default class WallsBuilder {
 			const nextUvX = uvX + segmentLength;
 
 			uvs.push(
-				nextUvX, uvMinY,
-				uvX, uvMaxY,
-				uvX, uvMinY
+				nextUvX, 0,
+				uvX, levels,
+				uvX, 0
 			);
 			uvs.push(
-				nextUvX, uvMinY,
-				nextUvX, uvMaxY,
-				uvX, uvMaxY
+				nextUvX, 0,
+				nextUvX, levels,
+				uvX, levels
 			);
 
 			uvX = nextUvX;

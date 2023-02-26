@@ -52,6 +52,8 @@ void main() {
         outNormal = packNormal(getRoofNormal());
     }
 
+    outColor = vec4(fract(vUv), 0, 1);
+
     outRoughnessMetalnessF0 = vec3(0.9, 0, 0.03);
     outMotion = getMotionVector(vClipPos, vClipPosPrev);
     outObjectId = vObjectId;

@@ -68,25 +68,31 @@ export default class Tile3DExtrudedGeometryBuilder {
 			minHeight,
 			height,
 			skirt,
+			levels,
+			windowWidth,
 			color,
 			textureId
 		}: {
 			minHeight: number;
 			height: number;
 			skirt: RoofSkirt;
+			levels: number;
+			windowWidth: number;
 			color: number;
 			textureId: number;
 		}
 	): void {
 		if (skirt) {
-			for (const [ring, points] of skirt) {
-				const nodes = points.map(point => point[0]);
-				const heights =  points.map(point => point[1]);
+			for (const polyline of skirt) {
+				const vertices = polyline.map(point => point.position);
+				const heights =  polyline.map(point => point.height);
 
 				const walls = new WallsBuilder().build({
-					vertices: nodes,
-					minHeight,
-					height: heights
+					vertices,
+					minHeight: height,
+					height: heights,
+					levels,
+					windowWidth
 				});
 				this.addAndPaintGeometry({
 					position: walls.position,
@@ -96,21 +102,23 @@ export default class Tile3DExtrudedGeometryBuilder {
 					textureId
 				});
 			}
-		} else {
-			for (const ring of this.rings) {
-				const walls = new WallsBuilder().build({
-					vertices: ring.nodes,
-					minHeight,
-					height: height
-				});
-				this.addAndPaintGeometry({
-					position: walls.position,
-					normal: walls.normal,
-					uv: walls.uv,
-					color,
-					textureId
-				});
-			}
+		}
+
+		for (const ring of this.rings) {
+			const walls = new WallsBuilder().build({
+				vertices: ring.nodes,
+				minHeight,
+				height: height,
+				levels,
+				windowWidth
+			});
+			this.addAndPaintGeometry({
+				position: walls.position,
+				normal: walls.normal,
+				uv: walls.uv,
+				color,
+				textureId
+			});
 		}
 
 		if (minHeight > 0) {

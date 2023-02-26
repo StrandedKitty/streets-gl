@@ -35,7 +35,7 @@ export default class PyramidalRoofBuilder implements RoofBuilder {
 
 		const roofSlopeLength = Math.hypot(minDstToCenter, height);
 		let uvProgress = 0;
-		const uvScale = 0.5;
+		const uvScale = 1;
 
 		for (let i = 0; i < ringVertices.length; i++) {
 			const vertex = ringVertices[i];

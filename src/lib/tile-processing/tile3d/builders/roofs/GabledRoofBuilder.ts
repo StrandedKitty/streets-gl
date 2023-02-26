@@ -1,10 +1,9 @@
-import {Skeleton} from "straight-skeleton";
+import {Edge, Skeleton, Vector2d} from "straight-skeleton";
 import HippedRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/HippedRoofBuilder";
 import {RoofSkirt} from "~/lib/tile-processing/tile3d/builders/roofs/RoofBuilder";
 import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
+import {copySkeletonPolygons, signedDstToLine} from "~/lib/tile-processing/tile3d/builders/utils";
 import Vec2 from "~/lib/math/Vec2";
-import Tile3DRing from "~/lib/tile-processing/tile3d/builders/Tile3DRing";
-import {signedDstToLine} from "~/lib/tile-processing/tile3d/builders/utils";
 
 export default class GabledRoofBuilder extends HippedRoofBuilder {
 	protected override convertSkeletonToVertices(
@@ -24,80 +23,83 @@ export default class GabledRoofBuilder extends HippedRoofBuilder {
 			flip: boolean;
 		}
 	): {position: number[]; uv: number[]; skirt?: RoofSkirt} {
-		let positionResult: number[] = [];
-		let uvResult: number[] = [];
-		const skirt: RoofSkirt = new Map();
-		const nodeMap: Map<string, [Tile3DRing, Vec2]> = new Map();
+		skeleton = copySkeletonPolygons(skeleton);
 
-		for (const ring of multipolygon.rings) {
-			skirt.set(ring, ring.nodes.map(node => [node, minHeight]));
-			for (const node of ring.nodes) {
-				nodeMap.set(`${node.x},${node.y}`, [ring, node]);
-			}
+		const skirt: RoofSkirt = [];
+		const edgePolygonMap: Map<Edge, Vector2d[]> = new Map();
+
+		for (const edge of skeleton.Edges) {
+			edgePolygonMap.set(edge.Edge, edge.Polygon);
 		}
 
 		for (const edge of skeleton.Edges) {
 			if (edge.Polygon.length === 3) {
-				const edgeLine: [Vec2, Vec2] = [
-					new Vec2(edge.Edge.Begin.X, edge.Edge.Begin.Y),
-					new Vec2(edge.Edge.End.X, edge.Edge.End.Y)
-				];
+				const prevEdge = edge.Edge.Previous as Edge;
+				const nextEdge = edge.Edge.Next as Edge;
+				const prevPolygon = edgePolygonMap.get(prevEdge);
+				const nextPolygon = edgePolygonMap.get(nextEdge);
 
-				const a = edge.Edge.Begin;
-				const b = edge.Edge.End;
-				const c = edge.Polygon.find(p => p.NotEquals(a) && p.NotEquals(b));
-				const cHeight = signedDstToLine(new Vec2(c.X, c.Y), edgeLine);
+				if (prevPolygon.length > 3 && nextPolygon.length > 3) {
+					const begin = edge.Edge.Begin;
+					const end = edge.Edge.End;
+					const dst = end.Sub(begin);
+					const center = begin.Add(dst.MultiplyScalar(0.5));
 
-				const diff = b.Sub(a);
-				const center = a.Add(diff.MultiplyScalar(0.5));
+					const extrudedPoint = edge.Polygon.find(p => {
+						return p.NotEquals(begin) && p.NotEquals(end);
+					});
 
-				const points = [
-					a.X, 0, a.Y,
-					c.X, cHeight, c.Y,
-					center.X, cHeight, center.Y,
+					const prevPolygonExtrudedPoint = prevPolygon.find(v => v.Equals(extrudedPoint));
+					const nextPolygonExtrudedPoint = nextPolygon.find(v => v.Equals(extrudedPoint));
 
-					b.X, 0, b.Y,
-					center.X, cHeight, center.Y,
-					c.X, cHeight, c.Y
-				];
-				const uvs = [
-					0, 0,
-					0, 0,
-					0, 0,
-					0, 0,
-					0, 0,
-					0, 0,
-				];
+					const centerVec = new Vec2(prevPolygonExtrudedPoint.X, prevPolygonExtrudedPoint.Y);
+					const edgeVec: [Vec2, Vec2] = [new Vec2(begin.X, begin.Y), new Vec2(end.X, end.Y)];
+					const centerHeight = this.getVertexHeightFromEdge(centerVec, edgeVec, maxSkeletonHeight, height);
 
-				for (let i = 0; i < points.length; i += 3) {
-					const y = points[i + 1];
+					skirt.push([
+						{
+							position: new Vec2(edge.Edge.End.X, edge.Edge.End.Y),
+							height: minHeight
+						}, {
+							position: new Vec2(center.X, center.Y),
+							height: minHeight + centerHeight
+						}, {
+							position: new Vec2(edge.Edge.Begin.X, edge.Edge.Begin.Y),
+							height: minHeight
+						}
+					]);
 
-					points[i + 1] = minHeight + y / maxSkeletonHeight * height;
+					prevPolygonExtrudedPoint.X = nextPolygonExtrudedPoint.X = center.X;
+					prevPolygonExtrudedPoint.Y = nextPolygonExtrudedPoint.Y = center.Y;
+
+					edge.Polygon.length = 0;
 				}
-
-				if (flip) {
-					points.reverse();
-				}
-
-				positionResult = positionResult.concat(points);
-				uvResult = uvResult.concat(uvs);
-			} else {
-				const {position, uv} = this.convertEdgeResultToVertices({
-					edge,
-					minHeight,
-					height,
-					maxSkeletonHeight
-				});
-
-				if (flip) {
-					position.reverse();
-				}
-
-				positionResult = positionResult.concat(position);
-				uvResult = uvResult.concat(uv);
 			}
 		}
 
-		return {position: positionResult, uv: uvResult, skirt};
+		let positionResult: number[] = [];
+		let uvResult: number[] = [];
+
+		for (const edge of skeleton.Edges) {
+			if (!edge.Polygon.length) {
+				continue;
+			}
+
+			const {position, uv} = this.convertEdgeResultToVertices({
+				edge,
+				minHeight,
+				height,
+				maxSkeletonHeight
+			});
+
+			if (flip) {
+				position.reverse();
+			}
+
+			positionResult = positionResult.concat(position);
+			uvResult = uvResult.concat(uv);
+		}
+
+		return {position: positionResult, uv: uvResult, skirt: skirt};
 	}
 }

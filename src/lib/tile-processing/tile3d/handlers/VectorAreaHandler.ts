@@ -52,6 +52,8 @@ export default class VectorAreaHandler implements Handler {
 			color: this.descriptor.buildingRoofColor
 		});
 		builder.addWalls({
+			levels: this.descriptor.buildingLevels,
+			windowWidth: 5,
 			minHeight: this.descriptor.buildingMinHeight,
 			height: facadeHeightOverride ?? (this.descriptor.buildingHeight - this.descriptor.buildingRoofHeight),
 			skirt: skirt,
