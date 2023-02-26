@@ -314,7 +314,7 @@ export class VectorDescriptorFactory {
 		const roofOrientation = this.parseRoofOrientation(tags['roof:orientation']);
 		const roofLevels = this.parseUnsignedInt(tags['roof:levels']) ?? this.getRoofDefaultLevels(roofType);
 		const roofColor = this.parseColor(tags['roof:colour'], fallbackRoofColor);
-		const roofMaterial = this.parseRoofMaterial(tags['building:material'], 'default');
+		const roofMaterial = this.parseRoofMaterial(tags['roof:material'], 'default');
 		const roofDirection = this.parseFloat(tags['roof:direction']) ?? 0;
 
 		const roofHeight = this.parseHeight(tags['roof:height'], roofLevels * levelHeight);
