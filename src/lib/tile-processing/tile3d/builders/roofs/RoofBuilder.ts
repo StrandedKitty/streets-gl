@@ -24,6 +24,7 @@ export interface RoofParams {
 	height: number;
 	direction: number;
 	angle: number;
+	orientation: 'along' | 'across';
 	flip?: boolean;
 }
 

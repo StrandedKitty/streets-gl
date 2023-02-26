@@ -216,6 +216,14 @@ export class VectorDescriptorFactory {
 		return RoofOSMShapeToType[str] ?? fallback;
 	}
 
+	private static parseRoofOrientation(str: string): VectorAreaDescriptor['buildingRoofOrientation'] {
+		if (str === 'along' || str === 'across') {
+			return str;
+		}
+
+		return null;
+	}
+
 	private static getRoofDefaultLevels(type: VectorAreaDescriptor['buildingRoofType']): number {
 		return RoofTypeToDefaultLevels[type];
 	}
@@ -276,6 +284,7 @@ export class VectorDescriptorFactory {
 		buildingMinHeight: number;
 		buildingRoofHeight: number;
 		buildingRoofType: VectorAreaDescriptor['buildingRoofType'];
+		buildingRoofOrientation: VectorAreaDescriptor['buildingRoofOrientation'];
 		buildingRoofDirection: number;
 		buildingRoofAngle: number;
 		buildingFacadeMaterial: VectorAreaDescriptor['buildingFacadeMaterial'];
@@ -290,6 +299,7 @@ export class VectorDescriptorFactory {
 		const fallbackRoofColor = 0xffffff;
 
 		const roofType = this.parseRoofType(tags['roof:shape'], 'flat');
+		const roofOrientation = this.parseRoofOrientation(tags['roof:orientation']);
 		const roofLevels = this.parseUnsignedInt(tags['roof:levels']) ?? this.getRoofDefaultLevels(roofType);
 		const roofColor = this.parseColor(tags['roof:colour'], fallbackRoofColor);
 		const roofMaterial = this.parseRoofMaterial(tags['building:material'], 'default');
@@ -317,6 +327,7 @@ export class VectorDescriptorFactory {
 			buildingMinHeight: minHeight,
 			buildingRoofHeight: roofHeight,
 			buildingRoofType: roofType,
+			buildingRoofOrientation: roofOrientation,
 			buildingRoofDirection: roofDirection,
 			buildingRoofAngle: roofAngle,
 			buildingFacadeMaterial: material,

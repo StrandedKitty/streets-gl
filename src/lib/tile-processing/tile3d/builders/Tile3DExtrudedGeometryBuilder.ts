@@ -21,6 +21,7 @@ import GabledRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/Gable
 import MansardRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/MansardRoofBuilder";
 import QuadrupleSaltboxRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/QuadrupleSaltboxRoofBuilder";
 import WallsBuilder from "~/lib/tile-processing/tile3d/builders/WallsBuilder";
+import OrientedGabledRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/OrientedGabledRoofBuilder";
 
 export enum RoofType {
 	Flat,
@@ -106,7 +107,7 @@ export default class Tile3DExtrudedGeometryBuilder {
 
 		for (const ring of this.rings) {
 			const walls = new WallsBuilder().build({
-				vertices: ring.nodes,
+				vertices: ring.nodes.slice(),
 				minHeight,
 				height: height,
 				levels,
@@ -129,7 +130,8 @@ export default class Tile3DExtrudedGeometryBuilder {
 				minHeight: minHeight,
 				flip: true,
 				direction: 0,
-				angle: 0
+				angle: 0,
+				orientation: null
 			});
 			this.addAndPaintGeometry({
 				position: roof.position,
@@ -149,6 +151,7 @@ export default class Tile3DExtrudedGeometryBuilder {
 			height,
 			direction,
 			angle,
+			orientation,
 			color,
 			textureId
 		}: {
@@ -158,13 +161,14 @@ export default class Tile3DExtrudedGeometryBuilder {
 			height: number;
 			direction: number;
 			angle: number;
+			orientation: 'along' | 'across';
 			color: number;
 			textureId: number;
 		}
 	): {skirt?: RoofSkirt; facadeHeightOverride?: number} {
 		let builder: RoofBuilder;
 
-		//type = RoofType.QuadrupleSaltbox as RoofType;
+		//type = RoofType.Gabled as RoofType;
 
 		switch (type) {
 			case RoofType.Skillion: {
@@ -180,7 +184,11 @@ export default class Tile3DExtrudedGeometryBuilder {
 				break;
 			}
 			case RoofType.Gabled: {
-				builder = new GabledRoofBuilder();
+				if (orientation === 'along' || orientation === 'across') {
+					builder = new OrientedGabledRoofBuilder();
+				} else {
+					builder = new GabledRoofBuilder();
+				}
 				break;
 			}
 			case RoofType.Mansard: {
@@ -204,7 +212,8 @@ export default class Tile3DExtrudedGeometryBuilder {
 			minHeight: minHeight,
 			flip: false,
 			direction: direction,
-			angle: angle
+			angle: angle,
+			orientation: orientation
 		});
 		this.addAndPaintGeometry({
 			position: roof.position,

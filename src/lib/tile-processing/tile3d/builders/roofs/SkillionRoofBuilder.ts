@@ -1,4 +1,4 @@
-import RoofBuilder, {RoofGeometry, RoofParams, RoofSkirt} from "./RoofBuilder";
+import RoofBuilder, {RoofGeometry, RoofParams, RoofSkirt, RoofSkirtPolyline} from "./RoofBuilder";
 import MathUtils from "~/lib/math/MathUtils";
 import Vec2 from "~/lib/math/Vec2";
 import Vec3 from "~/lib/math/Vec3";
@@ -11,7 +11,7 @@ export default class SkillionRoofBuilder implements RoofBuilder {
 
 	public build(params: RoofParams): RoofGeometry {
 		const {multipolygon, direction} = params;
-		const skirt: RoofSkirt = [[]];
+		const skirt: RoofSkirt = [];
 		const rotation = -MathUtils.toRad(direction ?? 0) - Math.PI / 2;
 		const bbox = new AABB2D();
 
@@ -58,11 +58,14 @@ export default class SkillionRoofBuilder implements RoofBuilder {
 		}
 
 		for (const ring of multipolygon.rings) {
+			const skirtPolyline: RoofSkirtPolyline = [];
+			skirt.push(skirtPolyline);
+
 			for (const node of ring.nodes) {
 				const vec = Vec2.rotate(node, rotation);
 				const y = (vec.y - bbox.min.y) / (bbox.max.y - bbox.min.y);
 
-				skirt[0].push({
+				skirtPolyline.push({
 					position: node,
 					height: minHeight + y * height
 				});

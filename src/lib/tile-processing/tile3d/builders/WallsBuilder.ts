@@ -24,9 +24,13 @@ export default class WallsBuilder {
 
 		let isClosed = false;
 
-		if (vertices[0] === vertices[vertices.length - 1]) {
+		if (vertices[0].equals(vertices[vertices.length - 1])) {
 			vertices = vertices.slice(1);
 			isClosed = true;
+
+			if (typeof height !== 'number') {
+				height = height.slice(1);
+			}
 		}
 
 		const segmentCount = isClosed ? vertices.length : (vertices.length - 1);
@@ -45,7 +49,7 @@ export default class WallsBuilder {
 				nextVertexHeight = height;
 			} else {
 				vertexHeight = height[i];
-				nextVertexHeight = height[i + 1];
+				nextVertexHeight = height[i + 1] ?? height[0];
 			}
 
 			const segmentLength = Vec2.distance(vertex, nextVertex);

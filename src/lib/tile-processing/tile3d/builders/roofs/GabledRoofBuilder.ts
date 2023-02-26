@@ -2,7 +2,7 @@ import {Edge, Skeleton, Vector2d} from "straight-skeleton";
 import HippedRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/HippedRoofBuilder";
 import {RoofSkirt} from "~/lib/tile-processing/tile3d/builders/roofs/RoofBuilder";
 import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
-import {copySkeletonPolygons, signedDstToLine} from "~/lib/tile-processing/tile3d/builders/utils";
+import {copySkeletonPolygons} from "~/lib/tile-processing/tile3d/builders/utils";
 import Vec2 from "~/lib/math/Vec2";
 
 export default class GabledRoofBuilder extends HippedRoofBuilder {
