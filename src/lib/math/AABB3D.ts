@@ -39,6 +39,21 @@ export default class AABB3D extends AABB<Vec3> {
 		);
 	}
 
+	public override intersectsAABB(aabb: AABB3D): boolean {
+		if (this.isEmpty || aabb.isEmpty) {
+			return false;
+		}
+
+		return !(
+			aabb.max.x <= this.min.x ||
+			aabb.min.x >= this.max.x ||
+			aabb.max.y <= this.min.y ||
+			aabb.min.y >= this.max.y ||
+			aabb.max.z <= this.min.z ||
+			aabb.min.z >= this.max.z
+		);
+	}
+
 	public override clone(): AABB3D {
 		return new AABB3D(Vec3.clone(this.min), Vec3.clone(this.max));
 	}

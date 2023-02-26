@@ -49,6 +49,19 @@ export default class AABB2D extends AABB<Vec2> {
 		);
 	}
 
+	public override intersectsAABB(aabb: AABB2D): boolean {
+		if (this.isEmpty || aabb.isEmpty) {
+			return false;
+		}
+
+		return !(
+			aabb.max.x <= this.min.x ||
+			aabb.min.x >= this.max.x ||
+			aabb.max.y <= this.min.y ||
+			aabb.min.y >= this.max.y
+		);
+	}
+
 	public clone(): AABB2D {
 		return new AABB2D(Vec2.clone(this.min), Vec2.clone(this.max));
 	}

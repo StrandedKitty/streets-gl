@@ -4,4 +4,5 @@ export default interface Handler {
 	getFeatures(): VectorFeature[];
 	getStructuralFeature(): VectorFeature;
 	preventFeatureOutput(): void;
+	markAsBuildingPartInRelation(): void;
 }

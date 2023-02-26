@@ -63,7 +63,7 @@ export default class FreeControlsNavigator extends ControlsNavigator {
 	}
 
 	private keyDownEvent(e: KeyboardEvent): void {
-		if (!this.isEnabled || !this.isInFocus) {
+		if (!this.isEnabled || !this.isInFocus || e.ctrlKey || e.metaKey) {
 			return;
 		}
 

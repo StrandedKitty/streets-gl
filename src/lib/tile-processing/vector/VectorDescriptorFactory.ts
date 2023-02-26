@@ -49,6 +49,10 @@ const RoofTypeToDefaultLevels: Record<VectorAreaDescriptor['buildingRoofType'], 
 
 export class VectorDescriptorFactory {
 	public static parsePolylineTags(tags: Record<string, string>): Container<VectorPolylineDescriptor> {
+		if (this.isUnderground(tags)) {
+			return null;
+		}
+
 		if (tags.highway) {
 			const descriptor: VectorPolylineDescriptor = {
 				type: 'path'
@@ -138,21 +142,25 @@ export class VectorDescriptorFactory {
 	}
 
 	public static parseAreaTags(tags: Record<string, string>): Container<VectorAreaDescriptor> {
-		if (tags.building) {
+		if (this.isUnderground(tags)) {
+			return null;
+		}
+
+		if (tags['building:part'] && tags['building:part'] !== 'no') {
 			return {
 				type: ContainerType.Descriptor,
 				data: {
-					type: 'building',
+					type: 'buildingPart',
 					...this.parseBuildingParams(tags)
 				}
 			};
 		}
 
-		if (tags['building:part']) {
+		if (tags.building) {
 			return {
 				type: ContainerType.Descriptor,
 				data: {
-					type: 'buildingPart',
+					type: 'building',
 					...this.parseBuildingParams(tags)
 				}
 			};
@@ -180,6 +188,10 @@ export class VectorDescriptorFactory {
 	}
 
 	public static parseNodeTags(tags: Record<string, string>): Container<VectorNodeDescriptor> {
+		if (this.isUnderground(tags)) {
+			return null;
+		}
+
 		if (tags.natural === 'tree') {
 			return {
 				type: ContainerType.Descriptor,
@@ -338,6 +350,13 @@ export class VectorDescriptorFactory {
 		};
 	}
 
+	private static isUnderground(tags: Record<string, string>): boolean {
+		return (
+			tags.location === 'underground' ||
+			this.parseInt(tags.level) < 0
+		);
+	}
+
 	private static parseColor(str: string = '', fallback?: number): number {
 		const noSpaces = str.replace(/[ _-]/g, '');
 		const entry = (ColorsList as Record<string, number[]>)[noSpaces];
@@ -381,6 +400,11 @@ export class VectorDescriptorFactory {
 
 	private static parseUnsignedInt(str: string = ''): number {
 		const value = Math.max(parseInt(str), 0);
+		return isNaN(value) ? undefined : value;
+	}
+
+	private static parseInt(str: string = ''): number {
+		const value = parseInt(str);
 		return isNaN(value) ? undefined : value;
 	}
 

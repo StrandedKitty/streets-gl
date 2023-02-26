@@ -22,10 +22,6 @@ export default class VectorAreaHandler implements Handler {
 	}
 
 	public getFeatures(): Tile3DFeature[] {
-		if (!this.rings.find(r => r.type === VectorAreaRingType.Outer)) {
-			return [];
-		}
-
 		if (this.descriptor.type === 'building' || this.descriptor.type === 'buildingPart') {
 			return [this.handleBuilding()];
 		} else if (this.descriptor.type === 'water') {

@@ -9,5 +9,7 @@ export default abstract class AABB<T> {
 
 	public abstract includesPoint(point: T): boolean;
 
+	public abstract intersectsAABB(aabb: AABB<T>): boolean;
+
 	public abstract clone(): AABB<T>;
 }

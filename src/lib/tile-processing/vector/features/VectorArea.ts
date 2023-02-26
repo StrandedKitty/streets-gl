@@ -18,4 +18,5 @@ export default interface VectorArea extends VectorFeature {
 	osmReference: OSMReference;
 	descriptor: VectorAreaDescriptor;
 	rings: VectorAreaRing[];
+	isBuildingPartInRelation?: boolean;
 }

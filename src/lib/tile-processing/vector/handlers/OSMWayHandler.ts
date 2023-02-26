@@ -15,6 +15,7 @@ export default class OSMWayHandler implements Handler {
 	private readonly tags: Record<string, string>;
 	private readonly nodes: OSMNodeHandler[];
 	private disableFeatureOutput: boolean = false;
+	private isBuildingPartInRelation: boolean = false;
 
 	private cachedFeatures: (VectorArea | VectorPolyline | VectorNode)[] = null;
 	private cachedStructuralFeature: VectorPolyline = null;
@@ -31,6 +32,10 @@ export default class OSMWayHandler implements Handler {
 
 	public preventFeatureOutput(): void {
 		this.disableFeatureOutput = true;
+	}
+
+	public markAsBuildingPartInRelation(): void {
+		this.isBuildingPartInRelation = true;
 	}
 
 	private getFeaturesFromPolylineTags(): (VectorArea | VectorPolyline | VectorNode)[] {
@@ -90,7 +95,8 @@ export default class OSMWayHandler implements Handler {
 							type: 'area',
 							osmReference: this.getOSMReference(),
 							descriptor: parsed.data,
-							rings: [ring.getVectorAreaRing()]
+							rings: [ring.getVectorAreaRing()],
+							isBuildingPartInRelation: this.isBuildingPartInRelation
 						});
 						break;
 					}

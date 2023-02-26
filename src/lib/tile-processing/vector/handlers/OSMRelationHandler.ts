@@ -15,6 +15,7 @@ export default class OSMRelationHandler implements Handler {
 		handler: OSMWayHandler | OSMRelationHandler;
 	}[] = [];
 	private disableFeatureOutput: boolean = false;
+	private isBuildingPartInRelation: boolean = false;
 
 	private cachedFeatures: VectorArea[] = null;
 
@@ -26,12 +27,16 @@ export default class OSMRelationHandler implements Handler {
 	public addMember(member: RelationMember, handler: OSMWayHandler | OSMRelationHandler): void {
 		this.members.push({osmMember: member, handler});
 
-		if (this.tags.type === 'building' && member.role === 'outline') {
-			handler.preventFeatureOutput();
+		if (this.tags.type === 'building') {
+			if (member.role === 'outline') {
+				handler.preventFeatureOutput();
+			} else if (member.role === 'part') {
+				handler.markAsBuildingPartInRelation();
+			}
 		}
 	}
 
-	private getClosedRings(): Ring[] {
+	private getClosedMultipolygonRings(): Ring[] {
 		const rings: Ring[] = [];
 
 		for (const {handler, osmMember} of this.members) {
@@ -64,6 +69,10 @@ export default class OSMRelationHandler implements Handler {
 		this.disableFeatureOutput = true;
 	}
 
+	public markAsBuildingPartInRelation(): void {
+		this.isBuildingPartInRelation = true;
+	}
+
 	private getFeaturesFromAreaTags(): VectorArea[] {
 		const features: VectorArea[] = [];
 		const parsed = VectorDescriptorFactory.parseAreaTags(this.tags);
@@ -75,7 +84,8 @@ export default class OSMRelationHandler implements Handler {
 						type: 'area',
 						osmReference: this.getOSMReference(),
 						descriptor: parsed.data,
-						rings: this.getVectorAreaRings()
+						rings: this.getVectorAreaRings(),
+						isBuildingPartInRelation: this.isBuildingPartInRelation
 					});
 					break;
 				}
@@ -90,7 +100,7 @@ export default class OSMRelationHandler implements Handler {
 	}
 
 	private getVectorAreaRings(): VectorAreaRing[] {
-		return this.getClosedRings().map(ring => ring.getVectorAreaRing());
+		return this.getClosedMultipolygonRings().map(ring => ring.getVectorAreaRing());
 	}
 
 	public getFeatures(): VectorArea[] {

@@ -2,8 +2,9 @@ type Vertex = [number, number];
 type Polygon = Vertex[];
 
 export default function splitPolygon(poly: Polygon, rayOrig: Vertex, rayDir: Vertex): Polygon[] {
-	if (!poly || poly.length < 3)
-		throw "input polygon must have at least 3 vertices";
+	if (!poly || poly.length < 3) {
+		throw new Error("splitPolygon: input polygon must have at least 3 vertices");
+	}
 
 	const interPoints = [];
 

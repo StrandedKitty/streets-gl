@@ -83,4 +83,8 @@ export default class OSMNodeHandler implements Handler {
 	public preventFeatureOutput(): void {
 		this.disableFeatureOutput = true;
 	}
+
+	public markAsBuildingPartInRelation(): void {
+
+	}
 }

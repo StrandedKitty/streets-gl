@@ -52,6 +52,10 @@ export default class MapboxAreaHandler implements Handler {
 
 	}
 
+	public markAsBuildingPartInRelation(): void {
+
+	}
+
 	private static isRingClockwise(ring: Ring): boolean {
 		let sum = 0;
 
