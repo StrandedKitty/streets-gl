@@ -3,7 +3,6 @@ import AABB3D from "~/lib/math/AABB3D";
 import MathUtils from "~/lib/math/MathUtils";
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
 import Vec2 from "~/lib/math/Vec2";
-import Vec3 from "~/lib/math/Vec3";
 import Tile3DRing, {Tile3DRingType} from "~/lib/tile-processing/tile3d/builders/Tile3DRing";
 import {colorToComponents} from "~/lib/tile-processing/tile3d/builders/utils";
 import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
@@ -49,9 +48,8 @@ export default class Tile3DExtrudedGeometryBuilder {
 		textureId: [],
 		color: []
 	};
-	private readonly rings: Tile3DRing[] = [];
 	private readonly multipolygon: Tile3DMultipolygon = new Tile3DMultipolygon();
-	private readonly boundingBox: AABB3D = new AABB3D(new Vec3(), new Vec3());
+	private readonly boundingBox: AABB3D = new AABB3D();
 
 	public constructor(osmReference: OSMReference) {
 		this.osmReference = osmReference;
@@ -59,8 +57,6 @@ export default class Tile3DExtrudedGeometryBuilder {
 
 	public addRing(type: Tile3DRingType, nodes: Vec2[]): void {
 		const ring = new Tile3DRing(type, nodes);
-
-		this.rings.push(ring);
 		this.multipolygon.addRing(ring);
 	}
 
@@ -105,7 +101,7 @@ export default class Tile3DExtrudedGeometryBuilder {
 			}
 		}
 
-		for (const ring of this.rings) {
+		for (const ring of this.multipolygon.rings) {
 			const walls = new WallsBuilder().build({
 				vertices: ring.nodes.slice(),
 				minHeight,

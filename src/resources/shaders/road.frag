@@ -74,7 +74,7 @@ void main() {
 	vec3 heightMapNormal = sampleNormalMap();
 	vec3 kindaVNormal = vec3(modelViewMatrix * vec4(heightMapNormal, 0));
 
-	outColor = color;
+	outColor = vec4(1, 0, 1, 1);
 	//outColor = vec4(1, 0, 1, 1);
 	outNormal = packNormal(kindaVNormal);
 	outRoughnessMetalnessF0 = vec3(0.9, 0, 0.03);

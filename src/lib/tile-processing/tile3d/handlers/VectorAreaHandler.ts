@@ -9,6 +9,8 @@ import Tile3DExtrudedGeometryBuilder, {
 import Vec2 from "~/lib/math/Vec2";
 import Tile3DExtrudedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DExtrudedGeometry";
 import {Tile3DRingType} from "~/lib/tile-processing/tile3d/builders/Tile3DRing";
+import Tile3DProjectedGeometryBuilder from "~/lib/tile-processing/tile3d/builders/Tile3DProjectedGeometryBuilder";
+import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DProjectedGeometry";
 
 export default class VectorAreaHandler implements Handler {
 	private readonly osmReference: OSMReference;
@@ -25,7 +27,7 @@ export default class VectorAreaHandler implements Handler {
 		if (this.descriptor.type === 'building' || this.descriptor.type === 'buildingPart') {
 			return [this.handleBuilding()];
 		} else if (this.descriptor.type === 'water') {
-			//return [this.handleWater()];
+			return [this.handleWater()];
 		}
 
 		return [];
@@ -65,8 +67,23 @@ export default class VectorAreaHandler implements Handler {
 		return builder.getGeometry();
 	}
 
-	private handleWater(): Tile3DExtrudedGeometry {
-		return null;
+	private handleWater(): Tile3DProjectedGeometry {
+		const builder = new Tile3DProjectedGeometryBuilder(this.osmReference);
+
+		for (const ring of this.rings) {
+			const type = ring.type === VectorAreaRingType.Inner ? Tile3DRingType.Inner : Tile3DRingType.Outer;
+			const nodes = ring.nodes.map(node => new Vec2(node.x, node.y));
+
+			builder.addRing(type, nodes);
+		}
+
+		builder.addPolygon({
+			height: 0,
+			textureId: 0,
+			uvScale: 1
+		});
+
+		return builder.getGeometry();
 	}
 
 	private getRingTypeFromString(str: VectorAreaDescriptor['buildingRoofType']): RoofType {

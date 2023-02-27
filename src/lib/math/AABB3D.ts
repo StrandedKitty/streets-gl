@@ -1,13 +1,18 @@
 import AABB from "~/lib/math/AABB";
 import Vec3 from "~/lib/math/Vec3";
-import Vec2 from "~/lib/math/Vec2";
 
 export default class AABB3D extends AABB<Vec3> {
-	public constructor(min: Vec3, max: Vec3) {
+	public constructor(min?: Vec3, max?: Vec3) {
 		super();
 
-		this.min = min;
-		this.max = max;
+		if (min && max) {
+			this.isEmpty = false;
+			this.min = min;
+			this.max = max;
+		} else {
+			this.min = new Vec3();
+			this.max = new Vec3();
+		}
 	}
 
 	public includePoint(point: Vec3): void {

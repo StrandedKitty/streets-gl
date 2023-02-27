@@ -94,7 +94,7 @@ void main() {
     float waterMask = 1.;
 
     if (vMaskUV.x >= 0. && vMaskUV.x <= 1. && vMaskUV.y >= 0. && vMaskUV.y <= 1.) {
-        //waterMask = 1. - texture(tWaterMask, vMaskUV).r;
+        waterMask = 1. - texture(tWaterMask, vMaskUV).r;
     }
 
     vec3 detailNormal = getNormal(textureNoTile(tDetailNoise, tDetailNormal, vDetailUV, 0.01));
