@@ -1,9 +1,16 @@
-import Tile3DBuffers from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
+import Tile3DBuffers, {BoundingBox} from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
 import Tile3DFeatureCollection from "~/lib/tile-processing/tile3d/features/Tile3DFeatureCollection";
 import Utils from "~/app/Utils";
+import AABB3D from "~/lib/math/AABB3D";
 
 export class Tile3DFeaturesToBuffersConverter {
 	public static convert(collection: Tile3DFeatureCollection): Tile3DBuffers {
+		const extrudedBoundingBox = new AABB3D();
+
+		for (const geometry of collection.extruded) {
+			extrudedBoundingBox.includeAABB(geometry.boundingBox);
+		}
+
 		const positionBufferExtruded = Utils.mergeTypedArrays(
 			Float32Array,
 			collection.extruded.map(f => f.positionBuffer)
@@ -45,6 +52,14 @@ export class Tile3DFeaturesToBuffersConverter {
 
 		const localIdBufferExtruded = Utils.mergeTypedArrays(Uint32Array, localIdBuffers);
 
+		const projectedBoundingBox = new AABB3D();
+
+		for (const geometry of collection.projected) {
+			projectedBoundingBox.includeAABB(geometry.boundingBox);
+		}
+		projectedBoundingBox.min.y = -1000;
+		projectedBoundingBox.max.y = 100000;
+
 		const positionBufferProjected = Utils.mergeTypedArrays(
 			Float32Array,
 			collection.projected.map(f => f.positionBuffer)
@@ -71,15 +86,28 @@ export class Tile3DFeaturesToBuffersConverter {
 				colorBuffer: colorBufferExtruded,
 				idBuffer: idBufferExtruded,
 				offsetBuffer: offsetBufferExtruded,
-				localIdBuffer: localIdBufferExtruded
+				localIdBuffer: localIdBufferExtruded,
+				boundingBox: this.boundingBoxToFlatObject(extrudedBoundingBox)
 			},
 			projected: {
 				positionBuffer: positionBufferProjected,
 				normalBuffer: normalBufferProjected,
 				uvBuffer: uvBufferProjected,
-				textureIdBuffer: textureIdBufferProjected
+				textureIdBuffer: textureIdBufferProjected,
+				boundingBox: this.boundingBoxToFlatObject(projectedBoundingBox)
 			},
 			instances: {}
+		};
+	}
+
+	private static boundingBoxToFlatObject(box: AABB3D): BoundingBox {
+		return {
+			minX: box.min.x,
+			minY: box.min.y,
+			minZ: box.min.z,
+			maxX: box.max.x,
+			maxY: box.max.y,
+			maxZ: box.max.z
 		};
 	}
 }

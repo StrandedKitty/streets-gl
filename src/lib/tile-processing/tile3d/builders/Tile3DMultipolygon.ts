@@ -44,15 +44,11 @@ export default class Tile3DMultipolygon {
 		const normals: number[] = [];
 		const normalY = flip ? -1 : 1;
 
-		for (const ring of this.rings) {
-			if (ring.type !== Tile3DRingType.Outer) {
-				continue;
-			}
+		const inners = this.rings.filter(ring => ring.type === Tile3DRingType.Inner);
+		const outers = this.rings.filter(ring => ring.type === Tile3DRingType.Outer);
 
-			const {vertices, holes} = this.getRingEarcutInput(
-				ring,
-				this.rings.filter(ring => ring.type === Tile3DRingType.Inner)
-			);
+		for (const outer of outers) {
+			const {vertices, holes} = this.getRingEarcutInput(outer, inners);
 			const triangles = earcut(vertices, holes);
 
 			if (!flip) {

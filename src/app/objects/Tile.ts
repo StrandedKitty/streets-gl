@@ -5,7 +5,6 @@ import StaticGeometryLoadingSystem from "../systems/StaticGeometryLoadingSystem"
 import Camera from "~/lib/core/Camera";
 import Vec2 from "~/lib/math/Vec2";
 import TileBuildings from "./TileBuildings";
-import TileGround from "./TileGround";
 import TileRoads from "./TileRoads";
 import TileLabelBuffers from "./TileLabelBuffers";
 import Tile3DBuffers from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
@@ -116,10 +115,9 @@ export default class Tile extends Object3D {
 			this.updateStaticGeometryOffsets();
 
 			this.buildings = new TileBuildings(this.staticGeometry.extruded);
-			//this.ground = new TileGround(this.staticGeometry);
 			this.roads = new TileRoads(this.staticGeometry.projected);
 
-			this.add(this.buildings, /*this.ground,*/ this.roads);
+			this.add(this.buildings, this.roads);
 			//this.updateLabelBufferList();
 
 			/*for (const [key, LOD0Value] of Object.entries(this.staticGeometry.instancesLOD0)) {
@@ -226,6 +224,10 @@ export default class Tile extends Object3D {
 		this.disposed = true;
 
 		if (this.buildings) {
+			this.buildings.dispose();
+		}
+
+		if (this.roads) {
 			this.buildings.dispose();
 		}
 

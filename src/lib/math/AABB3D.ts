@@ -1,5 +1,7 @@
 import AABB from "~/lib/math/AABB";
 import Vec3 from "~/lib/math/Vec3";
+import Mat4 from "~/lib/math/Mat4";
+import Frustum from "~/lib/core/Frustum";
 
 export default class AABB3D extends AABB<Vec3> {
 	public constructor(min?: Vec3, max?: Vec3) {
@@ -44,7 +46,7 @@ export default class AABB3D extends AABB<Vec3> {
 		);
 	}
 
-	public override intersectsAABB(aabb: AABB3D): boolean {
+	public intersectsAABB(aabb: AABB3D): boolean {
 		if (this.isEmpty || aabb.isEmpty) {
 			return false;
 		}
@@ -59,7 +61,33 @@ export default class AABB3D extends AABB<Vec3> {
 		);
 	}
 
-	public override clone(): AABB3D {
+	public clone(): AABB3D {
 		return new AABB3D(Vec3.clone(this.min), Vec3.clone(this.max));
+	}
+
+	public toSpace(matrix: Mat4): AABB3D {
+		const min = Vec3.applyMatrix4(this.min, matrix);
+		const max = Vec3.applyMatrix4(this.max, matrix);
+
+		return new AABB3D(min, max);
+	}
+
+	public getCenter(): Vec3 {
+		return new Vec3(
+			(this.max.x + this.min.x) / 2,
+			(this.max.y + this.min.y) / 2,
+			(this.max.z + this.min.z) / 2,
+		);
+	}
+
+	public static fromFrustum(frustum: Frustum): AABB3D {
+		const box = new AABB3D();
+
+		for (let i = 0; i < 4; i++) {
+			box.includePoint(frustum.vertices.near[i]);
+			box.includePoint(frustum.vertices.far[i]);
+		}
+
+		return box;
 	}
 }

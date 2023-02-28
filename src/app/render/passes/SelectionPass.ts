@@ -58,13 +58,13 @@ export default class SelectionPass extends Pass<{
 			return;
 		}
 
-		const buildingTile = selectedTileBuilding.holder
+		const buildingTile = selectedTileBuilding.holder;
 		const buildingLocalId = buildingTile.buildingPackedToLocalMap.get(selectedTileBuilding.id);
 		const camera = this.manager.sceneSystem.objects.camera;
 
-		/*if (!buildingTile.buildings.inCameraFrustum(camera)) {
+		if (!buildingTile.buildings.inCameraFrustum(camera)) {
 			return;
-		}*/
+		}
 
 		this.renderer.beginRenderPass(this.getPhysicalResource('SelectionMask'));
 		this.renderer.useMaterial(this.maskMaterial);

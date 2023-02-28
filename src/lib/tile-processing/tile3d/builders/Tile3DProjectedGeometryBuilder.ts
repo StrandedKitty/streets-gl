@@ -1,12 +1,12 @@
 import OSMReference from "~/lib/tile-processing/vector/features/OSMReference";
 import Vec2 from "~/lib/math/Vec2";
-import AABB2D from "~/lib/math/AABB2D";
 import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DProjectedGeometry";
 import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 import Tile3DRing, {Tile3DRingType} from "~/lib/tile-processing/tile3d/builders/Tile3DRing";
-import {colorToComponents} from "~/lib/tile-processing/tile3d/builders/utils";
 import GeometryGroundProjector from "~/lib/tile-processing/tile3d/builders/GeometryGroundProjector";
 import Config from "~/app/Config";
+import AABB3D from "~/lib/math/AABB3D";
+import Vec3 from "~/lib/math/Vec3";
 
 export default class Tile3DProjectedGeometryBuilder {
 	private readonly osmReference: OSMReference;
@@ -21,7 +21,7 @@ export default class Tile3DProjectedGeometryBuilder {
 		normal: [],
 		textureId: []
 	};
-	private readonly boundingBox: AABB2D = new AABB2D();
+	private readonly boundingBox: AABB3D = new AABB3D();
 	private readonly multipolygon: Tile3DMultipolygon = new Tile3DMultipolygon();
 
 	public constructor(osmReference: OSMReference) {
@@ -86,16 +86,16 @@ export default class Tile3DProjectedGeometryBuilder {
 		const projectedPositions: number[] = [];
 		const projectedUVs: number[] = [];
 
-		for (let i = 0; i < position.length; i += 9) {
+		for (let i = 0, j = 0; i < position.length; i += 9, j += 6) {
 			const trianglePositions: [number, number][] = [
 				[position[i], position[i + 2]],
 				[position[i + 3], position[i + 5]],
 				[position[i + 6], position[i + 8]]
 			];
 			const triangleUVs: [number, number][] = [
-				[position[i], position[i + 2]],
-				[position[i + 3], position[i + 5]],
-				[position[i + 6], position[i + 8]]
+				[uv[j], uv[j + 1]],
+				[uv[j + 2], uv[j + 3]],
+				[uv[j + 4], uv[j + 5]]
 			];
 			const projected = projector.project({
 				triangle: trianglePositions,
@@ -107,11 +107,15 @@ export default class Tile3DProjectedGeometryBuilder {
 			});
 
 			if (projected.position.length > 0) {
-				projectedPositions.push(...Array.from(projected.position))
-				projectedUVs.push(...Array.from(projected.attributes.uv))
+				const newPositions = Array.from(projected.position);
+				const newUVs = Array.from(projected.attributes.uv);
+
+				projectedPositions.push(...newPositions);
+				projectedUVs.push(...newUVs);
+
+				this.addVerticesToBoundingBox(newPositions);
 			}
 		}
-
 
 		this.arrays.position.push(...projectedPositions);
 		this.arrays.uv.push(...projectedUVs);
@@ -121,6 +125,15 @@ export default class Tile3DProjectedGeometryBuilder {
 		for (let i = 0; i < vertexCount; i++) {
 			this.arrays.normal.push(0, 1, 0);
 			this.arrays.textureId.push(textureId);
+		}
+	}
+
+	private addVerticesToBoundingBox(vertices: number[]): void {
+		const tempVec3 = new Vec3();
+
+		for (let i = 0; i < vertices.length; i += 3) {
+			tempVec3.set(vertices[i], vertices[i + 1], vertices[i + 2]);
+			this.boundingBox.includePoint(tempVec3);
 		}
 	}
 

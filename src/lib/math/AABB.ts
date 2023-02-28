@@ -11,5 +11,7 @@ export default abstract class AABB<T> {
 
 	public abstract intersectsAABB(aabb: AABB<T>): boolean;
 
+	public abstract getCenter(): T;
+
 	public abstract clone(): AABB<T>;
 }

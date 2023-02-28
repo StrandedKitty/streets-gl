@@ -2,8 +2,8 @@ import RenderableObject3D from "./RenderableObject3D";
 import AbstractMesh from "~/lib/renderer/abstract-renderer/AbstractMesh";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
-import {StaticTileGeometry} from "./Tile";
 import Vec3 from "~/lib/math/Vec3";
+import {Tile3DBuffersExtruded} from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
 
 interface MeshDisplayBufferPatch {
 	start: number;
@@ -11,28 +11,19 @@ interface MeshDisplayBufferPatch {
 	value: number;
 }
 
-interface Buffers {
-	positionBuffer: Float32Array;
-	uvBuffer: Float32Array;
-	normalBuffer: Float32Array;
-	textureIdBuffer: Uint8Array;
-	colorBuffer: Uint8Array;
-	idBuffer: Uint32Array;
-	offsetBuffer: Uint32Array;
-	localIdBuffer: Uint32Array;
-}
-
 export default class TileBuildings extends RenderableObject3D {
 	public mesh: AbstractMesh = null;
 	private meshDisplayBufferPatches: MeshDisplayBufferPatch[] = [];
 
-	public constructor(private buffers: Buffers) {
+	public constructor(private buffers: Tile3DBuffersExtruded) {
 		super();
 
-		/*this.setBoundingBox(
-			new Vec3(...staticTileGeometry.bbox.min),
-			new Vec3(...staticTileGeometry.bbox.max)
-		);*/
+		const box = buffers.boundingBox;
+
+		this.setBoundingBox(
+			new Vec3(box.minX, box.minY, box.minZ),
+			new Vec3(box.maxX, box.maxY, box.maxZ)
+		);
 	}
 
 	public addDisplayBufferPatch(patch: MeshDisplayBufferPatch): void {

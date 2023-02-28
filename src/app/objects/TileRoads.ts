@@ -2,26 +2,21 @@ import RenderableObject3D from "./RenderableObject3D";
 import AbstractMesh from "~/lib/renderer/abstract-renderer/AbstractMesh";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
-import {StaticTileGeometry} from "./Tile";
+import {Tile3DBuffersProjected} from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
 import Vec3 from "~/lib/math/Vec3";
-
-interface Buffers {
-	positionBuffer: Float32Array;
-	normalBuffer: Float32Array;
-	uvBuffer: Float32Array;
-	textureIdBuffer: Uint8Array;
-}
 
 export default class TileRoads extends RenderableObject3D {
 	public mesh: AbstractMesh = null;
 
-	public constructor(private buffers: Buffers) {
+	public constructor(private buffers: Tile3DBuffersProjected) {
 		super();
 
-		/*this.setBoundingBox(
-			new Vec3(...staticTileGeometry.bboxGround.min),
-			new Vec3(...staticTileGeometry.bboxGround.max)
-		);*/
+		const box = buffers.boundingBox;
+
+		this.setBoundingBox(
+			new Vec3(box.minX, box.minY, box.minZ),
+			new Vec3(box.maxX, box.maxY, box.maxZ)
+		);
 	}
 
 	public isMeshReady(): boolean {

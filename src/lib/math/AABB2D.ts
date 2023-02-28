@@ -65,4 +65,11 @@ export default class AABB2D extends AABB<Vec2> {
 	public clone(): AABB2D {
 		return new AABB2D(Vec2.clone(this.min), Vec2.clone(this.max));
 	}
+
+	public getCenter(): Vec2 {
+		return new Vec2(
+			(this.max.x + this.min.x) / 2,
+			(this.max.y + this.min.y) / 2
+		);
+	}
 }

@@ -2,10 +2,10 @@ import Object3D from "~/lib/core/Object3D";
 import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 import Vec3 from "~/lib/math/Vec3";
 import Frustum from "~/lib/core/Frustum";
-import AABB from "~/lib/core/AABB";
 import CSMCascadeCamera from "./CSMCascadeCamera";
 import Config from "../Config";
 import Mat4 from "~/lib/math/Mat4";
+import AABB3D from "~/lib/math/AABB3D";
 
 const ShadowCameraTopOffset = 2000;
 const FadeOffsetFactor = 250;
@@ -130,7 +130,7 @@ export default class CSM extends Object3D {
 			const texelSize = (cascadeCamera.right - cascadeCamera.left) / this.resolution;
 
 			const lightSpaceFrustum = worldSpaceFrustum.toSpace(lightOrientationMatrixInverse);
-			const bbox = (new AABB()).fromFrustum(lightSpaceFrustum);
+			const bbox = AABB3D.fromFrustum(lightSpaceFrustum);
 
 			const bboxSideSize = Vec3.distance(lightSpaceFrustum.vertices.far[0], lightSpaceFrustum.vertices.far[2]);
 			let bboxCenter = bbox.getCenter();

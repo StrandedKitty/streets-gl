@@ -161,7 +161,7 @@ export default class GBufferPass extends Pass<{
 		this.buildingMaterial.updateUniformBlock('PerMaterial');
 
 		for (const tile of tiles) {
-			if (!tile.buildings/* || !tile.buildings.inCameraFrustum(camera)*/) {
+			if (!tile.buildings || !tile.buildings.inCameraFrustum(camera)) {
 				continue;
 			}
 
@@ -279,7 +279,7 @@ export default class GBufferPass extends Pass<{
 			this.terrainMaterial.getUniform<UniformInt1>('levelId', 'PerMesh').value[0] = i;
 			this.terrainMaterial.updateUniformBlock('PerMesh');
 
-			//ring.draw();
+			ring.draw();
 		}
 
 		this.roadMaterial.getUniform('tRingHeight').value = terrainRingHeight;
@@ -291,7 +291,7 @@ export default class GBufferPass extends Pass<{
 		this.roadMaterial.updateUniformBlock('PerMaterial');
 
 		for (const tile of tiles) {
-			if (!tile.roads/* || !tile.roads.inCameraFrustum(camera)*/) {
+			if (!tile.roads || !tile.roads.inCameraFrustum(camera)) {
 				continue;
 			}
 

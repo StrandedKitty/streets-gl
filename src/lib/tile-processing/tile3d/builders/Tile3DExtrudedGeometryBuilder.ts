@@ -21,6 +21,7 @@ import MansardRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/Mans
 import QuadrupleSaltboxRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/QuadrupleSaltboxRoofBuilder";
 import WallsBuilder from "~/lib/tile-processing/tile3d/builders/WallsBuilder";
 import OrientedGabledRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/OrientedGabledRoofBuilder";
+import Vec3 from "~/lib/math/Vec3";
 
 export enum RoofType {
 	Flat,
@@ -250,6 +251,8 @@ export default class Tile3DExtrudedGeometryBuilder {
 			textureId: number;
 		}
 	): void {
+		this.addVerticesToBoundingBox(position);
+
 		this.arrays.position.push(...position);
 		this.arrays.normal.push(...normal);
 		this.arrays.uv.push(...uv);
@@ -260,6 +263,15 @@ export default class Tile3DExtrudedGeometryBuilder {
 		for (let i = 0; i < vertexCount; i++) {
 			this.arrays.color.push(...colorComponents);
 			this.arrays.textureId.push(textureId);
+		}
+	}
+
+	private addVerticesToBoundingBox(vertices: number[]): void {
+		const tempVec3 = new Vec3();
+
+		for (let i = 0; i < vertices.length; i += 3) {
+			tempVec3.set(vertices[i], vertices[i + 1], vertices[i + 2]);
+			this.boundingBox.includePoint(tempVec3);
 		}
 	}
 

@@ -3,11 +3,11 @@ import AbstractMesh from "~/lib/renderer/abstract-renderer/AbstractMesh";
 import AbstractRenderer from '~/lib/renderer/abstract-renderer/AbstractRenderer';
 import Camera from "~/lib/core/Camera";
 import Vec3 from "~/lib/math/Vec3";
-import AABB from "~/lib/core/AABB";
+import AABB3D from "~/lib/math/AABB3D";
 
 export default abstract class RenderableObject3D extends Object3D {
 	public abstract mesh: AbstractMesh;
-	public bbox: AABB;
+	public boundingBox: AABB3D;
 
 	public abstract updateMesh(renderer: AbstractRenderer): void;
 
@@ -18,17 +18,17 @@ export default abstract class RenderableObject3D extends Object3D {
 	}
 
 	public setBoundingBox(min: Vec3, max: Vec3): void {
-		this.bbox = new AABB(min, max);
+		this.boundingBox = new AABB3D(min, max);
 	}
 
 	public inCameraFrustum(camera: Camera): boolean {
-		if (this.bbox) {
+		if (this.boundingBox) {
 			const planes = camera.frustumPlanes;
 
 			for (let i = 0; i < 6; ++i) {
 				const plane = planes[i];
 
-				const viewSpaceAABB = this.bbox.toSpace(this.matrixWorld);
+				const viewSpaceAABB = this.boundingBox.toSpace(this.matrixWorld);
 
 				const point = new Vec3(
 					plane.x > 0 ? viewSpaceAABB.max.x : viewSpaceAABB.min.x,
