@@ -16,7 +16,7 @@ export default class MapboxAreaHandler implements Handler {
 
 	public addRing(ring: Ring): void {
 		if (!MapboxAreaHandler.validateRing(ring)) {
-			throw new Error();
+			throw new Error('Invalid MapBox ring');
 		}
 
 		const isClockwise = MapboxAreaHandler.isRingClockwise(ring);
@@ -36,12 +36,26 @@ export default class MapboxAreaHandler implements Handler {
 	}
 
 	public getFeatures(): VectorArea[] {
-		return [{
-			type: 'area',
-			rings: this.rings,
-			osmReference: {id: 0, type: OSMReferenceType.None},
-			descriptor: this.descriptor
-		}];
+		const areas: VectorArea[] = [];
+
+		for (const ring of this.rings) {
+			if (ring.type === VectorAreaRingType.Outer) {
+				areas.push({
+					type: 'area',
+					rings: [ring],
+					osmReference: {id: 0, type: OSMReferenceType.None},
+					descriptor: this.descriptor
+				});
+			} else {
+				if (!areas[areas.length - 1]) {
+					throw new Error('Invalid MapBox ring order');
+				}
+
+				areas[areas.length - 1].rings.push(ring);
+			}
+		}
+
+		return areas;
 	}
 
 	public getStructuralFeature(): VectorArea {
