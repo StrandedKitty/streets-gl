@@ -7,6 +7,7 @@ import GeometryGroundProjector from "~/lib/tile-processing/tile3d/builders/Geome
 import Config from "~/app/Config";
 import AABB3D from "~/lib/math/AABB3D";
 import Vec3 from "~/lib/math/Vec3";
+import SurfaceBuilder from "~/lib/tile-processing/tile3d/builders/SurfaceBuilder";
 
 export default class Tile3DProjectedGeometryBuilder {
 	private readonly osmReference: OSMReference;
@@ -23,6 +24,7 @@ export default class Tile3DProjectedGeometryBuilder {
 	};
 	private readonly boundingBox: AABB3D = new AABB3D();
 	private readonly multipolygon: Tile3DMultipolygon = new Tile3DMultipolygon();
+	private zIndex: number = 0;
 
 	public constructor(osmReference: OSMReference) {
 		this.osmReference = osmReference;
@@ -31,6 +33,10 @@ export default class Tile3DProjectedGeometryBuilder {
 	public addRing(type: Tile3DRingType, nodes: Vec2[]): void {
 		const ring = new Tile3DRing(type, nodes);
 		this.multipolygon.addRing(ring);
+	}
+
+	public setZIndex(value: number): void {
+		this.zIndex = value;
 	}
 
 	public addRoad(
@@ -49,22 +55,27 @@ export default class Tile3DProjectedGeometryBuilder {
 		{
 			textureId,
 			height,
-			uvScale
+			uvScale = 1,
+			isOriented = false
 		}: {
 			height: number;
 			textureId: number;
-			uvScale: number;
+			uvScale?: number;
+			isOriented?: boolean;
 		}
 	): void {
-		const footprint = this.multipolygon.getFootprint({
-			height: height,
-			flip: false
+		const surfaceBuilder = new SurfaceBuilder();
+		const surface = surfaceBuilder.build({
+			multipolygon: this.multipolygon,
+			isOriented: isOriented,
+			uvScale: uvScale
 		});
 
 		this.projectAndAddGeometry({
-			position: footprint.positions,
-			uv: footprint.uvs,
-			textureId: textureId
+			position: surface.position,
+			uv: surface.uv,
+			textureId: textureId,
+			height: height
 		});
 	}
 
@@ -72,11 +83,13 @@ export default class Tile3DProjectedGeometryBuilder {
 		{
 			position,
 			uv,
-			textureId
+			textureId,
+			height = 0
 		}: {
 			position: number[];
 			uv: number[];
 			textureId: number;
+			height?: number;
 		}
 	): void {
 		const projector = new GeometryGroundProjector();
@@ -110,6 +123,10 @@ export default class Tile3DProjectedGeometryBuilder {
 				const newPositions = Array.from(projected.position);
 				const newUVs = Array.from(projected.attributes.uv);
 
+				for (let i = 1; i < newPositions.length; i += 3) {
+					newPositions[i] = height;
+				}
+
 				projectedPositions.push(...newPositions);
 				projectedUVs.push(...newUVs);
 
@@ -140,6 +157,7 @@ export default class Tile3DProjectedGeometryBuilder {
 	public getGeometry(): Tile3DProjectedGeometry {
 		return {
 			type: 'projected',
+			zIndex: this.zIndex,
 			boundingBox: this.boundingBox,
 			positionBuffer: new Float32Array(this.arrays.position),
 			normalBuffer: new Float32Array(this.arrays.normal),

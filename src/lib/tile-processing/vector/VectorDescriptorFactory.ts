@@ -184,6 +184,51 @@ export class VectorDescriptorFactory {
 			};
 		}
 
+		if (tags.leisure === 'pitch') {
+			let type: VectorAreaDescriptor['pitchType'] = 'football';
+
+			if (tags.sport === 'basketball') {
+				type = 'basketball';
+			} else if (tags.sport === 'tennis') {
+				type = 'tennis';
+			}
+
+			return {
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'pitch',
+					pitchType: type
+				}
+			};
+		}
+
+		if (tags.golf === 'fairway') {
+			return {
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'manicuredGrass'
+				}
+			};
+		}
+
+		if (tags.amenity === 'parking' && tags.parking === 'surface' || tags.amenity === 'bicycle_parking') {
+			return {
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'roadway'
+				}
+			};
+		}
+
+		if (tags.area === 'yes' && (tags.highway === 'pedestrian' || tags.highway === 'footway')) {
+			return {
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'footway'
+				}
+			};
+		}
+
 		return null;
 	}
 

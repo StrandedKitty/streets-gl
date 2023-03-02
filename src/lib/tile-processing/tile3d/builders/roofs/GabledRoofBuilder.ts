@@ -4,6 +4,7 @@ import {RoofSkirt} from "~/lib/tile-processing/tile3d/builders/roofs/RoofBuilder
 import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 import {copySkeletonPolygons} from "~/lib/tile-processing/tile3d/builders/utils";
 import Vec2 from "~/lib/math/Vec2";
+import MathUtils from "~/lib/math/MathUtils";
 
 export default class GabledRoofBuilder extends HippedRoofBuilder {
 	protected override convertSkeletonToVertices(
@@ -42,9 +43,6 @@ export default class GabledRoofBuilder extends HippedRoofBuilder {
 				if (prevPolygon.length > 3 && nextPolygon.length > 3) {
 					const begin = edge.Edge.Begin;
 					const end = edge.Edge.End;
-					const dst = end.Sub(begin);
-					const center = begin.Add(dst.MultiplyScalar(0.5));
-
 					const extrudedPoint = edge.Polygon.find(p => {
 						return p.NotEquals(begin) && p.NotEquals(end);
 					});
@@ -52,27 +50,55 @@ export default class GabledRoofBuilder extends HippedRoofBuilder {
 					const prevPolygonExtrudedPoint = prevPolygon.find(v => v.Equals(extrudedPoint));
 					const nextPolygonExtrudedPoint = nextPolygon.find(v => v.Equals(extrudedPoint));
 
-					const centerVec = new Vec2(prevPolygonExtrudedPoint.X, prevPolygonExtrudedPoint.Y);
-					const edgeVec: [Vec2, Vec2] = [new Vec2(begin.X, begin.Y), new Vec2(end.X, end.Y)];
-					const centerHeight = this.getVertexHeightFromEdge(centerVec, edgeVec, maxSkeletonHeight, height);
+					let otherPoint: Vector2d = null;
 
-					skirt.push([
-						{
-							position: new Vec2(edge.Edge.End.X, edge.Edge.End.Y),
-							height: minHeight
-						}, {
-							position: new Vec2(center.X, center.Y),
-							height: minHeight + centerHeight
-						}, {
-							position: new Vec2(edge.Edge.Begin.X, edge.Edge.Begin.Y),
-							height: minHeight
+					for (const prevPolygonPoint of prevPolygon) {
+						if (nextPolygon.some(p => p.Equals(prevPolygonPoint) && !(p.Equals(begin) || p.Equals(end) || p.Equals(extrudedPoint)))) {
+							otherPoint = prevPolygonPoint;
+							break;
 						}
-					]);
+					}
 
-					prevPolygonExtrudedPoint.X = nextPolygonExtrudedPoint.X = center.X;
-					prevPolygonExtrudedPoint.Y = nextPolygonExtrudedPoint.Y = center.Y;
+					let success = false;
 
-					edge.Polygon.length = 0;
+					if (otherPoint) {
+						const a = new Vec2(extrudedPoint.X, extrudedPoint.Y);
+						const b = new Vec2(otherPoint.X, otherPoint.Y);
+						const t = Vec2.add(b, Vec2.multiplyScalar(Vec2.sub(a, b), 1000));
+						const center2 = MathUtils.getIntersectionPoint(
+							[begin.X, begin.Y],
+							[end.X, end.Y],
+							[b.x, b.y],
+							[t.x, t.y]
+						);
+
+						if (center2) {
+							const centerVec = new Vec2(center2[0], center2[1]);
+							const edgeVec: [Vec2, Vec2] = [new Vec2(prevEdge.Begin.X, prevEdge.Begin.Y), new Vec2(prevEdge.End.X, prevEdge.End.Y)];
+							const centerHeight = this.getVertexHeightFromEdge(centerVec, edgeVec, maxSkeletonHeight, height);
+
+							skirt.push([
+								{
+									position: new Vec2(edge.Edge.End.X, edge.Edge.End.Y),
+									height: minHeight
+								}, {
+									position: centerVec,
+									height: minHeight + centerHeight
+								}, {
+									position: new Vec2(edge.Edge.Begin.X, edge.Edge.Begin.Y),
+									height: minHeight
+								}
+							]);
+
+							prevPolygonExtrudedPoint.X = nextPolygonExtrudedPoint.X = centerVec.x;
+							prevPolygonExtrudedPoint.Y = nextPolygonExtrudedPoint.Y = centerVec.y;
+							success = true;
+						}
+					}
+
+					if (success) {
+						edge.Polygon.length = 0;
+					}
 				}
 			}
 		}

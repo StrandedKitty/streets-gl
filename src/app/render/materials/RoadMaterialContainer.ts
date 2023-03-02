@@ -28,25 +28,61 @@ export default class RoadMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array(16)
 				}, {
+					name: 'time',
+					block: 'PerMaterial',
+					type: RendererTypes.UniformType.Float1,
+					value: new Float32Array(1)
+				}, {
 					name: 'tMap',
 					block: null,
 					type: RendererTypes.UniformType.Texture2DArray,
 					value: this.renderer.createTexture2DArray({
 						width: 512,
 						height: 512,
-						depth: 9,
+						depth: 7 * 3,
 						anisotropy: 16,
 						data: [
 							ResourceManager.get('pavementDiffuse'),
 							ResourceManager.get('pavementNormal'),
 							ResourceManager.get('pavementMask'),
+
 							ResourceManager.get('asphaltDiffuse'),
 							ResourceManager.get('asphaltNormal'),
 							ResourceManager.get('asphaltMask'),
+
 							ResourceManager.get('cobblestoneDiffuse'),
 							ResourceManager.get('cobblestoneNormal'),
 							ResourceManager.get('cobblestoneMask'),
+
+							ResourceManager.get('footballPitchDiffuse'),
+							ResourceManager.get('emptyNormal'),
+							ResourceManager.get('emptyMask'),
+
+							ResourceManager.get('basketballPitchDiffuse'),
+							ResourceManager.get('emptyNormal'),
+							ResourceManager.get('emptyMask'),
+
+							ResourceManager.get('tennisPitchDiffuse'),
+							ResourceManager.get('emptyNormal'),
+							ResourceManager.get('emptyMask'),
+
+							ResourceManager.get('manicuredGrassDiffuse'),
+							ResourceManager.get('emptyNormal'),
+							ResourceManager.get('emptyMask'),
 						],
+						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
+						magFilter: RendererTypes.MagFilter.Linear,
+						wrap: RendererTypes.TextureWrap.Repeat,
+						format: RendererTypes.TextureFormat.RGBA8Unorm,
+						mipmaps: true
+					})
+				}, {
+					name: 'tWaterNormal',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: this.renderer.createTexture2D({
+						anisotropy: 16,
+						data: ResourceManager.get('waterNormal'),
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,
 						wrap: RendererTypes.TextureWrap.Repeat,

@@ -18,6 +18,13 @@ export default class AABB3D extends AABB<Vec3> {
 	}
 
 	public includePoint(point: Vec3): void {
+		if (this.isEmpty) {
+			this.min.set(point.x, point.y, point.z);
+			this.max.set(point.x, point.y, point.z);
+			this.isEmpty = false;
+			return;
+		}
+
 		this.min.x = Math.min(this.min.x, point.x);
 		this.min.y = Math.min(this.min.y, point.y);
 		this.min.z = Math.min(this.min.z, point.z);
@@ -27,6 +34,13 @@ export default class AABB3D extends AABB<Vec3> {
 	}
 
 	public includeAABB(aabb: AABB3D): void {
+		if (this.isEmpty) {
+			this.min.set(aabb.min.x, aabb.min.y, aabb.min.z);
+			this.max.set(aabb.max.x, aabb.max.y, aabb.max.z);
+			this.isEmpty = false;
+			return;
+		}
+
 		this.min.x = Math.min(this.min.x, aabb.min.x);
 		this.min.y = Math.min(this.min.y, aabb.min.y);
 		this.min.z = Math.min(this.min.z, aabb.min.z);

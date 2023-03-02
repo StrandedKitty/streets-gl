@@ -25,8 +25,14 @@ uniform PerMesh {
 	vec2 cameraPosition;
 };
 
+uniform PerMaterial {
+	mat4 projectionMatrix;
+	float time;
+};
+
 uniform sampler2DArray tMap;
 uniform sampler2DArray tNormal;
+uniform sampler2D tWaterNormal;
 
 #include <packNormal>
 #include <getMotionVector>
@@ -60,22 +66,50 @@ vec3 getNormal(vec3 normalMapValue) {
 	return normal;
 }
 
+vec3 getWaterNormalMapValue(vec2 uv) {
+	vec3 col = texture(tWaterNormal, uv).rgb;
+	col.y = 1. - col.y;
+	return col * 2. - 1.;
+}
+
 void main() {
-	vec2 mapUV = vLocalPosition.xz * 0.1;
-
-	vec4 color = texture(tMap, vec3(mapUV, vTextureId * 3));
-	vec3 normal = getNormal(texture(tMap, vec3(mapUV, vTextureId * 3 + 1)).xyz);
-	vec3 mask = texture(tMap, vec3(mapUV, vTextureId * 3 + 2)).rgb;
-
 	if (edgeFactor() > 0.9) {
 		//discard;
 	}
 
+	if (vTextureId == 0) {
+		float waveTime = time * 0.015;
+		vec2 uv = (vUv / 611.4962158203125);
+		vec3 normalValue = (
+			getWaterNormalMapValue(vUv * 0.005 + waveTime) * 0.45 +
+			getWaterNormalMapValue(vUv * 0.020 - waveTime) * 0.45 +
+			getWaterNormalMapValue(vUv * 0.0005 - waveTime * 0.5) * 0.1
+		);
+
+		normalValue.z *= 2.;
+
+		vec3 vNormal = vec3(modelViewMatrix * vec4(normalize(normalValue.xzy), 0));
+
+		outColor = vec4(0.15, 0.2, 0.25, 0.5);
+		outNormal = packNormal(vNormal);
+		outRoughnessMetalnessF0 = vec3(0.05, 0, 0.03);
+		outMotion = getMotionVector(vClipPos, vClipPosPrev);
+		outObjectId = 0u;
+
+		return;
+	}
+
+	vec2 mapUV = vUv;
+
+	int layer = (vTextureId - 1) * 3;
+	vec4 color = texture(tMap, vec3(mapUV, layer));
+	vec3 normal = getNormal(texture(tMap, vec3(mapUV, layer + 1)).xyz);
+	vec3 mask = texture(tMap, vec3(mapUV, layer + 2)).rgb;
+
 	vec3 heightMapNormal = sampleNormalMap();
 	vec3 kindaVNormal = vec3(modelViewMatrix * vec4(heightMapNormal, 0));
 
-	outColor = vec4(1, 0, 1, 1);
-	//outColor = vec4(1, 0, 1, 1);
+	outColor = color;
 	outNormal = packNormal(kindaVNormal);
 	outRoughnessMetalnessF0 = vec3(0.9, 0, 0.03);
 	outMotion = getMotionVector(vClipPos, vClipPosPrev);

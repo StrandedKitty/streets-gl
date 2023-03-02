@@ -30,6 +30,7 @@ uniform PerMesh {
 
 uniform PerMaterial {
 	mat4 projectionMatrix;
+	float time;
 };
 
 uniform sampler2DArray tRingHeight;

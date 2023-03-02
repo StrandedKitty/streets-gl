@@ -24,10 +24,55 @@ export default class VectorAreaHandler implements Handler {
 	}
 
 	public getFeatures(): Tile3DFeature[] {
-		if (this.descriptor.type === 'building' || this.descriptor.type === 'buildingPart') {
-			return [this.handleBuilding()];
-		} else if (this.descriptor.type === 'water') {
-			return [this.handleWater()];
+		switch (this.descriptor.type) {
+			case 'building':
+			case 'buildingPart':
+				return [this.handleBuilding()];
+			case 'water': {
+				return [this.handleGenericSurface({
+					textureId: 0,
+					isOriented: false,
+					zIndex: 0
+				})];
+			}
+			case 'pitch': {
+				const textureIdMap = {
+					football: 4,
+					basketball: 5,
+					tennis: 6
+				};
+				const textureId = textureIdMap[this.descriptor.pitchType] ?? textureIdMap.football;
+
+				return [this.handleGenericSurface({
+					textureId,
+					isOriented: true,
+					zIndex: 2
+				})];
+			}
+			case 'manicuredGrass': {
+				return [this.handleGenericSurface({
+					textureId: 7,
+					isOriented: false,
+					zIndex: 1,
+					uvScale: 0.05,
+				})];
+			}
+			case 'roadway': {
+				return [this.handleGenericSurface({
+					textureId: 2,
+					isOriented: false,
+					zIndex: 1,
+					uvScale: 0.1,
+				})];
+			}
+			case 'footway': {
+				return [this.handleGenericSurface({
+					textureId: 1,
+					isOriented: false,
+					zIndex: 1,
+					uvScale: 0.1,
+				})];
+			}
 		}
 
 		return [];
@@ -67,8 +112,21 @@ export default class VectorAreaHandler implements Handler {
 		return builder.getGeometry();
 	}
 
-	private handleWater(): Tile3DProjectedGeometry {
+	private handleGenericSurface(
+		{
+			textureId,
+			isOriented,
+			uvScale = 1,
+			zIndex
+		}: {
+			textureId: number;
+			isOriented: boolean;
+			uvScale?: number;
+			zIndex: number;
+		}
+	): Tile3DProjectedGeometry {
 		const builder = new Tile3DProjectedGeometryBuilder(this.osmReference);
+		builder.setZIndex(zIndex);
 
 		for (const ring of this.rings) {
 			const type = ring.type === VectorAreaRingType.Inner ? Tile3DRingType.Inner : Tile3DRingType.Outer;
@@ -79,8 +137,9 @@ export default class VectorAreaHandler implements Handler {
 
 		builder.addPolygon({
 			height: 0,
-			textureId: 0,
-			uvScale: 1
+			textureId: textureId,
+			isOriented: isOriented,
+			uvScale: uvScale
 		});
 
 		return builder.getGeometry();
