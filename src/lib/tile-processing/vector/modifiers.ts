@@ -5,7 +5,8 @@ import {
 } from "~/lib/tile-processing/vector/descriptors";
 
 export enum ModifierType {
-	NodeRow
+	NodeRow,
+	CircleArea
 }
 
 interface BaseModifier {
@@ -20,4 +21,10 @@ export interface NodeRowModifier extends BaseModifier {
 	descriptor: VectorNodeDescriptor;
 }
 
-export type Modifier = NodeRowModifier;
+export interface CircleAreaModifier extends BaseModifier {
+	type: ModifierType.CircleArea;
+	radius: number;
+	descriptor: VectorAreaDescriptor;
+}
+
+export type Modifier = NodeRowModifier | CircleAreaModifier;

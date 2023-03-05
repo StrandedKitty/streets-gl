@@ -4,7 +4,7 @@ import Handler from "~/lib/tile-processing/vector/handlers/Handler";
 import VectorArea, {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
 import {cleanupTags} from "~/lib/tile-processing/vector/utils";
-import {ContainerType, VectorDescriptorFactory} from "~/lib/tile-processing/vector/VectorDescriptorFactory";
+import {ContainerType, VectorDescriptorFactory} from "~/lib/tile-processing/vector/handlers/VectorDescriptorFactory";
 import Ring from "~/lib/tile-processing/vector/handlers/Ring";
 
 export default class OSMRelationHandler implements Handler {

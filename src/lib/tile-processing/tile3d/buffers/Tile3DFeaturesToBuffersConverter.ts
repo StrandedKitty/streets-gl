@@ -117,7 +117,7 @@ export class Tile3DFeaturesToBuffersConverter {
 
 	private static sortProjectedFeatures(features: Tile3DProjectedGeometry[]): Tile3DProjectedGeometry[] {
 		return features.sort((a, b) => {
-			return b.zIndex - a.zIndex;
+			return a.zIndex - b.zIndex;
 		});
 	}
 

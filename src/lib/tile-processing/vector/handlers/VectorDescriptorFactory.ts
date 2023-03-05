@@ -4,9 +4,9 @@ import {
 	VectorPolylineDescriptor
 } from "~/lib/tile-processing/vector/descriptors";
 import {Modifier, ModifierType} from "~/lib/tile-processing/vector/modifiers";
-import ColorsList from '../../../resources/colors.json';
+import ColorsList from '../../../../resources/colors.json';
 import {Tags} from "~/lib/tile-processing/vector/providers/OverpassDataObject";
-import MathUtils from "~/lib/math/MathUtils";
+import Utils from "~/app/Utils";
 
 type Descriptor = VectorNodeDescriptor | VectorAreaDescriptor | VectorPolylineDescriptor;
 
@@ -71,6 +71,29 @@ export class VectorDescriptorFactory {
 				case 'motorway':
 				case 'motorway_link': {
 					descriptor.pathType = 'roadway';
+
+					const isOneWay = tags.oneway === 'yes';
+					let lanesForward = this.parseUnsignedInt(tags['lanes:forward']);
+					let lanesBackward = this.parseUnsignedInt(tags['lanes:backward']);
+					const lanesTotal = this.parseUnsignedInt(tags['lanes']) ?? 2;
+
+					if (isOneWay) {
+						lanesForward = lanesTotal;
+						lanesBackward = 0;
+					} else {
+						if (lanesForward === undefined && lanesBackward === undefined) {
+							lanesForward = Math.ceil(lanesTotal / 2);
+							lanesBackward = lanesTotal - lanesForward;
+						} else if (lanesForward === undefined) {
+							lanesForward = Math.max(0, lanesTotal - lanesBackward);
+						} else if (lanesBackward === undefined) {
+							lanesBackward = Math.max(0, lanesTotal - lanesForward);
+						}
+					}
+
+					descriptor.lanesForward = lanesForward;
+					descriptor.lanesBackward = lanesBackward;
+					descriptor.width = this.parseUnits(tags.width) ?? (lanesForward + lanesBackward) * 3;
 					break;
 				}
 				case 'footway':
@@ -78,10 +101,12 @@ export class VectorDescriptorFactory {
 				case 'steps':
 				case 'pedestrian': {
 					descriptor.pathType = 'footway';
+					descriptor.width = this.parseUnits(tags.width) ?? 3;
 					break;
 				}
 				case 'cycleway': {
 					descriptor.pathType = 'cycleway';
+					descriptor.width = this.parseUnits(tags.width) ?? 3;
 					break;
 				}
 				default: {
@@ -254,11 +279,25 @@ export class VectorDescriptorFactory {
 				}
 			};
 		}
+
 		if (tags.advertising === 'column') {
 			return {
 				type: ContainerType.Descriptor,
 				data: {
 					type: 'adColumn'
+				}
+			};
+		}
+
+		if (tags.highway === 'turning_circle') {
+			return {
+				type: ContainerType.Modifier,
+				data: {
+					type: ModifierType.CircleArea,
+					radius: 11,
+					descriptor: {
+						type: 'roadway'
+					}
 				}
 			};
 		}
@@ -312,17 +351,64 @@ export class VectorDescriptorFactory {
 	): VectorAreaDescriptor['buildingRoofMaterial'] {
 		switch (str) {
 			case 'tile':
+			case 'tiles':
 			case 'roof_tiles':
 				return 'tiles';
 			case 'metal':
 			case 'metal_sheet':
 			case 'metal sheet':
+			case 'tin':
+			case 'copper':
+			case 'zinc':
 				return 'metal';
 			case 'concrete':
+			case 'asphalt':
 				return 'concrete';
+			case 'eternit':
+			case 'asbestos':
+				return 'eternit';
+			case 'thatch':
+				return 'thatch';
 		}
 
 		return fallback;
+	}
+
+	private static getRoofMaterialAndColor(materialValue: string, colorValue: string): {
+		material: VectorAreaDescriptor['buildingRoofMaterial'];
+		color: number;
+	} {
+		let material = this.parseRoofMaterial(materialValue, 'default');
+		let color = this.parseColor(colorValue, null);
+
+		if (color !== null && material === 'default') {
+			material = 'concrete';
+		}
+
+		if (color === null) {
+			switch (material) {
+				case "metal": {
+					color = materialValue === 'copper' ? 0xA3CABD : 0xC3D2DD;
+					break;
+				}
+				case "tiles": {
+					color = 0xCB7D64;
+					break;
+				}
+				default: {
+					color = 0xffffff;
+				}
+			}
+		}
+
+		if (material === 'thatch' || material === 'eternit') {
+			color = 0xffffff;
+		}
+
+		return {
+			material: material,
+			color: color
+		};
 	}
 
 	private static isBuildingHasWindows(tags: Tags): boolean {
@@ -353,13 +439,11 @@ export class VectorDescriptorFactory {
 		const fallbackLevels = 1;
 		const levelHeight = 4;
 		const fallbackFacadeColor = 0xffffff;
-		const fallbackRoofColor = 0xffffff;
 
 		const roofType = this.parseRoofType(tags['roof:shape'], 'flat');
 		const roofOrientation = this.parseRoofOrientation(tags['roof:orientation']);
 		const roofLevels = this.parseUnsignedInt(tags['roof:levels']) ?? this.getRoofDefaultLevels(roofType);
-		const roofColor = this.parseColor(tags['roof:colour'], fallbackRoofColor);
-		const roofMaterial = this.parseRoofMaterial(tags['roof:material'], 'default');
+		const roofMatAndColor = this.getRoofMaterialAndColor(tags['roof:material'], tags['roof:colour']);
 		const roofDirection = this.parseFloat(tags['roof:direction']) ?? 0;
 
 		const roofHeight = this.parseHeight(tags['roof:height'], roofLevels * levelHeight);
@@ -389,8 +473,8 @@ export class VectorDescriptorFactory {
 			buildingRoofAngle: roofAngle,
 			buildingFacadeMaterial: material,
 			buildingFacadeColor: color,
-			buildingRoofMaterial: roofMaterial,
-			buildingRoofColor: roofColor,
+			buildingRoofMaterial: roofMatAndColor.material,
+			buildingRoofColor: roofMatAndColor.color,
 			buildingWindows: windows
 		};
 	}
@@ -403,14 +487,18 @@ export class VectorDescriptorFactory {
 	}
 
 	private static parseColor(str: string = '', fallback?: number): number {
-		const noSpaces = str.replace(/[ _-]/g, '');
-		const entry = (ColorsList as Record<string, number[]>)[noSpaces];
-
-		if (!entry) {
+		if (str.length === 0) {
 			return fallback;
 		}
 
-		return entry[0] * 256 * 256 + entry[1] * 256 + entry[2];
+		const noSpaces = str.replace(/[ _-]/g, '');
+		let components = (ColorsList as Record<string, number[]>)[noSpaces];
+
+		if (!components) {
+			components = Utils.hexToRgb(str);
+		}
+
+		return components[0] * 256 * 256 + components[1] * 256 + components[2];
 	}
 
 	private static parseHeight(str: string = '', fallback?: number): number {
@@ -440,7 +528,9 @@ export class VectorDescriptorFactory {
 			return inches * 0.0254;
 		}
 
-		return parseFloat(str);
+		const parsedFloat = parseFloat(str);
+
+		return isNaN(parsedFloat) ? undefined : parsedFloat;
 	}
 
 	private static parseUnsignedInt(str: string = ''): number {

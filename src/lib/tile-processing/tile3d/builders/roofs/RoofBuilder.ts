@@ -25,7 +25,10 @@ export interface RoofParams {
 	direction: number;
 	angle: number;
 	orientation: 'along' | 'across';
-	flip?: boolean;
+	flip: boolean;
+	scaleX: number;
+	scaleY: number;
+	isStretched: boolean;
 }
 
 export default interface RoofBuilder {

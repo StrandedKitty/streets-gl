@@ -32,42 +32,50 @@ export default class BuildingMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array(16)
 				}, {
-					name: 'tRoofColor',
+					name: 'tRoof',
 					block: null,
 					type: RendererTypes.UniformType.Texture2DArray,
 					value: this.renderer.createTexture2DArray({
 						width: 512,
 						height: 512,
-						depth: 5,
+						depth: 9 * 3,
 						anisotropy: 16,
 						data: [
-							ResourceManager.get('roofColor1'),
-							ResourceManager.get('roofColor2'),
-							ResourceManager.get('roofColor3'),
-							ResourceManager.get('roofColor4'),
-							ResourceManager.get('roofColor5'),
-						],
-						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
-						magFilter: RendererTypes.MagFilter.Linear,
-						wrap: RendererTypes.TextureWrap.Repeat,
-						format: RendererTypes.TextureFormat.RGBA8Unorm,
-						mipmaps: true
-					})
-				}, {
-					name: 'tRoofNormal',
-					block: null,
-					type: RendererTypes.UniformType.Texture2DArray,
-					value: this.renderer.createTexture2DArray({
-						width: 512,
-						height: 512,
-						depth: 5,
-						anisotropy: 16,
-						data: [
-							ResourceManager.get('roofNormal1'),
-							ResourceManager.get('roofNormal2'),
-							ResourceManager.get('roofNormal3'),
-							ResourceManager.get('roofNormal4'),
-							ResourceManager.get('roofNormal5'),
+							ResourceManager.get('roofGeneric1Diffuse'),
+							ResourceManager.get('roofGeneric1Normal'),
+							ResourceManager.get('roofCommonMask'),
+
+							ResourceManager.get('roofGeneric2Diffuse'),
+							ResourceManager.get('roofGeneric2Normal'),
+							ResourceManager.get('roofCommonMask'),
+
+							ResourceManager.get('roofGeneric3Diffuse'),
+							ResourceManager.get('roofGeneric3Normal'),
+							ResourceManager.get('roofCommonMask'),
+
+							ResourceManager.get('roofGeneric4Diffuse'),
+							ResourceManager.get('roofGeneric4Normal'),
+							ResourceManager.get('roofCommonMask'),
+
+							ResourceManager.get('roofTilesDiffuse'),
+							ResourceManager.get('roofTilesNormal'),
+							ResourceManager.get('roofTilesMask'),
+
+							ResourceManager.get('roofMetalDiffuse'),
+							ResourceManager.get('roofMetalNormal'),
+							ResourceManager.get('roofMetalMask'),
+
+							ResourceManager.get('roofConcreteDiffuse'),
+							ResourceManager.get('roofConcreteNormal'),
+							ResourceManager.get('roofConcreteMask'),
+
+							ResourceManager.get('roofThatchDiffuse'),
+							ResourceManager.get('roofThatchNormal'),
+							ResourceManager.get('roofThatchMask'),
+
+							ResourceManager.get('roofEternitDiffuse'),
+							ResourceManager.get('roofEternitNormal'),
+							ResourceManager.get('roofEternitMask')
 						],
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,

@@ -1,13 +1,10 @@
 import Vec2 from "~/lib/math/Vec2";
-import * as OMBB from "~/lib/math/OMBB";
 import AABB2D from "~/lib/math/AABB2D";
 
 export enum Tile3DRingType {
 	Outer,
 	Inner
 }
-
-type OMBBResult = [Vec2, Vec2, Vec2, Vec2];
 
 export default class Tile3DRing {
 	public readonly type: Tile3DRingType;

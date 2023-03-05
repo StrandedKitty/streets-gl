@@ -1,10 +1,12 @@
 import {NodeElement} from "~/lib/tile-processing/vector/providers/OverpassDataObject";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
-import VectorArea from "~/lib/tile-processing/vector/features/VectorArea";
+import VectorArea, {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
 import Handler from './Handler';
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
-import {ContainerType, VectorDescriptorFactory} from "~/lib/tile-processing/vector/VectorDescriptorFactory";
+import {ContainerType, VectorDescriptorFactory} from "~/lib/tile-processing/vector/handlers/VectorDescriptorFactory";
 import {cleanupTags} from "~/lib/tile-processing/vector/utils";
+import {ModifierType} from "~/lib/tile-processing/vector/modifiers";
+import Vec2 from "~/lib/math/Vec2";
 
 export default class OSMNodeHandler implements Handler {
 	private readonly x: number;
@@ -41,7 +43,18 @@ export default class OSMNodeHandler implements Handler {
 					break;
 				}
 				case ContainerType.Modifier: {
-					console.error(`Unexpected modifier ${parsed.data.type}`);
+					if (parsed.data.type === ModifierType.CircleArea) {
+						const ring = OSMNodeHandler.getCircleAreaRing(this.x, this.y, parsed.data.radius);
+
+						features.push({
+							type: 'area',
+							osmReference: this.getOSMReference(),
+							descriptor: parsed.data.descriptor,
+							rings: [ring]
+						});
+					} else {
+						console.error(`Unexpected modifier ${parsed.data.type}`);
+					}
 					break;
 				}
 			}
@@ -86,5 +99,32 @@ export default class OSMNodeHandler implements Handler {
 
 	public markAsBuildingPartInRelation(): void {
 
+	}
+
+	private static getCircleAreaRing(x: number, y: number, radius: number): VectorAreaRing {
+		const nodes: VectorNode[] = [];
+		const nodeCount = 16;
+
+		for (let i = 0; i < 16; i++) {
+			const progress = i / nodeCount;
+			const rotation = Math.PI * 2 * progress;
+			const pos = Vec2.rotate(new Vec2(radius, 0), rotation);
+
+			nodes.push({
+				type: 'node',
+				x: x + pos.x,
+				y: y + pos.y,
+				osmReference: null,
+				descriptor: null,
+				rotation: 0
+			});
+		}
+
+		nodes.push(nodes[0]);
+
+		return {
+			type: VectorAreaRingType.Outer,
+			nodes
+		};
 	}
 }

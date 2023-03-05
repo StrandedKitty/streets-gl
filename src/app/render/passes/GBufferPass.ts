@@ -14,7 +14,6 @@ import {InternalResourceType} from '~/lib/render-graph/Pass';
 import PassManager from '../PassManager';
 import BuildingMaterialContainer from "../materials/BuildingMaterialContainer";
 import SkyboxMaterialContainer from "../materials/SkyboxMaterialContainer";
-import GroundMaterialContainer from "../materials/GroundMaterialContainer";
 import RoadMaterialContainer from "../materials/RoadMaterialContainer";
 import FullScreenTriangle from "../../objects/FullScreenTriangle";
 import TerrainMaterialContainer from "../materials/TerrainMaterialContainer";
@@ -63,7 +62,6 @@ export default class GBufferPass extends Pass<{
 	};
 }> {
 	private buildingMaterial: AbstractMaterial;
-	private groundMaterial: AbstractMaterial;
 	private roadMaterial: AbstractMaterial;
 	private skyboxMaterial: AbstractMaterial;
 	private terrainMaterial: AbstractMaterial;
@@ -93,7 +91,6 @@ export default class GBufferPass extends Pass<{
 
 	private createMaterials(): void {
 		this.buildingMaterial = new BuildingMaterialContainer(this.renderer).material;
-		this.groundMaterial = new GroundMaterialContainer(this.renderer).material;
 		this.roadMaterial = new RoadMaterialContainer(this.renderer).material;
 		this.skyboxMaterial = new SkyboxMaterialContainer(this.renderer).material;
 		this.terrainMaterial = new TerrainMaterialContainer(this.renderer).material;

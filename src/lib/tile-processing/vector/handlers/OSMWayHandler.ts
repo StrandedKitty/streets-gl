@@ -3,7 +3,7 @@ import {WayElement} from "~/lib/tile-processing/vector/providers/OverpassDataObj
 import VectorArea, {VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
 import VectorPolyline from "~/lib/tile-processing/vector/features/VectorPolyline";
 import Handler from "~/lib/tile-processing/vector/handlers/Handler";
-import {ContainerType, VectorDescriptorFactory,} from "~/lib/tile-processing/vector/VectorDescriptorFactory";
+import {ContainerType, VectorDescriptorFactory,} from "~/lib/tile-processing/vector/handlers/VectorDescriptorFactory";
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
 import {ModifierType} from "~/lib/tile-processing/vector/modifiers";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";

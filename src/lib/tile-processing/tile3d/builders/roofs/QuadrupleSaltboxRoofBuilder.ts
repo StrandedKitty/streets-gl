@@ -12,7 +12,9 @@ export default class QuadrupleSaltboxRoofBuilder extends MansardRoofBuilder {
 			minHeight,
 			height,
 			maxSkeletonHeight,
-			edge
+			edge,
+			scaleX,
+			scaleY
 		} : {
 			verticesBottom: number[];
 			verticesTop: number[];
@@ -20,13 +22,15 @@ export default class QuadrupleSaltboxRoofBuilder extends MansardRoofBuilder {
 			height: number;
 			maxSkeletonHeight: number;
 			edge: [Vec2, Vec2];
+			scaleX: number;
+			scaleY: number;
 		}
 	): {position: number[]; uv: number[]} {
 		const bottom = this.triangulatePolygon(
-			verticesBottom, minHeight, height * 2, maxSkeletonHeight, edge
+			verticesBottom, minHeight, height * 2, maxSkeletonHeight, edge, scaleX, scaleY
 		);
 		const top = this.triangulatePolygon(
-			verticesTop, minHeight + height, 0, maxSkeletonHeight, edge
+			verticesTop, minHeight + height, 0, maxSkeletonHeight, edge, scaleX, scaleY
 		);
 
 		return {

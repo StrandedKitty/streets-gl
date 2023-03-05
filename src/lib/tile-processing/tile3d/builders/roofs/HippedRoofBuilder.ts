@@ -39,7 +39,9 @@ export default class HippedRoofBuilder implements RoofBuilder {
 			minHeight,
 			height,
 			maxSkeletonHeight,
-			flip
+			flip,
+			scaleX: params.scaleX,
+			scaleY: params.scaleY
 		});
 		const normal = this.calculateNormals(position, flip);
 
@@ -64,7 +66,9 @@ export default class HippedRoofBuilder implements RoofBuilder {
 			minHeight,
 			height,
 			maxSkeletonHeight,
-			flip
+			flip,
+			scaleX,
+			scaleY
 		}: {
 			multipolygon: Tile3DMultipolygon;
 			skeleton: Skeleton;
@@ -72,6 +76,8 @@ export default class HippedRoofBuilder implements RoofBuilder {
 			height: number;
 			maxSkeletonHeight: number;
 			flip: boolean;
+			scaleX: number;
+			scaleY: number;
 		}
 	): {position: number[]; uv: number[]; skirt?: RoofSkirt} {
 		let positionResult: number[] = [];
@@ -82,7 +88,9 @@ export default class HippedRoofBuilder implements RoofBuilder {
 				edge,
 				minHeight,
 				height,
-				maxSkeletonHeight
+				maxSkeletonHeight,
+				scaleX,
+				scaleY
 			});
 
 			if (flip) {
@@ -101,12 +109,16 @@ export default class HippedRoofBuilder implements RoofBuilder {
 			edge,
 			minHeight,
 			height,
-			maxSkeletonHeight
+			maxSkeletonHeight,
+			scaleX,
+			scaleY
 		}: {
 			edge: EdgeResult;
 			minHeight: number;
 			height: number;
 			maxSkeletonHeight: number;
+			scaleX: number;
+			scaleY: number;
 		}
 	): {position: number[]; uv: number[]} {
 		const polygonVertices: number[] = [];
@@ -119,7 +131,7 @@ export default class HippedRoofBuilder implements RoofBuilder {
 			polygonVertices.push(edge.Polygon[i].X, edge.Polygon[i].Y);
 		}
 
-		return this.triangulatePolygon(polygonVertices, minHeight, height, maxSkeletonHeight, edgeLine);
+		return this.triangulatePolygon(polygonVertices, minHeight, height, maxSkeletonHeight, edgeLine, scaleX, scaleY);
 	}
 
 	protected triangulatePolygon(
@@ -127,7 +139,9 @@ export default class HippedRoofBuilder implements RoofBuilder {
 		minHeight: number,
 		height: number,
 		maxSkeletonHeight: number,
-		edgeLine: [Vec2, Vec2]
+		edgeLine: [Vec2, Vec2],
+		uvScaleX: number,
+		uvScaleY: number
 	): {position: number[]; uv: number[]} {
 		const position: number[] = [];
 		const uv: number[] = [];
@@ -152,7 +166,10 @@ export default class HippedRoofBuilder implements RoofBuilder {
 			const uvX = signedDstToLine(vertex, lineNormal);
 			const uvYScale = Math.sin(Math.atan(maxSkeletonHeight / height));
 
-			uv.push(uvX, dst / uvYScale);
+			uv.push(
+				uvX / uvScaleX,
+				dst / uvYScale / uvScaleY
+			);
 		}
 
 		return {position, uv};

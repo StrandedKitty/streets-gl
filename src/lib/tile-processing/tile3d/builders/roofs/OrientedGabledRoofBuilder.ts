@@ -66,13 +66,16 @@ export default class OrientedGabledRoofBuilder implements RoofBuilder {
 					for (const node of nodes) {
 						const nodeVec = new Vec2(node[0], node[2]);
 						const nodeDst = signedDstToLine(nodeVec, split);
-						node[1] = minHeight + (1 - Math.abs(nodeDst) / faceDepth) * height;
 
+						node[1] = minHeight + (1 - Math.abs(nodeDst) / faceDepth) * height;
 						positions.push(...node);
 
 						const uvXDst = signedDstToLine(nodeVec, verticalLine);
 						const uvYScale = Math.sin(Math.atan(faceDepth / height));
-						uvs.push(uvXDst, nodeDst / uvYScale);
+						uvs.push(
+							uvXDst / params.scaleX,
+							nodeDst / uvYScale / params.scaleY
+						);
 					}
 				}
 			}

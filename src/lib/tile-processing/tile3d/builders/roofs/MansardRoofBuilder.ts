@@ -12,12 +12,16 @@ export default class MansardRoofBuilder extends HippedRoofBuilder {
 			edge,
 			minHeight,
 			height,
-			maxSkeletonHeight
+			maxSkeletonHeight,
+			scaleX,
+			scaleY
 		}: {
 			edge: EdgeResult;
 			minHeight: number;
 			height: number;
 			maxSkeletonHeight: number;
+			scaleX: number;
+			scaleY: number;
 		}
 	): {position: number[]; uv: number[]} {
 		const edgeLine: [Vec2, Vec2] = [
@@ -33,7 +37,9 @@ export default class MansardRoofBuilder extends HippedRoofBuilder {
 			minHeight,
 			height,
 			maxSkeletonHeight,
-			edge: edgeLine
+			edge: edgeLine,
+			scaleX,
+			scaleY
 		});
 	}
 
@@ -91,7 +97,9 @@ export default class MansardRoofBuilder extends HippedRoofBuilder {
 			minHeight,
 			height,
 			maxSkeletonHeight,
-			edge
+			edge,
+			scaleX,
+			scaleY
 		} : {
 			verticesBottom: number[];
 			verticesTop: number[];
@@ -99,15 +107,17 @@ export default class MansardRoofBuilder extends HippedRoofBuilder {
 			height: number;
 			maxSkeletonHeight: number;
 			edge: [Vec2, Vec2];
+			scaleX: number;
+			scaleY: number;
 		}
 	): {position: number[]; uv: number[]} {
 		const bumpHeight = this.edgeBumpFactor * height;
 		const offset = bumpHeight / (1 - this.splitProgress);
 		const bottom = this.triangulatePolygon(
-			verticesBottom, minHeight, height + bumpHeight / this.splitProgress, maxSkeletonHeight, edge
+			verticesBottom, minHeight, height + bumpHeight / this.splitProgress, maxSkeletonHeight, edge, scaleX, scaleY
 		);
 		const top = this.triangulatePolygon(
-			verticesTop, minHeight + offset, height - offset, maxSkeletonHeight, edge
+			verticesTop, minHeight + offset, height - offset, maxSkeletonHeight, edge, scaleX, scaleY
 		);
 
 		return {

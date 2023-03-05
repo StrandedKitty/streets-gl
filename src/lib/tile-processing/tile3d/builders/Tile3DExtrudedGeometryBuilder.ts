@@ -83,7 +83,7 @@ export default class Tile3DExtrudedGeometryBuilder {
 		if (skirt) {
 			for (const polyline of skirt) {
 				const vertices = polyline.map(point => point.position);
-				const heights =  polyline.map(point => point.height);
+				const heights = polyline.map(point => point.height);
 
 				const walls = new WallsBuilder().build({
 					vertices,
@@ -128,7 +128,10 @@ export default class Tile3DExtrudedGeometryBuilder {
 				flip: true,
 				direction: 0,
 				angle: 0,
-				orientation: null
+				orientation: null,
+				scaleX: 1,
+				scaleY: 1,
+				isStretched: false
 			});
 			this.addAndPaintGeometry({
 				position: roof.position,
@@ -140,34 +143,26 @@ export default class Tile3DExtrudedGeometryBuilder {
 		}
 	}
 
-	public addRoof(
-		{
-			type,
-			buildingHeight,
-			minHeight,
-			height,
-			direction,
-			angle,
-			orientation,
-			color,
-			textureId
-		}: {
-			type: RoofType;
-			buildingHeight: number;
-			minHeight: number;
-			height: number;
-			direction: number;
-			angle: number;
-			orientation: 'along' | 'across';
-			color: number;
-			textureId: number;
-		}
-	): {skirt?: RoofSkirt; facadeHeightOverride?: number} {
+	public addRoof(params: {
+		type: RoofType;
+		buildingHeight: number;
+		minHeight: number;
+		height: number;
+		direction: number;
+		angle: number;
+		orientation: 'along' | 'across';
+		color: number;
+		textureId: number;
+		scaleX: number;
+		scaleY: number;
+		isStretched: boolean;
+		flip: boolean;
+	}): {skirt?: RoofSkirt; facadeHeightOverride?: number} {
 		let builder: RoofBuilder;
 
 		//type = RoofType.Gabled as RoofType;
 
-		switch (type) {
+		switch (params.type) {
 			case RoofType.Skillion: {
 				builder = new SkillionRoofBuilder();
 				break;
@@ -181,7 +176,7 @@ export default class Tile3DExtrudedGeometryBuilder {
 				break;
 			}
 			case RoofType.Gabled: {
-				if (orientation === 'along' || orientation === 'across') {
+				if (params.orientation === 'along' || params.orientation === 'across') {
 					builder = new OrientedGabledRoofBuilder();
 				} else {
 					builder = new GabledRoofBuilder();
@@ -204,20 +199,14 @@ export default class Tile3DExtrudedGeometryBuilder {
 
 		const roof = this.buildRoofSafe(builder, {
 			multipolygon: this.multipolygon,
-			buildingHeight: buildingHeight,
-			height: height,
-			minHeight: minHeight,
-			flip: false,
-			direction: direction,
-			angle: angle,
-			orientation: orientation
+			...params
 		});
 		this.addAndPaintGeometry({
 			position: roof.position,
 			normal: roof.normal,
 			uv: roof.uv,
-			color: ~~(Math.random() * 0xffffff),
-			textureId: textureId
+			color: params.color,
+			textureId: params.textureId
 		});
 
 		return {

@@ -39,7 +39,7 @@ export default class RoadMaterialContainer extends MaterialContainer {
 					value: this.renderer.createTexture2DArray({
 						width: 512,
 						height: 512,
-						depth: 7 * 3,
+						depth: 8 * 3,
 						anisotropy: 16,
 						data: [
 							ResourceManager.get('pavementDiffuse'),
@@ -67,6 +67,10 @@ export default class RoadMaterialContainer extends MaterialContainer {
 							ResourceManager.get('emptyMask'),
 
 							ResourceManager.get('manicuredGrassDiffuse'),
+							ResourceManager.get('emptyNormal'),
+							ResourceManager.get('emptyMask'),
+
+							ResourceManager.get('cyclewayDiffuse'),
 							ResourceManager.get('emptyNormal'),
 							ResourceManager.get('emptyMask'),
 						],
@@ -148,7 +152,7 @@ export default class RoadMaterialContainer extends MaterialContainer {
 			depth: {
 				depthWrite: false,
 				depthCompare: RendererTypes.DepthCompare.LessEqual,
-				depthBiasConstant: -1,
+				depthBiasConstant: -2,
 				depthBiasSlopeScale: -1
 			},
 			blend: {

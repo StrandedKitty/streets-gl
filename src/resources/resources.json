@@ -1,44 +1,28 @@
 {
-	"roofColor1": {
-		"url": "/textures/buildings/roofs/1_color.png",
-		"type": "image"
-	},
-	"roofColor2": {
-		"url": "/textures/buildings/roofs/2_color.png",
-		"type": "image"
-	},
-	"roofColor3": {
-		"url": "/textures/buildings/roofs/3_color.png",
-		"type": "image"
-	},
-	"roofColor4": {
-		"url": "/textures/buildings/roofs/4_color.png",
-		"type": "image"
-	},
-	"roofColor5": {
-		"url": "/textures/buildings/roofs/5_color.png",
-		"type": "image"
-	},
-	"roofNormal1": {
-		"url": "/textures/buildings/roofs/1_normal.png",
-		"type": "image"
-	},
-	"roofNormal2": {
-		"url": "/textures/buildings/roofs/2_normal.png",
-		"type": "image"
-	},
-	"roofNormal3": {
-		"url": "/textures/buildings/roofs/3_normal.png",
-		"type": "image"
-	},
-	"roofNormal4": {
-		"url": "/textures/buildings/roofs/4_normal.png",
-		"type": "image"
-	},
-	"roofNormal5": {
-		"url": "/textures/buildings/roofs/5_normal.png",
-		"type": "image"
-	},
+	"roofGeneric1Diffuse": {"url": "/textures/buildings/roofs/generic1_diffuse.png", "type": "image"},
+	"roofGeneric1Normal": {"url": "/textures/buildings/roofs/generic1_normal.png", "type": "image"},
+	"roofGeneric2Diffuse": {"url": "/textures/buildings/roofs/generic2_diffuse.png", "type": "image"},
+	"roofGeneric2Normal": {"url": "/textures/buildings/roofs/generic2_normal.png", "type": "image"},
+	"roofGeneric3Diffuse": {"url": "/textures/buildings/roofs/generic3_diffuse.png", "type": "image"},
+	"roofGeneric3Normal": {"url": "/textures/buildings/roofs/generic3_normal.png", "type": "image"},
+	"roofGeneric4Diffuse": {"url": "/textures/buildings/roofs/generic4_diffuse.png", "type": "image"},
+	"roofGeneric4Normal": {"url": "/textures/buildings/roofs/generic4_normal.png", "type": "image"},
+	"roofTilesDiffuse": {"url": "/textures/buildings/roofs/tiles_diffuse.png", "type": "image"},
+	"roofTilesNormal": {"url": "/textures/buildings/roofs/tiles_normal.png", "type": "image"},
+	"roofTilesMask": {"url": "/textures/buildings/roofs/tiles_mask.png", "type": "image"},
+	"roofMetalDiffuse": {"url": "/textures/buildings/roofs/metal_diffuse.png", "type": "image"},
+	"roofMetalNormal": {"url": "/textures/buildings/roofs/metal_normal.png", "type": "image"},
+	"roofMetalMask": {"url": "/textures/buildings/roofs/metal_mask.png", "type": "image"},
+	"roofConcreteDiffuse": {"url": "/textures/buildings/roofs/concrete_diffuse.png", "type": "image"},
+	"roofConcreteNormal": {"url": "/textures/buildings/roofs/concrete_normal.png", "type": "image"},
+	"roofConcreteMask": {"url": "/textures/buildings/roofs/concrete_mask.png", "type": "image"},
+	"roofThatchDiffuse": {"url": "/textures/buildings/roofs/thatch_diffuse.png", "type": "image"},
+	"roofThatchNormal": {"url": "/textures/buildings/roofs/thatch_normal.png", "type": "image"},
+	"roofThatchMask": {"url": "/textures/buildings/roofs/thatch_mask.png", "type": "image"},
+	"roofEternitDiffuse": {"url": "/textures/buildings/roofs/eternit_diffuse.png", "type": "image"},
+	"roofEternitNormal": {"url": "/textures/buildings/roofs/eternit_normal.png", "type": "image"},
+	"roofEternitMask": {"url": "/textures/buildings/roofs/eternit_mask.png", "type": "image"},
+	"roofCommonMask": {"url": "/textures/buildings/roofs/common_mask.png", "type": "image"},
 	"biomeMap": {
 		"url": "/textures/biomes_blurred.png",
 		"type": "image"
@@ -89,6 +73,10 @@
 	},
 	"asphaltMask": {
 		"url": "/textures/surfaces/asphalt_mask.png",
+		"type": "image"
+	},
+	"cyclewayDiffuse": {
+		"url": "/textures/surfaces/cycleway_diffuse.png",
 		"type": "image"
 	},
 	"cobblestoneDiffuse": {

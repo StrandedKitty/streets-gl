@@ -30,7 +30,7 @@ export interface VectorAreaDescriptor {
 	buildingRoofAngle?: number;
 	buildingFacadeMaterial?: 'plaster' | 'brick' | 'wood' | 'glass' | 'cementBlock';
 	buildingFacadeColor?: number;
-	buildingRoofMaterial?: 'default' | 'tiles' | 'metal' | 'concrete';
+	buildingRoofMaterial?: 'default' | 'tiles' | 'metal' | 'concrete' | 'thatch' | 'eternit';
 	buildingRoofColor?: number;
 	buildingWindows?: boolean;
 }

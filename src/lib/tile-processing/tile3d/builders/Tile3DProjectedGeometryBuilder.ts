@@ -8,6 +8,7 @@ import Config from "~/app/Config";
 import AABB3D from "~/lib/math/AABB3D";
 import Vec3 from "~/lib/math/Vec3";
 import SurfaceBuilder from "~/lib/tile-processing/tile3d/builders/SurfaceBuilder";
+import RoadBuilder from "~/lib/tile-processing/tile3d/builders/RoadBuilder";
 
 export default class Tile3DProjectedGeometryBuilder {
 	private readonly osmReference: OSMReference;
@@ -74,6 +75,30 @@ export default class Tile3DProjectedGeometryBuilder {
 		this.projectAndAddGeometry({
 			position: surface.position,
 			uv: surface.uv,
+			textureId: textureId,
+			height: height
+		});
+	}
+
+	public addPath(
+		{
+			width,
+			textureId,
+			height = 0
+		}: {
+			width: number;
+			textureId: number;
+			height?: number;
+		}
+	): void {
+		const road = new RoadBuilder().build({
+			vertices: this.multipolygon.rings[0].nodes,
+			width: width
+		});
+
+		this.projectAndAddGeometry({
+			position: road.position,
+			uv: road.uv,
 			textureId: textureId,
 			height: height
 		});

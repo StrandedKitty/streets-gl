@@ -35,7 +35,8 @@ export default class PyramidalRoofBuilder implements RoofBuilder {
 
 		const roofSlopeLength = Math.hypot(minDstToCenter, height);
 		let uvProgress = 0;
-		const uvScale = 1;
+		const uvScaleX = params.scaleX;
+		const uvScaleY = params.scaleY;
 
 		for (let i = 0; i < ringVertices.length; i++) {
 			const vertex = ringVertices[i];
@@ -59,12 +60,12 @@ export default class PyramidalRoofBuilder implements RoofBuilder {
 			const segmentAngle = Vec2.normalize(segmentDir).getAngle();
 			const localCenter = Vec2.rotate(Vec2.sub(center, vertex), -segmentAngle);
 
-			uvs[i * 6] = uvProgress * uvScale;
+			uvs[i * 6] = uvProgress / uvScaleX;
 			uvs[i * 6 + 1] = 0;
-			uvs[i * 6 + 2] = nextUvProgress * uvScale;
+			uvs[i * 6 + 2] = nextUvProgress / uvScaleX;
 			uvs[i * 6 + 3] = 0;
-			uvs[i * 6 + 4] = (uvProgress + localCenter.x) * uvScale;
-			uvs[i * 6 + 5] = roofSlopeLength * uvScale;
+			uvs[i * 6 + 4] = (uvProgress + localCenter.x) / uvScaleX;
+			uvs[i * 6 + 5] = roofSlopeLength / uvScaleY;
 
 			uvProgress = nextUvProgress;
 

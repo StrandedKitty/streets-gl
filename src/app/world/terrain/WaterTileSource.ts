@@ -1,21 +1,12 @@
-import PBFPolygonParser, {PBFPolygon, PBFRing} from "../universal-features/providers/pbf/PBFPolygonParser";
-import {Tile as proto} from "../universal-features/providers/pbf/vector_tile";
 import earcut from 'earcut';
-import Vec2 from "~/lib/math/Vec2";
 import TileSource from "./TileSource";
 import AbstractMesh from "~/lib/renderer/abstract-renderer/AbstractMesh";
-import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import WaterMask from "../../objects/WaterMask";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
+import PBFPolygonParser, {PBFPolygon, PBFRing} from "~/lib/tile-processing/vector/providers/pbf/PBFPolygonParser";
+import {Tile as proto} from "~/lib/tile-processing/vector/providers/pbf/vector_tile";
 
 const Pbf = require('pbf');
-
-const HalfTileOffsets = [
-	new Vec2(0, 0),
-	new Vec2(0, 1),
-	new Vec2(1, 0),
-	new Vec2(1, 1)
-];
 
 export default class WaterTileSource extends TileSource<Float32Array> {
 	private mesh: AbstractMesh = null;

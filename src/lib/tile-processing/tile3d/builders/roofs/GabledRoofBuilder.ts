@@ -14,7 +14,9 @@ export default class GabledRoofBuilder extends HippedRoofBuilder {
 			minHeight,
 			height,
 			maxSkeletonHeight,
-			flip
+			flip,
+			scaleX,
+			scaleY
 		}: {
 			multipolygon: Tile3DMultipolygon;
 			skeleton: Skeleton;
@@ -22,6 +24,8 @@ export default class GabledRoofBuilder extends HippedRoofBuilder {
 			height: number;
 			maxSkeletonHeight: number;
 			flip: boolean;
+			scaleX: number;
+			scaleY: number;
 		}
 	): {position: number[]; uv: number[]; skirt?: RoofSkirt} {
 		skeleton = copySkeletonPolygons(skeleton);
@@ -115,7 +119,9 @@ export default class GabledRoofBuilder extends HippedRoofBuilder {
 				edge,
 				minHeight,
 				height,
-				maxSkeletonHeight
+				maxSkeletonHeight,
+				scaleX,
+				scaleY
 			});
 
 			if (flip) {
