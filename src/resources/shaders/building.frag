@@ -58,7 +58,7 @@ void main() {
     } else {
         outColor = getRoofColor(vTextureId - 1, vColor);
         outNormal = packNormal(getRoofNormal(vTextureId - 1));
-        outRoughnessMetalnessF0 = vec3(getRoofMask(vTextureId - 1).xy, 0.03);
+        outRoughnessMetalnessF0 = getRoofMask(vTextureId - 1) + vec3(0, 0, 0.03);
     }
 
     outMotion = getMotionVector(vClipPos, vClipPosPrev);

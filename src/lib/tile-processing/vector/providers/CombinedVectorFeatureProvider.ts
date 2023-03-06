@@ -21,6 +21,9 @@ export default class CombinedVectorFeatureProvider extends VectorFeatureProvider
 		const mapboxRequest = this.mapboxProvider.getCollection({x, y, zoom});
 		const overpassRequest = this.overpassProvider.getCollection({x, y, zoom});
 
+		mapboxRequest.catch(e => console.error(e));
+		overpassRequest.catch(e => console.error(e));
+
 		return new Promise((resolve, reject) => {
 			Promise.allSettled([mapboxRequest, overpassRequest]).then(([mapboxData, overpassData]) => {
 				if (overpassData.status === 'fulfilled' && mapboxData.status === 'fulfilled') {
@@ -30,7 +33,7 @@ export default class CombinedVectorFeatureProvider extends VectorFeatureProvider
 				}
 
 				reject();
-			})
+			});
 		});
 	}
 

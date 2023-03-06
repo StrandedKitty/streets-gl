@@ -25,15 +25,21 @@ function sendMessage(msg: WorkerMessageIncoming): void {
 
 async function load(x: number, y: number): Promise<void> {
 	const provider = new Tile3DFromVectorProvider();
-	const collection = await provider.getCollection({x, y, zoom: 16});
-	const buffers = Tile3DFeaturesToBuffersConverter.convert(collection);
+	const collectionPromise = provider.getCollection({x, y, zoom: 16});
 
-	sendMessage({
-		type: WorkerMessageIncomingType.Success,
-		tile: [x, y],
-		result: buffers
-	});
+	collectionPromise.then(collection => {
+		const buffers = Tile3DFeaturesToBuffersConverter.convert(collection);
+
+		sendMessage({
+			type: WorkerMessageIncomingType.Success,
+			tile: [x, y],
+			result: buffers
+		});
+	}).catch(error => {
+		sendMessage({
+			type: WorkerMessageIncomingType.Error,
+			tile: [x, y],
+			result: {error}
+		});
+	})
 }
-
-export default null as any;
-

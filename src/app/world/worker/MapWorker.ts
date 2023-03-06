@@ -1,4 +1,3 @@
-import Worker from './WorkerInstance2.worker';
 import Vec2 from "~/lib/math/Vec2";
 import HeightProvider from "../HeightProvider";
 import {
@@ -15,7 +14,7 @@ export default class MapWorker {
 	private tilesInProgress: Map<string, {resolve: {(a: any): void}; reject: {(a: any): void}}> = new Map();
 
 	public constructor() {
-		this.worker = new Worker();
+		this.worker = new Worker(new URL('./WorkerInstance.ts', import.meta.url));
 
 		this.worker.addEventListener('message', (e: MessageEvent) => {
 			this.processMessage(e);

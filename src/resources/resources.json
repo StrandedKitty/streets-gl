@@ -22,7 +22,29 @@
 	"roofEternitDiffuse": {"url": "/textures/buildings/roofs/eternit_diffuse.png", "type": "image"},
 	"roofEternitNormal": {"url": "/textures/buildings/roofs/eternit_normal.png", "type": "image"},
 	"roofEternitMask": {"url": "/textures/buildings/roofs/eternit_mask.png", "type": "image"},
+	"roofGrassDiffuse": {"url": "/textures/buildings/roofs/grass_diffuse.png", "type": "image"},
+	"roofGrassNormal": {"url": "/textures/buildings/roofs/grass_normal.png", "type": "image"},
+	"roofGrassMask": {"url": "/textures/buildings/roofs/grass_mask.png", "type": "image"},
+	"roofGlassDiffuse": {"url": "/textures/buildings/roofs/glass_diffuse.png", "type": "image"},
+	"roofGlassNormal": {"url": "/textures/buildings/roofs/glass_normal.png", "type": "image"},
+	"roofGlassMask": {"url": "/textures/buildings/roofs/glass_mask.png", "type": "image"},
+	"roofTarDiffuse": {"url": "/textures/buildings/roofs/tar_diffuse.png", "type": "image"},
+	"roofTarNormal": {"url": "/textures/buildings/roofs/tar_normal.png", "type": "image"},
+	"roofTarMask": {"url": "/textures/buildings/roofs/tar_mask.png", "type": "image"},
 	"roofCommonMask": {"url": "/textures/buildings/roofs/common_mask.png", "type": "image"},
+
+	"pavementDiffuse": {"url": "/textures/surfaces/pavement_diffuse.png", "type": "image"},
+	"asphaltDiffuse": {"url": "/textures/surfaces/asphalt_diffuse.png", "type": "image"},
+	"cyclewayDiffuse": {"url": "/textures/surfaces/cycleway_diffuse.png", "type": "image"},
+	"cobblestoneDiffuse": {"url": "/textures/surfaces/cobblestone_diffuse.png", "type": "image"},
+	"cobblestoneNormal": {"url": "/textures/surfaces/cobblestone_normal.png", "type": "image"},
+	"commonNormal": {"url": "/textures/surfaces/common_normal.png", "type": "image"},
+	"commonMask": {"url": "/textures/surfaces/common_mask.png", "type": "image"},
+	"footballPitchDiffuse": {"url": "/textures/surfaces/football_pitch_diffuse.png", "type": "image"},
+	"basketballPitchDiffuse": {"url": "/textures/surfaces/basketball_pitch_diffuse.png", "type": "image"},
+	"tennisPitchDiffuse": {"url": "/textures/surfaces/tennis_pitch_diffuse.png", "type": "image"},
+	"manicuredGrassDiffuse": {"url": "/textures/surfaces/manicured_grass_diffuse.png", "type": "image"},
+
 	"biomeMap": {
 		"url": "/textures/biomes_blurred.png",
 		"type": "image"
@@ -49,70 +71,6 @@
 	},
 	"waterNormal": {
 		"url": "/textures/water_normal.png",
-		"type": "image"
-	},
-	"pavementDiffuse": {
-		"url": "/textures/surfaces/pavement_diffuse.png",
-		"type": "image"
-	},
-	"pavementNormal": {
-		"url": "/textures/surfaces/pavement_normal.png",
-		"type": "image"
-	},
-	"pavementMask": {
-		"url": "/textures/surfaces/pavement_mask.png",
-		"type": "image"
-	},
-	"asphaltDiffuse": {
-		"url": "/textures/surfaces/asphalt_diffuse.png",
-		"type": "image"
-	},
-	"asphaltNormal": {
-		"url": "/textures/surfaces/asphalt_normal.png",
-		"type": "image"
-	},
-	"asphaltMask": {
-		"url": "/textures/surfaces/asphalt_mask.png",
-		"type": "image"
-	},
-	"cyclewayDiffuse": {
-		"url": "/textures/surfaces/cycleway_diffuse.png",
-		"type": "image"
-	},
-	"cobblestoneDiffuse": {
-		"url": "/textures/surfaces/cobblestone_diffuse.png",
-		"type": "image"
-	},
-	"cobblestoneNormal": {
-		"url": "/textures/surfaces/cobblestone_normal.png",
-		"type": "image"
-	},
-	"cobblestoneMask": {
-		"url": "/textures/surfaces/cobblestone_mask.png",
-		"type": "image"
-	},
-	"emptyNormal": {
-		"url": "/textures/surfaces/empty_normal.png",
-		"type": "image"
-	},
-	"emptyMask": {
-		"url": "/textures/surfaces/empty_mask.png",
-		"type": "image"
-	},
-	"footballPitchDiffuse": {
-		"url": "/textures/surfaces/football_pitch_diffuse.png",
-		"type": "image"
-	},
-	"basketballPitchDiffuse": {
-		"url": "/textures/surfaces/basketball_pitch_diffuse.png",
-		"type": "image"
-	},
-	"tennisPitchDiffuse": {
-		"url": "/textures/surfaces/tennis_pitch_diffuse.png",
-		"type": "image"
-	},
-	"manicuredGrassDiffuse": {
-		"url": "/textures/surfaces/manicured_grass_diffuse.png",
 		"type": "image"
 	},
 	"blue_noise_rgba": {

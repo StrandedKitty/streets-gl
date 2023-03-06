@@ -38,7 +38,7 @@ export default class BuildingMaterialContainer extends MaterialContainer {
 					value: this.renderer.createTexture2DArray({
 						width: 512,
 						height: 512,
-						depth: 9 * 3,
+						depth: 12 * 3,
 						anisotropy: 16,
 						data: [
 							ResourceManager.get('roofGeneric1Diffuse'),
@@ -75,7 +75,19 @@ export default class BuildingMaterialContainer extends MaterialContainer {
 
 							ResourceManager.get('roofEternitDiffuse'),
 							ResourceManager.get('roofEternitNormal'),
-							ResourceManager.get('roofEternitMask')
+							ResourceManager.get('roofEternitMask'),
+
+							ResourceManager.get('roofGrassDiffuse'),
+							ResourceManager.get('roofGrassNormal'),
+							ResourceManager.get('roofGrassMask'),
+
+							ResourceManager.get('roofGlassDiffuse'),
+							ResourceManager.get('roofGlassNormal'),
+							ResourceManager.get('roofGlassMask'),
+
+							ResourceManager.get('roofTarDiffuse'),
+							ResourceManager.get('roofTarNormal'),
+							ResourceManager.get('roofTarMask')
 						],
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,

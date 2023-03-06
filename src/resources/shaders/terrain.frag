@@ -113,7 +113,7 @@ void main() {
 
     outColor = vec4(detailColor, 1);
     outNormal = packNormal(detailNormal);
-    outRoughnessMetalnessF0 = vec3(0.9, 0, 0.001);
+    outRoughnessMetalnessF0 = vec3(0.8, 0, 0.001);
 
     if (waterFactor > 0.5) {
         float waveTime = time * 0.015;

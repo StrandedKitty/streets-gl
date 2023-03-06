@@ -189,14 +189,20 @@ export default class VectorAreaHandler implements Handler {
 			metal: 6,
 			concrete: 7,
 			thatch: 8,
-			eternit: 9
+			eternit: 9,
+			grass: 10,
+			glass: 11,
+			tar: 12
 		};
 		const textureIdToScale: Record<number, Vec2> = {
 			5: new Vec2(3, 3),
 			6: new Vec2(4, 4),
 			7: new Vec2(10, 10),
 			8: new Vec2(8, 8),
-			9: new Vec2(5, 5)
+			9: new Vec2(5, 5),
+			10: new Vec2(12, 12),
+			11: new Vec2(4, 4),
+			12: new Vec2(4, 4),
 		};
 
 		if (roofType === RoofType.Flat && roofMaterial === 'default' && roofColor === 0xffffff) {

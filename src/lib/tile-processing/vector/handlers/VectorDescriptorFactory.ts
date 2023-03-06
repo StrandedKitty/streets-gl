@@ -353,6 +353,7 @@ export class VectorDescriptorFactory {
 			case 'tile':
 			case 'tiles':
 			case 'roof_tiles':
+			case 'slate':
 				return 'tiles';
 			case 'metal':
 			case 'metal_sheet':
@@ -369,6 +370,12 @@ export class VectorDescriptorFactory {
 				return 'eternit';
 			case 'thatch':
 				return 'thatch';
+			case 'grass':
+				return 'grass';
+			case 'glass':
+				return 'glass';
+			case 'tar_paper':
+				return 'tar';
 		}
 
 		return fallback;
@@ -387,12 +394,16 @@ export class VectorDescriptorFactory {
 
 		if (color === null) {
 			switch (material) {
+				case "concrete": {
+					color = 0xBBBBBB;
+					break;
+				}
 				case "metal": {
 					color = materialValue === 'copper' ? 0xA3CABD : 0xC3D2DD;
 					break;
 				}
 				case "tiles": {
-					color = 0xCB7D64;
+					color = materialValue === 'slate' ? 0x8C8C97 : 0xCB7D64;
 					break;
 				}
 				default: {
@@ -401,7 +412,7 @@ export class VectorDescriptorFactory {
 			}
 		}
 
-		if (material === 'thatch' || material === 'eternit') {
+		if (material === 'thatch' || material === 'eternit' || material === 'grass') {
 			color = 0xffffff;
 		}
 
@@ -495,7 +506,12 @@ export class VectorDescriptorFactory {
 		let components = (ColorsList as Record<string, number[]>)[noSpaces];
 
 		if (!components) {
-			components = Utils.hexToRgb(str);
+			const hex = str.includes(';') ? str.split(';')[0] : str;
+			components = Utils.hexToRgb(hex);
+		}
+
+		if (!components) {
+			return fallback;
 		}
 
 		return components[0] * 256 * 256 + components[1] * 256 + components[2];
