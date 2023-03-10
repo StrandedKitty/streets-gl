@@ -9,7 +9,6 @@ import OSMWayHandler from "~/lib/tile-processing/vector/handlers/OSMWayHandler";
 import OSMRelationHandler from "~/lib/tile-processing/vector/handlers/OSMRelationHandler";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import VectorPolyline from "~/lib/tile-processing/vector/features/VectorPolyline";
-import {applyScaleToFeatures} from "~/lib/tile-processing/vector/utils";
 import VectorBuildingOutlinesCleaner from "~/lib/tile-processing/vector/VectorBuildingOutlinesCleaner";
 
 const TileRequestMargin = 0.05;
@@ -162,7 +161,6 @@ export default class OverpassVectorFeatureProvider extends VectorFeatureProvider
 		]);
 
 		collection.areas = new VectorBuildingOutlinesCleaner().deleteBuildingOutlines(collection.areas);
-		applyScaleToFeatures(collection, x, y, zoom);
 
 		return collection;
 	}

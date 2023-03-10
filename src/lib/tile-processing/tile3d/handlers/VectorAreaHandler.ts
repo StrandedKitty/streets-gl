@@ -92,6 +92,7 @@ export default class VectorAreaHandler implements Handler {
 			builder.addRing(type, nodes);
 		}
 
+		const facadeParams = this.getFacadeParams();
 		const roofParams = this.getRoofParams();
 
 		const {skirt, facadeHeightOverride} = builder.addRoof({
@@ -111,12 +112,13 @@ export default class VectorAreaHandler implements Handler {
 		});
 		builder.addWalls({
 			levels: this.descriptor.buildingLevels,
-			windowWidth: 5,
+			windowWidth: facadeParams.windowWidth,
 			minHeight: this.descriptor.buildingMinHeight,
 			height: facadeHeightOverride ?? (this.descriptor.buildingHeight - this.descriptor.buildingRoofHeight),
 			skirt: skirt,
-			color: this.descriptor.buildingFacadeColor,
-			textureId: 0
+			color: facadeParams.color,
+			textureIdWall: facadeParams.textureIdWall,
+			textureIdWindow: facadeParams.textureIdWindow,
 		});
 
 		return builder.getGeometry();
@@ -155,7 +157,7 @@ export default class VectorAreaHandler implements Handler {
 		return builder.getGeometry();
 	}
 
-	private static getRingTypeFromString(str: VectorAreaDescriptor['buildingRoofType']): RoofType {
+	private static getRoofTypeFromString(str: VectorAreaDescriptor['buildingRoofType']): RoofType {
 		switch (str) {
 			case 'flat': return RoofType.Flat;
 			case 'gabled': return RoofType.Gabled;
@@ -179,7 +181,7 @@ export default class VectorAreaHandler implements Handler {
 		scaleY: number;
 		isStretched: boolean;
 	} {
-		const roofType = VectorAreaHandler.getRingTypeFromString(this.descriptor.buildingRoofType);
+		const roofType = VectorAreaHandler.getRoofTypeFromString(this.descriptor.buildingRoofType);
 		const roofMaterial = this.descriptor.buildingRoofMaterial;
 		const roofColor = this.descriptor.buildingRoofColor;
 
@@ -226,6 +228,33 @@ export default class VectorAreaHandler implements Handler {
 			scaleX: scale.x,
 			scaleY: scale.y,
 			isStretched: false
+		};
+	}
+
+	private getFacadeParams(): {
+		windowWidth: number;
+		color: number;
+		textureIdWindow: number;
+		textureIdWall: number;
+	} {
+		const material = this.descriptor.buildingFacadeMaterial;
+		const color = this.descriptor.buildingFacadeColor;
+		const hasWindows = this.descriptor.buildingWindows;
+
+		const materialToTextureId: Record<VectorAreaDescriptor['buildingFacadeMaterial'], number> = {
+			plaster: 13,
+			brick: 14,
+			wood: 15,
+			glass: 16,
+			mirror: 17,
+			cementBlock: 18
+		};
+
+		return {
+			windowWidth: 4,
+			color,
+			textureIdWall: 13,
+			textureIdWindow: 13
 		};
 	}
 }

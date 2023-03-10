@@ -74,7 +74,7 @@
 		"react-loading-skeleton": "^3.1.0",
 		"recoil": "^0.7.6",
 		"simplify-js": "^1.2.4",
-		"straight-skeleton": "^1.0.1",
+		"straight-skeleton": "^1.1.0",
 		"suncalc": "^1.8.0"
 	}
 }

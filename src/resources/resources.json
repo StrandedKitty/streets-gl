@@ -33,6 +33,10 @@
 	"roofTarMask": {"url": "/textures/buildings/roofs/tar_mask.png", "type": "image"},
 	"roofCommonMask": {"url": "/textures/buildings/roofs/common_mask.png", "type": "image"},
 
+	"facadePlaceholderDiffuse": {"url": "/textures/buildings/facades/placeholder_diffuse.png", "type": "image"},
+	"facadePlaceholderNormal": {"url": "/textures/buildings/facades/common_normal.png", "type": "image"},
+	"facadePlaceholderMask": {"url": "/textures/buildings/facades/common_mask.png", "type": "image"},
+
 	"pavementDiffuse": {"url": "/textures/surfaces/pavement_diffuse.png", "type": "image"},
 	"asphaltDiffuse": {"url": "/textures/surfaces/asphalt_diffuse.png", "type": "image"},
 	"cyclewayDiffuse": {"url": "/textures/surfaces/cycleway_diffuse.png", "type": "image"},
@@ -44,6 +48,8 @@
 	"basketballPitchDiffuse": {"url": "/textures/surfaces/basketball_pitch_diffuse.png", "type": "image"},
 	"tennisPitchDiffuse": {"url": "/textures/surfaces/tennis_pitch_diffuse.png", "type": "image"},
 	"manicuredGrassDiffuse": {"url": "/textures/surfaces/manicured_grass_diffuse.png", "type": "image"},
+	"railwayDiffuse": {"url": "/textures/surfaces/railway_diffuse.png", "type": "image"},
+	"railwayNormal": {"url": "/textures/surfaces/railway_normal.png", "type": "image"},
 
 	"biomeMap": {
 		"url": "/textures/biomes_blurred.png",

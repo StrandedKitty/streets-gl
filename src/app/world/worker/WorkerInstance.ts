@@ -36,6 +36,8 @@ async function load(x: number, y: number): Promise<void> {
 			result: buffers
 		});
 	}).catch(error => {
+		console.error(error);
+
 		sendMessage({
 			type: WorkerMessageIncomingType.Error,
 			tile: [x, y],

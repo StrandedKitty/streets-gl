@@ -1,6 +1,6 @@
 import Tile3DRing, {Tile3DRingType} from "~/lib/tile-processing/tile3d/builders/Tile3DRing";
 import earcut from "earcut";
-import SkeletonBuilder, {Skeleton} from "straight-skeleton";
+import {SkeletonBuilder, Skeleton} from "straight-skeleton";
 import AABB2D from "~/lib/math/AABB2D";
 import Vec2 from "~/lib/math/Vec2";
 import * as OMBB from "~/lib/math/OMBB";

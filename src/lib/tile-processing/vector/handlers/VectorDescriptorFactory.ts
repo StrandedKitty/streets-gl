@@ -126,7 +126,19 @@ export class VectorDescriptorFactory {
 				type: ContainerType.Descriptor,
 				data: {
 					type: 'path',
-					pathType: 'railway'
+					pathType: 'railway',
+					width: 3
+				}
+			};
+		}
+
+		if (tags.railway === 'tram') {
+			return {
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'path',
+					pathType: 'tramway',
+					width: 3
 				}
 			};
 		}
@@ -246,6 +258,15 @@ export class VectorDescriptorFactory {
 		}
 
 		if (tags.area === 'yes' && (tags.highway === 'pedestrian' || tags.highway === 'footway')) {
+			return {
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'footway'
+				}
+			};
+		}
+
+		if (tags.man_made === 'bridge') {
 			return {
 				type: ContainerType.Descriptor,
 				data: {
@@ -460,21 +481,38 @@ export class VectorDescriptorFactory {
 		const roofHeight = this.parseHeight(tags['roof:height'], roofLevels * levelHeight);
 		const roofAngle = this.parseUnsignedFloat(tags['roof:angle']);
 
-		const minLevel = this.parseUnsignedInt(tags['building:min_level']) ?? 0;
-		const levels = (this.parseUnsignedInt(tags['building:levels']) ?? fallbackLevels + minLevel) - minLevel;
-		const height = Math.max(0,
-			this.parseHeight(
-				tags.height,
-				(levels + minLevel) * levelHeight + roofHeight
-			)
-		);
-		const minHeight = Math.min(this.parseHeight(tags.min_height, minLevel * levelHeight), height);
+		let minLevel = this.parseUnsignedInt(tags['building:min_level']) ?? null;
+		let height = this.parseHeight(tags.height, null);
+		let levels = this.parseUnsignedInt(tags['building:levels']) ?? null;
+		let minHeight = this.parseHeight(tags.min_height, null);
+
+		if (height === null && levels === null) {
+			levels = 1;
+			height = levels * levelHeight + roofHeight
+		} else if (height === null) {
+			height = levels * levelHeight + roofHeight
+		} else if (levels === null) {
+			levels = Math.max(1, Math.round((height - roofHeight) / levelHeight));
+		}
+
+		if (minLevel === null) {
+			if (minHeight !== null) {
+				minLevel = Math.min(levels - 1, Math.round(minHeight / levelHeight));
+			} else {
+				minLevel = 0;
+			}
+		}
+
+		if (minHeight === null) {
+			minHeight = Math.min(minLevel * levelHeight, height);
+		}
+
 		const color = this.parseColor(tags['building:colour'], fallbackFacadeColor);
 		const material = this.parseFacadeMaterial(tags['building:material'], 'plaster');
 		const windows = this.isBuildingHasWindows(tags);
 
 		return {
-			buildingLevels: levels,
+			buildingLevels: levels - minLevel,
 			buildingHeight: height,
 			buildingMinHeight: minHeight,
 			buildingRoofHeight: roofHeight,
@@ -493,7 +531,7 @@ export class VectorDescriptorFactory {
 	private static isUnderground(tags: Record<string, string>): boolean {
 		return (
 			tags.location === 'underground' ||
-			this.parseInt(tags.level) < 0
+			this.parseFloat(tags.level) < 0
 		);
 	}
 
@@ -502,8 +540,8 @@ export class VectorDescriptorFactory {
 			return fallback;
 		}
 
-		const noSpaces = str.replace(/[ _-]/g, '');
-		let components = (ColorsList as Record<string, number[]>)[noSpaces];
+		const noSpacesLowerCase = str.replace(/[ _-]/g, '').toLowerCase();
+		let components = (ColorsList as Record<string, number[]>)[noSpacesLowerCase];
 
 		if (!components) {
 			const hex = str.includes(';') ? str.split(';')[0] : str;

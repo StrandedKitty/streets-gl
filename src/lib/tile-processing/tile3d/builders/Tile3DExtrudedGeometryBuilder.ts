@@ -69,7 +69,8 @@ export default class Tile3DExtrudedGeometryBuilder {
 			levels,
 			windowWidth,
 			color,
-			textureId
+			textureIdWindow,
+			textureIdWall
 		}: {
 			minHeight: number;
 			height: number;
@@ -77,27 +78,31 @@ export default class Tile3DExtrudedGeometryBuilder {
 			levels: number;
 			windowWidth: number;
 			color: number;
-			textureId: number;
+			textureIdWindow: number;
+			textureIdWall: number;
 		}
 	): void {
 		if (skirt) {
 			for (const polyline of skirt) {
 				const vertices = polyline.map(point => point.position);
 				const heights = polyline.map(point => point.height);
+				const levels = Math.max(1, (Math.max(...heights) - minHeight) / 4);
 
 				const walls = new WallsBuilder().build({
 					vertices,
 					minHeight: height,
 					height: heights,
-					levels,
-					windowWidth
+					levels: levels,
+					windowWidth,
+					textureIdWall,
+					textureIdWindow
 				});
 				this.addAndPaintGeometry({
 					position: walls.position,
 					normal: walls.normal,
 					uv: walls.uv,
 					color,
-					textureId
+					textureId: walls.textureId
 				});
 			}
 		}
@@ -108,14 +113,16 @@ export default class Tile3DExtrudedGeometryBuilder {
 				minHeight,
 				height: height,
 				levels,
-				windowWidth
+				windowWidth,
+				textureIdWall,
+				textureIdWindow
 			});
 			this.addAndPaintGeometry({
 				position: walls.position,
 				normal: walls.normal,
 				uv: walls.uv,
 				color,
-				textureId
+				textureId: walls.textureId
 			});
 		}
 
@@ -138,7 +145,7 @@ export default class Tile3DExtrudedGeometryBuilder {
 				normal: roof.normal,
 				uv: roof.uv,
 				color,
-				textureId
+				textureId: 1
 			});
 		}
 	}
@@ -237,21 +244,31 @@ export default class Tile3DExtrudedGeometryBuilder {
 			normal: number[];
 			uv: number[];
 			color: number;
-			textureId: number;
+			textureId: number | number[];
 		}
 	): void {
 		this.addVerticesToBoundingBox(position);
 
+		let shouldPushTextureId = true;
+
 		this.arrays.position.push(...position);
 		this.arrays.normal.push(...normal);
 		this.arrays.uv.push(...uv);
+
+		if (typeof textureId !== 'number') {
+			this.arrays.textureId.push(...textureId);
+			shouldPushTextureId = false;
+		}
 
 		const vertexCount = position.length / 3;
 		const colorComponents = colorToComponents(color);
 
 		for (let i = 0; i < vertexCount; i++) {
 			this.arrays.color.push(...colorComponents);
-			this.arrays.textureId.push(textureId);
+
+			if (shouldPushTextureId) {
+				this.arrays.textureId.push(textureId as number);
+			}
 		}
 	}
 

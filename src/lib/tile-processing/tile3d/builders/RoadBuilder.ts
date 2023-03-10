@@ -29,6 +29,8 @@ export default class RoadBuilder {
 
 		const segmentCount = controlPoints.length - (isClosed ? 0 : 1);
 
+		const uvScaleY = 3;
+
 		for (let i = 0; i < segmentCount; i++) {
 			const current = controlPoints[i];
 			const next = controlPoints[(i + 1) % controlPoints.length];
@@ -61,14 +63,14 @@ export default class RoadBuilder {
 				);
 
 				uv.push(
-					0, endB,
-					1, endB,
-					inverse ? 1 : 0, startB
+					0, endB / uvScaleY,
+					1, endB / uvScaleY,
+					inverse ? 1 : 0, startB / uvScaleY
 				);
 				uv.push(
-					0, startA,
-					1, startA,
-					inverse ? 1 : 0, endA
+					0, startA / uvScaleY,
+					1, startA / uvScaleY,
+					inverse ? 1 : 0, endA / uvScaleY
 				);
 
 				uvProgress = endB;
@@ -92,14 +94,14 @@ export default class RoadBuilder {
 			);
 
 			uv.push(
-				0, uvStart,
-				1, uvStart,
-				0, uvEnd
+				0, uvStart / uvScaleY,
+				1, uvStart / uvScaleY,
+				0, uvEnd / uvScaleY
 			);
 			uv.push(
-				1, uvStart,
-				1, uvEnd,
-				0, uvEnd
+				1, uvStart / uvScaleY,
+				1, uvEnd / uvScaleY,
+				0, uvEnd / uvScaleY
 			);
 		}
 

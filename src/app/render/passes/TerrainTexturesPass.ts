@@ -20,6 +20,7 @@ import {
 } from "~/lib/renderer/abstract-renderer/Uniform";
 import TerrainHeightDownscaleMaterialContainer from "../materials/TerrainHeightDownscaleMaterialContainer";
 import AbstractTexture2DArray from "~/lib/renderer/abstract-renderer/AbstractTexture2DArray";
+import MathUtils from "~/lib/math/MathUtils";
 
 function compareTypedArrays(a: TypedArray, b: TypedArray): boolean {
 	let i = a.length;
@@ -122,12 +123,14 @@ export default class TerrainTexturesPass extends Pass<{
 				const x = tileState.localX;
 				const y = tileState.localY;
 				const count = heightLoader.viewportSize;
+				const mercatorScaleFactor = MathUtils.getMercatorScaleFactorForTile(tileState.x, tileState.y, heightLoader.zoom);
 
 				const scale = 1 / count;
 				const transform = [x * scale, (count - y - 1) * scale, scale];
 
 				this.heightMaterial.getUniform('tMap').value = tileState.tile.getTexture(this.renderer);
 				this.heightMaterial.getUniform('transform', 'MainBlock').value = new Float32Array(transform);
+				this.heightMaterial.getUniform<UniformFloat1>('scale', 'MainBlock').value[0] = mercatorScaleFactor;
 				this.heightMaterial.updateUniformBlock('MainBlock');
 				this.heightMaterial.updateUniform('tMap');
 

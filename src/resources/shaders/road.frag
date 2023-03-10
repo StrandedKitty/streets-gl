@@ -38,6 +38,7 @@ uniform sampler2D tWaterNormal;
 #include <getMotionVector>
 #include <sampleCatmullRom>
 #include <getTBN>
+#include <sampleWaterNormal>
 
 vec3 sampleNormalMap() {
 	vec2 size = vec2(textureSize(tNormal, 0));
@@ -66,10 +67,11 @@ vec3 getNormal(vec3 normalMapValue) {
 	return normal;
 }
 
-vec3 getWaterNormalMapValue(vec2 uv) {
-	vec3 col = texture(tWaterNormal, uv).rgb;
-	col.y = 1. - col.y;
-	return col * 2. - 1.;
+vec3 normalsReorient(vec3 v1, vec3 v2) {
+	vec3 n1 = v1 * vec3( 2,  2, 2) + vec3(-1, -1,  0);
+	vec3 n2 = v2 * vec3(-2, -2, 2) + vec3( 1,  1, -1);
+
+	return n1 * dot(n1, n2) / n1.z - n2;
 }
 
 void main() {
@@ -78,20 +80,12 @@ void main() {
 	}
 
 	if (vTextureId == 0) {
-		float waveTime = time * 0.015;
-		vec2 uv = (vUv / 611.4962158203125);
-		vec3 normalValue = (
-			getWaterNormalMapValue(vUv * 0.005 + waveTime) * 0.45 +
-			getWaterNormalMapValue(vUv * 0.020 - waveTime) * 0.45 +
-			getWaterNormalMapValue(vUv * 0.0005 - waveTime * 0.5) * 0.1
-		);
-
-		normalValue.z *= 2.;
-
-		vec3 vNormal = vec3(modelViewMatrix * vec4(normalize(normalValue.xzy), 0));
+		vec2 normalizedUV = vUv / 611.4962158203125;
+		vec3 waterNormal = sampleWaterNormal(normalizedUV, time, tWaterNormal);
+		vec3 mvWaterNormal = vec3(modelViewMatrix * vec4(waterNormal, 0));
 
 		outColor = vec4(0.15, 0.2, 0.25, 0.5);
-		outNormal = packNormal(vNormal);
+		outNormal = packNormal(mvWaterNormal);
 		outRoughnessMetalnessF0 = vec3(0.05, 0, 0.03);
 		outMotion = getMotionVector(vClipPos, vClipPosPrev);
 		outObjectId = 0u;
@@ -103,8 +97,13 @@ void main() {
 
 	int layer = (vTextureId - 1) * 3;
 	vec4 color = texture(tMap, vec3(mapUV, layer));
-	vec3 normal = getNormal(texture(tMap, vec3(mapUV, layer + 1)).xyz);
+	vec3 normal = texture(tMap, vec3(mapUV, layer + 1)).xyz * 2. - 1.;
+	//vec3 normal = texture(tMap, vec3(mapUV, layer + 1)).xyz * 2. - 1.;
 	vec3 mask = texture(tMap, vec3(mapUV, layer + 2)).rgb;
+
+	if (color.a < 0.5) {
+		discard;
+	}
 
 	vec3 heightMapNormal = sampleNormalMap();
 	vec3 kindaVNormal = vec3(modelViewMatrix * vec4(heightMapNormal, 0));

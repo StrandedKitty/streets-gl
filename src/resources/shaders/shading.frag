@@ -368,7 +368,7 @@ void main() {
 	color += getIBLContribution(materialInfo, worldNormal, worldView, reflectionColor);
 	color += applyDirectionalLight(light, materialInfo, worldNormal, worldView) * shadowFactor;
 
-	color = min(color, vec3(1e5));
+	color = min(color, vec3(500.));
 
 	#if SSAO_ENABLED == 1
 		color += materialInfo.diffuseColor * 0.2 * texture(tSSAO, vUv).r;

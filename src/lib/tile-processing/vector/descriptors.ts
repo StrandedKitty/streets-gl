@@ -7,7 +7,7 @@ export interface VectorNodeDescriptor {
 export interface VectorPolylineDescriptor {
 	name?: string;
 	type: 'path' | 'fence' | 'hedge' | 'powerLine';
-	pathType?: 'roadway' | 'footway' | 'cycleway' | 'railway';
+	pathType?: 'roadway' | 'footway' | 'cycleway' | 'railway' | 'tramway';
 	width?: number;
 	height?: number;
 	embeddedFootway?: boolean;
@@ -28,7 +28,7 @@ export interface VectorAreaDescriptor {
 	buildingRoofOrientation?: 'along' | 'across';
 	buildingRoofDirection?: number;
 	buildingRoofAngle?: number;
-	buildingFacadeMaterial?: 'plaster' | 'brick' | 'wood' | 'glass' | 'cementBlock';
+	buildingFacadeMaterial?: 'plaster' | 'brick' | 'wood' | 'glass' | 'mirror' | 'cementBlock';
 	buildingFacadeColor?: number;
 	buildingRoofMaterial?: 'default' | 'tiles' | 'metal' | 'concrete' | 'thatch' | 'eternit' | 'grass' | 'glass' | 'tar';
 	buildingRoofColor?: number;

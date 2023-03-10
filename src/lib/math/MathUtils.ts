@@ -135,8 +135,13 @@ export default class MathUtils {
 		return points;
 	}
 
-	public static mercatorScaleFactor(lat: number): number {
+	public static getMercatorScaleFactor(lat: number): number {
 		return 1 / Math.cos(MathUtils.toRad(lat));
+	}
+
+	public static getMercatorScaleFactorForTile(x: number, y: number, zoom: number): number {
+		const {lat} = MathUtils.tile2degrees(x, y, zoom);
+		return this.getMercatorScaleFactor(lat);
 	}
 
 	public static shiftLeft(num: number, bits: number): number {

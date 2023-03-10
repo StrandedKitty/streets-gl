@@ -5,22 +5,13 @@ import Handler from "~/lib/tile-processing/tile3d/handlers/Handler";
 import VectorNodeHandler from "~/lib/tile-processing/tile3d/handlers/VectorNodeHandler";
 import VectorPolylineHandler from "~/lib/tile-processing/tile3d/handlers/VectorPolylineHandler";
 import VectorAreaHandler from "~/lib/tile-processing/tile3d/handlers/VectorAreaHandler";
-import OSMNodeHandler from "~/lib/tile-processing/vector/handlers/OSMNodeHandler";
-import OSMWayHandler from "~/lib/tile-processing/vector/handlers/OSMWayHandler";
-import OSMRelationHandler from "~/lib/tile-processing/vector/handlers/OSMRelationHandler";
 import VectorFeatureCollection from "~/lib/tile-processing/vector/features/VectorFeatureCollection";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
-import VectorPolyline from "~/lib/tile-processing/vector/features/VectorPolyline";
-import VectorArea from "~/lib/tile-processing/vector/features/VectorArea";
 import Tile3DInstance from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
 import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DProjectedGeometry";
 import Tile3DExtrudedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DExtrudedGeometry";
-import Tile3DBuffers, {
-	Tile3DBuffersExtruded,
-	Tile3DBuffersProjected
-} from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
-import Utils from "~/app/Utils";
 import * as Simplify from "simplify-js";
+import {applyMercatorFactorToExtrudedFeatures} from "~/lib/tile-processing/tile3d/utils";
 
 export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
 	private vectorProvider: CombinedVectorFeatureProvider = new CombinedVectorFeatureProvider();
@@ -39,7 +30,10 @@ export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
 		const vectorTile = await this.vectorProvider.getCollection({x, y, zoom});
 		const handlers = Tile3DFromVectorProvider.createHandlersFromVectorFeatureCollection(vectorTile);
 
-		return Tile3DFromVectorProvider.getFeaturesFromHandlers(handlers);
+		const collection = Tile3DFromVectorProvider.getFeaturesFromHandlers(handlers);
+		applyMercatorFactorToExtrudedFeatures(collection.extruded, x, y, zoom);
+
+		return collection;
 	}
 
 	private static createHandlersFromVectorFeatureCollection(collection: VectorFeatureCollection): Handler[] {

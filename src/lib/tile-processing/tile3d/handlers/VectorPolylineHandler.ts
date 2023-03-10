@@ -48,6 +48,7 @@ export default class VectorPolylineHandler implements Handler {
 			case "cycleway": return 3;
 			case "roadway": return 4;
 			case "railway": return 5;
+			case "tramway": return 6;
 		}
 	}
 
@@ -57,6 +58,7 @@ export default class VectorPolylineHandler implements Handler {
 			case "roadway": return 2;
 			case "cycleway": return 8;
 			case "railway": return 9;
+			case "tramway": return 10;
 		}
 	}
 }

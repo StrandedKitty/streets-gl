@@ -7,6 +7,7 @@ out vec2 vUv;
 
 uniform MainBlock {
     vec4 transform;
+    float scale;
 };
 
 void main() {

@@ -47,6 +47,7 @@ uniform sampler2D tWaterNormal;
 #include <sampleCatmullRom>
 #include <getTBN>
 #include <textureNoTile>
+#include <sampleWaterNormal>
 
 vec3 sampleNormalMap() {
     vec2 size = vec2(textureSize(tNormal, 0));
@@ -116,18 +117,12 @@ void main() {
     outRoughnessMetalnessF0 = vec3(0.8, 0, 0.001);
 
     if (waterFactor > 0.5) {
-        float waveTime = time * 0.015;
-        vec3 normalValue = (
-            getWaterNormalMapValue(vDetailUV * 0.005 + waveTime) * 0.45 +
-            getWaterNormalMapValue(vDetailUV * 0.020 - waveTime) * 0.45 +
-            getWaterNormalMapValue(vDetailUV * 0.0005 - waveTime * 0.5) * 0.1
-        );
+        vec2 normalizedTileUV = fract(vDetailUV / 611.4962158203125);
+        vec3 waterNormal = sampleWaterNormal(normalizedTileUV, time, tWaterNormal);
+        vec3 mvWaterNormal = vec3(modelViewMatrix * vec4(waterNormal, 0));
 
-        normalValue.z *= 2.;
         outColor = vec4(0.15, 0.2, 0.25, 0.5);
-
-        vec3 vNormal = vec3(modelViewMatrix * vec4(normalize(normalValue.xzy), 0));
-        outNormal = packNormal(vNormal);
+        outNormal = packNormal(mvWaterNormal);
         outRoughnessMetalnessF0 = vec3(0.05, 0, 0.03);
     }
 
