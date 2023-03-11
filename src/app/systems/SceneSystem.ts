@@ -1,6 +1,5 @@
 import System from '../System';
 import Object3D from '~/lib/core/Object3D';
-import SystemManager from '../SystemManager';
 import PerspectiveCamera from '~/lib/core/PerspectiveCamera';
 import Skybox from '../objects/Skybox';
 import RenderableObject3D from '../objects/RenderableObject3D';
@@ -16,13 +15,13 @@ import ModelManager from "../objects/models/ModelManager";
 import InstancedAircraft from "../objects/InstancedAircraft";
 import SettingsManager from "../ui/SettingsManager";
 import Terrain from "../objects/Terrain";
-import UI from "~/app/ui/UI";
+import Tile from "~/app/objects/Tile";
 
 interface SceneObjects {
 	wrapper: Object3D;
 	camera: PerspectiveCamera;
 	skybox: Skybox;
-	tiles: Object3D;
+	tiles: Tile[];
 	csm: CSM;
 	labels: Labels;
 	terrain: Terrain;
@@ -70,7 +69,7 @@ export default class SceneSystem extends System {
 			wrapper,
 			camera,
 			skybox,
-			tiles,
+			tiles: [],
 			csm,
 			labels,
 			terrain,
@@ -118,7 +117,15 @@ export default class SceneSystem extends System {
 
 		for (const tile of tiles.values()) {
 			if (!tile.parent) {
-				this.objects.tiles.add(tile);
+				this.objects.wrapper.add(tile);
+				this.objects.tiles.push(tile);
+			}
+		}
+
+		for (let i = 0; i < this.objects.tiles.length; i++) {
+			if (!this.objects.tiles[i].parent) {
+				this.objects.tiles.splice(i, 1);
+				--i;
 			}
 		}
 	}

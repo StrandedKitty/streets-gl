@@ -11,7 +11,7 @@ interface MeshDisplayBufferPatch {
 	value: number;
 }
 
-export default class TileBuildings extends RenderableObject3D {
+export default class TileExtrudedMesh extends RenderableObject3D {
 	public mesh: AbstractMesh = null;
 	private meshDisplayBufferPatches: MeshDisplayBufferPatch[] = [];
 

@@ -9,37 +9,22 @@ import Config from "../Config";
 import StaticGeometryLoadingSystem from "./StaticGeometryLoadingSystem";
 import TileObjectsSystem from "./TileObjectsSystem";
 import System from "../System";
-import SystemManager from "../SystemManager";
 import SceneSystem from './SceneSystem';
+import Camera from "~/lib/core/Camera";
 
 export default class TileSystem extends System {
 	public tiles: Map<string, Tile> = new Map();
-	private camera: PerspectiveCamera;
 	private cameraFrustum: Frustum;
 	private objectsManager: TileObjectsSystem;
 
 	public postInit(): void {
-		window.addEventListener('resize', () => this.onResize());
-
 		this.objectsManager = this.systemManager.getSystem(TileObjectsSystem);
-
-		this.camera = this.systemManager.getSystem(SceneSystem).objects.camera;
-
-		this.cameraFrustum = new Frustum(this.camera.fov, this.camera.aspect, 1, 5000);
-		this.cameraFrustum.updateViewSpaceVertices();
-	}
-
-	private onResize(): void {
-		this.cameraFrustum.aspect = this.camera.aspect;
-		this.cameraFrustum.updateViewSpaceVertices();
 	}
 
 	public addTile(x: number, y: number): void {
 		const tile = new Tile(x, y);
-
 		this.tiles.set(`${x},${y}`, tile);
 
-		tile.updateDistanceToCamera(this.camera);
 		tile.load(this.systemManager.getSystem(StaticGeometryLoadingSystem));
 	}
 
@@ -72,12 +57,22 @@ export default class TileSystem extends System {
 	}
 
 	private updateTiles(): void {
-		const worldSpaceFrustum = this.cameraFrustum.toSpace(this.camera.matrix);
-		const frustumTiles = this.getTilesInFrustum(worldSpaceFrustum, this.camera.position);
+		const camera = this.systemManager.getSystem(SceneSystem).objects.camera;
+
+		if (
+			!this.cameraFrustum ||
+			this.cameraFrustum.fov !== camera.fov ||
+			this.cameraFrustum.aspect !== camera.aspect
+		) {
+			this.cameraFrustum = new Frustum(camera.fov, camera.aspect, 1, 5000);
+			this.cameraFrustum.updateViewSpaceVertices();
+		}
+
+		const worldSpaceFrustum = this.cameraFrustum.toSpace(camera.matrix);
+		const frustumTiles = this.getTilesInFrustum(worldSpaceFrustum, camera.position);
 
 		for (const tile of this.tiles.values()) {
 			tile.inFrustum = false;
-			tile.updateDistanceToCamera(this.camera);
 		}
 
 		let tilesToAdd = 1;
@@ -93,6 +88,14 @@ export default class TileSystem extends System {
 			if (tile) {
 				tile.inFrustum = true;
 			}
+		}
+
+		this.updateTilesDistancesToCamera(camera);
+	}
+
+	private updateTilesDistancesToCamera(camera: Camera): void {
+		for (const tile of this.tiles.values()) {
+			tile.updateDistanceToCamera(camera);
 		}
 	}
 

@@ -87,7 +87,7 @@ export default class Labels extends RenderableObject3D {
 		const visibleLabels: TileLabelBuffers[] = [];
 
 		for (const tile of tiles) {
-			if (!tile.buildings || !tile.buildings.inCameraFrustum(camera)) {
+			if (!tile.extrudedMesh || !tile.extrudedMesh.inCameraFrustum(camera)) {
 				continue;
 			}
 

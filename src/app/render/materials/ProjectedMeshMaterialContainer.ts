@@ -5,12 +5,12 @@ import ResourceManager from "../../world/ResourceManager";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 import Config from "../../Config";
 
-export default class RoadMaterialContainer extends MaterialContainer {
+export default class ProjectedMeshMaterialContainer extends MaterialContainer {
 	public constructor(renderer: AbstractRenderer) {
 		super(renderer);
 
 		this.material = this.renderer.createMaterial({
-			name: 'Road material',
+			name: 'Projected mesh material',
 			uniforms: [
 				{
 					name: 'modelViewMatrix',
@@ -39,7 +39,7 @@ export default class RoadMaterialContainer extends MaterialContainer {
 					value: this.renderer.createTexture2DArray({
 						width: 512,
 						height: 512,
-						depth: 9 * 3,
+						depth: 11 * 3,
 						anisotropy: 16,
 						data: [
 							ResourceManager.get('pavementDiffuse'),
@@ -77,12 +77,21 @@ export default class RoadMaterialContainer extends MaterialContainer {
 							ResourceManager.get('railwayDiffuse'),
 							ResourceManager.get('railwayNormal'),
 							ResourceManager.get('commonMask'),
+
+							ResourceManager.get('woodFenceDiffuse'),
+							ResourceManager.get('woodFenceNormal'),
+							ResourceManager.get('woodFenceMask'),
+
+							ResourceManager.get('concreteFenceDiffuse'),
+							ResourceManager.get('concreteFenceNormal'),
+							ResourceManager.get('concreteFenceMask'),
 						],
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,
 						wrap: RendererTypes.TextureWrap.Repeat,
 						format: RendererTypes.TextureFormat.RGBA8Unorm,
-						mipmaps: true
+						mipmaps: true,
+						flipY: true
 					})
 				}, {
 					name: 'tWaterNormal',
@@ -171,8 +180,8 @@ export default class RoadMaterialContainer extends MaterialContainer {
 					dstFactor: RendererTypes.BlendFactor.Zero
 				}
 			},
-			vertexShaderSource: Shaders.road.vertex,
-			fragmentShaderSource: Shaders.road.fragment
+			vertexShaderSource: Shaders.projected.vertex,
+			fragmentShaderSource: Shaders.projected.fragment
 		});
 	}
 }

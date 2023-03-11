@@ -278,7 +278,7 @@ export default class TerrainTexturesPass extends Pass<{
 				const tile = tileSystem.getTile(x + start.x, y + start.y);
 
 				if (tile) {
-					buffer[x + y * tileMaskTexture.width] = tile.roads ? 255 : 0;
+					buffer[x + y * tileMaskTexture.width] = tile.projectedMesh ? 255 : 0;
 				}
 			}
 		}

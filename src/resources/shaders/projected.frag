@@ -5,6 +5,7 @@ in vec2 vUv;
 in vec3 vPosition;
 in vec3 vLocalPosition;
 in vec3 vNormal;
+flat in int vNormalFollowsGround;
 in vec3 vColor;
 in vec4 vClipPos;
 in vec4 vClipPosPrev;
@@ -97,7 +98,7 @@ void main() {
 
 	int layer = (vTextureId - 1) * 3;
 	vec4 color = texture(tMap, vec3(mapUV, layer));
-	vec3 normal = texture(tMap, vec3(mapUV, layer + 1)).xyz * 2. - 1.;
+	vec3 normal = texture(tMap, vec3(mapUV, layer + 1)).xyz;
 	//vec3 normal = texture(tMap, vec3(mapUV, layer + 1)).xyz * 2. - 1.;
 	vec3 mask = texture(tMap, vec3(mapUV, layer + 2)).rgb;
 
@@ -106,7 +107,9 @@ void main() {
 	}
 
 	vec3 heightMapNormal = sampleNormalMap();
-	vec3 kindaVNormal = vec3(modelViewMatrix * vec4(heightMapNormal, 0));
+	vec3 kindaVNormal = (vNormalFollowsGround == 1) ?
+		vec3(modelViewMatrix * vec4(heightMapNormal, 0)) :
+		getNormal(normal);
 
 	outColor = color;
 	outNormal = packNormal(kindaVNormal);

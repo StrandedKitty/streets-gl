@@ -2,8 +2,6 @@ import RenderableObject3D from "./RenderableObject3D";
 import AbstractMesh from "~/lib/renderer/abstract-renderer/AbstractMesh";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
-import {StaticTileGeometry} from "./Tile";
-import Vec3 from "~/lib/math/Vec3";
 
 export interface InstanceBuffers {
 	position: Float32Array;

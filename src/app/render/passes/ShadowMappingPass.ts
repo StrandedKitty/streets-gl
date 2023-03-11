@@ -60,7 +60,7 @@ export default class ShadowMappingPass extends Pass<{
 
 	public render(): void {
 		const csm = this.manager.sceneSystem.objects.csm;
-		const tiles = this.manager.sceneSystem.objects.tiles.children as Tile[];
+		const tiles = this.manager.sceneSystem.objects.tiles;
 		const trees = this.manager.sceneSystem.objects.instancedObjects.get('tree')
 		const aircraftList = this.manager.sceneSystem.objects.instancedAircraft;
 		const pass = this.getPhysicalResource('ShadowMaps');
@@ -107,7 +107,7 @@ export default class ShadowMappingPass extends Pass<{
 				this.buildingDepthMaterial.updateUniformBlock('PerMaterial');
 
 				for (const tile of tiles) {
-					if (!tile.buildings || !tile.buildings.inCameraFrustum(camera)) {
+					if (!tile.extrudedMesh || !tile.extrudedMesh.inCameraFrustum(camera)) {
 						continue;
 					}
 
@@ -116,7 +116,7 @@ export default class ShadowMappingPass extends Pass<{
 					this.buildingDepthMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
 					this.buildingDepthMaterial.updateUniformBlock('PerMesh');
 
-					tile.buildings.draw();
+					tile.extrudedMesh.draw();
 				}
 			}
 		}

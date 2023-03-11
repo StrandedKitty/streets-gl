@@ -227,7 +227,7 @@ export default class MathUtils {
 		return [x, y];
 	}
 
-	public static getIntersectionPointsLineTriangle(
+	public static getIntersectionsLineTriangle(
 		lineStart: [number, number], lineEnd: [number, number],
 		triangle: [number, number][]
 	): [number, number][] {
@@ -294,7 +294,7 @@ export default class MathUtils {
 		}
 
 		for (let i = 0, next = 1; i < tri1.length; i++, next = (i + 1 == tri1.length) ? 0 : i + 1) {
-			const points = MathUtils.getIntersectionPointsLineTriangle(tri1[i], tri1[next], tri2);
+			const points = MathUtils.getIntersectionsLineTriangle(tri1[i], tri1[next], tri2);
 
 			for (const point of points) {
 				addPoint(point);
@@ -390,6 +390,20 @@ export default class MathUtils {
 		}
 
 		return inside;
+	}
+
+	public static getPointProgressAlongLineSegment(start: Vec2, end: Vec2, point: Vec2, clamp: boolean = true): number {
+		const dx = end.x - start.x;
+		const dy = end.y - start.y;
+		const lengthSquared = dx * dx + dy * dy;
+		const dotProduct = ((point.x - start.x) * dx + (point.y - start.y) * dy);
+		const progress = dotProduct / lengthSquared;
+
+		if (!clamp) {
+			return progress;
+		}
+
+		return MathUtils.clamp(progress, 0, 1);
 	}
 }
 

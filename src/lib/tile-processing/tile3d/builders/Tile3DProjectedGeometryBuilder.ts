@@ -9,6 +9,7 @@ import AABB3D from "~/lib/math/AABB3D";
 import Vec3 from "~/lib/math/Vec3";
 import SurfaceBuilder from "~/lib/tile-processing/tile3d/builders/SurfaceBuilder";
 import RoadBuilder from "~/lib/tile-processing/tile3d/builders/RoadBuilder";
+import WallsBuilder from "~/lib/tile-processing/tile3d/builders/WallsBuilder";
 
 export default class Tile3DProjectedGeometryBuilder {
 	private readonly osmReference: OSMReference;
@@ -102,6 +103,61 @@ export default class Tile3DProjectedGeometryBuilder {
 			textureId: textureId,
 			height: height
 		});
+	}
+
+	public addFence(
+		{
+			textureId,
+			height
+		}: {
+			textureId: number;
+			height: number;
+		}
+	): void {
+		const ring = this.multipolygon.rings[0];
+		const projector = new GeometryGroundProjector();
+		const projectorSegmentCount = Math.round(Config.TileSize / Config.TerrainRingSize * Config.TerrainRingSegmentCount) * 2;
+		const vertices: Vec2[] = [];
+
+		for (let i = 0; i < ring.nodes.length - 1; i++) {
+			const start = ring.nodes[i];
+			const end = ring.nodes[i + 1];
+
+			const projected = projector.projectLineSegment({
+				lineStart: start,
+				lineEnd: end,
+				tileSize: Config.TileSize,
+				segmentCount: projectorSegmentCount
+			});
+
+			for (const projectedVertex of projected) {
+				if (vertices.length === 0 || !vertices[vertices.length - 1].equals(projectedVertex)) {
+					vertices.push(projectedVertex);
+				}
+			}
+		}
+
+		const wall = new WallsBuilder().build({
+			vertices: vertices,
+			height: height,
+			minHeight: 0,
+			textureIdWall: 1,
+			textureIdWindow: 1,
+			levels: 1,
+			windowWidth: height * 2
+		});
+
+		this.arrays.position.push(...wall.position);
+		this.arrays.uv.push(...wall.uv);
+		this.arrays.normal.push(...wall.normal);
+
+		const vertexCount = wall.position.length / 3;
+
+		for (let i = 0; i < vertexCount; i++) {
+			this.arrays.textureId.push(textureId);
+		}
+
+		//console.log(this.osmReference, vertices)
 	}
 
 	private projectAndAddGeometry(

@@ -1,6 +1,5 @@
-import Tile, {StaticTileGeometry} from "../objects/Tile";
+import Tile from "../objects/Tile";
 import System from "../System";
-import SystemManager from "../SystemManager";
 import MapWorkerSystem from "./MapWorkerSystem";
 import Tile3DBuffers from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
 

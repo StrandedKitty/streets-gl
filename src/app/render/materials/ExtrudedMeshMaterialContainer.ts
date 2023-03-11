@@ -4,12 +4,12 @@ import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import ResourceManager from "../../world/ResourceManager";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 
-export default class BuildingMaterialContainer extends MaterialContainer {
+export default class ExtrudedMeshMaterialContainer extends MaterialContainer {
 	public constructor(renderer: AbstractRenderer) {
 		super(renderer);
 
 		this.material = this.renderer.createMaterial({
-			name: 'Building material',
+			name: 'Extruded mesh material',
 			uniforms: [
 				{
 					name: 'modelViewMatrix',
@@ -122,8 +122,8 @@ export default class BuildingMaterialContainer extends MaterialContainer {
 					dstFactor: RendererTypes.BlendFactor.Zero
 				}
 			},
-			vertexShaderSource: Shaders.building.vertex,
-			fragmentShaderSource: Shaders.building.fragment
+			vertexShaderSource: Shaders.extruded.vertex,
+			fragmentShaderSource: Shaders.extruded.fragment
 		});
 	}
 }

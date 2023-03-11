@@ -2,13 +2,13 @@ import RenderableObject3D from "./RenderableObject3D";
 import AbstractMesh from "~/lib/renderer/abstract-renderer/AbstractMesh";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
-import {Tile3DBuffersProjected} from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
+import {Tile3DBuffersHugging} from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
 import Vec3 from "~/lib/math/Vec3";
 
-export default class TileRoads extends RenderableObject3D {
+export default class TileHuggingMesh extends RenderableObject3D {
 	public mesh: AbstractMesh = null;
 
-	public constructor(private buffers: Tile3DBuffersProjected) {
+	public constructor(private buffers: Tile3DBuffersHugging) {
 		super();
 
 		const box = buffers.boundingBox;

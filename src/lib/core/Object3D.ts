@@ -79,6 +79,7 @@ export default class Object3D {
 	public remove(...objects: Object3D[]): void {
 		for (let i = 0; i < this.children.length; i++) {
 			if (objects.includes(this.children[i])) {
+				this.children[i].parent = null;
 				this.children.splice(i, 1);
 			}
 		}

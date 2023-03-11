@@ -4,10 +4,11 @@ import HeightProvider from "../world/HeightProvider";
 import StaticGeometryLoadingSystem from "../systems/StaticGeometryLoadingSystem";
 import Camera from "~/lib/core/Camera";
 import Vec2 from "~/lib/math/Vec2";
-import TileBuildings from "./TileBuildings";
-import TileRoads from "./TileRoads";
+import TileExtrudedMesh from "./TileExtrudedMesh";
+import TileProjectedMesh from "./TileProjectedMesh";
 import TileLabelBuffers from "./TileLabelBuffers";
-import Tile3DBuffers from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
+import Tile3DBuffers, {Tile3DBuffersExtruded} from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
+import TileHuggingMesh from "~/app/objects/TileHuggingMesh";
 
 // position.xyz, scale, rotation
 export type InstanceBufferInterleaved = Float32Array;
@@ -64,25 +65,28 @@ export type TileInstanceBuffers = Map<InstanceType, {
 	transformOriginLOD1: Vec2;
 }>;
 
-let tileCounter = 0;
-
 export default class Tile extends Object3D {
-	public staticGeometry: Tile3DBuffers;
+	private static counter = 0;
+
+	public readonly x: number;
+	public readonly y: number;
+	public readonly localId: number;
+
 	public buildingLocalToPackedMap: Map<number, number> = new Map();
 	public buildingPackedToLocalMap: Map<number, number> = new Map();
 	public buildingOffsetMap: Map<number, [number, number]> = new Map();
 	public buildingVisibilityMap: Map<number, boolean> = new Map();
-	public x: number;
-	public y: number;
-	public localId: number;
-	public inFrustum = true;
+
+	public inFrustum: boolean = true;
 	public distanceToCamera: number = null;
 	public disposed = false;
-	public buildings: TileBuildings;
-	public roads: TileRoads;
 	public labelBuffersList: TileLabelBuffers[] = [];
 	public buildingsNeedFiltering: boolean = true;
 	public instanceBuffers: TileInstanceBuffers = new Map();
+
+	public extrudedMesh: TileExtrudedMesh;
+	public projectedMesh: TileProjectedMesh;
+	public huggingMesh: TileHuggingMesh;
 
 	public constructor(x: number, y: number) {
 		super();
@@ -90,10 +94,10 @@ export default class Tile extends Object3D {
 		this.x = x;
 		this.y = y;
 
-		this.localId = tileCounter++;
+		this.localId = Tile.counter++;
 
-		if (tileCounter > 65535) {
-			tileCounter = 0;
+		if (Tile.counter > 65535) {
+			Tile.counter = 0;
 		}
 
 		this.updatePosition();
@@ -110,14 +114,14 @@ export default class Tile extends Object3D {
 		return Promise.all([
 			HeightProvider.prepareDataForTile(this.x, this.y),
 			tileProvider.getTileObjects(this),
-		]).then(([a, objects]: [void[], Tile3DBuffers]) => {
-			this.staticGeometry = objects;
-			this.updateStaticGeometryOffsets();
+		]).then(([_, buffers]: [void[], Tile3DBuffers]) => {
+			this.updateExtrudedGeometryOffsets(buffers.extruded);
 
-			this.buildings = new TileBuildings(this.staticGeometry.extruded);
-			this.roads = new TileRoads(this.staticGeometry.projected);
+			this.extrudedMesh = new TileExtrudedMesh(buffers.extruded);
+			this.projectedMesh = new TileProjectedMesh(buffers.projected);
+			this.huggingMesh = new TileHuggingMesh(buffers.hugging);
 
-			this.add(this.buildings, this.roads);
+			this.add(this.extrudedMesh, this.projectedMesh, this.huggingMesh);
 			//this.updateLabelBufferList();
 
 			/*for (const [key, LOD0Value] of Object.entries(this.staticGeometry.instancesLOD0)) {
@@ -182,10 +186,10 @@ export default class Tile extends Object3D {
 		this.distanceToCamera = Math.sqrt((worldPosition.x - camera.position.x) ** 2 + (worldPosition.y - camera.position.z) ** 2);
 	}
 
-	private updateStaticGeometryOffsets(): void {
-		const ids = this.staticGeometry.extruded.idBuffer;
-		const offsets = this.staticGeometry.extruded.offsetBuffer;
-		const vertexCount = this.staticGeometry.extruded.positionBuffer.length / 3;
+	private updateExtrudedGeometryOffsets(extrudedBuffers: Tile3DBuffersExtruded): void {
+		const ids = extrudedBuffers.idBuffer;
+		const offsets = extrudedBuffers.offsetBuffer;
+		const vertexCount = extrudedBuffers.positionBuffer.length / 3;
 
 		for (let i = 0; i < ids.length; i += 2) {
 			const id = MathUtils.shiftLeft(ids[i + 1] & 0x7FFFF, 32) + ids[i];
@@ -205,14 +209,14 @@ export default class Tile extends Object3D {
 	public hideBuilding(id: number): void {
 		const [start, size] = this.buildingOffsetMap.get(id);
 
-		this.buildings.addDisplayBufferPatch({start, size, value: 255});
+		this.extrudedMesh.addDisplayBufferPatch({start, size, value: 255});
 		this.buildingVisibilityMap.set(id, false);
 	}
 
 	public showBuilding(id: number): void  {
 		const [start, size] = this.buildingOffsetMap.get(id);
 
-		this.buildings.addDisplayBufferPatch({start, size, value: 0});
+		this.extrudedMesh.addDisplayBufferPatch({start, size, value: 0});
 		this.buildingVisibilityMap.set(id, true);
 	}
 
@@ -223,12 +227,19 @@ export default class Tile extends Object3D {
 	public dispose(): void  {
 		this.disposed = true;
 
-		if (this.buildings) {
-			this.buildings.dispose();
+		if (this.extrudedMesh) {
+			this.extrudedMesh.dispose();
+			this.extrudedMesh = null;
 		}
 
-		if (this.roads) {
-			this.buildings.dispose();
+		if (this.projectedMesh) {
+			this.projectedMesh.dispose();
+			this.projectedMesh = null;
+		}
+
+		if (this.huggingMesh) {
+			this.huggingMesh.dispose();
+			this.huggingMesh = null;
 		}
 
 		if (this.parent) {

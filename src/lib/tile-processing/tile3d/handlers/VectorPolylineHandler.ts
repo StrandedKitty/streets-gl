@@ -7,6 +7,7 @@ import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3
 import Vec2 from "~/lib/math/Vec2";
 import Tile3DProjectedGeometryBuilder from "~/lib/tile-processing/tile3d/builders/Tile3DProjectedGeometryBuilder";
 import {Tile3DRingType} from "~/lib/tile-processing/tile3d/builders/Tile3DRing";
+import Tile3DHuggingGeometry from "~/lib/tile-processing/tile3d/features/Tile3DHuggingGeometry";
 
 export default class VectorPolylineHandler implements Handler {
 	private readonly osmReference: OSMReference;
@@ -24,6 +25,9 @@ export default class VectorPolylineHandler implements Handler {
 			case 'path': {
 				return [this.handlePath()];
 			}
+			case 'fence': {
+				return [this.handleFence()];
+			}
 		}
 
 		return [];
@@ -40,6 +44,20 @@ export default class VectorPolylineHandler implements Handler {
 		});
 
 		return builder.getGeometry();
+	}
+
+	private handleFence(): Tile3DHuggingGeometry {
+		const builder = new Tile3DProjectedGeometryBuilder(this.osmReference);
+		builder.setZIndex(999);
+		builder.addRing(Tile3DRingType.Outer, this.vertices);
+
+		builder.addFence({
+			height: 10,
+			textureId: 11
+		});
+
+		const result = builder.getGeometry();
+		return {...result, type: 'hugging'};
 	}
 
 	private static getPathZIndex(pathType: VectorPolylineDescriptor['pathType']): number {

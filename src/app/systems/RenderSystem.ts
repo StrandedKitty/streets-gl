@@ -87,7 +87,7 @@ export default class RenderSystem extends System {
 
 	public update(deltaTime: number): void {
 		const sceneSystem = this.systemManager.getSystem(SceneSystem);
-		const tiles = sceneSystem.objects.tiles.children as Tile[];
+		const tiles = sceneSystem.objects.tiles;
 
 		if (SettingsManager.getSetting('labels').statusValue === 'on') {
 			//sceneSystem.objects.labels.updateFromTiles(tiles, sceneSystem.objects.camera, this.resolutionScene);

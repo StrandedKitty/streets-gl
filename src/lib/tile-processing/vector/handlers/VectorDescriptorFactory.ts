@@ -143,7 +143,7 @@ export class VectorDescriptorFactory {
 			};
 		}
 
-		if (tags.barrier === 'fence') {
+		if (tags.barrier === 'fence' || tags.barrier === 'wall') {
 			return {
 				type: ContainerType.Descriptor,
 				data: {
@@ -531,7 +531,8 @@ export class VectorDescriptorFactory {
 	private static isUnderground(tags: Record<string, string>): boolean {
 		return (
 			tags.location === 'underground' ||
-			this.parseFloat(tags.level) < 0
+			this.parseFloat(tags.level) < 0 ||
+			tags.tunnel === 'yes'
 		);
 	}
 

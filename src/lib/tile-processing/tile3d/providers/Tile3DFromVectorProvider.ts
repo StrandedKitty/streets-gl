@@ -12,6 +12,7 @@ import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3
 import Tile3DExtrudedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DExtrudedGeometry";
 import * as Simplify from "simplify-js";
 import {applyMercatorFactorToExtrudedFeatures} from "~/lib/tile-processing/tile3d/utils";
+import Tile3DHuggingGeometry from "~/lib/tile-processing/tile3d/features/Tile3DHuggingGeometry";
 
 export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
 	private vectorProvider: CombinedVectorFeatureProvider = new CombinedVectorFeatureProvider();
@@ -68,6 +69,7 @@ export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
 		const collection: Tile3DFeatureCollection = {
 			extruded: [],
 			projected: [],
+			hugging: [],
 			instances: []
 		};
 
@@ -85,6 +87,9 @@ export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
 							break;
 						case 'extruded':
 							collection.extruded.push(feature as Tile3DExtrudedGeometry);
+							break;
+						case 'hugging':
+							collection.hugging.push(feature as Tile3DHuggingGeometry);
 							break;
 					}
 				}

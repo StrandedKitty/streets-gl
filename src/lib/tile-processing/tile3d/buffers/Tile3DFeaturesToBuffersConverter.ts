@@ -1,6 +1,6 @@
 import Tile3DBuffers, {
 	BoundingBox,
-	Tile3DBuffersExtruded,
+	Tile3DBuffersExtruded, Tile3DBuffersHugging,
 	Tile3DBuffersProjected
 } from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
 import Tile3DFeatureCollection from "~/lib/tile-processing/tile3d/features/Tile3DFeatureCollection";
@@ -8,12 +8,14 @@ import Utils from "~/app/Utils";
 import AABB3D from "~/lib/math/AABB3D";
 import Tile3DExtrudedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DExtrudedGeometry";
 import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DProjectedGeometry";
+import Tile3DHuggingGeometry from "~/lib/tile-processing/tile3d/features/Tile3DHuggingGeometry";
 
 export class Tile3DFeaturesToBuffersConverter {
 	public static convert(collection: Tile3DFeatureCollection): Tile3DBuffers {
 		return {
 			extruded: this.getExtrudedBuffers(collection.extruded),
 			projected: this.getProjectedBuffers(collection.projected),
+			hugging: this.getHuggingBuffers(collection.hugging),
 			instances: {}
 		};
 	}
@@ -85,6 +87,37 @@ export class Tile3DFeaturesToBuffersConverter {
 		const textureIdBuffers: Uint8Array[] = [];
 
 		for (const feature of sortedFeatures) {
+			positionBuffers.push(feature.positionBuffer);
+			uvBuffers.push(feature.uvBuffer);
+			normalBuffers.push(feature.normalBuffer);
+			textureIdBuffers.push(feature.textureIdBuffer);
+		}
+
+		const positionBufferMerged = Utils.mergeTypedArrays(Float32Array, positionBuffers);
+		const uvBufferMerged = Utils.mergeTypedArrays(Float32Array, uvBuffers);
+		const normalBufferMerged = Utils.mergeTypedArrays(Float32Array, normalBuffers);
+		const textureIdBufferMerged = Utils.mergeTypedArrays(Uint8Array, textureIdBuffers);
+
+		return {
+			positionBuffer: positionBufferMerged,
+			normalBuffer: normalBufferMerged,
+			uvBuffer: uvBufferMerged,
+			textureIdBuffer: textureIdBufferMerged,
+			boundingBox: this.boundingBoxToFlatObject(boundingBox)
+		};
+	}
+
+	private static getHuggingBuffers(features: Tile3DHuggingGeometry[]): Tile3DBuffersHugging {
+		const boundingBox = this.joinBoundingBoxes(features);
+		boundingBox.min.y = -1000;
+		boundingBox.max.y = 100000;
+
+		const positionBuffers: Float32Array[] = [];
+		const uvBuffers: Float32Array[] = [];
+		const normalBuffers: Float32Array[] = [];
+		const textureIdBuffers: Uint8Array[] = [];
+
+		for (const feature of features) {
 			positionBuffers.push(feature.positionBuffer);
 			uvBuffers.push(feature.uvBuffer);
 			normalBuffers.push(feature.normalBuffer);

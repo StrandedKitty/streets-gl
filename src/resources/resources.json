@@ -50,6 +50,12 @@
 	"manicuredGrassDiffuse": {"url": "/textures/surfaces/manicured_grass_diffuse.png", "type": "image"},
 	"railwayDiffuse": {"url": "/textures/surfaces/railway_diffuse.png", "type": "image"},
 	"railwayNormal": {"url": "/textures/surfaces/railway_normal.png", "type": "image"},
+	"woodFenceDiffuse": {"url": "/textures/surfaces/wood_fence_diffuse.png", "type": "image"},
+	"woodFenceNormal": {"url": "/textures/surfaces/wood_fence_normal.png", "type": "image"},
+	"woodFenceMask": {"url": "/textures/surfaces/wood_fence_mask.png", "type": "image"},
+	"concreteFenceDiffuse": {"url": "/textures/surfaces/concrete_fence_diffuse.png", "type": "image"},
+	"concreteFenceNormal": {"url": "/textures/surfaces/concrete_fence_normal.png", "type": "image"},
+	"concreteFenceMask": {"url": "/textures/surfaces/concrete_fence_mask.png", "type": "image"},
 
 	"biomeMap": {
 		"url": "/textures/biomes_blurred.png",

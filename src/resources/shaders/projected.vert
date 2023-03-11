@@ -9,6 +9,7 @@ out vec2 vUv;
 out vec3 vPosition;
 out vec3 vLocalPosition;
 out vec3 vNormal;
+flat out int vNormalFollowsGround;
 out vec4 vClipPos;
 out vec4 vClipPosPrev;
 out vec3 vCenter;
@@ -56,6 +57,7 @@ void main() {
 
 	vUv = uv;
 	vNormal = vec3(modelViewMatrix * vec4(normal, 0));
+	vNormalFollowsGround = normal == vec3(0, 1, 0) ? 1 : 0;
 	vLocalPosition = position;
 
 	vec2 normalUV = position.zx / TILE_SIZE;

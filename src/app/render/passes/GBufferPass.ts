@@ -1,8 +1,8 @@
 import AbstractMaterial from "~/lib/renderer/abstract-renderer/AbstractMaterial";
 import {
 	UniformFloat1,
-	UniformFloat2,
-	UniformFloat3, UniformFloat4,
+	UniformFloat3,
+	UniformFloat4,
 	UniformInt1,
 	UniformMatrix4
 } from "~/lib/renderer/abstract-renderer/Uniform";
@@ -12,9 +12,9 @@ import Pass from "./Pass";
 import RenderPassResource from "../render-graph/resources/RenderPassResource";
 import {InternalResourceType} from '~/lib/render-graph/Pass';
 import PassManager from '../PassManager';
-import BuildingMaterialContainer from "../materials/BuildingMaterialContainer";
+import ExtrudedMeshMaterialContainer from "../materials/ExtrudedMeshMaterialContainer";
 import SkyboxMaterialContainer from "../materials/SkyboxMaterialContainer";
-import RoadMaterialContainer from "../materials/RoadMaterialContainer";
+import ProjectedMeshMaterialContainer from "../materials/ProjectedMeshMaterialContainer";
 import FullScreenTriangle from "../../objects/FullScreenTriangle";
 import TerrainMaterialContainer from "../materials/TerrainMaterialContainer";
 import TreeMaterialContainer from "../materials/TreeMaterialContainer";
@@ -27,9 +27,10 @@ import AbstractTexture2D from "~/lib/renderer/abstract-renderer/AbstractTexture2
 import MathUtils from "~/lib/math/MathUtils";
 import Config from "../../Config";
 import TerrainSystem from "../../systems/TerrainSystem";
-import SceneSystem from "../../systems/SceneSystem";
 import TerrainRing from "../../objects/TerrainRing";
 import AbstractTexture2DArray from "~/lib/renderer/abstract-renderer/AbstractTexture2DArray";
+import Camera from "~/lib/core/Camera";
+import HuggingMeshMaterialContainer from "~/app/render/materials/HuggingMeshMaterialContainer";
 
 export default class GBufferPass extends Pass<{
 	GBufferRenderPass: {
@@ -61,8 +62,9 @@ export default class GBufferPass extends Pass<{
 		resource: RenderPassResource;
 	};
 }> {
-	private buildingMaterial: AbstractMaterial;
-	private roadMaterial: AbstractMaterial;
+	private extrudedMeshMaterial: AbstractMaterial;
+	private projectedMeshMaterial: AbstractMaterial;
+	private huggingMeshMaterial: AbstractMaterial;
 	private skyboxMaterial: AbstractMaterial;
 	private terrainMaterial: AbstractMaterial;
 	private treeMaterial: AbstractMaterial;
@@ -75,13 +77,25 @@ export default class GBufferPass extends Pass<{
 
 	public constructor(manager: PassManager) {
 		super('GBufferPass', manager, {
-			GBufferRenderPass: {type: InternalResourceType.Output, resource: manager.getSharedResource('GBufferRenderPass')},
-			AtmosphereSkybox: {type: InternalResourceType.Input, resource: manager.getSharedResource('AtmosphereSkybox')},
-			Transmittance: {type: InternalResourceType.Input, resource: manager.getSharedResource('AtmosphereTransmittanceLUT')},
+			GBufferRenderPass: {
+				type: InternalResourceType.Output,
+				resource: manager.getSharedResource('GBufferRenderPass')
+			},
+			AtmosphereSkybox: {
+				type: InternalResourceType.Input,
+				resource: manager.getSharedResource('AtmosphereSkybox')
+			},
+			Transmittance: {
+				type: InternalResourceType.Input,
+				resource: manager.getSharedResource('AtmosphereTransmittanceLUT')
+			},
 			TerrainNormal: {type: InternalResourceType.Input, resource: manager.getSharedResource('TerrainNormal')},
 			TerrainWater: {type: InternalResourceType.Input, resource: manager.getSharedResource('TerrainWater')},
 			TerrainTileMask: {type: InternalResourceType.Input, resource: manager.getSharedResource('TerrainTileMask')},
-			TerrainRingHeight: {type: InternalResourceType.Input, resource: manager.getSharedResource('TerrainRingHeight')},
+			TerrainRingHeight: {
+				type: InternalResourceType.Input,
+				resource: manager.getSharedResource('TerrainRingHeight')
+			},
 		});
 
 		this.fullScreenTriangle = new FullScreenTriangle(this.renderer);
@@ -90,58 +104,99 @@ export default class GBufferPass extends Pass<{
 	}
 
 	private createMaterials(): void {
-		this.buildingMaterial = new BuildingMaterialContainer(this.renderer).material;
-		this.roadMaterial = new RoadMaterialContainer(this.renderer).material;
+		this.extrudedMeshMaterial = new ExtrudedMeshMaterialContainer(this.renderer).material;
+		this.projectedMeshMaterial = new ProjectedMeshMaterialContainer(this.renderer).material;
+		this.huggingMeshMaterial = new HuggingMeshMaterialContainer(this.renderer).material;
 		this.skyboxMaterial = new SkyboxMaterialContainer(this.renderer).material;
 		this.terrainMaterial = new TerrainMaterialContainer(this.renderer).material;
 		this.treeMaterial = new TreeMaterialContainer(this.renderer).material;
 		this.aircraftMaterial = new AircraftMaterialContainer(this.renderer).material;
 	}
 
-	public render(): void {
+	private getTileNormalTexturesTransforms(tile: Tile): [Float32Array, Float32Array] {
+		const terrainSystem = this.manager.systemManager.getSystem(TerrainSystem);
+		const transform0 = new Float32Array(4);
+		const transform1 = new Float32Array(4);
+
+		terrainSystem.areaLoaders.height0.transformToArray(
+			tile.position.x,
+			tile.position.z,
+			Config.TileSize,
+			transform0
+		);
+		terrainSystem.areaLoaders.height1.transformToArray(
+			tile.position.x,
+			tile.position.z,
+			Config.TileSize,
+			transform1
+		);
+
+		return [transform0, transform1];
+	}
+
+	private getCameraPositionRelativeToTile(camera: Camera, tile: Tile): [number, number] {
+		return [
+			camera.position.x - tile.position.x + Config.TileSize / 2,
+			camera.position.z - tile.position.z + Config.TileSize / 2
+		];
+	}
+
+	private getTileTerrainParams(tile: Tile): {
+		ring0: TerrainRing;
+		ring1: TerrainRing;
+		ring0Offset: Vec2;
+		ring1Offset: Vec2;
+		levelId: number;
+	} {
+		const terrain = this.manager.sceneSystem.objects.terrain;
+
+		let ring0: TerrainRing = null;
+		let ring1: TerrainRing = null;
+		let levelId: number = 0;
+
+		for (let i = 0; i < terrain.children.length; i++) {
+			const child = terrain.children[i];
+			const dst = child.size / 2 + Config.TileSize / 2;
+			const minX = child.position.x - dst;
+			const minZ = child.position.z - dst;
+			const maxX = child.position.x + dst;
+			const maxZ = child.position.z + dst;
+			const tileX = tile.position.x + Config.TileSize / 2;
+			const tileZ = tile.position.z + Config.TileSize / 2;
+
+			if (tileX > minX && tileX < maxX && tileZ > minZ && tileZ < maxZ) {
+				ring0 = child;
+				ring1 = terrain.children[i + 1] || null;
+				levelId = i;
+				break;
+			}
+		}
+
+		if (ring0 === null || ring1 === null) {
+			console.error('?')
+		}
+
+		const ring0Offset = Vec2.sub(tile.position.xz, ring0.position.xz);
+		const ring1Offset = Vec2.sub(tile.position.xz, ring1.position.xz);
+
+		return {ring0, ring1, ring0Offset, ring1Offset, levelId};
+	}
+
+	private renderSkybox(): void {
 		const camera = this.manager.sceneSystem.objects.camera;
 		const skybox = this.manager.sceneSystem.objects.skybox;
-		const terrain = this.manager.sceneSystem.objects.terrain;
-		const tiles = this.manager.sceneSystem.objects.tiles.children as Tile[];
-		const trees = this.manager.sceneSystem.objects.instancedObjects.get('tree');
-		const aircraftList = this.manager.sceneSystem.objects.instancedAircraft;
 		const sunDirection = new Float32Array([...Vec3.toArray(this.manager.mapTimeSystem.sunDirection)]);
 		const skyRotationMatrix = new Float32Array(this.manager.mapTimeSystem.skyDirectionMatrix.values);
 		const atmosphereSkyboxTexture = <AbstractTextureCube>this.getPhysicalResource('AtmosphereSkybox').colorAttachments[0].texture;
 		const transmittanceLUT = <AbstractTexture2D>this.getPhysicalResource('Transmittance').colorAttachments[0].texture;
-		const terrainNormal = <AbstractTexture2DArray>this.getPhysicalResource('TerrainNormal').colorAttachments[0].texture;
-		const terrainWater = <AbstractTexture2DArray>this.getPhysicalResource('TerrainWater').colorAttachments[0].texture;
-		const terrainTileMask = <AbstractTexture2D>this.getPhysicalResource('TerrainTileMask').colorAttachments[0].texture;
-		const terrainRingHeight = <AbstractTexture2DArray>this.getPhysicalResource('TerrainRingHeight').colorAttachments[0].texture;
-		const biomePos = MathUtils.meters2tile(camera.position.x, camera.position.z, 0);
-		const terrainSystem = this.manager.systemManager.getSystem(TerrainSystem);
 
-		const instancesOrigin = new Vec2(
-			Math.floor(camera.position.x / 10000) * 10000,
-			Math.floor(camera.position.z / 10000) * 10000
-		);
-
-		if (!this.cameraMatrixWorldInversePrev) {
-			this.cameraMatrixWorldInversePrev = camera.matrixWorldInverse;
-		} else {
-			const pivotDelta = this.manager.sceneSystem.pivotDelta;
-
-			this.cameraMatrixWorldInversePrev = Mat4.translate(
-				this.cameraMatrixWorldInversePrev,
-				pivotDelta.x,
-				0,
-				pivotDelta.y
-			);
-		}
-
-		const mainRenderPass = this.getPhysicalResource('GBufferRenderPass');
-
-		this.renderer.beginRenderPass(mainRenderPass);
-
-		this.skyboxMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'Uniforms').value = new Float32Array(camera.projectionMatrix.values);
-		this.skyboxMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'Uniforms').value = new Float32Array(Mat4.multiply(camera.matrixWorldInverse, skybox.matrixWorld).values);
-		this.skyboxMaterial.getUniform<UniformMatrix4>('viewMatrix', 'Uniforms').value = new Float32Array(camera.matrixWorld.values);
-		this.skyboxMaterial.getUniform<UniformMatrix4>('modelViewMatrixPrev', 'Uniforms').value = new Float32Array(Mat4.multiply(this.cameraMatrixWorldInversePrev, skybox.matrixWorld).values);
+		this.skyboxMaterial.getUniform('projectionMatrix', 'Uniforms').value =
+			new Float32Array(camera.projectionMatrix.values);
+		this.skyboxMaterial.getUniform('modelViewMatrix', 'Uniforms').value =
+			new Float32Array(Mat4.multiply(camera.matrixWorldInverse, skybox.matrixWorld).values);
+		this.skyboxMaterial.getUniform('viewMatrix', 'Uniforms').value = new Float32Array(camera.matrixWorld.values);
+		this.skyboxMaterial.getUniform('modelViewMatrixPrev', 'Uniforms').value =
+			new Float32Array(Mat4.multiply(this.cameraMatrixWorldInversePrev, skybox.matrixWorld).values);
 		this.skyboxMaterial.getUniform('sunDirection', 'Uniforms').value = sunDirection;
 		this.skyboxMaterial.getUniform('skyRotationMatrix', 'Uniforms').value = skyRotationMatrix;
 		this.skyboxMaterial.getUniform('tAtmosphere').value = atmosphereSkyboxTexture;
@@ -151,62 +206,38 @@ export default class GBufferPass extends Pass<{
 		this.renderer.useMaterial(this.skyboxMaterial);
 
 		skybox.draw();
+	}
 
-		this.renderer.useMaterial(this.buildingMaterial);
+	private renderExtrudedMeshes(): void {
+		const camera = this.manager.sceneSystem.objects.camera;
+		const tiles = this.manager.sceneSystem.objects.tiles;
 
-		this.buildingMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.jitteredProjectionMatrix.values);
-		this.buildingMaterial.updateUniformBlock('PerMaterial');
+		this.renderer.useMaterial(this.extrudedMeshMaterial);
+
+		this.extrudedMeshMaterial.getUniform('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.jitteredProjectionMatrix.values);
+		this.extrudedMeshMaterial.updateUniformBlock('PerMaterial');
 
 		for (const tile of tiles) {
-			if (!tile.buildings || !tile.buildings.inCameraFrustum(camera)) {
+			if (!tile.extrudedMesh || !tile.extrudedMesh.inCameraFrustum(camera)) {
 				continue;
 			}
 
 			const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, tile.matrixWorld);
 			const mvMatrixPrev = Mat4.multiply(this.cameraMatrixWorldInversePrev, tile.matrixWorld);
 
-			this.buildingMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
-			this.buildingMaterial.getUniform<UniformMatrix4>('modelViewMatrixPrev', 'PerMesh').value = new Float32Array(mvMatrixPrev.values);
-			this.buildingMaterial.getUniform<UniformMatrix4>('tileId', 'PerMesh').value[0] = tile.localId;
-			this.buildingMaterial.updateUniformBlock('PerMesh');
+			this.extrudedMeshMaterial.getUniform('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
+			this.extrudedMeshMaterial.getUniform('modelViewMatrixPrev', 'PerMesh').value = new Float32Array(mvMatrixPrev.values);
+			this.extrudedMeshMaterial.getUniform<UniformFloat1>('tileId', 'PerMesh').value[0] = tile.localId;
+			this.extrudedMeshMaterial.updateUniformBlock('PerMesh');
 
-			tile.buildings.draw();
+			tile.extrudedMesh.draw();
 		}
+	}
 
-		/*{
-			const buffers = [];
-			const instancesOrigin = new Vec2(
-				Math.floor(camera.position.x / 10000) * 10000,
-				Math.floor(camera.position.z / 10000) * 10000
-			);
-
-			for (const tile of tiles) {
-				const lod = tile.distanceToCamera < 2500 ? 0 : 1;
-				const trees = tile.getInstanceBufferWithTransform('tree', lod, instancesOrigin);
-
-				if (trees) {
-					buffers.push(trees);
-				}
-			}
-
-			trees.position.set(instancesOrigin.x, 0, instancesOrigin.y);
-			trees.updateMatrix();
-			trees.updateMatrixWorld();
-			const mergedTrees = Utils.mergeTypedArrays(Float32Array, buffers);
-			trees.setInstancesInterleavedBuffer(mergedTrees, mergedTrees.length / 5);
-
-			const mvMatrixPrev = Mat4.multiply(this.cameraMatrixWorldInversePrev, trees.matrixWorld);
-
-			this.renderer.useMaterial(this.treeMaterial);
-
-			this.treeMaterial.getUniform('projectionMatrix', 'MainBlock').value = new Float32Array(camera.jitteredProjectionMatrix.values);
-			this.treeMaterial.getUniform('modelMatrix', 'MainBlock').value = new Float32Array(trees.matrixWorld.values);
-			this.treeMaterial.getUniform('viewMatrix', 'MainBlock').value = new Float32Array(camera.matrixWorldInverse.values);
-			this.treeMaterial.getUniform('modelViewMatrixPrev', 'MainBlock').value = new Float32Array(mvMatrixPrev.values);
-			this.treeMaterial.updateUniformBlock('MainBlock');
-
-			trees.mesh.draw();
-		}*/
+	private renderAircraft(instancesOrigin: Vec2): void {
+		const camera = this.manager.sceneSystem.objects.camera;
+		const aircraftList = this.manager.sceneSystem.objects.instancedAircraft;
+		const vehicleSystem = this.manager.systemManager.getSystem(VehicleSystem);
 
 		for (let i = 0; i < aircraftList.length; i++) {
 			const aircraft = aircraftList[i];
@@ -215,7 +246,6 @@ export default class GBufferPass extends Pass<{
 				continue;
 			}
 
-			const vehicleSystem = this.manager.systemManager.getSystem(VehicleSystem);
 			const buffer = vehicleSystem.getAircraftBuffer(instancesOrigin, i);
 			const instanceCount = buffer.length / 4;
 
@@ -239,6 +269,16 @@ export default class GBufferPass extends Pass<{
 				aircraft.mesh.draw();
 			}
 		}
+	}
+
+	private renderTerrain(): void {
+		const camera = this.manager.sceneSystem.objects.camera;
+		const terrain = this.manager.sceneSystem.objects.terrain;
+		const terrainNormal = <AbstractTexture2DArray>this.getPhysicalResource('TerrainNormal').colorAttachments[0].texture;
+		const terrainWater = <AbstractTexture2DArray>this.getPhysicalResource('TerrainWater').colorAttachments[0].texture;
+		const terrainTileMask = <AbstractTexture2D>this.getPhysicalResource('TerrainTileMask').colorAttachments[0].texture;
+		const terrainRingHeight = <AbstractTexture2DArray>this.getPhysicalResource('TerrainRingHeight').colorAttachments[0].texture;
+		const biomePos = MathUtils.meters2tile(camera.position.x, camera.position.z, 0);
 
 		this.terrainMaterial.getUniform('tRingHeight').value = terrainRingHeight;
 		this.terrainMaterial.getUniform('tNormal').value = terrainNormal;
@@ -280,87 +320,127 @@ export default class GBufferPass extends Pass<{
 
 			ring.draw();
 		}
+	}
 
-		this.roadMaterial.getUniform('tRingHeight').value = terrainRingHeight;
-		this.roadMaterial.getUniform('tNormal').value = terrainNormal;
+	private renderProjectedMeshes(): void {
+		const camera = this.manager.sceneSystem.objects.camera;
+		const tiles = this.manager.sceneSystem.objects.tiles;
+		const terrainNormal = <AbstractTexture2DArray>this.getPhysicalResource('TerrainNormal').colorAttachments[0].texture;
+		const terrainRingHeight = <AbstractTexture2DArray>this.getPhysicalResource('TerrainRingHeight').colorAttachments[0].texture;
 
-		this.renderer.useMaterial(this.roadMaterial);
+		this.projectedMeshMaterial.getUniform('tRingHeight').value = terrainRingHeight;
+		this.projectedMeshMaterial.getUniform('tNormal').value = terrainNormal;
 
-		this.roadMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.jitteredProjectionMatrix.values);
-		this.roadMaterial.updateUniformBlock('PerMaterial');
+		this.renderer.useMaterial(this.projectedMeshMaterial);
+
+		this.projectedMeshMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.jitteredProjectionMatrix.values);
+		this.projectedMeshMaterial.updateUniformBlock('PerMaterial');
 
 		for (const tile of tiles) {
-			if (!tile.roads || !tile.roads.inCameraFrustum(camera)) {
+			if (!tile.projectedMesh || !tile.projectedMesh.inCameraFrustum(camera)) {
 				continue;
 			}
+
+			const normalTextureTransforms = this.getTileNormalTexturesTransforms(tile);
+			const {ring0, ring1, levelId, ring0Offset, ring1Offset} = this.getTileTerrainParams(tile);
 
 			const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, tile.matrixWorld);
 			const mvMatrixPrev = Mat4.multiply(this.cameraMatrixWorldInversePrev, tile.matrixWorld);
+			const relativeCameraPosition = this.getCameraPositionRelativeToTile(camera, tile);
 
-			let ring0: TerrainRing = null;
-			let ring1: TerrainRing = null;
-			let levelId: number = 0;
+			this.projectedMeshMaterial.getUniform('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
+			this.projectedMeshMaterial.getUniform('modelViewMatrixPrev', 'PerMesh').value = new Float32Array(mvMatrixPrev.values);
+			this.projectedMeshMaterial.getUniform('transformNormal0', 'PerMesh').value = normalTextureTransforms[0];
+			this.projectedMeshMaterial.getUniform('transformNormal1', 'PerMesh').value = normalTextureTransforms[1];
+			this.projectedMeshMaterial.getUniform<UniformFloat1>('terrainRingSize', 'PerMesh').value[0] = ring0.size;
+			this.projectedMeshMaterial.getUniform('terrainRingOffset', 'PerMesh').value = new Float32Array([
+				ring0Offset.x, ring0Offset.y, ring1Offset.x, ring1Offset.y
+			]);
+			this.projectedMeshMaterial.getUniform<UniformFloat1>('terrainLevelId', 'PerMesh').value[0] = levelId;
+			this.projectedMeshMaterial.getUniform<UniformFloat1>('segmentCount', 'PerMesh').value[0] = ring0.segmentCount * 2;
+			this.projectedMeshMaterial.getUniform('cameraPosition', 'PerMesh').value = new Float32Array(relativeCameraPosition);
+			this.projectedMeshMaterial.getUniform<UniformFloat1>('time', 'PerMaterial').value[0] = performance.now() * 0.001;
+			this.projectedMeshMaterial.updateUniformBlock('PerMesh');
 
-			for (let i = 0; i < terrain.children.length; i++) {
-				const child = terrain.children[i];
-				const dst = child.size / 2 + Config.TileSize / 2;
-				const minX = child.position.x - dst;
-				const minZ = child.position.z - dst;
-				const maxX = child.position.x + dst;
-				const maxZ = child.position.z + dst;
-				const tileX = tile.position.x + Config.TileSize / 2;
-				const tileZ = tile.position.z + Config.TileSize / 2;
+			tile.projectedMesh.draw();
+			tile.huggingMesh.draw();
+		}
+	}
 
-				if (tileX > minX && tileX < maxX && tileZ > minZ && tileZ < maxZ) {
-					ring0 = child;
-					ring1 = terrain.children[i + 1] || null;
-					levelId = i;
-					break;
+	private writeToObjectIdBuffer(): void {
+		const mainRenderPass = this.getPhysicalResource('GBufferRenderPass');
+		mainRenderPass.readColorAttachmentPixel(4, this.objectIdBuffer, this.objectIdX, this.objectIdY);
+	}
+
+	private getInstancesOrigin(camera: Camera): Vec2 {
+		return new Vec2(
+			Math.floor(camera.position.x / 10000) * 10000,
+			Math.floor(camera.position.z / 10000) * 10000
+		);
+	}
+
+	public render(): void {
+		const camera = this.manager.sceneSystem.objects.camera;
+		const trees = this.manager.sceneSystem.objects.instancedObjects.get('tree');
+		const instancesOrigin = this.getInstancesOrigin(camera);
+
+		if (!this.cameraMatrixWorldInversePrev) {
+			this.cameraMatrixWorldInversePrev = camera.matrixWorldInverse;
+		} else {
+			const pivotDelta = this.manager.sceneSystem.pivotDelta;
+
+			this.cameraMatrixWorldInversePrev = Mat4.translate(
+				this.cameraMatrixWorldInversePrev,
+				pivotDelta.x,
+				0,
+				pivotDelta.y
+			);
+		}
+
+		const mainRenderPass = this.getPhysicalResource('GBufferRenderPass');
+		this.renderer.beginRenderPass(mainRenderPass);
+
+		/*{
+			const buffers = [];
+			const instancesOrigin = new Vec2(
+				Math.floor(camera.position.x / 10000) * 10000,
+				Math.floor(camera.position.z / 10000) * 10000
+			);
+
+			for (const tile of tiles) {
+				const lod = tile.distanceToCamera < 2500 ? 0 : 1;
+				const trees = tile.getInstanceBufferWithTransform('tree', lod, instancesOrigin);
+
+				if (trees) {
+					buffers.push(trees);
 				}
 			}
 
-			if (ring0 === null || ring1 === null) {
-				continue;
-			}
+			trees.position.set(instancesOrigin.x, 0, instancesOrigin.y);
+			trees.updateMatrix();
+			trees.updateMatrixWorld();
+			const mergedTrees = Utils.mergeTypedArrays(Float32Array, buffers);
+			trees.setInstancesInterleavedBuffer(mergedTrees, mergedTrees.length / 5);
 
-			const ringOffset = [
-				tile.position.x - ring0.position.x, tile.position.z - ring0.position.z,
-				tile.position.x - ring1.position.x, tile.position.z - ring1.position.z
-			];
+			const mvMatrixPrev = Mat4.multiply(this.cameraMatrixWorldInversePrev, trees.matrixWorld);
 
-			const normalTextureTransform0 = new Float32Array(4);
-			const normalTextureTransform1 = new Float32Array(4);
-			terrainSystem.areaLoaders.height0.transformToArray(
-				tile.position.x,
-				tile.position.z,
-				Config.TileSize,
-				normalTextureTransform0
-			);
-			terrainSystem.areaLoaders.height1.transformToArray(
-				tile.position.x,
-				tile.position.z,
-				Config.TileSize,
-				normalTextureTransform1
-			);
+			this.renderer.useMaterial(this.treeMaterial);
 
-			this.roadMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
-			this.roadMaterial.getUniform<UniformMatrix4>('modelViewMatrixPrev', 'PerMesh').value = new Float32Array(mvMatrixPrev.values);
-			this.roadMaterial.getUniform<UniformMatrix4>('transformNormal0', 'PerMesh').value = normalTextureTransform0;
-			this.roadMaterial.getUniform<UniformMatrix4>('transformNormal1', 'PerMesh').value = normalTextureTransform1;
-			this.roadMaterial.getUniform<UniformMatrix4>('terrainRingSize', 'PerMesh').value[0] = ring0.size;
-			this.roadMaterial.getUniform<UniformMatrix4>('terrainRingOffset', 'PerMesh').value = new Float32Array(ringOffset);
-			this.roadMaterial.getUniform<UniformMatrix4>('terrainLevelId', 'PerMesh').value[0] = levelId;
-			this.roadMaterial.getUniform<UniformMatrix4>('segmentCount', 'PerMesh').value[0] = ring0.segmentCount * 2;
-			this.roadMaterial.getUniform<UniformMatrix4>('cameraPosition', 'PerMesh').value = new Float32Array([
-				camera.position.x - tile.position.x + Config.TileSize / 2, camera.position.z - tile.position.z + Config.TileSize / 2
-			]);
-			this.roadMaterial.getUniform<UniformMatrix4>('time', 'PerMaterial').value[0] = performance.now() * 0.001;
-			this.roadMaterial.updateUniformBlock('PerMesh');
+			this.treeMaterial.getUniform('projectionMatrix', 'MainBlock').value = new Float32Array(camera.jitteredProjectionMatrix.values);
+			this.treeMaterial.getUniform('modelMatrix', 'MainBlock').value = new Float32Array(trees.matrixWorld.values);
+			this.treeMaterial.getUniform('viewMatrix', 'MainBlock').value = new Float32Array(camera.matrixWorldInverse.values);
+			this.treeMaterial.getUniform('modelViewMatrixPrev', 'MainBlock').value = new Float32Array(mvMatrixPrev.values);
+			this.treeMaterial.updateUniformBlock('MainBlock');
 
-			tile.roads.draw();
-		}
+			trees.mesh.draw();
+		}*/
 
-		mainRenderPass.readColorAttachmentPixel(4, this.objectIdBuffer, this.objectIdX, this.objectIdY);
+		this.renderSkybox();
+		this.renderExtrudedMeshes();
+		this.renderAircraft(instancesOrigin);
+		this.renderTerrain();
+		this.renderProjectedMeshes();
+		this.writeToObjectIdBuffer();
 
 		this.saveCameraMatrixWorldInverse();
 	}

@@ -62,7 +62,7 @@ export default class SelectionPass extends Pass<{
 		const buildingLocalId = buildingTile.buildingPackedToLocalMap.get(selectedTileBuilding.id);
 		const camera = this.manager.sceneSystem.objects.camera;
 
-		if (!buildingTile.buildings.inCameraFrustum(camera)) {
+		if (!buildingTile.extrudedMesh.inCameraFrustum(camera)) {
 			return;
 		}
 
@@ -76,7 +76,7 @@ export default class SelectionPass extends Pass<{
 		this.maskMaterial.getUniform<UniformUint1>('selectedId', 'MainBlock').value[0] = buildingLocalId;
 		this.maskMaterial.updateUniformBlock('MainBlock');
 
-		buildingTile.buildings.draw();
+		buildingTile.extrudedMesh.draw();
 
 		this.blurMaterial.getUniform('tMap').value = <AbstractTexture2D>this.getPhysicalResource('SelectionMask').colorAttachments[0].texture;
 		this.blurMaterial.getUniform<UniformFloat2>('direction', 'MainBlock').value[0] = 2;

@@ -193,8 +193,7 @@ export default class UISystem extends System {
 		const scene = this.systemManager.getSystem(SceneSystem);
 
 		if (scene) {
-			const camera = this.systemManager.getSystem(SceneSystem).objects.camera;
-			const dir = Vec3.applyMatrix4(new Vec3(0, 0, -1), camera.matrixWorld);
+			const dir = Vec3.applyMatrix4(new Vec3(0, 0, -1), scene.objects.camera.matrixWorld);
 			const angle = new Vec2(dir.x, dir.z).getAngle();
 			this.ui.setStateFieldValue('northDirection', Math.round(-MathUtils.toDeg(angle)));
 		}
