@@ -12,6 +12,7 @@ import ControlsNavigator from "../controls/ControlsNavigator";
 import FreeControlsNavigator from "../controls/FreeControlsNavigator";
 import CursorStyleSystem from "./CursorStyleSystem";
 import UI from "~/app/ui/UI";
+import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 
 const WheelZoomFactor = 6;
 
@@ -31,7 +32,7 @@ export enum ControlsMode {
 export default class ControlsSystem extends System {
 	private readonly element: HTMLElement;
 	private mode: ControlsMode = ControlsMode.Ground;
-	private camera: Camera;
+	private camera: PerspectiveCamera;
 	private tick: number = 0;
 	public target: Vec3 = new Vec3();
 	private state: ControlsState;

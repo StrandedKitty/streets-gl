@@ -1,11 +1,11 @@
 import ControlsNavigator from "./ControlsNavigator";
-import Camera from "~/lib/core/Camera";
 import Vec2 from "~/lib/math/Vec2";
 import Vec3 from "~/lib/math/Vec3";
 import Config from "../Config";
 import MathUtils from "~/lib/math/MathUtils";
 import HeightProvider from "../world/HeightProvider";
 import {ControlsState} from "../systems/ControlsSystem";
+import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 
 export default class FreeControlsNavigator extends ControlsNavigator {
 	private pitch: number = MathUtils.toRad(45);
@@ -21,7 +21,7 @@ export default class FreeControlsNavigator extends ControlsNavigator {
 	private yawPlusKeyPressed: boolean = false;
 	private pointerLocked: boolean = false;
 
-	public constructor(element: HTMLElement, camera: Camera) {
+	public constructor(element: HTMLElement, camera: PerspectiveCamera) {
 		super(element, camera);
 
 		this.element.addEventListener('mousedown', (e: MouseEvent) => this.mouseDownEvent(e));
@@ -57,8 +57,8 @@ export default class FreeControlsNavigator extends ControlsNavigator {
 		}
 
 		if (this.pointerLocked) {
-			this.yaw += e.movementX * Config.FreeCameraRotationSensitivity;
-			this.pitch += e.movementY * Config.FreeCameraRotationSensitivity;
+			this.yaw += e.movementX * Config.FreeCameraRotationSensitivity * this.camera.fov;
+			this.pitch += e.movementY * Config.FreeCameraRotationSensitivity * this.camera.fov;
 		}
 	}
 

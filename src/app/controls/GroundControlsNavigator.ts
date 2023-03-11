@@ -1,5 +1,4 @@
 import ControlsNavigator from "./ControlsNavigator";
-import Camera from "~/lib/core/Camera";
 import Vec2 from "~/lib/math/Vec2";
 import Vec3 from "~/lib/math/Vec3";
 import Config from "../Config";
@@ -7,6 +6,7 @@ import MathUtils from "~/lib/math/MathUtils";
 import HeightProvider from "../world/HeightProvider";
 import CursorStyleSystem from "../systems/CursorStyleSystem";
 import {ControlsState} from "../systems/ControlsSystem";
+import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 
 export default class GroundControlsNavigator extends ControlsNavigator {
 	private readonly cursorStyleSystem: CursorStyleSystem;
@@ -31,7 +31,7 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 	private yawMinusKeyPressed: boolean = false;
 	private yawPlusKeyPressed: boolean = false;
 
-	public constructor(element: HTMLElement, camera: Camera, cursorStyleSystem: CursorStyleSystem) {
+	public constructor(element: HTMLElement, camera: PerspectiveCamera, cursorStyleSystem: CursorStyleSystem) {
 		super(element, camera);
 
 		this.cursorStyleSystem = cursorStyleSystem;

@@ -1,12 +1,12 @@
-import Camera from "~/lib/core/Camera";
 import {ControlsState} from "../systems/ControlsSystem";
+import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 
 export default abstract class ControlsNavigator {
 	protected readonly element: HTMLElement;
-	protected camera: Camera;
+	protected camera: PerspectiveCamera;
 	protected isEnabled: boolean = false;
 
-	protected constructor(element: HTMLElement, camera: Camera) {
+	protected constructor(element: HTMLElement, camera: PerspectiveCamera) {
 		this.element = element;
 		this.camera = camera;
 	}

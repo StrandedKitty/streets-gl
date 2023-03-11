@@ -19,7 +19,7 @@ const Config = {
 	GroundCameraSpeedFast: 1200,
 	FreeCameraSpeed: 400,
 	FreeCameraSpeedFast: 1200,
-	FreeCameraRotationSensitivity: 0.002,
+	FreeCameraRotationSensitivity: 0.00002,
 	FreeCameraYawSpeed: 0.8,
 	FreeCameraPitchSpeed: 0.8,
 	IsMobileBrowser: Utils.isMobileBrowser(),
