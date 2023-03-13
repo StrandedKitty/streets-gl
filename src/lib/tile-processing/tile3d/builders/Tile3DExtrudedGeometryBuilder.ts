@@ -82,13 +82,15 @@ export default class Tile3DExtrudedGeometryBuilder {
 			textureIdWall: number;
 		}
 	): void {
+		const noWalls = minHeight >= height;
+
 		if (skirt) {
 			for (const polyline of skirt) {
 				const vertices = polyline.map(point => point.position);
 				const heights = polyline.map(point => point.height);
-				const levels = Math.max(1, (Math.max(...heights) - minHeight) / 4);
+				const levels = Math.max(1, Math.round((Math.max(...heights) - height) / 4));
 
-				const walls = new WallsBuilder().build({
+				const walls = WallsBuilder.build({
 					vertices,
 					minHeight: height,
 					height: heights,
@@ -107,23 +109,25 @@ export default class Tile3DExtrudedGeometryBuilder {
 			}
 		}
 
-		for (const ring of this.multipolygon.rings) {
-			const walls = new WallsBuilder().build({
-				vertices: ring.nodes.slice(),
-				minHeight,
-				height: height,
-				levels,
-				windowWidth,
-				textureIdWall,
-				textureIdWindow
-			});
-			this.addAndPaintGeometry({
-				position: walls.position,
-				normal: walls.normal,
-				uv: walls.uv,
-				color,
-				textureId: walls.textureId
-			});
+		if (!noWalls) {
+			for (const ring of this.multipolygon.rings) {
+				const walls = WallsBuilder.build({
+					vertices: ring.nodes.slice(),
+					minHeight,
+					height: height,
+					levels,
+					windowWidth,
+					textureIdWall,
+					textureIdWindow
+				});
+				this.addAndPaintGeometry({
+					position: walls.position,
+					normal: walls.normal,
+					uv: walls.uv,
+					color,
+					textureId: walls.textureId
+				});
+			}
 		}
 
 		if (minHeight > 0) {
@@ -136,8 +140,8 @@ export default class Tile3DExtrudedGeometryBuilder {
 				direction: 0,
 				angle: 0,
 				orientation: null,
-				scaleX: 1,
-				scaleY: 1,
+				scaleX: 10,
+				scaleY: 10,
 				isStretched: false
 			});
 			this.addAndPaintGeometry({
@@ -145,7 +149,7 @@ export default class Tile3DExtrudedGeometryBuilder {
 				normal: roof.normal,
 				uv: roof.uv,
 				color,
-				textureId: 1
+				textureId: 7
 			});
 		}
 	}

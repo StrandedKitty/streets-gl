@@ -118,6 +118,7 @@ void main() {
 
     if (waterFactor > 0.5) {
         vec2 normalizedTileUV = fract(vDetailUV / 611.4962158203125);
+        normalizedTileUV = vec2(normalizedTileUV.y, 1. - normalizedTileUV.x);
         vec3 waterNormal = sampleWaterNormal(normalizedTileUV, time, tWaterNormal);
         vec3 mvWaterNormal = vec3(modelViewMatrix * vec4(waterNormal, 0));
 

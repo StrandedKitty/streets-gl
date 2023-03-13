@@ -3,7 +3,7 @@ import MathUtils from "~/lib/math/MathUtils";
 import Utils from "~/app/Utils";
 
 export default class GeometryGroundProjector {
-	public project(
+	public static project(
 		{
 			triangle,
 			attributes,
@@ -21,8 +21,8 @@ export default class GeometryGroundProjector {
 		position: Float32Array;
 		attributes: {[name: string]: Float32Array};
 	} {
-		const triangleNormalized = GeometryGroundProjector.normalizeTriangle(triangle, tileSize);
-		const groundTriangles = GeometryGroundProjector.getIntersectingGroundTrianglesForTriangle(triangleNormalized, segmentCount);
+		const triangleNormalized = this.normalizeTriangle(triangle, tileSize);
+		const groundTriangles = this.getIntersectingGroundTrianglesForTriangle(triangleNormalized, segmentCount);
 		const flatTriangle = triangleNormalized.flat();
 
 		const positionArrays: Float32Array[] = [];
@@ -39,7 +39,7 @@ export default class GeometryGroundProjector {
 				continue;
 			}
 
-			const triangulated = GeometryGroundProjector.triangulateConvex(polygon);
+			const triangulated = this.triangulateConvex(polygon);
 			const vertices = new Float32Array(triangulated.length * 3);
 			const attributesBuffers: Map<string, Float32Array> = new Map();
 
@@ -73,10 +73,10 @@ export default class GeometryGroundProjector {
 			}
 		}
 
-		return GeometryGroundProjector.mergePositionsAndAttributes(positionArrays, attributeArrays);
+		return this.mergePositionsAndAttributes(positionArrays, attributeArrays);
 	}
 
-	public projectLineSegment(
+	public static projectLineSegment(
 		{
 			lineStart,
 			lineEnd,
@@ -88,16 +88,28 @@ export default class GeometryGroundProjector {
 			tileSize: number;
 			segmentCount: number;
 		}
-	): Vec2[] {
+	): {vertices: Vec2[]; startProgress: number} {
 		const lineStartNormalized = Vec2.multiplyScalar(lineStart, 1 / tileSize);
 		const lineEndNormalized = Vec2.multiplyScalar(lineEnd, 1 / tileSize);
 
-		const groundTriangles = GeometryGroundProjector.getIntersectingGroundTrianglesForLine(
+		const groundTriangles = this.getIntersectingGroundTrianglesForLine(
 			lineStartNormalized,
 			lineEndNormalized,
 			segmentCount
 		);
-		const pointsProgressSet: Set<number> = new Set([0, 1]);
+
+		if (groundTriangles.length === 0) {
+			return {vertices: [], startProgress: 0};
+		}
+
+		const pointsProgressSet: Set<number> = new Set();
+
+		if (lineStartNormalized.x >= 0. && lineStartNormalized.x <= 1. && lineStartNormalized.y >= 0. && lineStartNormalized.y <= 1.) {
+			pointsProgressSet.add(0);
+		}
+		if (lineEndNormalized.x >= 0. && lineEndNormalized.x <= 1. && lineEndNormalized.y >= 0. && lineEndNormalized.y <= 1.) {
+			pointsProgressSet.add(1);
+		}
 
 		for (const triangle of groundTriangles) {
 			const intersections = MathUtils.getIntersectionsLineTriangle(
@@ -119,9 +131,12 @@ export default class GeometryGroundProjector {
 		const pointsProgress = Array.from(pointsProgressSet).sort((a, b) => a - b);
 		const lineVector = Vec2.sub(lineEnd, lineStart);
 
-		return pointsProgress.map(progress => {
-			return Vec2.add(lineStart, Vec2.multiplyScalar(lineVector, progress));
-		});
+		return {
+			vertices: pointsProgress.map(progress => {
+				return Vec2.add(lineStart, Vec2.multiplyScalar(lineVector, progress));
+			}),
+			startProgress: pointsProgress[0]
+		};
 	}
 
 	private static normalizeTriangle(triangle: [number, number][], tileSize: number): [number, number][] {
@@ -157,6 +172,10 @@ export default class GeometryGroundProjector {
 		);
 
 		for (const tilePos of tiles) {
+			if (tilePos.x < 0 || tilePos.y < 0 || tilePos.x >= segmentCount || tilePos.y >= segmentCount) {
+				continue;
+			}
+
 			groundTriangles.push(
 				this.getTriangle(tilePos.x, tilePos.y, 0, segmentCount),
 				this.getTriangle(tilePos.x, tilePos.y, 1, segmentCount)

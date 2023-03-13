@@ -4,30 +4,45 @@ import RenderPassResource from "../render-graph/resources/RenderPassResource";
 import PassManager from "../PassManager";
 import Tile from "../../objects/Tile";
 import AbstractMaterial from "~/lib/renderer/abstract-renderer/AbstractMaterial";
-import {UniformMatrix4} from "~/lib/renderer/abstract-renderer/Uniform";
+import {UniformFloat1, UniformMatrix4} from "~/lib/renderer/abstract-renderer/Uniform";
 import Mat4 from "~/lib/math/Mat4";
 import TreeDepthMaterialContainer from "../materials/TreeDepthMaterialContainer";
 import AircraftDepthMaterialContainer from "../materials/AircraftDepthMaterialContainer";
-import VehicleSystem from "../../systems/VehicleSystem";
 import BuildingDepthMaterialContainer from "../materials/BuildingDepthMaterialContainer";
 import SettingsManager from "~/app/ui/SettingsManager";
+import ProjectedMeshDepthMaterialContainer from "~/app/render/materials/ProjectedMeshDepthMaterialContainer";
+import AbstractTexture2DArray from "~/lib/renderer/abstract-renderer/AbstractTexture2DArray";
+import Config from "~/app/Config";
+import TerrainRing from "~/app/objects/TerrainRing";
+import Vec2 from "~/lib/math/Vec2";
+import CSMCascadeCamera from "~/app/render/CSMCascadeCamera";
 
 export default class ShadowMappingPass extends Pass<{
 	ShadowMaps: {
 		type: InternalResourceType.Output;
 		resource: RenderPassResource;
 	};
+	TerrainRingHeight: {
+		type: InternalResourceType.Input;
+		resource: RenderPassResource;
+	};
 }> {
 	private readonly buildingDepthMaterial: AbstractMaterial;
+	private readonly huggingMeshMaterial: AbstractMaterial;
 	private readonly treeMaterial: AbstractMaterial;
 	private readonly aircraftMaterial: AbstractMaterial;
 
 	public constructor(manager: PassManager) {
 		super('ShadowMappingPass', manager, {
-			ShadowMaps: {type: InternalResourceType.Output, resource: manager.getSharedResource('ShadowMaps')}
+			ShadowMaps: {type: InternalResourceType.Output, resource: manager.getSharedResource('ShadowMaps')},
+			TerrainRingHeight: {
+				type: InternalResourceType.Input,
+				resource: manager.getSharedResource('TerrainRingHeight')
+			}
 		});
 
 		this.buildingDepthMaterial = new BuildingDepthMaterialContainer(this.renderer).material;
+		this.huggingMeshMaterial = new ProjectedMeshDepthMaterialContainer(this.renderer).material;
 		this.treeMaterial = new TreeDepthMaterialContainer(this.renderer).material;
 		this.aircraftMaterial = new AircraftDepthMaterialContainer(this.renderer).material;
 
@@ -58,9 +73,64 @@ export default class ShadowMappingPass extends Pass<{
 		this.getResource('ShadowMaps').descriptor.setSize(csm.resolution, csm.resolution, csm.cascades);
 	}
 
+	private renderBuildings(shadowCamera: CSMCascadeCamera): void {
+		const tiles = this.manager.sceneSystem.objects.tiles;
+
+		this.renderer.useMaterial(this.buildingDepthMaterial);
+
+		this.buildingDepthMaterial.getUniform('projectionMatrix', 'PerMaterial').value = new Float32Array(shadowCamera.projectionMatrix.values);
+		this.buildingDepthMaterial.updateUniformBlock('PerMaterial');
+
+		for (const tile of tiles) {
+			if (!tile.extrudedMesh || !tile.extrudedMesh.inCameraFrustum(shadowCamera)) {
+				continue;
+			}
+
+			const mvMatrix = Mat4.multiply(shadowCamera.matrixWorldInverse, tile.matrixWorld);
+
+			this.buildingDepthMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
+			this.buildingDepthMaterial.updateUniformBlock('PerMesh');
+
+			tile.extrudedMesh.draw();
+		}
+	}
+
+	private renderHuggingMeshes(shadowCamera: CSMCascadeCamera): void {
+		const tiles = this.manager.sceneSystem.objects.tiles;
+		const terrain = this.manager.sceneSystem.objects.terrain;
+
+		this.huggingMeshMaterial.getUniform('tRingHeight').value =
+			<AbstractTexture2DArray>this.getPhysicalResource('TerrainRingHeight').colorAttachments[0].texture;
+
+		this.renderer.useMaterial(this.huggingMeshMaterial);
+
+		this.huggingMeshMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value =
+			new Float32Array(shadowCamera.projectionMatrix.values);
+		this.huggingMeshMaterial.updateUniformBlock('PerMaterial');
+
+		for (const tile of tiles) {
+			if (!tile.huggingMesh || !tile.huggingMesh.inCameraFrustum(shadowCamera)) {
+				continue;
+			}
+			const {ring0, levelId, ring0Offset, ring1Offset} = terrain.getTileParams(tile);
+
+			const mvMatrix = Mat4.multiply(shadowCamera.matrixWorldInverse, tile.matrixWorld);
+
+			this.huggingMeshMaterial.getUniform('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
+			this.huggingMeshMaterial.getUniform<UniformFloat1>('terrainRingSize', 'PerMesh').value[0] = ring0.size;
+			this.huggingMeshMaterial.getUniform('terrainRingOffset', 'PerMesh').value = new Float32Array([
+				ring0Offset.x, ring0Offset.y, ring1Offset.x, ring1Offset.y
+			]);
+			this.huggingMeshMaterial.getUniform<UniformFloat1>('terrainLevelId', 'PerMesh').value[0] = levelId;
+			this.huggingMeshMaterial.getUniform<UniformFloat1>('segmentCount', 'PerMesh').value[0] = ring0.segmentCount * 2;
+			this.huggingMeshMaterial.updateUniformBlock('PerMesh');
+
+			tile.huggingMesh.draw();
+		}
+	}
+
 	public render(): void {
 		const csm = this.manager.sceneSystem.objects.csm;
-		const tiles = this.manager.sceneSystem.objects.tiles;
 		const trees = this.manager.sceneSystem.objects.instancedObjects.get('tree')
 		const aircraftList = this.manager.sceneSystem.objects.instancedAircraft;
 		const pass = this.getPhysicalResource('ShadowMaps');
@@ -100,25 +170,8 @@ export default class ShadowMappingPass extends Pass<{
 				}
 			}
 
-			{
-				this.renderer.useMaterial(this.buildingDepthMaterial);
-
-				this.buildingDepthMaterial.getUniform('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.projectionMatrix.values);
-				this.buildingDepthMaterial.updateUniformBlock('PerMaterial');
-
-				for (const tile of tiles) {
-					if (!tile.extrudedMesh || !tile.extrudedMesh.inCameraFrustum(camera)) {
-						continue;
-					}
-
-					const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, tile.matrixWorld);
-
-					this.buildingDepthMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
-					this.buildingDepthMaterial.updateUniformBlock('PerMesh');
-
-					tile.extrudedMesh.draw();
-				}
-			}
+			this.renderBuildings(camera);
+			this.renderHuggingMeshes(camera);
 		}
 	}
 

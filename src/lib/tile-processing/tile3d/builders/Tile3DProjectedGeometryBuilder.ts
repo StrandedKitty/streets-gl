@@ -1,4 +1,3 @@
-import OSMReference from "~/lib/tile-processing/vector/features/OSMReference";
 import Vec2 from "~/lib/math/Vec2";
 import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DProjectedGeometry";
 import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
@@ -10,9 +9,10 @@ import Vec3 from "~/lib/math/Vec3";
 import SurfaceBuilder from "~/lib/tile-processing/tile3d/builders/SurfaceBuilder";
 import RoadBuilder from "~/lib/tile-processing/tile3d/builders/RoadBuilder";
 import WallsBuilder from "~/lib/tile-processing/tile3d/builders/WallsBuilder";
+import {projectGeometryOnTerrain, projectLineOnTerrain} from "~/lib/tile-processing/tile3d/builders/utils";
+import FenceBuilder from "~/lib/tile-processing/tile3d/builders/FenceBuilder";
 
 export default class Tile3DProjectedGeometryBuilder {
-	private readonly osmReference: OSMReference;
 	private readonly arrays: {
 		position: number[];
 		uv: number[];
@@ -28,8 +28,7 @@ export default class Tile3DProjectedGeometryBuilder {
 	private readonly multipolygon: Tile3DMultipolygon = new Tile3DMultipolygon();
 	private zIndex: number = 0;
 
-	public constructor(osmReference: OSMReference) {
-		this.osmReference = osmReference;
+	public constructor() {
 	}
 
 	public addRing(type: Tile3DRingType, nodes: Vec2[]): void {
@@ -39,18 +38,6 @@ export default class Tile3DProjectedGeometryBuilder {
 
 	public setZIndex(value: number): void {
 		this.zIndex = value;
-	}
-
-	public addRoad(
-		{
-			textureId,
-			width
-		}: {
-			textureId: number;
-			width: number;
-		}
-	): void {
-
 	}
 
 	public addPolygon(
@@ -66,8 +53,7 @@ export default class Tile3DProjectedGeometryBuilder {
 			isOriented?: boolean;
 		}
 	): void {
-		const surfaceBuilder = new SurfaceBuilder();
-		const surface = surfaceBuilder.build({
+		const surface = SurfaceBuilder.build({
 			multipolygon: this.multipolygon,
 			isOriented: isOriented,
 			uvScale: uvScale
@@ -92,7 +78,7 @@ export default class Tile3DProjectedGeometryBuilder {
 			height?: number;
 		}
 	): void {
-		const road = new RoadBuilder().build({
+		const road = RoadBuilder.build({
 			vertices: this.multipolygon.rings[0].nodes,
 			width: width
 		});
@@ -107,57 +93,88 @@ export default class Tile3DProjectedGeometryBuilder {
 
 	public addFence(
 		{
-			textureId,
-			height
+			minHeight,
+			height,
+			textureId
 		}: {
-			textureId: number;
+			minHeight: number;
 			height: number;
+			textureId: number;
 		}
 	): void {
 		const ring = this.multipolygon.rings[0];
-		const projector = new GeometryGroundProjector();
-		const projectorSegmentCount = Math.round(Config.TileSize / Config.TerrainRingSize * Config.TerrainRingSegmentCount) * 2;
-		const vertices: Vec2[] = [];
+		const projectedPolylines = projectLineOnTerrain(ring.nodes);
 
-		for (let i = 0; i < ring.nodes.length - 1; i++) {
-			const start = ring.nodes[i];
-			const end = ring.nodes[i + 1];
-
-			const projected = projector.projectLineSegment({
-				lineStart: start,
-				lineEnd: end,
-				tileSize: Config.TileSize,
-				segmentCount: projectorSegmentCount
+		for (const polyline of projectedPolylines) {
+			const fence = FenceBuilder.build({
+				vertices: polyline.vertices,
+				minHeight: minHeight,
+				height: height,
+				textureWidth: height * 2,
+				uvHorizontalOffset: polyline.startProgress
 			});
 
-			for (const projectedVertex of projected) {
-				if (vertices.length === 0 || !vertices[vertices.length - 1].equals(projectedVertex)) {
-					vertices.push(projectedVertex);
-				}
-			}
-		}
+			this.arrays.position.push(...fence.position);
+			this.arrays.uv.push(...fence.uv);
+			this.arrays.normal.push(...fence.normal);
 
-		const wall = new WallsBuilder().build({
-			vertices: vertices,
-			height: height,
-			minHeight: 0,
-			textureIdWall: 1,
-			textureIdWindow: 1,
-			levels: 1,
-			windowWidth: height * 2
+			const vertexCount = fence.position.length / 3;
+
+			for (let i = 0; i < vertexCount; i++) {
+				this.arrays.textureId.push(textureId);
+			}
+
+			this.addVerticesToBoundingBox(fence.position);
+		}
+	}
+
+	public addExtrudedPath(
+		{
+			width,
+			height,
+			textureId
+		}: {
+			width: number;
+			height: number;
+			textureId: number;
+		}
+	): void {
+		const road = RoadBuilder.build({
+			vertices: this.multipolygon.rings[0].nodes,
+			width: width,
+			uvScale: width * 2
 		});
 
-		this.arrays.position.push(...wall.position);
-		this.arrays.uv.push(...wall.uv);
-		this.arrays.normal.push(...wall.normal);
+		this.projectAndAddGeometry({
+			position: road.position,
+			uv: road.uv,
+			textureId: textureId,
+			height: height
+		});
 
-		const vertexCount = wall.position.length / 3;
+		const projectedPolylines = projectLineOnTerrain(road.border);
 
-		for (let i = 0; i < vertexCount; i++) {
-			this.arrays.textureId.push(textureId);
+		for (const polyline of projectedPolylines) {
+			const fence = FenceBuilder.build({
+				vertices: polyline.vertices,
+				minHeight: 0,
+				height: height,
+				textureWidth: 5,
+				uvHorizontalOffset: polyline.startProgress
+			});
+
+			this.arrays.position.push(...fence.position);
+			this.arrays.uv.push(...fence.uv);
+			this.arrays.normal.push(...fence.normal);
+
+			const vertexCount = fence.position.length / 3;
+
+			for (let i = 0; i < vertexCount; i++) {
+				this.arrays.textureId.push(textureId);
+			}
+
+			this.addVerticesToBoundingBox(fence.position);
 		}
-
-		//console.log(this.osmReference, vertices)
 	}
 
 	private projectAndAddGeometry(
@@ -173,52 +190,13 @@ export default class Tile3DProjectedGeometryBuilder {
 			height?: number;
 		}
 	): void {
-		const projector = new GeometryGroundProjector();
-		const projectorSegmentCount = Math.round(Config.TileSize / Config.TerrainRingSize * Config.TerrainRingSegmentCount) * 2;
-		const tileSize = Config.TileSize;
+		const projected = projectGeometryOnTerrain({position, uv, height});
 
-		const projectedPositions: number[] = [];
-		const projectedUVs: number[] = [];
+		this.arrays.position.push(...projected.position);
+		this.arrays.uv.push(...projected.uv);
+		this.addVerticesToBoundingBox(projected.position);
 
-		for (let i = 0, j = 0; i < position.length; i += 9, j += 6) {
-			const trianglePositions: [number, number][] = [
-				[position[i], position[i + 2]],
-				[position[i + 3], position[i + 5]],
-				[position[i + 6], position[i + 8]]
-			];
-			const triangleUVs: [number, number][] = [
-				[uv[j], uv[j + 1]],
-				[uv[j + 2], uv[j + 3]],
-				[uv[j + 4], uv[j + 5]]
-			];
-			const projected = projector.project({
-				triangle: trianglePositions,
-				attributes: {
-					uv: triangleUVs
-				},
-				tileSize: tileSize,
-				segmentCount: projectorSegmentCount
-			});
-
-			if (projected.position.length > 0) {
-				const newPositions = Array.from(projected.position);
-				const newUVs = Array.from(projected.attributes.uv);
-
-				for (let i = 1; i < newPositions.length; i += 3) {
-					newPositions[i] = height;
-				}
-
-				projectedPositions.push(...newPositions);
-				projectedUVs.push(...newUVs);
-
-				this.addVerticesToBoundingBox(newPositions);
-			}
-		}
-
-		this.arrays.position.push(...projectedPositions);
-		this.arrays.uv.push(...projectedUVs);
-
-		const vertexCount = projectedPositions.length / 3;
+		const vertexCount = projected.position.length / 3;
 
 		for (let i = 0; i < vertexCount; i++) {
 			this.arrays.normal.push(0, 1, 0);

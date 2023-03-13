@@ -68,11 +68,24 @@ vec3 getNormal(vec3 normalMapValue) {
 	return normal;
 }
 
-vec3 normalsReorient(vec3 v1, vec3 v2) {
-	vec3 n1 = v1 * vec3( 2,  2, 2) + vec3(-1, -1,  0);
-	vec3 n2 = v2 * vec3(-2, -2, 2) + vec3( 1,  1, -1);
+// RNM
+vec3 NormalBlend_RNM(vec3 n1, vec3 n2)
+{
+	// Unpack (see article on why it's not just n*2-1)
+	n1 = n1*vec3( 2,  2, 2) + vec3(-1, -1,  0);
+	n2 = n2*vec3(-2, -2, 2) + vec3( 1,  1, -1);
 
-	return n1 * dot(n1, n2) / n1.z - n2;
+	// Blend
+	return n1*dot(n1, n2)/n1.z - n2;
+}
+
+// RNM - Already unpacked
+vec3 NormalBlend_UnpackedRNM(vec3 n1, vec3 n2)
+{
+	n1 += vec3(0, 0, 1);
+	n2 *= vec3(-1, -1, 1);
+
+	return n1*dot(n1, n2)/n1.z - n2;
 }
 
 void main() {
@@ -82,8 +95,9 @@ void main() {
 
 	if (vTextureId == 0) {
 		vec2 normalizedUV = vUv / 611.4962158203125;
+		normalizedUV = vec2(normalizedUV.y, 1. - normalizedUV.x);
 		vec3 waterNormal = sampleWaterNormal(normalizedUV, time, tWaterNormal);
-		vec3 mvWaterNormal = vec3(modelViewMatrix * vec4(waterNormal, 0));
+		vec3 mvWaterNormal = vec3(modelViewMatrix * vec4( NormalBlend_UnpackedRNM(vec3(0, 0, 1), waterNormal), 0));
 
 		outColor = vec4(0.15, 0.2, 0.25, 0.5);
 		outNormal = packNormal(mvWaterNormal);
@@ -98,8 +112,7 @@ void main() {
 
 	int layer = (vTextureId - 1) * 3;
 	vec4 color = texture(tMap, vec3(mapUV, layer));
-	vec3 normal = texture(tMap, vec3(mapUV, layer + 1)).xyz;
-	//vec3 normal = texture(tMap, vec3(mapUV, layer + 1)).xyz * 2. - 1.;
+	vec3 normalMapValue = texture(tMap, vec3(vec2(mapUV.x, 1. - mapUV.y), layer + 1)).xyz;
 	vec3 mask = texture(tMap, vec3(mapUV, layer + 2)).rgb;
 
 	if (color.a < 0.5) {
@@ -107,9 +120,16 @@ void main() {
 	}
 
 	vec3 heightMapNormal = sampleNormalMap();
-	vec3 kindaVNormal = (vNormalFollowsGround == 1) ?
-		vec3(modelViewMatrix * vec4(heightMapNormal, 0)) :
-		getNormal(normal);
+
+	#if IS_EXTRUDED == 0
+		vec3 detailNormal = normalMapValue * 2. - 1.;
+		vec3 combined = NormalBlend_UnpackedRNM(heightMapNormal, detailNormal);
+		vec3 kindaVNormal = vec3(modelViewMatrix * vec4(combined, 0));
+	#else
+		vec3 kindaVNormal = (vNormalFollowsGround == 1) ?
+			vec3(modelViewMatrix * vec4(NormalBlend_UnpackedRNM(heightMapNormal, (normalMapValue * 2. - 1.).xyz), 0)) :
+			getNormal(normalMapValue);
+	#endif
 
 	outColor = color;
 	outNormal = packNormal(kindaVNormal);

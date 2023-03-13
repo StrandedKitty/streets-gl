@@ -28,13 +28,16 @@ export default class VectorPolylineHandler implements Handler {
 			case 'fence': {
 				return [this.handleFence()];
 			}
+			case 'hedge': {
+				return [this.handleHedge()];
+			}
 		}
 
 		return [];
 	}
 
 	private handlePath(): Tile3DProjectedGeometry {
-		const builder = new Tile3DProjectedGeometryBuilder(this.osmReference);
+		const builder = new Tile3DProjectedGeometryBuilder();
 		builder.setZIndex(VectorPolylineHandler.getPathZIndex(this.descriptor.pathType));
 		builder.addRing(Tile3DRingType.Outer, this.vertices);
 
@@ -47,13 +50,27 @@ export default class VectorPolylineHandler implements Handler {
 	}
 
 	private handleFence(): Tile3DHuggingGeometry {
-		const builder = new Tile3DProjectedGeometryBuilder(this.osmReference);
-		builder.setZIndex(999);
+		const builder = new Tile3DProjectedGeometryBuilder();
 		builder.addRing(Tile3DRingType.Outer, this.vertices);
 
 		builder.addFence({
-			height: 10,
-			textureId: 11
+			minHeight: this.descriptor.minHeight,
+			height: this.descriptor.height,
+			textureId: 14
+		});
+
+		const result = builder.getGeometry();
+		return {...result, type: 'hugging'};
+	}
+
+	private handleHedge(): Tile3DHuggingGeometry {
+		const builder = new Tile3DProjectedGeometryBuilder();
+		builder.addRing(Tile3DRingType.Outer, this.vertices);
+
+		builder.addExtrudedPath({
+			width: 1,
+			height: 1.5,
+			textureId: 12
 		});
 
 		const result = builder.getGeometry();
@@ -76,7 +93,7 @@ export default class VectorPolylineHandler implements Handler {
 			case "roadway": return 2;
 			case "cycleway": return 8;
 			case "railway": return 9;
-			case "tramway": return 10;
+			case "tramway": return 9;
 		}
 	}
 }

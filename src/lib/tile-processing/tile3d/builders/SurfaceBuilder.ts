@@ -2,7 +2,7 @@ import Vec2 from "~/lib/math/Vec2";
 import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 
 export default class SurfaceBuilder {
-	public build(
+	public static build(
 		{
 			multipolygon,
 			isOriented,
@@ -53,4 +53,4 @@ export default class SurfaceBuilder {
 			normal: footprint.normals
 		};
 	}
-	}
+}

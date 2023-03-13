@@ -1,15 +1,17 @@
 import Vec2 from "~/lib/math/Vec2";
 
 export default class RoadBuilder {
-	public build(
+	public static build(
 		{
 			vertices,
-			width
+			width,
+			uvScale = 1
 		}: {
 			vertices: Vec2[];
 			width: number;
+			uvScale?: number;
 		}
-	): {position: number[]; uv: number[]} {
+	): {position: number[]; uv: number[]; border: Vec2[]} {
 		const isClosed = vertices[0].equals(vertices[vertices.length - 1]);
 		const points = [...vertices];
 
@@ -17,19 +19,54 @@ export default class RoadBuilder {
 			points.pop();
 		}
 
-		const controlPoints = RoadBuilder.getControlPoints(points, isClosed, width);
+		const controlPoints = this.getControlPoints(points, isClosed, width);
+		const border = this.getBorderVertices(controlPoints, isClosed);
+		const geometry = this.buildSegmentsFromControlPoints(controlPoints, isClosed, uvScale);
 
-		return RoadBuilder.buildSegmentsFromControlPoints(controlPoints, isClosed);
+		return {
+			position: geometry.position,
+			uv: geometry.uv,
+			border: border
+		};
 	}
 
-	private static buildSegmentsFromControlPoints(controlPoints: Vec2[][], isClosed: boolean): {position: number[]; uv: number[]} {
+	private static getBorderVertices(controlPoints: Vec2[][], isClosed: boolean): Vec2[] {
+		const segmentCount = controlPoints.length - (isClosed ? 0 : 1);
+		const border: Vec2[] = [];
+
+		for (let i = 0; i < segmentCount; i++) {
+			const current = controlPoints[i];
+			const next = controlPoints[(i + 1) % controlPoints.length];
+
+			if (current[4]) {
+				const inverse = current[2].equals(current[0]);
+
+				if (inverse) {
+					border.unshift(current[4]);
+				} else {
+					border.push(current[4]);
+				}
+			}
+
+			border.push(current[0], next[2]);
+			border.unshift(next[3], current[1]);
+		}
+
+		border.push(border[0]);
+
+		return border;
+	}
+
+	private static buildSegmentsFromControlPoints(
+		controlPoints: Vec2[][],
+		isClosed: boolean,
+		uvScale: number
+	): {position: number[]; uv: number[]} {
 		const position: number[] = [];
 		const uv: number[] = [];
-		let uvProgress = 0;
 
 		const segmentCount = controlPoints.length - (isClosed ? 0 : 1);
-
-		const uvScaleY = 3;
+		let uvProgress = 0;
 
 		for (let i = 0; i < segmentCount; i++) {
 			const current = controlPoints[i];
@@ -63,14 +100,14 @@ export default class RoadBuilder {
 				);
 
 				uv.push(
-					0, endB / uvScaleY,
-					1, endB / uvScaleY,
-					inverse ? 1 : 0, startB / uvScaleY
+					0, endB / uvScale,
+					1, endB / uvScale,
+					inverse ? 1 : 0, startB / uvScale
 				);
 				uv.push(
-					0, startA / uvScaleY,
-					1, startA / uvScaleY,
-					inverse ? 1 : 0, endA / uvScaleY
+					0, startA / uvScale,
+					1, startA / uvScale,
+					inverse ? 1 : 0, endA / uvScale
 				);
 
 				uvProgress = endB;
@@ -94,14 +131,14 @@ export default class RoadBuilder {
 			);
 
 			uv.push(
-				0, uvStart / uvScaleY,
-				1, uvStart / uvScaleY,
-				0, uvEnd / uvScaleY
+				0, uvStart / uvScale,
+				1, uvStart / uvScale,
+				0, uvEnd / uvScale
 			);
 			uv.push(
-				1, uvStart / uvScaleY,
-				1, uvEnd / uvScaleY,
-				0, uvEnd / uvScaleY
+				1, uvStart / uvScale,
+				1, uvEnd / uvScale,
+				0, uvEnd / uvScale
 			);
 		}
 

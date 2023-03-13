@@ -10,6 +10,7 @@ export interface VectorPolylineDescriptor {
 	pathType?: 'roadway' | 'footway' | 'cycleway' | 'railway' | 'tramway';
 	width?: number;
 	height?: number;
+	minHeight?: number;
 	embeddedFootway?: boolean;
 	embeddedFootwayWidth?: boolean;
 	lanesForward?: number;

@@ -6,7 +6,7 @@ import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer"
 import Config from "../../Config";
 
 export default class ProjectedMeshMaterialContainer extends MaterialContainer {
-	public constructor(renderer: AbstractRenderer) {
+	public constructor(renderer: AbstractRenderer, isExtruded: boolean) {
 		super(renderer);
 
 		this.material = this.renderer.createMaterial({
@@ -39,7 +39,7 @@ export default class ProjectedMeshMaterialContainer extends MaterialContainer {
 					value: this.renderer.createTexture2DArray({
 						width: 512,
 						height: 512,
-						depth: 11 * 3,
+						depth: 14 * 3,
 						anisotropy: 16,
 						data: [
 							ResourceManager.get('pavementDiffuse'),
@@ -77,6 +77,18 @@ export default class ProjectedMeshMaterialContainer extends MaterialContainer {
 							ResourceManager.get('railwayDiffuse'),
 							ResourceManager.get('railwayNormal'),
 							ResourceManager.get('commonMask'),
+
+							ResourceManager.get('rockDiffuse'),
+							ResourceManager.get('rockNormal'),
+							ResourceManager.get('rockMask'),
+
+							ResourceManager.get('sandDiffuse'),
+							ResourceManager.get('sandNormal'),
+							ResourceManager.get('sandMask'),
+
+							ResourceManager.get('hedgeDiffuse'),
+							ResourceManager.get('hedgeNormal'),
+							ResourceManager.get('hedgeMask'),
 
 							ResourceManager.get('woodFenceDiffuse'),
 							ResourceManager.get('woodFenceNormal'),
@@ -156,17 +168,18 @@ export default class ProjectedMeshMaterialContainer extends MaterialContainer {
 			defines: {
 				TILE_SIZE: Config.TileSize.toFixed(10),
 				NORMAL_MIX_FROM: Config.TerrainNormalMixRange[0].toFixed(1),
-				NORMAL_MIX_TO: Config.TerrainNormalMixRange[1].toFixed(1)
+				NORMAL_MIX_TO: Config.TerrainNormalMixRange[1].toFixed(1),
+				IS_EXTRUDED: isExtruded ? '1' : '0'
 			},
 			primitive: {
 				frontFace: RendererTypes.FrontFace.CCW,
-				cullMode: RendererTypes.CullMode.Back
+				cullMode: RendererTypes.CullMode.None
 			},
 			depth: {
-				depthWrite: false,
+				depthWrite: isExtruded,
 				depthCompare: RendererTypes.DepthCompare.LessEqual,
-				depthBiasConstant: -2,
-				depthBiasSlopeScale: -1
+				depthBiasConstant: isExtruded ? undefined : -2,
+				depthBiasSlopeScale: isExtruded ? undefined : -1
 			},
 			blend: {
 				color: {

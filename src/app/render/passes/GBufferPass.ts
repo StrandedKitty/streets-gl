@@ -30,7 +30,6 @@ import TerrainSystem from "../../systems/TerrainSystem";
 import TerrainRing from "../../objects/TerrainRing";
 import AbstractTexture2DArray from "~/lib/renderer/abstract-renderer/AbstractTexture2DArray";
 import Camera from "~/lib/core/Camera";
-import HuggingMeshMaterialContainer from "~/app/render/materials/HuggingMeshMaterialContainer";
 
 export default class GBufferPass extends Pass<{
 	GBufferRenderPass: {
@@ -105,8 +104,8 @@ export default class GBufferPass extends Pass<{
 
 	private createMaterials(): void {
 		this.extrudedMeshMaterial = new ExtrudedMeshMaterialContainer(this.renderer).material;
-		this.projectedMeshMaterial = new ProjectedMeshMaterialContainer(this.renderer).material;
-		this.huggingMeshMaterial = new HuggingMeshMaterialContainer(this.renderer).material;
+		this.projectedMeshMaterial = new ProjectedMeshMaterialContainer(this.renderer, false).material;
+		this.huggingMeshMaterial = new ProjectedMeshMaterialContainer(this.renderer, true).material;
 		this.skyboxMaterial = new SkyboxMaterialContainer(this.renderer).material;
 		this.terrainMaterial = new TerrainMaterialContainer(this.renderer).material;
 		this.treeMaterial = new TreeMaterialContainer(this.renderer).material;
@@ -139,47 +138,6 @@ export default class GBufferPass extends Pass<{
 			camera.position.x - tile.position.x + Config.TileSize / 2,
 			camera.position.z - tile.position.z + Config.TileSize / 2
 		];
-	}
-
-	private getTileTerrainParams(tile: Tile): {
-		ring0: TerrainRing;
-		ring1: TerrainRing;
-		ring0Offset: Vec2;
-		ring1Offset: Vec2;
-		levelId: number;
-	} {
-		const terrain = this.manager.sceneSystem.objects.terrain;
-
-		let ring0: TerrainRing = null;
-		let ring1: TerrainRing = null;
-		let levelId: number = 0;
-
-		for (let i = 0; i < terrain.children.length; i++) {
-			const child = terrain.children[i];
-			const dst = child.size / 2 + Config.TileSize / 2;
-			const minX = child.position.x - dst;
-			const minZ = child.position.z - dst;
-			const maxX = child.position.x + dst;
-			const maxZ = child.position.z + dst;
-			const tileX = tile.position.x + Config.TileSize / 2;
-			const tileZ = tile.position.z + Config.TileSize / 2;
-
-			if (tileX > minX && tileX < maxX && tileZ > minZ && tileZ < maxZ) {
-				ring0 = child;
-				ring1 = terrain.children[i + 1] || null;
-				levelId = i;
-				break;
-			}
-		}
-
-		if (ring0 === null || ring1 === null) {
-			console.error('?')
-		}
-
-		const ring0Offset = Vec2.sub(tile.position.xz, ring0.position.xz);
-		const ring1Offset = Vec2.sub(tile.position.xz, ring1.position.xz);
-
-		return {ring0, ring1, ring0Offset, ring1Offset, levelId};
 	}
 
 	private renderSkybox(): void {
@@ -325,6 +283,8 @@ export default class GBufferPass extends Pass<{
 	private renderProjectedMeshes(): void {
 		const camera = this.manager.sceneSystem.objects.camera;
 		const tiles = this.manager.sceneSystem.objects.tiles;
+		const terrain = this.manager.sceneSystem.objects.terrain;
+
 		const terrainNormal = <AbstractTexture2DArray>this.getPhysicalResource('TerrainNormal').colorAttachments[0].texture;
 		const terrainRingHeight = <AbstractTexture2DArray>this.getPhysicalResource('TerrainRingHeight').colorAttachments[0].texture;
 
@@ -342,7 +302,7 @@ export default class GBufferPass extends Pass<{
 			}
 
 			const normalTextureTransforms = this.getTileNormalTexturesTransforms(tile);
-			const {ring0, ring1, levelId, ring0Offset, ring1Offset} = this.getTileTerrainParams(tile);
+			const {ring0, levelId, ring0Offset, ring1Offset} = terrain.getTileParams(tile);
 
 			const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, tile.matrixWorld);
 			const mvMatrixPrev = Mat4.multiply(this.cameraMatrixWorldInversePrev, tile.matrixWorld);
@@ -363,6 +323,51 @@ export default class GBufferPass extends Pass<{
 			this.projectedMeshMaterial.updateUniformBlock('PerMesh');
 
 			tile.projectedMesh.draw();
+		}
+	}
+
+	private renderHuggingMeshes(): void {
+		const camera = this.manager.sceneSystem.objects.camera;
+		const tiles = this.manager.sceneSystem.objects.tiles;
+		const terrain = this.manager.sceneSystem.objects.terrain;
+
+		const terrainNormal = <AbstractTexture2DArray>this.getPhysicalResource('TerrainNormal').colorAttachments[0].texture;
+		const terrainRingHeight = <AbstractTexture2DArray>this.getPhysicalResource('TerrainRingHeight').colorAttachments[0].texture;
+
+		this.huggingMeshMaterial.getUniform('tRingHeight').value = terrainRingHeight;
+		this.huggingMeshMaterial.getUniform('tNormal').value = terrainNormal;
+
+		this.renderer.useMaterial(this.huggingMeshMaterial);
+
+		this.huggingMeshMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.jitteredProjectionMatrix.values);
+		this.huggingMeshMaterial.updateUniformBlock('PerMaterial');
+
+		for (const tile of tiles) {
+			if (!tile.huggingMesh || !tile.huggingMesh.inCameraFrustum(camera)) {
+				continue;
+			}
+
+			const normalTextureTransforms = this.getTileNormalTexturesTransforms(tile);
+			const {ring0, levelId, ring0Offset, ring1Offset} = terrain.getTileParams(tile);
+
+			const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, tile.matrixWorld);
+			const mvMatrixPrev = Mat4.multiply(this.cameraMatrixWorldInversePrev, tile.matrixWorld);
+			const relativeCameraPosition = this.getCameraPositionRelativeToTile(camera, tile);
+
+			this.huggingMeshMaterial.getUniform('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
+			this.huggingMeshMaterial.getUniform('modelViewMatrixPrev', 'PerMesh').value = new Float32Array(mvMatrixPrev.values);
+			this.huggingMeshMaterial.getUniform('transformNormal0', 'PerMesh').value = normalTextureTransforms[0];
+			this.huggingMeshMaterial.getUniform('transformNormal1', 'PerMesh').value = normalTextureTransforms[1];
+			this.huggingMeshMaterial.getUniform<UniformFloat1>('terrainRingSize', 'PerMesh').value[0] = ring0.size;
+			this.huggingMeshMaterial.getUniform('terrainRingOffset', 'PerMesh').value = new Float32Array([
+				ring0Offset.x, ring0Offset.y, ring1Offset.x, ring1Offset.y
+			]);
+			this.huggingMeshMaterial.getUniform<UniformFloat1>('terrainLevelId', 'PerMesh').value[0] = levelId;
+			this.huggingMeshMaterial.getUniform<UniformFloat1>('segmentCount', 'PerMesh').value[0] = ring0.segmentCount * 2;
+			this.huggingMeshMaterial.getUniform('cameraPosition', 'PerMesh').value = new Float32Array(relativeCameraPosition);
+			this.huggingMeshMaterial.getUniform<UniformFloat1>('time', 'PerMaterial').value[0] = performance.now() * 0.001;
+			this.huggingMeshMaterial.updateUniformBlock('PerMesh');
+
 			tile.huggingMesh.draw();
 		}
 	}
@@ -440,6 +445,7 @@ export default class GBufferPass extends Pass<{
 		this.renderAircraft(instancesOrigin);
 		this.renderTerrain();
 		this.renderProjectedMeshes();
+		this.renderHuggingMeshes();
 		this.writeToObjectIdBuffer();
 
 		this.saveCameraMatrixWorldInverse();

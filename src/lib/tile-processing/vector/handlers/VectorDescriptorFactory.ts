@@ -48,7 +48,7 @@ const RoofTypeToDefaultLevels: Record<VectorAreaDescriptor['buildingRoofType'], 
 };
 
 export class VectorDescriptorFactory {
-	public static parsePolylineTags(tags: Record<string, string>): Container<VectorPolylineDescriptor> {
+	public static parsePolylineTags(tags: Record<string, string>): Container<VectorPolylineDescriptor>[] {
 		if (this.isUnderground(tags)) {
 			return null;
 		}
@@ -101,7 +101,7 @@ export class VectorDescriptorFactory {
 				case 'steps':
 				case 'pedestrian': {
 					descriptor.pathType = 'footway';
-					descriptor.width = this.parseUnits(tags.width) ?? 3;
+					descriptor.width = this.parseUnits(tags.width) ?? 2;
 					break;
 				}
 				case 'cycleway': {
@@ -115,54 +115,76 @@ export class VectorDescriptorFactory {
 				}
 			}
 
-			return {
+			const descriptors: Container<VectorPolylineDescriptor>[] = [{
 				type: ContainerType.Descriptor,
 				data: descriptor
-			};
+			}];
+
+			if (descriptor.pathType === 'roadway') {
+				descriptors.push({
+					type: ContainerType.Descriptor,
+					data: {
+						type: 'path',
+						pathType: 'footway',
+						width: descriptor.width + 4
+					}
+				})
+			}
+
+			return descriptors;
 		}
 
 		if (tags.railway === 'rail') {
-			return {
+			return [{
 				type: ContainerType.Descriptor,
 				data: {
 					type: 'path',
 					pathType: 'railway',
 					width: 3
 				}
-			};
+			}];
 		}
 
 		if (tags.railway === 'tram') {
-			return {
+			return [{
 				type: ContainerType.Descriptor,
 				data: {
 					type: 'path',
 					pathType: 'tramway',
 					width: 3
 				}
-			};
+			}];
 		}
 
 		if (tags.barrier === 'fence' || tags.barrier === 'wall') {
-			return {
+			const minHeight = this.parseHeight(tags.min_height, 0);
+			const height = this.parseHeight(tags.height, 2) - minHeight;
+
+			if (height <= 0) {
+				return [];
+			}
+
+			return [{
 				type: ContainerType.Descriptor,
 				data: {
-					type: 'fence'
+					type: 'fence',
+					height,
+					minHeight
 				}
-			};
+			}];
 		}
 
 		if (tags.barrier === 'hedge') {
-			return {
+			return [{
 				type: ContainerType.Descriptor,
 				data: {
 					type: 'hedge'
 				}
-			};
+			}];
 		}
 
 		if (tags.natural === 'tree_row') {
-			return {
+			return [{
 				type: ContainerType.Modifier,
 				data: {
 					type: ModifierType.NodeRow,
@@ -172,7 +194,7 @@ export class VectorDescriptorFactory {
 						type: 'tree'
 					}
 				}
-			};
+			}];
 		}
 
 		return null;
@@ -184,6 +206,16 @@ export class VectorDescriptorFactory {
 		}
 
 		if (tags['building:part'] && tags['building:part'] !== 'no') {
+			if (tags['building:part'] === 'roof') {
+				return {
+					type: ContainerType.Descriptor,
+					data: {
+						type: 'buildingPart',
+						...this.parseBuildingParams(tags, true),
+					}
+				};
+			}
+
 			return {
 				type: ContainerType.Descriptor,
 				data: {
@@ -203,7 +235,7 @@ export class VectorDescriptorFactory {
 			};
 		}
 
-		if (tags.natural === 'sand') {
+		if (tags.natural === 'sand' || tags.natural === 'beach') {
 			return {
 				type: ContainerType.Descriptor,
 				data: {
@@ -212,7 +244,7 @@ export class VectorDescriptorFactory {
 			};
 		}
 
-		if (tags.natural === 'rock') {
+		if (tags.natural === 'rock' || tags.natural === 'bare_rock') {
 			return {
 				type: ContainerType.Descriptor,
 				data: {
@@ -257,7 +289,11 @@ export class VectorDescriptorFactory {
 			};
 		}
 
-		if (tags.area === 'yes' && (tags.highway === 'pedestrian' || tags.highway === 'footway')) {
+		if (tags.area === 'yes' && (
+			tags.highway === 'pedestrian' ||
+			tags.highway === 'footway' ||
+			tags.man_made === 'pier'
+		)) {
 			return {
 				type: ContainerType.Descriptor,
 				data: {
@@ -444,16 +480,16 @@ export class VectorDescriptorFactory {
 	}
 
 	private static isBuildingHasWindows(tags: Tags): boolean {
-		if (!tags.building) {
+		if (tags['bridge:support'] === 'pylon') {
 			return false;
 		}
 
-		const list = ['garage', 'garages', 'greenhouse', 'storage_tank', 'bunker', 'silo', 'stadium'];
+		const list = ['garage', 'garages', 'greenhouse', 'storage_tank', 'bunker', 'silo', 'stadium', 'ship'];
 
 		return !list.includes(tags.building);
 	}
 
-	private static parseBuildingParams(tags: Tags): {
+	private static parseBuildingParams(tags: Tags, onlyRoof: boolean = false): {
 		buildingLevels: number;
 		buildingHeight: number;
 		buildingMinHeight: number;
@@ -487,7 +523,7 @@ export class VectorDescriptorFactory {
 		let minHeight = this.parseHeight(tags.min_height, null);
 
 		if (height === null && levels === null) {
-			levels = 1;
+			levels = fallbackLevels;
 			height = levels * levelHeight + roofHeight
 		} else if (height === null) {
 			height = levels * levelHeight + roofHeight
@@ -514,7 +550,7 @@ export class VectorDescriptorFactory {
 		return {
 			buildingLevels: levels - minLevel,
 			buildingHeight: height,
-			buildingMinHeight: minHeight,
+			buildingMinHeight: onlyRoof ? height : minHeight,
 			buildingRoofHeight: roofHeight,
 			buildingRoofType: roofType,
 			buildingRoofOrientation: roofOrientation,
@@ -532,7 +568,8 @@ export class VectorDescriptorFactory {
 		return (
 			tags.location === 'underground' ||
 			this.parseFloat(tags.level) < 0 ||
-			tags.tunnel === 'yes'
+			tags.tunnel === 'yes' ||
+			tags.parking === 'underground'
 		);
 	}
 

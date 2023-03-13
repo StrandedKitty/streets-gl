@@ -8,6 +8,30 @@ export default class VectorBuildingOutlinesCleaner {
 	private boundingBoxMap: Map<VectorArea, AABB2D> = new Map();
 	private geoJSONMap: Map<VectorArea, GeoJSON.MultiPolygon> = new Map();
 
+	public deleteBuildingOutlines(areas: VectorArea[]): VectorArea[] {
+		const {parts, outlines} = this.getPartsAndOutlinesFromAreas(areas);
+
+		const outlinesToDelete: Set<VectorArea> = new Set();
+
+		for (const outline of outlines) {
+			for (const part of parts) {
+				if (!this.intersectBoxes(outline, part)) {
+					continue;
+				}
+
+				if (this.intersectPrecise(outline, part)) {
+					outlinesToDelete.add(outline);
+				}
+			}
+		}
+
+		if (outlinesToDelete.size === 0) {
+			return areas;
+		}
+
+		return areas.filter(area => !outlinesToDelete.has(area));
+	}
+
 	private getPartsAndOutlinesFromAreas(areas: VectorArea[]): {parts: VectorArea[]; outlines: VectorArea[]} {
 		return {
 			outlines: areas.filter(area => area.descriptor.type === 'building'),
@@ -37,30 +61,6 @@ export default class VectorBuildingOutlinesCleaner {
 		}
 
 		return geoJSON;
-	}
-
-	public deleteBuildingOutlines(areas: VectorArea[]): VectorArea[] {
-		const {parts, outlines} = this.getPartsAndOutlinesFromAreas(areas);
-
-		const outlinesToDelete: Set<VectorArea> = new Set();
-
-		for (const outline of outlines) {
-			for (const part of parts) {
-				if (!this.intersectBoxes(outline, part)) {
-					continue;
-				}
-
-				if (this.intersectPrecise(outline, part)) {
-					outlinesToDelete.add(outline);
-				}
-			}
-		}
-
-		if (outlinesToDelete.size === 0) {
-			return areas;
-		}
-
-		return areas.filter(area => !outlinesToDelete.has(area));
 	}
 
 	private intersectBoxes(outline: VectorArea, part: VectorArea): boolean {

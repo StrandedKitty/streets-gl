@@ -50,6 +50,15 @@
 	"manicuredGrassDiffuse": {"url": "/textures/surfaces/manicured_grass_diffuse.png", "type": "image"},
 	"railwayDiffuse": {"url": "/textures/surfaces/railway_diffuse.png", "type": "image"},
 	"railwayNormal": {"url": "/textures/surfaces/railway_normal.png", "type": "image"},
+	"rockDiffuse": {"url": "/textures/surfaces/rock_diffuse.png", "type": "image"},
+	"rockNormal": {"url": "/textures/surfaces/rock_normal.png", "type": "image"},
+	"rockMask": {"url": "/textures/surfaces/rock_mask.png", "type": "image"},
+	"sandDiffuse": {"url": "/textures/surfaces/sand_diffuse.png", "type": "image"},
+	"sandNormal": {"url": "/textures/surfaces/sand_normal.png", "type": "image"},
+	"sandMask": {"url": "/textures/surfaces/sand_mask.png", "type": "image"},
+	"hedgeDiffuse": {"url": "/textures/surfaces/hedge_diffuse.png", "type": "image"},
+	"hedgeNormal": {"url": "/textures/surfaces/hedge_normal.png", "type": "image"},
+	"hedgeMask": {"url": "/textures/surfaces/hedge_mask.png", "type": "image"},
 	"woodFenceDiffuse": {"url": "/textures/surfaces/wood_fence_diffuse.png", "type": "image"},
 	"woodFenceNormal": {"url": "/textures/surfaces/wood_fence_normal.png", "type": "image"},
 	"woodFenceMask": {"url": "/textures/surfaces/wood_fence_mask.png", "type": "image"},
@@ -67,14 +76,6 @@
 	},
 	"genericTerrainNormal": {
 		"url": "/textures/surfaces/generic_terrain_normal.png",
-		"type": "image"
-	},
-	"grass": {
-		"url": "/textures/surfaces/grass_color.png",
-		"type": "image"
-	},
-	"grassNormal": {
-		"url": "/textures/surfaces/grass_normal.png",
 		"type": "image"
 	},
 	"grassNoise": {

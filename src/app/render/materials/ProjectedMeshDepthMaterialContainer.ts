@@ -5,20 +5,15 @@ import ResourceManager from "../../world/ResourceManager";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 import Config from "../../Config";
 
-export default class HuggingMeshMaterialContainer extends MaterialContainer {
+export default class ProjectedMeshDepthMaterialContainer extends MaterialContainer {
 	public constructor(renderer: AbstractRenderer) {
 		super(renderer);
 
 		this.material = this.renderer.createMaterial({
-			name: 'Hugging mesh material',
+			name: 'Projected mesh depth material',
 			uniforms: [
 				{
 					name: 'modelViewMatrix',
-					block: 'PerMesh',
-					type: RendererTypes.UniformType.Matrix4,
-					value: new Float32Array(16)
-				}, {
-					name: 'modelViewMatrixPrev',
 					block: 'PerMesh',
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array(16)
@@ -28,18 +23,13 @@ export default class HuggingMeshMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array(16)
 				}, {
-					name: 'time',
-					block: 'PerMaterial',
-					type: RendererTypes.UniformType.Float1,
-					value: new Float32Array(1)
-				}, {
 					name: 'tMap',
 					block: null,
 					type: RendererTypes.UniformType.Texture2DArray,
 					value: this.renderer.createTexture2DArray({
 						width: 512,
 						height: 512,
-						depth: 11 * 3,
+						depth: 14 * 3,
 						anisotropy: 16,
 						data: [
 							ResourceManager.get('pavementDiffuse'),
@@ -78,6 +68,18 @@ export default class HuggingMeshMaterialContainer extends MaterialContainer {
 							ResourceManager.get('railwayNormal'),
 							ResourceManager.get('commonMask'),
 
+							ResourceManager.get('rockDiffuse'),
+							ResourceManager.get('rockNormal'),
+							ResourceManager.get('rockMask'),
+
+							ResourceManager.get('sandDiffuse'),
+							ResourceManager.get('sandNormal'),
+							ResourceManager.get('sandMask'),
+
+							ResourceManager.get('hedgeDiffuse'),
+							ResourceManager.get('hedgeNormal'),
+							ResourceManager.get('hedgeMask'),
+
 							ResourceManager.get('woodFenceDiffuse'),
 							ResourceManager.get('woodFenceNormal'),
 							ResourceManager.get('woodFenceMask'),
@@ -94,38 +96,10 @@ export default class HuggingMeshMaterialContainer extends MaterialContainer {
 						flipY: true
 					})
 				}, {
-					name: 'tWaterNormal',
-					block: null,
-					type: RendererTypes.UniformType.Texture2D,
-					value: this.renderer.createTexture2D({
-						anisotropy: 16,
-						data: ResourceManager.get('waterNormal'),
-						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
-						magFilter: RendererTypes.MagFilter.Linear,
-						wrap: RendererTypes.TextureWrap.Repeat,
-						format: RendererTypes.TextureFormat.RGBA8Unorm,
-						mipmaps: true
-					})
-				}, {
 					name: 'tRingHeight',
 					block: null,
 					type: RendererTypes.UniformType.Texture2DArray,
 					value: null
-				}, {
-					name: 'tNormal',
-					block: null,
-					type: RendererTypes.UniformType.Texture2DArray,
-					value: null
-				}, {
-					name: 'transformNormal0',
-					block: 'PerMesh',
-					type: RendererTypes.UniformType.Float4,
-					value: new Float32Array(4)
-				}, {
-					name: 'transformNormal1',
-					block: 'PerMesh',
-					type: RendererTypes.UniformType.Float4,
-					value: new Float32Array(4)
 				}, {
 					name: 'terrainRingSize',
 					block: 'PerMesh',
@@ -146,21 +120,12 @@ export default class HuggingMeshMaterialContainer extends MaterialContainer {
 					block: 'PerMesh',
 					type: RendererTypes.UniformType.Float1,
 					value: new Float32Array(1)
-				}, {
-					name: 'cameraPosition',
-					block: 'PerMesh',
-					type: RendererTypes.UniformType.Float2,
-					value: new Float32Array(2)
 				}
 			],
-			defines: {
-				TILE_SIZE: Config.TileSize.toFixed(10),
-				NORMAL_MIX_FROM: Config.TerrainNormalMixRange[0].toFixed(1),
-				NORMAL_MIX_TO: Config.TerrainNormalMixRange[1].toFixed(1)
-			},
+			defines: {},
 			primitive: {
 				frontFace: RendererTypes.FrontFace.CCW,
-				cullMode: RendererTypes.CullMode.Back
+				cullMode: RendererTypes.CullMode.None
 			},
 			depth: {
 				depthWrite: true,
@@ -178,8 +143,8 @@ export default class HuggingMeshMaterialContainer extends MaterialContainer {
 					dstFactor: RendererTypes.BlendFactor.Zero
 				}
 			},
-			vertexShaderSource: Shaders.projected.vertex,
-			fragmentShaderSource: Shaders.projected.fragment
+			vertexShaderSource: Shaders.projectedDepth.vertex,
+			fragmentShaderSource: Shaders.projectedDepth.fragment
 		});
 	}
 }

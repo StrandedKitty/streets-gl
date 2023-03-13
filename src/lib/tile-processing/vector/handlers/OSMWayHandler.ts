@@ -40,35 +40,37 @@ export default class OSMWayHandler implements Handler {
 
 	private getFeaturesFromPolylineTags(): (VectorArea | VectorPolyline | VectorNode)[] {
 		const features: (VectorArea | VectorPolyline | VectorNode)[] = [];
-		const parsed = VectorDescriptorFactory.parsePolylineTags(this.tags);
+		const parsedList = VectorDescriptorFactory.parsePolylineTags(this.tags);
 
-		if (parsed) {
-			switch (parsed.type) {
-				case ContainerType.Descriptor: {
-					features.push({
-						type: 'polyline',
-						osmReference: this.getOSMReference(),
-						descriptor: parsed.data,
-						nodes: this.nodes.map(n => n.getStructuralFeature())
-					});
-					break;
-				}
-				case ContainerType.Modifier: {
-					const modifier = parsed.data;
-
-					if (modifier.type === ModifierType.NodeRow) {
-						const ring = new Ring(
-							this.nodes.map(n => n.getStructuralFeature()),
-							VectorAreaRingType.Outer
-						);
-
-						const nodes = ring.distributeNodes(modifier.spacing, modifier.randomness, modifier.descriptor);
-
-						features.push(...nodes);
-					} else {
-						console.error(`Unexpected modifier ${modifier.type}`);
+		if (parsedList) {
+			for (const parsed of parsedList) {
+				switch (parsed.type) {
+					case ContainerType.Descriptor: {
+						features.push({
+							type: 'polyline',
+							osmReference: this.getOSMReference(),
+							descriptor: parsed.data,
+							nodes: this.nodes.map(n => n.getStructuralFeature())
+						});
+						break;
 					}
-					break;
+					case ContainerType.Modifier: {
+						const modifier = parsed.data;
+
+						if (modifier.type === ModifierType.NodeRow) {
+							const ring = new Ring(
+								this.nodes.map(n => n.getStructuralFeature()),
+								VectorAreaRingType.Outer
+							);
+
+							const nodes = ring.distributeNodes(modifier.spacing, modifier.randomness, modifier.descriptor);
+
+							features.push(...nodes);
+						} else {
+							console.error(`Unexpected modifier ${modifier.type}`);
+						}
+						break;
+					}
 				}
 			}
 		}

@@ -4,7 +4,7 @@ import MathUtils from "~/lib/math/MathUtils";
 import Config from "~/app/Config";
 
 export default class WallsBuilder {
-	public build(
+	public static build(
 		{
 			vertices,
 			minHeight,
@@ -59,7 +59,7 @@ export default class WallsBuilder {
 		};
 	}
 
-	private getNextVertex(vertexIndex: number, vertices: Vec2[], isClosed: boolean): Vec2 | null {
+	private static getNextVertex(vertexIndex: number, vertices: Vec2[], isClosed: boolean): Vec2 | null {
 		const index = vertexIndex + 1;
 
 		if (index > vertices.length - 1) {
@@ -73,7 +73,7 @@ export default class WallsBuilder {
 		return vertices[index];
 	}
 
-	private getPreviousVertex(vertexIndex: number, vertices: Vec2[], isClosed: boolean): Vec2 | null {
+	private static getPreviousVertex(vertexIndex: number, vertices: Vec2[], isClosed: boolean): Vec2 | null {
 		const index = vertexIndex - 1;
 
 		if (index < 0) {
@@ -87,7 +87,7 @@ export default class WallsBuilder {
 		return vertices[index];
 	}
 
-	private getEdgeSmoothness(vertices: Vec2[], isClosed: boolean): boolean[] {
+	private static getEdgeSmoothness(vertices: Vec2[], isClosed: boolean): boolean[] {
 		const edgeSmoothness: boolean[] = [];
 
 		for (let i = 0; i < vertices.length; i++) {
@@ -110,7 +110,7 @@ export default class WallsBuilder {
 		return edgeSmoothness;
 	}
 
-	private getWalls(vertices: Vec2[], isClosed: boolean, edgeSmoothness: boolean[], windowWidth: number): [number, number, boolean][] {
+	private static getWalls(vertices: Vec2[], isClosed: boolean, edgeSmoothness: boolean[], windowWidth: number): [number, number, boolean][] {
 		const uvProgress: [number, number][] = [];
 		const segmentCount = isClosed ? vertices.length : (vertices.length - 1);
 		let currentProgress = 0;
@@ -169,7 +169,7 @@ export default class WallsBuilder {
 		return processedWalls;
 	}
 
-	private getSegmentsNormals(vertices: Vec2[], isClosed: boolean): Vec3[] {
+	private static getSegmentsNormals(vertices: Vec2[], isClosed: boolean): Vec3[] {
 		const normals: Vec3[] = [];
 		const segmentCount = isClosed ? vertices.length : (vertices.length - 1);
 
@@ -190,7 +190,7 @@ export default class WallsBuilder {
 		return normals;
 	}
 
-	private getNextSegmentNormal(segmentIndex: number, segmentNormals: Vec3[], isClosed: boolean): Vec3 | null {
+	private static getNextSegmentNormal(segmentIndex: number, segmentNormals: Vec3[], isClosed: boolean): Vec3 | null {
 		const index = segmentIndex + 1;
 
 		if (index > segmentNormals.length - 1) {
@@ -204,7 +204,7 @@ export default class WallsBuilder {
 		return segmentNormals[index];
 	}
 
-	private getPreviousSegmentNormal(segmentIndex: number, segmentNormals: Vec3[], isClosed: boolean): Vec3 | null {
+	private static getPreviousSegmentNormal(segmentIndex: number, segmentNormals: Vec3[], isClosed: boolean): Vec3 | null {
 		const index = segmentIndex - 1;
 
 		if (index < 0) {
@@ -218,7 +218,7 @@ export default class WallsBuilder {
 		return segmentNormals[index];
 	}
 
-	private getWallNormals(segmentNormals: Vec3[], edgeSmoothness: boolean[], isClosed: boolean): number[] {
+	private static getWallNormals(segmentNormals: Vec3[], edgeSmoothness: boolean[], isClosed: boolean): number[] {
 		const normals: number[] = [];
 
 		for (let i = 0; i < segmentNormals.length; i++) {
@@ -250,7 +250,7 @@ export default class WallsBuilder {
 		return normals;
 	}
 
-	private getWallPositions(vertices: Vec2[], isClosed: boolean, height: number | number[], minHeight: number): number[] {
+	private static getWallPositions(vertices: Vec2[], isClosed: boolean, height: number | number[], minHeight: number): number[] {
 		const positions: number[] = [];
 
 		const segmentCount = isClosed ? vertices.length : (vertices.length - 1);
@@ -281,7 +281,7 @@ export default class WallsBuilder {
 		return positions;
 	}
 
-	private getWallUVsAndTextureIds(
+	private static getWallUVsAndTextureIds(
 		{
 			vertices,
 			isClosed,

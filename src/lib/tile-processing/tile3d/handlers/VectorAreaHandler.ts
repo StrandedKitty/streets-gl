@@ -61,6 +61,22 @@ export default class VectorAreaHandler implements Handler {
 					uvScale: 0.05,
 				})];
 			}
+			case 'rock': {
+				return [this.handleGenericSurface({
+					textureId: 10,
+					isOriented: false,
+					zIndex: 1,
+					uvScale: 0.03,
+				})];
+			}
+			case 'sand': {
+				return [this.handleGenericSurface({
+					textureId: 11,
+					isOriented: false,
+					zIndex: 1,
+					uvScale: 0.08,
+				})];
+			}
 			case 'roadway': {
 				return [this.handleGenericSurface({
 					textureId: 2,
@@ -110,6 +126,7 @@ export default class VectorAreaHandler implements Handler {
 			isStretched: roofParams.isStretched,
 			flip: false
 		});
+
 		builder.addWalls({
 			levels: this.descriptor.buildingLevels,
 			windowWidth: facadeParams.windowWidth,
@@ -137,7 +154,7 @@ export default class VectorAreaHandler implements Handler {
 			zIndex: number;
 		}
 	): Tile3DProjectedGeometry {
-		const builder = new Tile3DProjectedGeometryBuilder(this.osmReference);
+		const builder = new Tile3DProjectedGeometryBuilder();
 		builder.setZIndex(zIndex);
 
 		for (const ring of this.rings) {
