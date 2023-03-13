@@ -69,7 +69,8 @@ export class VectorDescriptorFactory {
 				case 'living_street':
 				case 'trunk':
 				case 'motorway':
-				case 'motorway_link': {
+				case 'motorway_link':
+				case 'busway': {
 					descriptor.pathType = 'roadway';
 
 					const isOneWay = tags.oneway === 'yes';
@@ -206,31 +207,21 @@ export class VectorDescriptorFactory {
 		}
 
 		if (tags['building:part'] && tags['building:part'] !== 'no') {
-			if (tags['building:part'] === 'roof') {
-				return {
-					type: ContainerType.Descriptor,
-					data: {
-						type: 'buildingPart',
-						...this.parseBuildingParams(tags, true),
-					}
-				};
-			}
-
 			return {
 				type: ContainerType.Descriptor,
 				data: {
 					type: 'buildingPart',
-					...this.parseBuildingParams(tags)
+					...this.parseBuildingParams(tags, tags['building:part'] === 'roof'),
 				}
 			};
 		}
 
-		if (tags.building) {
+		if (tags.building && tags.building !== 'construction') {
 			return {
 				type: ContainerType.Descriptor,
 				data: {
 					type: 'building',
-					...this.parseBuildingParams(tags)
+					...this.parseBuildingParams(tags, tags.building === 'roof')
 				}
 			};
 		}
@@ -438,14 +429,14 @@ export class VectorDescriptorFactory {
 		return fallback;
 	}
 
-	private static getRoofMaterialAndColor(materialValue: string, colorValue: string): {
+	private static getRoofMaterialAndColor(materialValue: string, colorValue: string, noDefault: boolean): {
 		material: VectorAreaDescriptor['buildingRoofMaterial'];
 		color: number;
 	} {
 		let material = this.parseRoofMaterial(materialValue, 'default');
 		let color = this.parseColor(colorValue, null);
 
-		if (color !== null && material === 'default') {
+		if ((color !== null || noDefault) && material === 'default') {
 			material = 'concrete';
 		}
 
@@ -480,7 +471,7 @@ export class VectorDescriptorFactory {
 	}
 
 	private static isBuildingHasWindows(tags: Tags): boolean {
-		if (tags['bridge:support'] === 'pylon') {
+		if (tags['bridge:support']) {
 			return false;
 		}
 
@@ -511,14 +502,18 @@ export class VectorDescriptorFactory {
 		const roofType = this.parseRoofType(tags['roof:shape'], 'flat');
 		const roofOrientation = this.parseRoofOrientation(tags['roof:orientation']);
 		const roofLevels = this.parseUnsignedInt(tags['roof:levels']) ?? this.getRoofDefaultLevels(roofType);
-		const roofMatAndColor = this.getRoofMaterialAndColor(tags['roof:material'], tags['roof:colour']);
+		const roofMatAndColor = this.getRoofMaterialAndColor(
+			tags['roof:material'],
+			tags['roof:colour'],
+			tags.building === 'houseboat' || roofType !== 'flat'
+		);
 		const roofDirection = this.parseFloat(tags['roof:direction']) ?? 0;
 
 		const roofHeight = this.parseHeight(tags['roof:height'], roofLevels * levelHeight);
 		const roofAngle = this.parseUnsignedFloat(tags['roof:angle']);
 
 		let minLevel = this.parseUnsignedInt(tags['building:min_level']) ?? null;
-		let height = this.parseHeight(tags.height, null);
+		let height = this.parseHeight(tags.height, this.parseHeight(tags.est_height, null));
 		let levels = this.parseUnsignedInt(tags['building:levels']) ?? null;
 		let minHeight = this.parseHeight(tags.min_height, null);
 
