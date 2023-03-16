@@ -560,7 +560,7 @@ export class VectorDescriptorFactory {
 		const roofMatAndColor = this.getRoofMaterialAndColor(
 			tags['roof:material'],
 			tags['roof:colour'],
-			tags.building === 'houseboat' || roofType !== 'flat' || !!tags['bridge:support']
+			tags.building === 'houseboat' || roofType !== 'flat' || !!tags['bridge:support'] || !!tags['ship:type']
 		);
 		const roofDirection = this.parseFloat(tags['roof:direction']) ?? 0;
 

@@ -69,7 +69,7 @@ export default class GabledRoofBuilder extends HippedRoofBuilder {
 						const a = new Vec2(extrudedPoint.X, extrudedPoint.Y);
 						const b = new Vec2(otherPoint.X, otherPoint.Y);
 						const t = Vec2.add(b, Vec2.multiplyScalar(Vec2.sub(a, b), 1000));
-						const center2 = MathUtils.getIntersectionPoint(
+						const center2 = MathUtils.getIntersectionLineLine(
 							[begin.X, begin.Y],
 							[end.X, end.Y],
 							[b.x, b.y],

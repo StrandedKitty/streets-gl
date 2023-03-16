@@ -182,7 +182,7 @@ export default class OrientedGabledRoofBuilder implements RoofBuilder {
 				});
 
 				if (nextNode) {
-					const intersection = MathUtils.getIntersectionPoint(
+					const intersection = MathUtils.getIntersectionLineLine(
 						[node.x, node.y],
 						[nextNode.x, nextNode.y],
 						[split[0].x, split[0].y],

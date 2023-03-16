@@ -44,7 +44,7 @@ export default class VectorPolylineHandler implements Handler {
 		if (this.descriptor.type === 'path' && this.descriptor.pathType === 'roadway') {
 			this.graph = graph;
 
-			this.graph.addRoad(this.osmReference, this.vertices);
+			this.graph.addRoad(this.osmReference, this.vertices, this.descriptor.width);
 		}
 	}
 

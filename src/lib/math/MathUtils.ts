@@ -192,7 +192,7 @@ export default class MathUtils {
 		return !(has_neg && has_pos);
 	}
 
-	public static getIntersectionPoint(
+	public static getIntersectionLineLine(
 		l1p1: [number, number], l1p2: [number, number],
 		l2p1: [number, number], l2p2: [number, number]
 	): [number, number] {
@@ -227,6 +227,29 @@ export default class MathUtils {
 		return [x, y];
 	}
 
+	public static getIntersectionLineLineInfinite(l1p1: Vec2, l1p2: Vec2, l2p1: Vec2, l2p2: Vec2): Vec2 {
+		const {x: x1, y: y1} = l1p1;
+		const {x: x2, y: y2} = l1p2;
+		const {x: x3, y: y3} = l2p1;
+		const {x: x4, y: y4} = l2p2;
+
+		const dx1 = x2 - x1;
+		const dy1 = y2 - y1;
+		const dx2 = x4 - x3;
+		const dy2 = y4 - y3;
+
+		const determinant = dx1 * dy2 - dy1 * dx2;
+
+		if (determinant === 0) {
+			// The lines are parallel or coincident
+			return null;
+		}
+
+		const t1 = ((x3 - x1) * dy2 - (y3 - y1) * dx2) / determinant;
+
+		return new Vec2(x1 + t1 * dx1, y1 + t1 * dy1);
+	}
+
 	public static getIntersectionsLineTriangle(
 		lineStart: [number, number], lineEnd: [number, number],
 		triangle: [number, number][]
@@ -235,7 +258,7 @@ export default class MathUtils {
 
 		for (let i = 0; i < triangle.length; i++) {
 			const next = (i + 1 == triangle.length) ? 0 : i + 1;
-			const ip = MathUtils.getIntersectionPoint(lineStart, lineEnd, triangle[i], triangle[next]);
+			const ip = MathUtils.getIntersectionLineLine(lineStart, lineEnd, triangle[i], triangle[next]);
 
 			if (ip) {
 				intersectionPoints.push(ip);

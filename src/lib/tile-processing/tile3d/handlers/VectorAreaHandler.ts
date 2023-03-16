@@ -79,10 +79,10 @@ export default class VectorAreaHandler implements Handler {
 			}
 			case 'roadway': {
 				return [this.handleGenericSurface({
-					textureId: 2,
+					textureId: this.descriptor.isIntersection ? 16 : 2,
 					isOriented: false,
-					zIndex: 3,
-					uvScale: 0.1,
+					zIndex: this.descriptor.isIntersection ? 4.5 : 4,
+					uvScale: this.descriptor.isIntersection ? 0.05 : 0.1,
 				})];
 			}
 			case 'footway': {

@@ -15,6 +15,8 @@ import {applyMercatorFactorToExtrudedFeatures} from "~/lib/tile-processing/tile3
 import Tile3DHuggingGeometry from "~/lib/tile-processing/tile3d/features/Tile3DHuggingGeometry";
 import RoadGraph from "~/lib/road-graph/RoadGraph";
 import OSMReference from "~/lib/tile-processing/vector/features/OSMReference";
+import {VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
+import {VectorNodeDescriptor} from "~/lib/tile-processing/vector/descriptors";
 
 export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
 	private vectorProvider: CombinedVectorFeatureProvider = new CombinedVectorFeatureProvider();
@@ -49,7 +51,6 @@ export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
 		}
 
 		for (const feature of collection.polylines) {
-			feature.nodes = Tile3DFromVectorProvider.simplifyNodes(feature.nodes);
 			handlers.push(new VectorPolylineHandler(feature));
 		}
 
@@ -73,6 +74,35 @@ export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
 		}
 
 		graph.initIntersections();
+
+		const intersectionPolygons = graph.buildIntersectionPolygons();
+
+		for (const polygon of intersectionPolygons) {
+			polygon.push(polygon[0]);
+			polygon.reverse();
+
+			handlers.push(new VectorAreaHandler({
+				type: 'area',
+				descriptor: {
+					type: 'roadway',
+					isIntersection: true
+				},
+				rings: [{
+					nodes: polygon.map(p => {
+						return {
+							type: 'node',
+							osmReference: null,
+							descriptor: null,
+							x: p.x,
+							y: p.y,
+							rotation: 0
+						};
+					}),
+					type: VectorAreaRingType.Outer
+				}],
+				osmReference: null
+			}));
+		}
 	}
 
 	private static simplifyNodes(nodes: VectorNode[]): VectorNode[] {
