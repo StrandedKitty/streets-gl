@@ -13,3 +13,23 @@ export function applyMercatorFactorToExtrudedFeatures(extruded: Tile3DExtrudedGe
 		}
 	}
 }
+
+export function getRoadUV(lanesForward: number, lanesBackward: number): {minX: number; maxX: number} {
+	const texLanes = 8;
+	const laneMarkWidth = 1 / texLanes * 0.05;
+	const laneWidth = 1 / texLanes;
+
+	lanesForward = Math.min(texLanes, lanesForward);
+	lanesBackward = Math.min(texLanes, lanesBackward);
+
+	const minLane = -lanesForward;
+	const maxLane = lanesBackward;
+
+	const min = minLane * laneWidth + 0.5;
+	const max = maxLane * laneWidth + 0.5;
+
+	return {
+		minX: min + laneMarkWidth,
+		maxX: max - laneMarkWidth
+	};
+}

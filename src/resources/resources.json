@@ -65,6 +65,7 @@
 	"concreteFenceDiffuse": {"url": "/textures/surfaces/concrete_fence_diffuse.png", "type": "image"},
 	"concreteFenceNormal": {"url": "/textures/surfaces/concrete_fence_normal.png", "type": "image"},
 	"concreteFenceMask": {"url": "/textures/surfaces/concrete_fence_mask.png", "type": "image"},
+	"asphaltRoadDiffuse": {"url": "/textures/surfaces/asphalt_road_diffuse.png", "type": "image"},
 
 	"biomeMap": {
 		"url": "/textures/biomes_blurred.png",

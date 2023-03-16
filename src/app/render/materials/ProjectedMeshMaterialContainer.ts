@@ -39,7 +39,7 @@ export default class ProjectedMeshMaterialContainer extends MaterialContainer {
 					value: this.renderer.createTexture2DArray({
 						width: 512,
 						height: 512,
-						depth: 14 * 3,
+						depth: 15 * 3,
 						anisotropy: 16,
 						data: [
 							ResourceManager.get('pavementDiffuse'),
@@ -97,6 +97,10 @@ export default class ProjectedMeshMaterialContainer extends MaterialContainer {
 							ResourceManager.get('concreteFenceDiffuse'),
 							ResourceManager.get('concreteFenceNormal'),
 							ResourceManager.get('concreteFenceMask'),
+
+							ResourceManager.get('asphaltRoadDiffuse'),
+							ResourceManager.get('commonNormal'),
+							ResourceManager.get('commonMask'),
 						],
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,
@@ -173,7 +177,7 @@ export default class ProjectedMeshMaterialContainer extends MaterialContainer {
 			},
 			primitive: {
 				frontFace: RendererTypes.FrontFace.CCW,
-				cullMode: RendererTypes.CullMode.None
+				cullMode: isExtruded ? RendererTypes.CullMode.None : RendererTypes.CullMode.Back
 			},
 			depth: {
 				depthWrite: isExtruded,

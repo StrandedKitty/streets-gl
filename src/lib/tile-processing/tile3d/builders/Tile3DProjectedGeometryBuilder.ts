@@ -2,13 +2,10 @@ import Vec2 from "~/lib/math/Vec2";
 import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DProjectedGeometry";
 import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 import Tile3DRing, {Tile3DRingType} from "~/lib/tile-processing/tile3d/builders/Tile3DRing";
-import GeometryGroundProjector from "~/lib/tile-processing/tile3d/builders/GeometryGroundProjector";
-import Config from "~/app/Config";
 import AABB3D from "~/lib/math/AABB3D";
 import Vec3 from "~/lib/math/Vec3";
 import SurfaceBuilder from "~/lib/tile-processing/tile3d/builders/SurfaceBuilder";
-import RoadBuilder from "~/lib/tile-processing/tile3d/builders/RoadBuilder";
-import WallsBuilder from "~/lib/tile-processing/tile3d/builders/WallsBuilder";
+import RoadBuilder, {RoadSide} from "~/lib/tile-processing/tile3d/builders/RoadBuilder";
 import {projectGeometryOnTerrain, projectLineOnTerrain} from "~/lib/tile-processing/tile3d/builders/utils";
 import FenceBuilder from "~/lib/tile-processing/tile3d/builders/FenceBuilder";
 
@@ -71,23 +68,41 @@ export default class Tile3DProjectedGeometryBuilder {
 		{
 			width,
 			textureId,
-			height = 0
+			height = 0,
+			side = RoadSide.Both,
+			uvScaleY = 1,
+			uvMinX = 0,
+			uvMaxX = 1,
+			vertexAdjacentToStart = null,
+			vertexAdjacentToEnd = null
 		}: {
 			width: number;
 			textureId: number;
 			height?: number;
+			side?: RoadSide;
+			uvScaleY?: number;
+			uvMinX?: number;
+			uvMaxX?: number;
+			vertexAdjacentToStart?: Vec2;
+			vertexAdjacentToEnd?: Vec2;
 		}
 	): void {
 		const road = RoadBuilder.build({
 			vertices: this.multipolygon.rings[0].nodes,
-			width: width
+			width,
+			side,
+			uvScaleY,
+			uvMinX,
+			uvMaxX,
+			vertexAdjacentToStart,
+			vertexAdjacentToEnd
 		});
 
 		this.projectAndAddGeometry({
 			position: road.position,
 			uv: road.uv,
-			textureId: textureId,
-			height: height
+			textureId,
+			height
 		});
 	}
 
@@ -142,7 +157,7 @@ export default class Tile3DProjectedGeometryBuilder {
 		const road = RoadBuilder.build({
 			vertices: this.multipolygon.rings[0].nodes,
 			width: width,
-			uvScale: width * 2
+			uvScaleY: width * 2
 		});
 
 		this.projectAndAddGeometry({

@@ -110,10 +110,10 @@ export class VectorDescriptorFactory {
 					descriptor.width = this.parseUnits(tags.width) ?? 3;
 					break;
 				}
-				default: {
-					descriptor.pathType = 'roadway';
-					break;
-				}
+			}
+
+			if (!descriptor.pathType) {
+				return [];
 			}
 
 			const descriptors: Container<VectorPolylineDescriptor>[] = [{
@@ -122,14 +122,69 @@ export class VectorDescriptorFactory {
 			}];
 
 			if (descriptor.pathType === 'roadway') {
-				descriptors.push({
-					type: ContainerType.Descriptor,
-					data: {
-						type: 'path',
-						pathType: 'footway',
-						width: descriptor.width + 4
+				const cyclewayWidth = 2;
+				const sidewalkWidth = 3;
+
+				const sidewalkSide = this.getSidewalkSide(tags);
+				const cyclewaySide = this.getCyclewaySide(tags);
+
+				const roadWidth = descriptor.width;
+
+				if (cyclewaySide) {
+					descriptors.push({
+						type: ContainerType.Descriptor,
+						data: {
+							type: 'path',
+							pathType: 'cycleway',
+							width: roadWidth + cyclewayWidth * 2,
+							side: cyclewaySide
+						}
+					});
+				}
+
+				if (sidewalkSide) {
+					if (!cyclewaySide || cyclewaySide === 'both') {
+						descriptors.push({
+							type: ContainerType.Descriptor,
+							data: {
+								type: 'path',
+								pathType: 'footway',
+								width: roadWidth + sidewalkWidth * 2 + (cyclewaySide === 'both' ? cyclewayWidth * 2 : 0),
+								side: sidewalkSide
+							}
+						});
+					} else {
+						if (sidewalkSide === 'left' || sidewalkSide === 'both') {
+							const multiplier = cyclewaySide === 'left' ? 1 : 0;
+							const width = roadWidth + sidewalkWidth * 2 + multiplier * cyclewayWidth * 2;
+
+							descriptors.push({
+								type: ContainerType.Descriptor,
+								data: {
+									type: 'path',
+									pathType: 'footway',
+									width: width,
+									side: 'left'
+								}
+							});
+						}
+
+						if (sidewalkSide === 'right' || sidewalkSide === 'both') {
+							const multiplier = cyclewaySide === 'right' ? 1 : 0;
+							const width = roadWidth + sidewalkWidth * 2 + multiplier * cyclewayWidth * 2;
+
+							descriptors.push({
+								type: ContainerType.Descriptor,
+								data: {
+									type: 'path',
+									pathType: 'footway',
+									width: width,
+									side: 'right'
+								}
+							});
+						}
 					}
-				})
+				}
 			}
 
 			return descriptors;
@@ -505,7 +560,7 @@ export class VectorDescriptorFactory {
 		const roofMatAndColor = this.getRoofMaterialAndColor(
 			tags['roof:material'],
 			tags['roof:colour'],
-			tags.building === 'houseboat' || roofType !== 'flat'
+			tags.building === 'houseboat' || roofType !== 'flat' || !!tags['bridge:support']
 		);
 		const roofDirection = this.parseFloat(tags['roof:direction']) ?? 0;
 
@@ -559,7 +614,47 @@ export class VectorDescriptorFactory {
 		};
 	}
 
-	private static isUnderground(tags: Record<string, string>): boolean {
+	private static getSidewalkSide(tags: Tags): VectorPolylineDescriptor['side'] {
+		const isBoth = tags['sidewalk:both'] === 'yes' || tags['sidewalk'] === 'both';
+		const isOnLeft = tags['sidewalk:left'] === 'yes' || tags['sidewalk'] === 'left' || isBoth;
+		const isOnRight = tags['sidewalk:right'] === 'yes' || tags['sidewalk'] === 'right' || isBoth;
+
+		if (isOnLeft && isOnRight) {
+			return 'both';
+		}
+
+		if (isOnLeft) {
+			return 'left';
+		}
+
+		if (isOnRight) {
+			return 'right';
+		}
+
+		return null;
+	}
+
+	private static getCyclewaySide(tags: Tags): VectorPolylineDescriptor['side'] {
+		const isBoth = tags['cycleway:both'] === 'lane';
+		const isOnLeft = tags['cycleway:left'] === 'lane' || isBoth;
+		const isOnRight = tags['cycleway:right'] === 'lane' || isBoth;
+
+		if (isOnLeft && isOnRight) {
+			return 'both';
+		}
+
+		if (isOnLeft) {
+			return 'left';
+		}
+
+		if (isOnRight) {
+			return 'right';
+		}
+
+		return null;
+	}
+
+	private static isUnderground(tags: Tags): boolean {
 		return (
 			tags.location === 'underground' ||
 			this.parseFloat(tags.level) < 0 ||

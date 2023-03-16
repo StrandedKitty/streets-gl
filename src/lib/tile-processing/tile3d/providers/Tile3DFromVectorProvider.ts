@@ -13,6 +13,8 @@ import Tile3DExtrudedGeometry from "~/lib/tile-processing/tile3d/features/Tile3D
 import * as Simplify from "simplify-js";
 import {applyMercatorFactorToExtrudedFeatures} from "~/lib/tile-processing/tile3d/utils";
 import Tile3DHuggingGeometry from "~/lib/tile-processing/tile3d/features/Tile3DHuggingGeometry";
+import RoadGraph from "~/lib/road-graph/RoadGraph";
+import OSMReference from "~/lib/tile-processing/vector/features/OSMReference";
 
 export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
 	private vectorProvider: CombinedVectorFeatureProvider = new CombinedVectorFeatureProvider();
@@ -29,7 +31,9 @@ export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
 		}
 	): Promise<Tile3DFeatureCollection> {
 		const vectorTile = await this.vectorProvider.getCollection({x, y, zoom});
+
 		const handlers = Tile3DFromVectorProvider.createHandlersFromVectorFeatureCollection(vectorTile);
+		Tile3DFromVectorProvider.addRoadGraphToHandlers(handlers);
 
 		const collection = Tile3DFromVectorProvider.getFeaturesFromHandlers(handlers);
 		applyMercatorFactorToExtrudedFeatures(collection.extruded, x, y, zoom);
@@ -57,6 +61,18 @@ export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
 		}
 
 		return handlers;
+	}
+
+	private static addRoadGraphToHandlers(handlers: Handler[]): void {
+		const graph = new RoadGraph<OSMReference>();
+
+		for (const handler of handlers) {
+			if (handler instanceof VectorPolylineHandler) {
+				handler.setRoadGraph(graph);
+			}
+		}
+
+		graph.initIntersections();
 	}
 
 	private static simplifyNodes(nodes: VectorNode[]): VectorNode[] {

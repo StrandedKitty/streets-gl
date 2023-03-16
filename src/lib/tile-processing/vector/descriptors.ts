@@ -11,10 +11,9 @@ export interface VectorPolylineDescriptor {
 	width?: number;
 	height?: number;
 	minHeight?: number;
-	embeddedFootway?: boolean;
-	embeddedFootwayWidth?: boolean;
 	lanesForward?: number;
 	lanesBackward?: number;
+	side?: 'both' | 'left' | 'right';
 }
 
 export interface VectorAreaDescriptor {

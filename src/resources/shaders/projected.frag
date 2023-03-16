@@ -60,8 +60,7 @@ float edgeFactor() {
 
 vec3 getNormal(vec3 normalMapValue) {
 	mat3 tbn = getTBN(vNormal, vPosition, vUv);
-	vec3 mapValue = normalMapValue * 2. - 1.;
-	vec3 normal = normalize(tbn * mapValue);
+	vec3 normal = normalize(tbn * normalMapValue);
 
 	normal *= float(gl_FrontFacing) * 2. - 1.;
 
@@ -108,12 +107,10 @@ void main() {
 		return;
 	}
 
-	vec2 mapUV = vUv;
-
 	int layer = (vTextureId - 1) * 3;
-	vec4 color = texture(tMap, vec3(mapUV, layer));
-	vec3 normalMapValue = texture(tMap, vec3(vec2(mapUV.x, 1. - mapUV.y), layer + 1)).xyz;
-	vec3 mask = texture(tMap, vec3(mapUV, layer + 2)).rgb;
+	vec4 color = texture(tMap, vec3(vUv, layer));
+	vec3 normalMapUnpacked = texture(tMap, vec3(vec2(vUv.x, 1. - vUv.y), layer + 1)).xyz * 2. - 1.;
+	vec3 mask = texture(tMap, vec3(vUv, layer + 2)).rgb;
 
 	if (color.a < 0.5) {
 		discard;
@@ -122,13 +119,12 @@ void main() {
 	vec3 heightMapNormal = sampleNormalMap();
 
 	#if IS_EXTRUDED == 0
-		vec3 detailNormal = normalMapValue * 2. - 1.;
-		vec3 combined = NormalBlend_UnpackedRNM(heightMapNormal, detailNormal);
+		vec3 combined = NormalBlend_UnpackedRNM(heightMapNormal, normalMapUnpacked);
 		vec3 kindaVNormal = vec3(modelViewMatrix * vec4(combined, 0));
 	#else
 		vec3 kindaVNormal = (vNormalFollowsGround == 1) ?
-			vec3(modelViewMatrix * vec4(NormalBlend_UnpackedRNM(heightMapNormal, (normalMapValue * 2. - 1.).xyz), 0)) :
-			getNormal(normalMapValue);
+			vec3(modelViewMatrix * vec4(NormalBlend_UnpackedRNM(heightMapNormal, normalMapUnpacked), 0)) :
+			getNormal(normalMapUnpacked);
 	#endif
 
 	outColor = color;
