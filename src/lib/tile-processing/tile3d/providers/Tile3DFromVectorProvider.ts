@@ -75,7 +75,7 @@ export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
 
 		graph.initIntersections();
 
-		const intersectionPolygons = graph.buildIntersectionPolygons();
+		const intersectionPolygons = graph.buildIntersectionPolygons(0);
 
 		for (const polygon of intersectionPolygons) {
 			polygon.push(polygon[0]);

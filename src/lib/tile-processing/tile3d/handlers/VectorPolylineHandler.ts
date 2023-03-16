@@ -17,6 +17,7 @@ export default class VectorPolylineHandler implements Handler {
 	private readonly descriptor: VectorPolylineDescriptor;
 	private readonly vertices: Vec2[];
 	private graph: RoadGraph<OSMReference> = null;
+	private graphGroup: number = -1;
 
 	public constructor(feature: VectorPolyline) {
 		this.osmReference = feature.osmReference;
@@ -41,10 +42,22 @@ export default class VectorPolylineHandler implements Handler {
 	}
 
 	public setRoadGraph(graph: RoadGraph<OSMReference>): void {
-		if (this.descriptor.type === 'path' && this.descriptor.pathType === 'roadway') {
-			this.graph = graph;
+		if (this.descriptor.type === 'path') {
+			let type = -1;
 
-			this.graph.addRoad(this.osmReference, this.vertices, this.descriptor.width);
+			switch (this.descriptor.pathType) {
+				case 'roadway': type = 0; break;
+				case 'footway': type = 1; break;
+				case 'cycleway': type = 2; break;
+				case 'railway': type = 3; break;
+				case 'tramway': type = 4; break;
+			}
+
+			if (type !== -1) {
+				this.graph = graph;
+				this.graphGroup = type;
+				graph.addRoad(this.osmReference, this.vertices, this.descriptor.width, type);
+			}
 		}
 	}
 
@@ -75,8 +88,8 @@ export default class VectorPolylineHandler implements Handler {
 		let vertexAdjacentToEnd: Vec2 = null;
 
 		if (!pointStart.equals(pointEnd) && this.graph) {
-			const intersectionStart = this.graph.getIntersectionByPoint(pointStart);
-			const intersectionEnd = this.graph.getIntersectionByPoint(pointEnd);
+			const intersectionStart = this.graph.getIntersectionByPoint(pointStart, this.graphGroup);
+			const intersectionEnd = this.graph.getIntersectionByPoint(pointEnd, this.graphGroup);
 
 			if (intersectionStart && intersectionStart.directions.length === 2) {
 				for (const {road, vertex} of intersectionStart.directions) {
