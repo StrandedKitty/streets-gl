@@ -1,11 +1,12 @@
 import Vec2 from "~/lib/math/Vec2";
 import LinkedVertex from "~/lib/road-graph/LinkedVertex";
 import Road from "~/lib/road-graph/Road";
-import IntersectionPolygonBuilder from "~/lib/road-graph/IntersectionPolygonBuilder";
+import IntersectionPolygonBuilder, {Segment} from "~/lib/road-graph/IntersectionPolygonBuilder";
 
 export interface IntersectionDirection {
 	road: Road<unknown>;
 	vertex: LinkedVertex;
+	trimmedEnd?: Vec2;
 }
 
 export default class Intersection {
@@ -27,11 +28,20 @@ export default class Intersection {
 
 	public getPolygon(): Vec2[] {
 		const builder = new IntersectionPolygonBuilder(this.center);
+		const segments: Segment[] = [];
 
 		for (const direction of this.directions) {
-			builder.addDirection(direction.vertex.vector, direction.road.width);
+			const segment = builder.addDirection(direction.vertex.vector, direction.road.width);
+
+			segments.push(segment);
 		}
 
-		return builder.getPolygon();
+		const polygon = builder.getPolygon();
+
+		for (let i = 0; i < segments.length; i++) {
+			this.directions[i].trimmedEnd = segments[i].getTrimmedEnd();
+		}
+
+		return polygon;
 	}
 }

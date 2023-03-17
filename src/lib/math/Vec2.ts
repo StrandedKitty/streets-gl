@@ -96,6 +96,13 @@ export default class Vec2 {
 		return dst;
 	}
 
+	public static lerp(v1: Vec2, v2: Vec2, amount: number): Vec2 {
+		return new Vec2(
+			(1 - amount) * v1.x + amount * v2.x,
+			(1 - amount) * v1.y + amount * v2.y
+		);
+	}
+
 	public static clone(v: Vec2): Vec2 {
 		return new this(v.x, v.y);
 	}

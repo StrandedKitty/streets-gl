@@ -107,11 +107,11 @@ export default class Vec3 {
 	}
 
 	public static lerp(v1: Vec3, v2: Vec3, amount: number): Vec3 {
-		const dst = new Vec3();
-		dst.x = (1 - amount) * v1.x + amount * v2.x;
-		dst.y = (1 - amount) * v1.y + amount * v2.y;
-		dst.z = (1 - amount) * v1.z + amount * v2.z;
-		return dst;
+		return new Vec3(
+			(1 - amount) * v1.x + amount * v2.x,
+			(1 - amount) * v1.y + amount * v2.y,
+			(1 - amount) * v1.z + amount * v2.z
+		);
 	}
 
 	public static nlerp(v1: Vec3, v2: Vec3, amount: number): Vec3 {

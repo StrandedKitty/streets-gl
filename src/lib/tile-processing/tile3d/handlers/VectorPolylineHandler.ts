@@ -91,17 +91,41 @@ export default class VectorPolylineHandler implements Handler {
 			const intersectionStart = this.graph.getIntersectionByPoint(pointStart, this.graphGroup);
 			const intersectionEnd = this.graph.getIntersectionByPoint(pointEnd, this.graphGroup);
 
-			if (intersectionStart && intersectionStart.directions.length === 2) {
-				for (const {road, vertex} of intersectionStart.directions) {
-					if (road.ref !== this.osmReference) {
-						vertexAdjacentToStart = vertex.vector;
+			if (intersectionStart) {
+				if (intersectionStart.directions.length === 2) {
+					for (const {road, vertex} of intersectionStart.directions) {
+						if (road.ref !== this.osmReference) {
+							vertexAdjacentToStart = vertex.vector;
+						}
+					}
+				} else if (intersectionStart.directions.length > 2) {
+					const dir = intersectionStart.directions.find(dir => dir.road.ref === this.osmReference);
+
+					if (dir && dir.trimmedEnd) {
+						pointStart.set(dir.trimmedEnd.x, dir.trimmedEnd.y);
+
+						if (pointStart.equals(this.vertices[1])) {
+							this.vertices.shift();
+						}
 					}
 				}
 			}
-			if (intersectionEnd && intersectionEnd.directions.length === 2) {
-				for (const {road, vertex} of intersectionEnd.directions) {
-					if (road.ref !== this.osmReference) {
-						vertexAdjacentToEnd = vertex.vector;
+			if (intersectionEnd) {
+				if (intersectionEnd.directions.length === 2) {
+					for (const {road, vertex} of intersectionEnd.directions) {
+						if (road.ref !== this.osmReference) {
+							vertexAdjacentToEnd = vertex.vector;
+						}
+					}
+				} else if (intersectionEnd.directions.length > 2) {
+					const dir = intersectionEnd.directions.find(dir => dir.road.ref === this.osmReference);
+
+					if (dir && dir.trimmedEnd) {
+						pointEnd.set(dir.trimmedEnd.x, dir.trimmedEnd.y);
+
+						if (pointEnd.equals(this.vertices[this.vertices.length - 2])) {
+							this.vertices.pop();
+						}
 					}
 				}
 			}

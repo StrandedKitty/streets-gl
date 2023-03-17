@@ -1,7 +1,7 @@
 import Vec2 from "~/lib/math/Vec2";
 import MathUtils from "~/lib/math/MathUtils";
 
-class LineIntersection {
+export class LineIntersection {
 	public point: Vec2;
 	public isProjected: boolean;
 	public alpha: number;
@@ -13,7 +13,7 @@ class LineIntersection {
 	}
 }
 
-class Segment {
+export class Segment {
 	private readonly start: Vec2;
 	private readonly end: Vec2;
 	private readonly width: number;
@@ -24,6 +24,7 @@ class Segment {
 	public segmentRight: [Vec2, Vec2];
 	public segmentLeftIntersections: LineIntersection[] = [];
 	public segmentRightIntersections: LineIntersection[] = [];
+	public trimTo: LineIntersection = null;
 
 	public constructor(start: Vec2, end: Vec2, width: number) {
 		this.start = start;
@@ -97,6 +98,16 @@ class Segment {
 		this.segmentLeftIntersections.sort(compare);
 		this.segmentRightIntersections.sort(compare);
 	}
+
+	public getTrimmedEnd(): Vec2 {
+		if (!this.trimTo) {
+			return this.end;
+		}
+
+		const progress = MathUtils.getPointProgressAlongLineSegment(this.start, this.end, this.trimTo.point, true);
+
+		return Vec2.lerp(this.start, this.end, progress);
+	}
 }
 
 export default class IntersectionPolygonBuilder {
@@ -107,8 +118,12 @@ export default class IntersectionPolygonBuilder {
 		this.center = center;
 	}
 
-	public addDirection(point: Vec2, width: number): void {
-		this.segments.push(new Segment(point, this.center, width));
+	public addDirection(point: Vec2, width: number): Segment {
+		const segment = new Segment(point, this.center, width);
+
+		this.segments.push(segment);
+
+		return segment;
 	}
 
 	public getPolygon(): Vec2[] {
@@ -168,6 +183,8 @@ export default class IntersectionPolygonBuilder {
 					polygon.push(additional.point);
 				}
 			}
+
+			segment.trimTo = p1;
 		}
 
 		return polygon;

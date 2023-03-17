@@ -81,7 +81,7 @@ export default class VectorAreaHandler implements Handler {
 				return [this.handleGenericSurface({
 					textureId: this.descriptor.isIntersection ? 16 : 2,
 					isOriented: false,
-					zIndex: this.descriptor.isIntersection ? 4.5 : 4,
+					zIndex: this.descriptor.isIntersection ? 4.5 : 3.5,
 					uvScale: this.descriptor.isIntersection ? 0.05 : 0.1,
 				})];
 			}
@@ -89,7 +89,7 @@ export default class VectorAreaHandler implements Handler {
 				return [this.handleGenericSurface({
 					textureId: 1,
 					isOriented: false,
-					zIndex: 2,
+					zIndex: 1.5,
 					uvScale: 0.1,
 				})];
 			}

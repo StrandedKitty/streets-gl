@@ -397,9 +397,10 @@ export class VectorDescriptorFactory {
 				type: ContainerType.Modifier,
 				data: {
 					type: ModifierType.CircleArea,
-					radius: 11,
+					radius: 10,
 					descriptor: {
-						type: 'roadway'
+						type: 'roadway',
+						isIntersection: true
 					}
 				}
 			};
