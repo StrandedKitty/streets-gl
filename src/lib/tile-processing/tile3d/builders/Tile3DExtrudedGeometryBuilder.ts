@@ -22,13 +22,17 @@ import QuadrupleSaltboxRoofBuilder from "~/lib/tile-processing/tile3d/builders/r
 import WallsBuilder from "~/lib/tile-processing/tile3d/builders/WallsBuilder";
 import OrientedGabledRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/OrientedGabledRoofBuilder";
 import Vec3 from "~/lib/math/Vec3";
+import OnionRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/OnionRoofBuilder";
+import DomeRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/DomeRoofBuilder";
 
 export enum RoofType {
 	Flat,
 	Gabled,
 	Hipped,
 	Pyramidal,
+	Onion,
 	Dome,
+	Round,
 	Skillion,
 	Mansard,
 	QuadrupleSaltbox
@@ -180,6 +184,14 @@ export default class Tile3DExtrudedGeometryBuilder {
 			}
 			case RoofType.Pyramidal: {
 				builder = new PyramidalRoofBuilder();
+				break;
+			}
+			case RoofType.Onion: {
+				builder = new OnionRoofBuilder();
+				break;
+			}
+			case RoofType.Dome: {
+				builder = new DomeRoofBuilder();
 				break;
 			}
 			case RoofType.Hipped: {

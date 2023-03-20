@@ -4,6 +4,10 @@ import Vec2 from "~/lib/math/Vec2";
 
 export default class RoofGeometryValidator {
 	public static validate(roof: RoofGeometry, multipolygon: Tile3DMultipolygon): boolean {
+		if (roof.canExtendOutsideFootprint) {
+			return true;
+		}
+
 		const aabb = multipolygon.getAABB();
 
 		for (let i = 0; i < roof.position.length; i += 3) {

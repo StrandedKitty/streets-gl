@@ -128,6 +128,23 @@ export default class Vec3 {
 		return Vec3.applyMatrix4(cameraSpace, useWorldMatrix ? camera.matrixWorld : camera.matrix);
 	}
 
+	public static rotateAroundAxis(v: Vec3, axis: Vec3, angle: number): Vec3 {
+		// Rodrigues' rotation formula
+
+		const cos = Math.cos(angle);
+		const sin = Math.sin(angle);
+		const t = 1 - cos;
+
+		const cross = Vec3.cross(axis, v);
+		const dot = Vec3.dot(axis, v);
+
+		return new Vec3(
+			v.x * cos + cross.x * sin + axis.x * dot * t,
+			v.y * cos + cross.y * sin + axis.y * dot * t,
+			v.z * cos + cross.z * sin + axis.z * dot * t
+		);
+	}
+
 	public static clone(v: Vec3): Vec3 {
 		return new Vec3(v.x, v.y, v.z);
 	}

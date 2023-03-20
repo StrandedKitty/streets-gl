@@ -101,11 +101,12 @@ export default class VectorPolylineHandler implements Handler {
 				} else if (intersectionStart.directions.length > 2) {
 					const dir = intersectionStart.directions.find(dir => dir.road.ref === this.osmReference);
 
-					if (dir && dir.trimmedEnd) {
-						pointStart.set(dir.trimmedEnd.x, dir.trimmedEnd.y);
-
-						if (pointStart.equals(this.vertices[1])) {
+					if (dir && dir.trimmedEnd && this.vertices.length > 1) {
+						if (dir.trimmedEnd.equals(this.vertices[1])) {
 							this.vertices.shift();
+						} else {
+							const start = this.vertices[0];
+							start.set(dir.trimmedEnd.x, dir.trimmedEnd.y);
 						}
 					}
 				}
@@ -120,11 +121,12 @@ export default class VectorPolylineHandler implements Handler {
 				} else if (intersectionEnd.directions.length > 2) {
 					const dir = intersectionEnd.directions.find(dir => dir.road.ref === this.osmReference);
 
-					if (dir && dir.trimmedEnd) {
-						pointEnd.set(dir.trimmedEnd.x, dir.trimmedEnd.y);
-
-						if (pointEnd.equals(this.vertices[this.vertices.length - 2])) {
+					if (dir && dir.trimmedEnd && this.vertices.length > 1) {
+						if (dir.trimmedEnd.equals(this.vertices[this.vertices.length - 2])) {
 							this.vertices.pop();
+						} else {
+							const end = this.vertices[this.vertices.length - 1];
+							end.set(dir.trimmedEnd.x, dir.trimmedEnd.y);
 						}
 					}
 				}

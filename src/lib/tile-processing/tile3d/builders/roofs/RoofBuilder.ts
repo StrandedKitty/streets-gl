@@ -15,6 +15,7 @@ export interface RoofGeometry {
 	position: number[];
 	normal: number[];
 	uv: number[];
+	canExtendOutsideFootprint?: boolean;
 }
 
 export interface RoofParams {

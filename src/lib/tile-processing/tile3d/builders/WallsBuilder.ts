@@ -35,6 +35,20 @@ export default class WallsBuilder {
 		}
 
 		const edgeSmoothness = this.getEdgeSmoothness(vertices, isClosed);
+
+		const firstNonSmoothEdgeIndex = edgeSmoothness.findIndex((smoothness) => !smoothness);
+
+		if (firstNonSmoothEdgeIndex > 0) {
+			for (let i = 0; i < firstNonSmoothEdgeIndex; i++) {
+				edgeSmoothness.push(edgeSmoothness.shift());
+				vertices.push(vertices.shift());
+
+				if (typeof height !== 'number') {
+					height.push(height.shift());
+				}
+			}
+		}
+
 		const segmentNormals = this.getSegmentsNormals(vertices, isClosed);
 		const walls = this.getWalls(vertices, isClosed, edgeSmoothness, windowWidth);
 
