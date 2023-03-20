@@ -14,9 +14,9 @@ import * as Simplify from "simplify-js";
 import {applyMercatorFactorToExtrudedFeatures} from "~/lib/tile-processing/tile3d/utils";
 import Tile3DHuggingGeometry from "~/lib/tile-processing/tile3d/features/Tile3DHuggingGeometry";
 import RoadGraph from "~/lib/road-graph/RoadGraph";
-import OSMReference from "~/lib/tile-processing/vector/features/OSMReference";
 import {VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
-import {VectorNodeDescriptor} from "~/lib/tile-processing/vector/descriptors";
+import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/descriptors";
+import Intersection from "~/lib/road-graph/Intersection";
 
 export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
 	private vectorProvider: CombinedVectorFeatureProvider = new CombinedVectorFeatureProvider();
@@ -65,7 +65,7 @@ export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
 	}
 
 	private static addRoadGraphToHandlers(handlers: Handler[]): void {
-		const graph = new RoadGraph<OSMReference>();
+		const graph = new RoadGraph<VectorPolylineHandler>();
 
 		for (const handler of handlers) {
 			if (handler instanceof VectorPolylineHandler) {
@@ -74,18 +74,23 @@ export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
 		}
 
 		graph.initIntersections();
+		this.addIntersectionPolygonsToHandlers(graph, handlers);
+	}
 
+	private static addIntersectionPolygonsToHandlers(graph: RoadGraph<VectorPolylineHandler>, handlers: Handler[]): void {
 		const intersectionPolygons = graph.buildIntersectionPolygons(0);
 
-		for (const polygon of intersectionPolygons) {
+		for (const {intersection, polygon} of intersectionPolygons) {
+			const material = this.getIntersectionMaterial(intersection);
+
 			polygon.push(polygon[0]);
 			polygon.reverse();
 
 			handlers.push(new VectorAreaHandler({
 				type: 'area',
 				descriptor: {
-					type: 'roadway',
-					isIntersection: true
+					type: 'roadwayIntersection',
+					intersectionMaterial: material
 				},
 				rings: [{
 					nodes: polygon.map(p => {
@@ -103,6 +108,22 @@ export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
 				osmReference: null
 			}));
 		}
+	}
+
+	private static getIntersectionMaterial(intersection: Intersection<VectorPolylineHandler>): VectorAreaDescriptor['intersectionMaterial'] {
+		const frequencyTable: Record<VectorAreaDescriptor['intersectionMaterial'], number> = {
+			asphalt: 0,
+			concrete: 0
+		};
+
+		for (const dir of intersection.directions) {
+			const material = dir.road.ref.getIntersectionMaterial();
+			++frequencyTable[material];
+		}
+
+		const sorted = Object.entries(frequencyTable).sort((a, b) => b[1] - a[1]);
+
+		return sorted[0][0] as VectorAreaDescriptor['intersectionMaterial'];
 	}
 
 	private static simplifyNodes(nodes: VectorNode[]): VectorNode[] {

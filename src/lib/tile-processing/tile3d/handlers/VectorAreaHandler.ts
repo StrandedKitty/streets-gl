@@ -78,12 +78,10 @@ export default class VectorAreaHandler implements Handler {
 				})];
 			}
 			case 'roadway': {
-				return [this.handleGenericSurface({
-					textureId: this.descriptor.isIntersection ? 16 : 2,
-					isOriented: false,
-					zIndex: this.descriptor.isIntersection ? 4.5 : 3.5,
-					uvScale: this.descriptor.isIntersection ? 0.05 : 0.1,
-				})];
+				return [this.handleRoadway()];
+			}
+			case 'roadwayIntersection': {
+				return [this.handleRoadIntersection()];
 			}
 			case 'footway': {
 				return [this.handleGenericSurface({
@@ -96,6 +94,26 @@ export default class VectorAreaHandler implements Handler {
 		}
 
 		return [];
+	}
+
+	private handleRoadway(): Tile3DProjectedGeometry {
+		return this.handleGenericSurface({
+			textureId: 2,
+			isOriented: false,
+			zIndex: 3.5,
+			uvScale: 0.1
+		});
+	}
+
+	private handleRoadIntersection(): Tile3DProjectedGeometry {
+		const textureId = this.descriptor.intersectionMaterial === 'asphalt' ? 16 : 18;
+
+		return this.handleGenericSurface({
+			textureId: textureId,
+			isOriented: false,
+			zIndex: 4.5,
+			uvScale: 0.05
+		});
 	}
 
 	private handleBuilding(): Tile3DExtrudedGeometry {

@@ -39,7 +39,7 @@ export default class ProjectedMeshMaterialContainer extends MaterialContainer {
 					value: this.renderer.createTexture2DArray({
 						width: 512,
 						height: 512,
-						depth: 16 * 3,
+						depth: 18 * 3,
 						anisotropy: 16,
 						data: [
 							ResourceManager.get('pavementDiffuse'),
@@ -103,6 +103,14 @@ export default class ProjectedMeshMaterialContainer extends MaterialContainer {
 							ResourceManager.get('commonMask'),
 
 							ResourceManager.get('asphaltIntersectionDiffuse'),
+							ResourceManager.get('commonNormal'),
+							ResourceManager.get('commonMask'),
+
+							ResourceManager.get('concreteRoadDiffuse'),
+							ResourceManager.get('commonNormal'),
+							ResourceManager.get('commonMask'),
+
+							ResourceManager.get('concreteIntersectionDiffuse'),
 							ResourceManager.get('commonNormal'),
 							ResourceManager.get('commonMask'),
 						],

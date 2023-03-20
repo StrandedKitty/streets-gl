@@ -67,6 +67,8 @@
 	"concreteFenceMask": {"url": "/textures/surfaces/concrete_fence_mask.png", "type": "image"},
 	"asphaltRoadDiffuse": {"url": "/textures/surfaces/asphalt_road_diffuse.png", "type": "image"},
 	"asphaltIntersectionDiffuse": {"url": "/textures/surfaces/asphalt_intersection_diffuse.png", "type": "image"},
+	"concreteRoadDiffuse": {"url": "/textures/surfaces/concrete_road_diffuse.png", "type": "image"},
+	"concreteIntersectionDiffuse": {"url": "/textures/surfaces/concrete_intersection_diffuse.png", "type": "image"},
 
 	"biomeMap": {
 		"url": "/textures/biomes_blurred.png",

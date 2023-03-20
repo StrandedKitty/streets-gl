@@ -61,7 +61,8 @@ export class VectorDescriptorFactory {
 
 		if (tags.highway) {
 			const descriptor: VectorPolylineDescriptor = {
-				type: 'path'
+				type: 'path',
+				pathMaterial: this.parsePathMaterial(tags.surface)
 			};
 
 			switch (tags.highway) {
@@ -341,11 +342,14 @@ export class VectorDescriptorFactory {
 			};
 		}
 
-		if (tags.area === 'yes' && (
-			tags.highway === 'pedestrian' ||
-			tags.highway === 'footway' ||
-			tags.man_made === 'pier'
-		)) {
+		if (
+			(tags.area === 'yes' || tags.type === 'multipolygon') &&
+			(
+				tags.highway === 'pedestrian' ||
+				tags.highway === 'footway' ||
+				tags.man_made === 'pier'
+			)
+		) {
 			return {
 				type: ContainerType.Descriptor,
 				data: {
@@ -405,14 +409,22 @@ export class VectorDescriptorFactory {
 					type: ModifierType.CircleArea,
 					radius: 10,
 					descriptor: {
-						type: 'roadway',
-						isIntersection: true
+						type: 'roadwayIntersection',
+						intersectionMaterial: 'asphalt'
 					}
 				}
 			};
 		}
 
 		return null;
+	}
+
+	private static parsePathMaterial(str: string): VectorPolylineDescriptor['pathMaterial'] {
+		if (str === 'concrete') {
+			return 'concrete';
+		}
+
+		return 'asphalt';
 	}
 
 	private static parseRoofType(

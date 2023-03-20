@@ -3,22 +3,22 @@ import LinkedVertex from "~/lib/road-graph/LinkedVertex";
 import Road from "~/lib/road-graph/Road";
 import IntersectionPolygonBuilder, {Segment} from "~/lib/road-graph/IntersectionPolygonBuilder";
 
-export interface IntersectionDirection {
-	road: Road<unknown>;
+export interface IntersectionDirection<T> {
+	road: Road<T>;
 	vertex: LinkedVertex;
 	trimmedEnd?: Vec2;
 }
 
-export default class Intersection {
+export default class Intersection<T> {
 	public center: Vec2;
-	public directions: IntersectionDirection[] = [];
+	public directions: IntersectionDirection<T>[] = [];
 
 	public constructor(center: Vec2) {
 		this.center = center;
 	}
 
-	public addDirection(road: Road<unknown>, vertex: LinkedVertex): void {
-		const direction: IntersectionDirection = {
+	public addDirection(road: Road<T>, vertex: LinkedVertex): void {
+		const direction: IntersectionDirection<T> = {
 			road,
 			vertex
 		};

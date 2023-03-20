@@ -16,7 +16,7 @@ export default class VectorPolylineHandler implements Handler {
 	private readonly osmReference: OSMReference;
 	private readonly descriptor: VectorPolylineDescriptor;
 	private readonly vertices: Vec2[];
-	private graph: RoadGraph<OSMReference> = null;
+	private graph: RoadGraph<VectorPolylineHandler> = null;
 	private graphGroup: number = -1;
 
 	public constructor(feature: VectorPolyline) {
@@ -41,7 +41,7 @@ export default class VectorPolylineHandler implements Handler {
 		return [];
 	}
 
-	public setRoadGraph(graph: RoadGraph<OSMReference>): void {
+	public setRoadGraph(graph: RoadGraph<VectorPolylineHandler>): void {
 		if (this.descriptor.type === 'path') {
 			let type = -1;
 
@@ -56,7 +56,7 @@ export default class VectorPolylineHandler implements Handler {
 			if (type !== -1) {
 				this.graph = graph;
 				this.graphGroup = type;
-				graph.addRoad(this.osmReference, this.vertices, this.descriptor.width, type);
+				graph.addRoad(this, this.vertices, this.descriptor.width, type);
 			}
 		}
 	}
@@ -94,12 +94,12 @@ export default class VectorPolylineHandler implements Handler {
 			if (intersectionStart) {
 				if (intersectionStart.directions.length === 2) {
 					for (const {road, vertex} of intersectionStart.directions) {
-						if (road.ref !== this.osmReference) {
+						if (road.ref !== this) {
 							vertexAdjacentToStart = vertex.vector;
 						}
 					}
 				} else if (intersectionStart.directions.length > 2) {
-					const dir = intersectionStart.directions.find(dir => dir.road.ref === this.osmReference);
+					const dir = intersectionStart.directions.find(dir => dir.road.ref === this);
 
 					if (dir && dir.trimmedEnd && this.vertices.length > 1) {
 						if (dir.trimmedEnd.equals(this.vertices[1])) {
@@ -114,12 +114,12 @@ export default class VectorPolylineHandler implements Handler {
 			if (intersectionEnd) {
 				if (intersectionEnd.directions.length === 2) {
 					for (const {road, vertex} of intersectionEnd.directions) {
-						if (road.ref !== this.osmReference) {
+						if (road.ref !== this) {
 							vertexAdjacentToEnd = vertex.vector;
 						}
 					}
 				} else if (intersectionEnd.directions.length > 2) {
-					const dir = intersectionEnd.directions.find(dir => dir.road.ref === this.osmReference);
+					const dir = intersectionEnd.directions.find(dir => dir.road.ref === this);
 
 					if (dir && dir.trimmedEnd && this.vertices.length > 1) {
 						if (dir.trimmedEnd.equals(this.vertices[this.vertices.length - 2])) {
@@ -138,7 +138,7 @@ export default class VectorPolylineHandler implements Handler {
 			uvScaleY: 12,
 			uvMinX: uvParams.minX,
 			uvMaxX: uvParams.maxX,
-			textureId: VectorPolylineHandler.getPathTextureId(this.descriptor.pathType),
+			textureId: VectorPolylineHandler.getPathTextureId(this.descriptor.pathType, this.descriptor.pathMaterial),
 			side,
 			vertexAdjacentToStart,
 			vertexAdjacentToEnd
@@ -175,6 +175,14 @@ export default class VectorPolylineHandler implements Handler {
 		return {...result, type: 'hugging'};
 	}
 
+	public getIntersectionMaterial(): 'asphalt' | 'concrete' {
+		if (this.descriptor.pathMaterial === 'concrete') {
+			return 'concrete';
+		}
+
+		return 'asphalt';
+	}
+
 	private static getPathZIndex(pathType: VectorPolylineDescriptor['pathType']): number {
 		switch (pathType) {
 			case "footway": return 2;
@@ -185,10 +193,18 @@ export default class VectorPolylineHandler implements Handler {
 		}
 	}
 
-	private static getPathTextureId(pathType: VectorPolylineDescriptor['pathType']): number {
+	private static getPathTextureId(
+		pathType: VectorPolylineDescriptor['pathType'],
+		pathMaterial: VectorPolylineDescriptor['pathMaterial'],
+	): number {
 		switch (pathType) {
 			case "footway": return 1;
-			case "roadway": return 15;
+			case "roadway": {
+				if (pathMaterial === 'asphalt') return 15;
+				if (pathMaterial === 'concrete') return 17;
+
+				throw new Error('Unexpected path material');
+			}
 			case "cycleway": return 8;
 			case "railway": return 9;
 			case "tramway": return 9;

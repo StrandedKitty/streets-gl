@@ -8,6 +8,7 @@ export interface VectorPolylineDescriptor {
 	name?: string;
 	type: 'path' | 'fence' | 'hedge' | 'powerLine';
 	pathType?: 'roadway' | 'footway' | 'cycleway' | 'railway' | 'tramway';
+	pathMaterial?: 'asphalt' | 'concrete' | 'dirt' | 'sand' | 'gravel' | 'cobblestone'
 	width?: number;
 	height?: number;
 	minHeight?: number;
@@ -18,8 +19,8 @@ export interface VectorPolylineDescriptor {
 
 export interface VectorAreaDescriptor {
 	name?: string;
-	type: 'building' | 'buildingPart' | 'roadway' | 'footway' | 'water' | 'farmland' | 'sand' | 'rock' | 'pitch' | 'manicuredGrass';
-	isIntersection?: boolean;
+	type: 'building' | 'buildingPart' | 'roadway' | 'roadwayIntersection' | 'footway' | 'water' | 'farmland' | 'sand' | 'rock' | 'pitch' | 'manicuredGrass';
+	intersectionMaterial?: 'asphalt' | 'concrete';
 	pitchType?: 'football' | 'basketball' | 'tennis';
 	buildingLevels?: number;
 	buildingHeight?: number;
