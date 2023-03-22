@@ -1,0 +1,30 @@
+{
+	"compilerOptions": {
+		"module": "esnext",
+		"target": "es6",
+		"lib": [
+			"es2021",
+			"dom"
+		],
+		"allowJs": true,
+		"sourceMap": false,
+		"moduleResolution": "node",
+		"alwaysStrict": true,
+		"noImplicitAny": true,
+		"noImplicitThis": true,
+		"strictBindCallApply": true,
+		"strictFunctionTypes": true,
+		"resolveJsonModule": true,
+		"allowSyntheticDefaultImports": true,
+		"noImplicitOverride": true,
+		"noImplicitReturns": true,
+		"jsx": "react",
+		"baseUrl": "./src",
+		"paths": {
+			"~/*": ["*"]
+		}
+	},
+	"include": [
+		"src"
+	],
+}

@@ -1,6 +1,7 @@
 import RenderGraph from "./RenderGraph";
 import Node from "./Node";
-import Pass, {InternalResource, InternalResourceType, ResourcePropMap} from "./Pass";
+import Pass, {InternalResourceType} from "./Pass";
+import type {InternalResource, ResourcePropMap} from "./Pass";
 import Resource from "./Resource";
 import PhysicalResource from "./PhysicalResource";
 import PhysicalResourceBuilder from "./PhysicalResourceBuilder";

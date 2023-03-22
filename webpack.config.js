@@ -4,8 +4,9 @@ const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
+const {EsbuildPlugin} = require('esbuild-loader');
 
-module.exports = [{
+module.exports = (env, argv) => ([{
 	entry: './src/app/App.ts',
 	output: {
 		filename: './js/main.js',
@@ -15,10 +16,17 @@ module.exports = [{
 		maxEntrypointSize: 8000000,
 		maxAssetSize: 8000000
 	},
+	optimization: {
+		minimizer: [
+			new EsbuildPlugin({
+				target: 'es2020'
+			})
+		]
+	},
 	devServer: {
 		hot: true
 	},
-	devtool: 'inline-source-map',
+	devtool: argv.mode === 'production' ? undefined : 'inline-source-map',
 	plugins: [
 		new CleanWebpackPlugin(),
 		new HtmlWebpackPlugin({
@@ -69,14 +77,13 @@ module.exports = [{
 				],
 				sideEffects: true
 			}, {
-				test: /\.worker\.ts$/,
-				use: {loader: 'worker-loader'},
-			}, {
-				test: /\.ts|.tsx$/,
-				loader: 'ts-loader',
-				options: {configFile: 'tsconfig.json'},
-				exclude: /node_modules/
-			}
+				test: /\.[jt]sx?$/,
+				loader: 'esbuild-loader',
+				options: {
+					target: 'es2020',
+					tsconfig: argv.mode === 'production' ? 'tsconfig.prod.json' : 'tsconfig.json'
+				}
+			},
 		]
 	},
 	resolve: {
@@ -85,4 +92,4 @@ module.exports = [{
 			'~': path.resolve(__dirname, 'src')
 		}
 	}
-}];
+}]);
