@@ -46,11 +46,21 @@ export default class VectorPolylineHandler implements Handler {
 			let type = -1;
 
 			switch (this.descriptor.pathType) {
-				case 'roadway': type = 0; break;
-				case 'footway': type = 1; break;
-				case 'cycleway': type = 2; break;
-				case 'railway': type = 3; break;
-				case 'tramway': type = 4; break;
+				case 'roadway':
+					type = 0;
+					break;
+				case 'footway':
+					type = 1;
+					break;
+				case 'cycleway':
+					type = 2;
+					break;
+				case 'railway':
+					type = 3;
+					break;
+				case 'tramway':
+					type = 4;
+					break;
 			}
 
 			if (type !== -1) {
@@ -66,21 +76,14 @@ export default class VectorPolylineHandler implements Handler {
 		builder.setZIndex(VectorPolylineHandler.getPathZIndex(this.descriptor.pathType));
 		builder.addRing(Tile3DRingType.Outer, this.vertices);
 
-		let side: RoadSide = RoadSide.Both;
-
-		if (this.descriptor.side === 'left') {
-			side = RoadSide.Left;
-		} else if (this.descriptor.side === 'right') {
-			side = RoadSide.Right;
-		}
-
-		let uvParams: {minX: number; maxX: number};
-
-		if (this.descriptor.type === 'path' && this.descriptor.pathType === 'roadway') {
-			uvParams = getRoadUV(this.descriptor.lanesForward, this.descriptor.lanesBackward);
-		} else {
-			uvParams = {minX: 0, maxX: 1};
-		}
+		const side = VectorPolylineHandler.getRoadSideFromDescriptor(this.descriptor.side);
+		const uvAndTextureParams = VectorPolylineHandler.getPathTextureIdAndUV(
+			this.descriptor.pathType,
+			this.descriptor.pathMaterial,
+			this.descriptor.lanesForward,
+			this.descriptor.lanesBackward,
+			this.descriptor.width
+		);
 
 		const pointStart = this.vertices[0];
 		const pointEnd = this.vertices[this.vertices.length - 1];
@@ -135,10 +138,12 @@ export default class VectorPolylineHandler implements Handler {
 
 		builder.addPath({
 			width: this.descriptor.width,
-			uvScaleY: 12,
-			uvMinX: uvParams.minX,
-			uvMaxX: uvParams.maxX,
-			textureId: VectorPolylineHandler.getPathTextureId(this.descriptor.pathType, this.descriptor.pathMaterial),
+			uvMinX: uvAndTextureParams.uvMinX,
+			uvMaxX: uvAndTextureParams.uvMaxX,
+			textureId: uvAndTextureParams.textureId,
+			uvFollowRoad: uvAndTextureParams.uvFollowRoad,
+			uvScale: uvAndTextureParams.uvScale,
+			uvScaleY: uvAndTextureParams.uvScaleY,
 			side,
 			vertexAdjacentToStart,
 			vertexAdjacentToEnd
@@ -185,11 +190,16 @@ export default class VectorPolylineHandler implements Handler {
 
 	private static getPathZIndex(pathType: VectorPolylineDescriptor['pathType']): number {
 		switch (pathType) {
-			case "footway": return 2;
-			case "cycleway": return 3;
-			case "roadway": return 4;
-			case "railway": return 5;
-			case "tramway": return 6;
+			case "footway":
+				return 2;
+			case "cycleway":
+				return 3;
+			case "roadway":
+				return 4;
+			case "railway":
+				return 5;
+			case "tramway":
+				return 6;
 		}
 	}
 
@@ -198,16 +208,118 @@ export default class VectorPolylineHandler implements Handler {
 		pathMaterial: VectorPolylineDescriptor['pathMaterial'],
 	): number {
 		switch (pathType) {
-			case "footway": return 1;
+			case "footway":
+				return 1;
 			case "roadway": {
 				if (pathMaterial === 'asphalt') return 15;
 				if (pathMaterial === 'concrete') return 17;
+				if (pathMaterial === 'wood') return 19;
 
 				throw new Error('Unexpected path material');
 			}
-			case "cycleway": return 8;
-			case "railway": return 9;
-			case "tramway": return 9;
+			case "cycleway":
+				return 8;
+			case "railway":
+				return 9;
+			case "tramway":
+				return 9;
 		}
+	}
+
+	private static getPathTextureIdAndUV(
+		pathType: VectorPolylineDescriptor['pathType'],
+		pathMaterial: VectorPolylineDescriptor['pathMaterial'],
+		lanesForward: number,
+		lanesBackward: number,
+		width: number
+	): {
+		textureId: number;
+		uvScale: number;
+		uvScaleY: number;
+		uvMinX: number;
+		uvMaxX: number;
+		uvFollowRoad: boolean;
+	} {
+		const params = {
+			textureId: 0,
+			uvScale: 1,
+			uvScaleY: 1,
+			uvMinX: 0,
+			uvMaxX: 1,
+			uvFollowRoad: false
+		};
+
+		switch (pathType) {
+			case "footway": {
+				switch (pathMaterial) {
+					case "wood": {
+						params.textureId = 19;
+						params.uvFollowRoad = true;
+						params.uvScaleY = 4;
+						params.uvMaxX = width / 4;
+						break;
+					}
+					default: {
+						params.textureId = 1;
+						params.uvFollowRoad = false;
+						params.uvScale = 8;
+					}
+				}
+				break;
+			}
+			case "roadway": {
+				const uvXParams = getRoadUV(lanesForward, lanesBackward);
+				params.uvMinX = uvXParams.minX;
+				params.uvMaxX = uvXParams.maxX;
+				params.uvFollowRoad = true;
+
+				switch (pathMaterial) {
+					case "asphalt": {
+						params.textureId = 15;
+						params.uvScaleY = 12;
+						break;
+					}
+					case "concrete": {
+						params.textureId = 17;
+						params.uvScaleY = 12;
+						break;
+					}
+					case "wood": {
+						params.textureId = 19;
+						params.uvScaleY = 4;
+						params.uvMaxX = width / 4;
+						break;
+					}
+				}
+				break;
+			}
+			case "cycleway": {
+				params.textureId = 8;
+				params.uvFollowRoad = false;
+				params.uvScale = 8;
+				break;
+			}
+			case "tramway":
+			case "railway": {
+				params.textureId = 9;
+				params.uvFollowRoad = true;
+				params.uvScale = 12;
+				break;
+			}
+		}
+
+		return params;
+	}
+
+	private static getRoadSideFromDescriptor(descriptorValue: VectorPolylineDescriptor['side']): RoadSide {
+		if (descriptorValue === 'left') {
+			return RoadSide.Left;
+		}
+
+		if (descriptorValue === 'right') {
+			return RoadSide.Right;
+		}
+
+		return RoadSide.Both;
 	}
 }

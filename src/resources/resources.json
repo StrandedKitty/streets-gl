@@ -69,6 +69,9 @@
 	"asphaltIntersectionDiffuse": {"url": "/textures/surfaces/asphalt_intersection_diffuse.png", "type": "image"},
 	"concreteRoadDiffuse": {"url": "/textures/surfaces/concrete_road_diffuse.png", "type": "image"},
 	"concreteIntersectionDiffuse": {"url": "/textures/surfaces/concrete_intersection_diffuse.png", "type": "image"},
+	"woodRoadDiffuse": {"url": "/textures/surfaces/wood_road_diffuse.png", "type": "image"},
+	"woodRoadNormal": {"url": "/textures/surfaces/wood_road_normal.png", "type": "image"},
+	"woodRoadMask": {"url": "/textures/surfaces/wood_road_mask.png", "type": "image"},
 
 	"biomeMap": {
 		"url": "/textures/biomes_blurred.png",

@@ -66,36 +66,42 @@ export default class Tile3DProjectedGeometryBuilder {
 
 	public addPath(
 		{
+			vertexAdjacentToStart = null,
+			vertexAdjacentToEnd = null,
 			width,
-			textureId,
-			height = 0,
-			side = RoadSide.Both,
+			uvFollowRoad,
+			uvScale = 1,
 			uvScaleY = 1,
+			side = RoadSide.Both,
 			uvMinX = 0,
 			uvMaxX = 1,
-			vertexAdjacentToStart = null,
-			vertexAdjacentToEnd = null
+			height = 0,
+			textureId
 		}: {
-			width: number;
-			textureId: number;
-			height?: number;
-			side?: RoadSide;
-			uvScaleY?: number;
-			uvMinX?: number;
-			uvMaxX?: number;
 			vertexAdjacentToStart?: Vec2;
 			vertexAdjacentToEnd?: Vec2;
+			width: number;
+			uvFollowRoad: boolean;
+			uvScale?: number;
+			uvScaleY?: number;
+			side?: RoadSide;
+			uvMinX?: number;
+			uvMaxX?: number;
+			height?: number;
+			textureId: number;
 		}
 	): void {
 		const road = RoadBuilder.build({
 			vertices: this.multipolygon.rings[0].nodes,
-			width,
-			side,
-			uvScaleY,
-			uvMinX,
-			uvMaxX,
 			vertexAdjacentToStart,
-			vertexAdjacentToEnd
+			vertexAdjacentToEnd,
+			width,
+			uvFollowRoad,
+			uvScale,
+			uvScaleY,
+			side,
+			uvMinX,
+			uvMaxX
 		});
 
 		this.projectAndAddGeometry({
@@ -157,6 +163,7 @@ export default class Tile3DProjectedGeometryBuilder {
 		const road = RoadBuilder.build({
 			vertices: this.multipolygon.rings[0].nodes,
 			width: width,
+			uvFollowRoad: true,
 			uvScaleY: width * 2
 		});
 

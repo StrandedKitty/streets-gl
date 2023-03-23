@@ -420,8 +420,9 @@ export class VectorDescriptorFactory {
 	}
 
 	private static parsePathMaterial(str: string): VectorPolylineDescriptor['pathMaterial'] {
-		if (str === 'concrete') {
-			return 'concrete';
+		switch (str) {
+			case 'concrete': return 'concrete';
+			case 'wood': return 'wood';
 		}
 
 		return 'asphalt';

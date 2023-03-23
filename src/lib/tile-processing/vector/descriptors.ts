@@ -8,7 +8,7 @@ export interface VectorPolylineDescriptor {
 	name?: string;
 	type: 'path' | 'fence' | 'hedge' | 'powerLine';
 	pathType?: 'roadway' | 'footway' | 'cycleway' | 'railway' | 'tramway';
-	pathMaterial?: 'asphalt' | 'concrete' | 'dirt' | 'sand' | 'gravel' | 'cobblestone'
+	pathMaterial?: 'asphalt' | 'concrete' | 'dirt' | 'sand' | 'gravel' | 'cobblestone' | 'wood';
 	width?: number;
 	height?: number;
 	minHeight?: number;

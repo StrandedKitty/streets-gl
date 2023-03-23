@@ -17,14 +17,18 @@ export default class WaterTileSource extends TileSource<Float32Array> {
 	}
 
 	private async fetchTile(x: number, y: number, zoom: number, scale: number): Promise<PBFPolygon[]> {
+		const polygons: PBFPolygon[] = [];
 		const url = WaterTileSource.getURL(x, y, zoom);
 		const response = await fetch(url, {
 			method: 'GET'
 		});
 
+		if (response.status !== 200) {
+			return polygons;
+		}
+
 		const pbf = new Pbf(await response.arrayBuffer());
 		const obj = proto.read(pbf);
-		const polygons: PBFPolygon[] = [];
 
 		for (const layer of obj.layers) {
 			if (layer.name === 'water') {

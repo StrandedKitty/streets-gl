@@ -13,6 +13,8 @@ export default class RoadBuilder {
 			vertexAdjacentToStart,
 			vertexAdjacentToEnd,
 			width,
+			uvFollowRoad,
+			uvScale = 1,
 			uvScaleY = 1,
 			side = RoadSide.Both,
 			uvMinX = 0,
@@ -22,6 +24,8 @@ export default class RoadBuilder {
 			vertexAdjacentToStart?: Vec2;
 			vertexAdjacentToEnd?: Vec2;
 			width: number;
+			uvFollowRoad: boolean;
+			uvScale?: number;
 			uvScaleY?: number;
 			side?: RoadSide;
 			uvMinX?: number;
@@ -44,6 +48,10 @@ export default class RoadBuilder {
 			uvMinX,
 			uvMaxX,
 			side);
+
+		if (!uvFollowRoad) {
+			this.fillUVsFromPositions(geometry.uv, geometry.position, uvScale);
+		}
 
 		return {
 			position: geometry.position,
@@ -455,6 +463,16 @@ export default class RoadBuilder {
 		}
 
 		return {position, uv};
+	}
+
+	private static fillUVsFromPositions(uv: number[], position: number[], scale: number): void {
+		for (let i = 0, j = 0; i < uv.length; i += 2, j += 3) {
+			const px = position[j];
+			const pz = position[j + 2];
+
+			uv[i] = px / scale;
+			uv[i + 1] = pz / scale;
+		}
 	}
 
 	private static getControlPoints(

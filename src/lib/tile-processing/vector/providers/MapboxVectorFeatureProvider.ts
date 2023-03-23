@@ -71,7 +71,7 @@ export default class MapboxVectorFeatureProvider extends VectorFeatureProvider {
 			method: 'GET'
 		});
 
-		if (response.status === 404) {
+		if (response.status !== 200) {
 			return polygons;
 		}
 
