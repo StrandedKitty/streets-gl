@@ -14,8 +14,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Docker Layer Caching
-        uses: satackey/action-docker-layer-caching@v0.0.11
       - name: Build and push the Docker image
         uses: docker/build-push-action@v2
         with:
