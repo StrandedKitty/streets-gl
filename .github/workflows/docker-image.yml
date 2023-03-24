@@ -1,0 +1,25 @@
+name: docker-image
+on:
+  push:
+    branches:
+      - 'dev'
+jobs:
+  build-and-publish-docker-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker Layer Caching
+        uses: satackey/action-docker-layer-caching@v0.0.11
+      - name: Build and push the Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: ./
+          file: ./Dockerfile
+          push: true
+          tags: ghcr.io/strandedkitty/streets-gl:latest
