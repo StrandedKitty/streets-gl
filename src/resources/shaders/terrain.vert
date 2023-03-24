@@ -62,7 +62,7 @@ void main() {
 
 	vMixFactor = max(abs(cameraPosition.x - position.x), abs(cameraPosition.y - position.z));
 
-	float height = texture(tRingHeight, vec3(uv * segmentCount / (segmentCount + 1.), levelId)).r;
+	float height = texelFetch(tRingHeight, ivec3(uv * segmentCount + 0.5 / segmentCount, levelId), 0).r;
 
 	vec3 transformedPosition = position.xyz + vec3(0, height, 0);
 	vec4 cameraSpacePosition = modelViewMatrix * vec4(transformedPosition, 1.0);
