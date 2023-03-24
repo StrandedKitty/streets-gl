@@ -9,7 +9,7 @@ const {EsbuildPlugin} = require('esbuild-loader');
 module.exports = (env, argv) => ([{
 	entry: './src/app/App.ts',
 	output: {
-		filename: './js/main.js',
+		filename: './js/main.[chunkhash].js',
 		path: path.resolve(__dirname, 'build')
 	},
 	performance: {
@@ -32,7 +32,7 @@ module.exports = (env, argv) => ([{
 		new HtmlWebpackPlugin({
 			filename: 'index.html',
 			template: './src/index.html',
-			minify: false
+			minify: argv.mode === 'production'
 		}),
 		new MiniCssExtractPlugin(),
 		new CopyPlugin({
