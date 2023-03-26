@@ -30,8 +30,7 @@
 		color: themed('text-color');
 
 		&--active {
-			background: themed('text-color');;
-			color: themed('text-color-opposite');
+			background: themed('nav-icon-selected-bg');
 		}
 	}
 }

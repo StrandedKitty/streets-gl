@@ -31,6 +31,7 @@ const MainScreen: React.FC = () => {
 	useEffect(() => {
 		const handler = (e: KeyboardEvent): void => {
 			if (e.code === 'KeyU' && (e.ctrlKey || e.metaKey)) {
+				e.preventDefault();
 				setIsUIVisible(!isUIVisible);
 			}
 

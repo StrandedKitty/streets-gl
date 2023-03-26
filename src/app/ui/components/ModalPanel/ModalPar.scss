@@ -1,9 +1,18 @@
 .modalPar {
 	margin: 0 0 16px 0;
 	line-height: 24px;
+	font-size: 14px;
+
+	&:last-child {
+		margin: 0;
+	}
+
+	&--small {
+		font-size: 12px;
+	}
 
 	&__anchor {
-		color: #fff;
+		color: inherit;
 
 		&__icon {
 			margin: 0 4px -3px 0;

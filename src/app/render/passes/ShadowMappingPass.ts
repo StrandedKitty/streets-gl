@@ -2,19 +2,14 @@ import Pass from "./Pass";
 import {InternalResourceType} from "~/lib/render-graph";
 import RenderPassResource from "../render-graph/resources/RenderPassResource";
 import PassManager from "../PassManager";
-import Tile from "../../objects/Tile";
 import AbstractMaterial from "~/lib/renderer/abstract-renderer/AbstractMaterial";
 import {UniformFloat1, UniformMatrix4} from "~/lib/renderer/abstract-renderer/Uniform";
 import Mat4 from "~/lib/math/Mat4";
 import TreeDepthMaterialContainer from "../materials/TreeDepthMaterialContainer";
 import AircraftDepthMaterialContainer from "../materials/AircraftDepthMaterialContainer";
 import BuildingDepthMaterialContainer from "../materials/BuildingDepthMaterialContainer";
-import SettingsManager from "~/app/ui/SettingsManager";
 import ProjectedMeshDepthMaterialContainer from "~/app/render/materials/ProjectedMeshDepthMaterialContainer";
 import AbstractTexture2DArray from "~/lib/renderer/abstract-renderer/AbstractTexture2DArray";
-import Config from "~/app/Config";
-import TerrainRing from "~/app/objects/TerrainRing";
-import Vec2 from "~/lib/math/Vec2";
 import CSMCascadeCamera from "~/app/render/CSMCascadeCamera";
 
 export default class ShadowMappingPass extends Pass<{
@@ -46,7 +41,11 @@ export default class ShadowMappingPass extends Pass<{
 		this.treeMaterial = new TreeDepthMaterialContainer(this.renderer).material;
 		this.aircraftMaterial = new AircraftDepthMaterialContainer(this.renderer).material;
 
-		SettingsManager.onSettingChange('shadows', ({statusValue}) => {
+		this.listenToSettings();
+	}
+
+	private listenToSettings(): void {
+		this.manager.settings.onChange('shadows', ({statusValue}) => {
 			const csm = this.manager.sceneSystem.objects.csm;
 
 			if (statusValue === 'low') {
@@ -65,7 +64,7 @@ export default class ShadowMappingPass extends Pass<{
 
 			csm.updateCascades();
 			this.updateShadowMapDescriptor();
-		});
+		}, true);
 	}
 
 	private updateShadowMapDescriptor(): void {

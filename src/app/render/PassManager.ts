@@ -3,7 +3,9 @@ import Pass from './passes/Pass';
 import AbstractRenderer from '~/lib/renderer/abstract-renderer/AbstractRenderer';
 import RenderPassResource from './render-graph/resources/RenderPassResource';
 import RenderPassResourceDescriptor from './render-graph/resource-descriptors/RenderPassResourceDescriptor';
-import TextureResourceDescriptor, {TextureResourceType} from './render-graph/resource-descriptors/TextureResourceDescriptor';
+import TextureResourceDescriptor, {
+	TextureResourceType
+} from './render-graph/resource-descriptors/TextureResourceDescriptor';
 import {RendererTypes} from '~/lib/renderer/RendererTypes';
 import SystemManager from '../SystemManager';
 import SceneSystem from '../systems/SceneSystem';
@@ -13,7 +15,8 @@ import Vec2 from "~/lib/math/Vec2";
 import MapTimeSystem from "../systems/MapTimeSystem";
 import Config from "../Config";
 import TextureResource from "./render-graph/resources/TextureResource";
-import SettingsManager from "../ui/SettingsManager";
+import SettingsContainer from "~/app/settings/SettingsContainer";
+import SettingsSystem from "~/app/systems/SettingsSystem";
 
 interface SharedResources {
 	BackbufferRenderPass: RenderPassResource;
@@ -56,6 +59,7 @@ interface SharedResources {
 
 interface SharedResourcesMap {
 	set<K extends keyof SharedResources>(key: K, value: SharedResources[K]): this;
+
 	get<K extends keyof SharedResources>(key: K): SharedResources[K];
 }
 
@@ -64,15 +68,23 @@ export default class PassManager {
 	public readonly resourceFactory: RenderGraphResourceFactory;
 	public readonly renderer: AbstractRenderer;
 	public readonly renderGraph: RG.RenderGraph;
-	public passes: Set<Pass> = new Set();
-	private passMap: Map<string, Pass> = new Map();
-	public sharedResources: SharedResourcesMap = new Map();
+	public readonly settings: SettingsContainer;
+	public readonly passes: Set<Pass> = new Set();
+	private readonly passMap: Map<string, Pass> = new Map();
+	private readonly sharedResources: SharedResourcesMap = new Map();
 
-	public constructor(systemManager: SystemManager, renderer: AbstractRenderer, resourceFactory: RenderGraphResourceFactory, renderGraph: RG.RenderGraph) {
+	public constructor(
+		systemManager: SystemManager,
+		renderer: AbstractRenderer,
+		resourceFactory: RenderGraphResourceFactory,
+		renderGraph: RG.RenderGraph,
+		settings: SettingsContainer
+	) {
 		this.systemManager = systemManager;
 		this.renderer = renderer;
 		this.resourceFactory = resourceFactory;
 		this.renderGraph = renderGraph;
+		this.settings = settings;
 
 		this.initSharedResources();
 		this.resize();
@@ -111,9 +123,12 @@ export default class PassManager {
 	}
 
 	public listenToSettings(): void {
-		const updateDoFAndBloom = (): void => {
-			const dofEnabled = SettingsManager.getSetting('dof').statusValue !== 'off';
-			const bloomEnabled = SettingsManager.getSetting('bloom').statusValue !== 'off';
+		const settings = this.systemManager.getSystem(SettingsSystem).settings;
+
+		const updateDoFBloomTAA = (): void => {
+			const taaEnabled = settings.get('taa').statusValue !== 'off';
+			const dofEnabled = settings.get('dof').statusValue !== 'off';
+			const bloomEnabled = settings.get('bloom').statusValue !== 'off';
 			let screenPassHDRResource: RenderPassResource;
 			let bloomPassColorResource: RenderPassResource;
 
@@ -121,44 +136,51 @@ export default class PassManager {
 				screenPassHDRResource = this.getSharedResource('Bloom');
 			} else if (dofEnabled) {
 				screenPassHDRResource = this.getSharedResource('DoF');
-			} else {
+			} else if (taaEnabled) {
 				screenPassHDRResource = this.getSharedResource('HDRAntialiased');
+			} else {
+				screenPassHDRResource = this.getSharedResource('HDR');
 			}
 
 			if (dofEnabled) {
 				bloomPassColorResource = this.getSharedResource('DoF');
-			} else {
+			} else if (taaEnabled) {
 				bloomPassColorResource = this.getSharedResource('HDRAntialiased');
+			} else {
+				bloomPassColorResource = this.getSharedResource('HDR');
 			}
 
 			this.getPass('ScreenPass').setResource('HDR', screenPassHDRResource);
 			this.getPass('BloomPass').setResource('Color', bloomPassColorResource);
 		};
 
-		SettingsManager.onSettingChange('ssao', ({statusValue}) => {
+		settings.onChange('ssao', ({statusValue}) => {
 			const shadingPassSSAOResource = statusValue === 'on' ? this.getSharedResource('SSAOResult') : null;
 			this.getPass('ShadingPass').setResource('SSAO', shadingPassSSAOResource);
-		});
-		SettingsManager.onSettingChange('shadows', ({statusValue}) => {
+		}, true);
+		settings.onChange('shadows', ({statusValue}) => {
 			const shadingPassShadowMapsResource = statusValue !== 'off' ? this.getSharedResource('ShadowMaps') : null;
 			this.getPass('ShadingPass').setResource('ShadowMaps', shadingPassShadowMapsResource);
-		});
-		SettingsManager.onSettingChange('dof', () => {
-			updateDoFAndBloom();
-		});
-		SettingsManager.onSettingChange('bloom', () => {
-			updateDoFAndBloom();
-		});
-		SettingsManager.onSettingChange('ssr', ({statusValue}) => {
+		}, true);
+		settings.onChange('dof', () => {
+			updateDoFBloomTAA();
+		}, true);
+		settings.onChange('bloom', () => {
+			updateDoFBloomTAA();
+		}, true);
+		settings.onChange('taa', () => {
+			updateDoFBloomTAA();
+		}, true);
+		settings.onChange('ssr', ({statusValue}) => {
 			const shadingPassSSRResource = statusValue !== 'off' ? this.getSharedResource('SSR') : null;
 			this.getPass('ShadingPass').setResource('SSR', shadingPassSSRResource);
 
 			this.getSharedResource('SSR').isUsedExternally = statusValue !== 'off';
-		});
-		SettingsManager.onSettingChange('labels', ({statusValue}) => {
+		}, true);
+		settings.onChange('labels', ({statusValue}) => {
 			const screenPassLabels = statusValue === 'on' ? this.getSharedResource('Labels') : null;
 			this.getPass('ScreenPass').setResource('Labels', screenPassLabels);
-		});
+		}, true);
 	}
 
 	private initSharedResources(): void {

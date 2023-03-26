@@ -1,10 +1,9 @@
 import System from "../System";
-import SystemManager from "../SystemManager";
 import TileSystem from "./TileSystem";
 import Vec2 from "~/lib/math/Vec2";
 import MathUtils from "~/lib/math/MathUtils";
 import HeightProvider from "../world/HeightProvider";
-import SettingsManager from "~/app/ui/SettingsManager";
+import SettingsSystem from "~/app/systems/SettingsSystem";
 
 interface QueryAircraft {
 	id: string;
@@ -54,15 +53,27 @@ export default class VehicleSystem extends System {
 	private enabled: boolean = true;
 
 	public postInit(): void {
-		setInterval(() => {
+		this.startTimer();
+		this.listenToSettings();
+	}
+
+	private listenToSettings(): void {
+		const settings = this.systemManager.getSystem(SettingsSystem).settings;
+
+		settings.onChange('airTraffic', ({statusValue}) => {
+			this.enabled = statusValue === 'on';
+		}, true);
+	}
+
+	private startTimer(): void {
+		const fn = (): void => {
 			if (this.enabled) {
 				this.fetchData();
 			}
-		}, QueryInterval);
+		};
 
-		SettingsManager.onSettingChange('airTraffic', ({statusValue}) => {
-			this.enabled = statusValue === 'on';
-		});
+		fn();
+		setInterval(fn, QueryInterval);
 	}
 
 	public update(deltaTime: number): void {

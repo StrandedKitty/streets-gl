@@ -39,10 +39,6 @@ export default class CursorStyleSystem extends System {
 	}
 
 	private updateStyle(): void {
-		if(Config.IsMobileBrowser) {
-			return;
-		}
-
 		if (this.grabbingEnabled) {
 			this.element.style.cursor = CursorStyle.Grabbing;
 			return;

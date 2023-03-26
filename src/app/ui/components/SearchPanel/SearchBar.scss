@@ -5,10 +5,10 @@
 	padding: 8px 12px;
 	display: flex;
 	flex-direction: row;
+	border-radius: 999px;
 
 	@extend %panel-bg;
 	@extend %panel-border;
-	@extend %panel-border-radius;
 
 	&__leftIcon {
 		margin: 0 4px 0 0;
@@ -25,7 +25,7 @@
 
 		&::placeholder {
 			opacity: 0.9;
-			font-weight: 700;
+			font-weight: 600;
 		}
 	}
 }

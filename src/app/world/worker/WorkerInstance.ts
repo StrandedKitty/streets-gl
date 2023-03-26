@@ -15,7 +15,7 @@ ctx.addEventListener('message', async event => {
 	const y = data.tile[1];
 
 	if (data.type === WorkerMessageOutgoingType.Start) {
-		load(x, y);
+		load(x, y, data.overpassURL);
 	}
 });
 
@@ -23,8 +23,8 @@ function sendMessage(msg: WorkerMessageIncoming): void {
 	ctx.postMessage(msg);
 }
 
-async function load(x: number, y: number): Promise<void> {
-	const provider = new Tile3DFromVectorProvider();
+async function load(x: number, y: number, overpassURL: string): Promise<void> {
+	const provider = new Tile3DFromVectorProvider(overpassURL);
 	const collectionPromise = provider.getCollection({x, y, zoom: 16});
 
 	collectionPromise.then(collection => {

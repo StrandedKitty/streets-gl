@@ -10,6 +10,10 @@ export default class SystemManager {
 		const addedSystems: [AbstractSystemType, System][] = [];
 
 		for (const systemType of systemTypes) {
+			if (this.systems.has(systemType)) {
+				throw new Error('System already exists');
+			}
+
 			const system = new systemType();
 			system.systemManager = this;
 

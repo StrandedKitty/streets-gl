@@ -1,59 +1,25 @@
-.resetButton {
-	border: 1px solid white;
-	border-radius: 4px;
-	padding: 2px 4px;
-	font-size: 12px;
-	min-width: 36px;
-	line-height: 18px;
-	display: block;
-	color: white;
-	background: transparent;
-	float: right;
-	margin: 16px 0 0 0;
-}
+@import "../../styles/common.scss";
 
-.range {
-	width: 200px;
+.panelBodyContainer {
+	max-height: calc(100vh - 400px);
+	overflow: hidden;
+	overflow-y: scroll;
 
-	&__value {
-		width: 100%;
-		text-align: center;
-		font-size: 12px;
-		line-height: 12px;
+	&::-webkit-scrollbar {
+		width: 5px;
 	}
 
-	&__input {
-		width: 100%;
-		display: block;
-		margin: 0;
+	&::-webkit-scrollbar-track-piece {
+		background-color: transparent;
+		opacity: 0.7;
 	}
 
-	&__footer {
-		width: 100%;
-
-		&__minMax {
-			font-size: 8px;
-			line-height: 12px;
-
-			&--left {
-				float: left;
-			}
-
-			&--right {
-				float: right;
-			}
-		}
+	&::-webkit-scrollbar-thumb {
+		background-color: #CBCBCB;
+		border-radius: 999px;
 	}
-}
 
-.select {
-	border: 1px solid white;
-	border-radius: 4px;
-	padding: 2px 4px;
-	font-size: 12px;
-	min-width: 200px;
-	line-height: 18px;
-	display: block;
-	color: white;
-	background: transparent;
+	&::-webkit-scrollbar-thumb:hover {
+		background-color: #909090;
+	}
 }

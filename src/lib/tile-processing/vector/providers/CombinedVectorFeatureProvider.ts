@@ -4,8 +4,15 @@ import VectorFeatureCollection from "~/lib/tile-processing/vector/features/Vecto
 import OverpassVectorFeatureProvider from "~/lib/tile-processing/vector/providers/OverpassVectorFeatureProvider";
 
 export default class CombinedVectorFeatureProvider extends VectorFeatureProvider {
-	private overpassProvider: OverpassVectorFeatureProvider = new OverpassVectorFeatureProvider();
-	private mapboxProvider: MapboxVectorFeatureProvider = new MapboxVectorFeatureProvider();
+	private readonly overpassProvider: OverpassVectorFeatureProvider;
+	private readonly mapboxProvider: MapboxVectorFeatureProvider;
+
+	public constructor(overpassURL: string) {
+		super();
+
+		this.overpassProvider = new OverpassVectorFeatureProvider(overpassURL);
+		this.mapboxProvider = new MapboxVectorFeatureProvider();
+	}
 
 	public async getCollection(
 		{

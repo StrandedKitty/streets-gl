@@ -1,13 +1,13 @@
 import {AtomEffect} from "recoil";
 
-interface Storage {
+export interface StateStorage {
 	getStateFieldValue(key: string): any;
 	setStateFieldValue(key: string, value: any): void;
 	addStateFieldListener(key: string, listener: (value: any) => void): void;
 	removeStateFieldListener(key: string, listener: (value: any) => void): void;
 }
 
-export const bidirectionalSyncEffect = (key: any, storage: Storage): AtomEffect<any> => (
+export const bidirectionalSyncEffect = (key: any, storage: StateStorage): AtomEffect<any> => (
 	{setSelf, trigger, onSet}
 ) => {
 	if (trigger === 'get') {

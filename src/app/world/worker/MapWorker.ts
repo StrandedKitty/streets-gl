@@ -21,7 +21,7 @@ export default class MapWorker {
 		});
 	}
 
-	public async start(x: number, y: number): Promise<StaticTileGeometry> {
+	public async start(x: number, y: number, overpassURL: string): Promise<StaticTileGeometry> {
 		this.queueLength++;
 
 		const promise = new Promise<StaticTileGeometry>((resolve, reject) => {
@@ -30,6 +30,7 @@ export default class MapWorker {
 
 		this.sendMessage({
 			type: WorkerMessageOutgoingType.Start,
+			overpassURL: overpassURL,
 			tile: [x, y]
 		});
 
@@ -56,11 +57,11 @@ export default class MapWorker {
 				break;
 			case WorkerMessageIncomingType.RequestHeight:
 				const height = await HeightProvider.getTileAsync(data.tile[0], data.tile[1]);
-				this.sendMessage({
+				/*this.sendMessage({
 					type: WorkerMessageOutgoingType.SendHeightData,
 					tile: data.tile,
 					heightArray: height
-				});
+				});*/
 				break;
 		}
 	}

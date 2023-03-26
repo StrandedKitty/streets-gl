@@ -63,14 +63,14 @@ export default abstract class Camera extends Object3D {
 		this.updateProjectionMatrix();
 	}
 
-	public updateJitteredProjectionMatrix(frameIndex: number, width: number, height: number): void {
+	public updateJitteredProjectionMatrix(frameIndex: number, width: number, height: number, factor: number = 1): void {
 		const offsetX = jitterOffsets[frameIndex % jitterOffsets.length][0];
 		const offsetY = jitterOffsets[frameIndex % jitterOffsets.length][1];
 
 		this.jitteredProjectionMatrix = Mat4.copy(this.projectionMatrix);
 
-		this.jitteredProjectionMatrix.values[8] = offsetX / width;
-		this.jitteredProjectionMatrix.values[9] = offsetY / height;
+		this.jitteredProjectionMatrix.values[8] = offsetX / width * factor;
+		this.jitteredProjectionMatrix.values[9] = offsetY / height * factor;
 
 		this.jitteredProjectionMatrixInverse = Mat4.inverse(this.jitteredProjectionMatrix);
 	}

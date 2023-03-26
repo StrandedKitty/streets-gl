@@ -12,7 +12,6 @@ import DoFMaterialContainer from "../materials/DoFMaterialContainer";
 import DoFBlurMaterialContainer from "../materials/DoFBlurMaterialContainer";
 import CoCAntialiasMaterialContainer from "../materials/CoCAntialiasMaterialContainer";
 import DoFCombineMaterialContainer from "../materials/DoFCombineMaterialContainer";
-import SettingsManager from "~/app/ui/SettingsManager";
 import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 import MathUtils from "~/lib/math/MathUtils";
 
@@ -88,19 +87,23 @@ export default class DoFPass extends Pass<{
 
 		this.fullScreenTriangle = this.manager.renderSystem.fullScreenTriangle;
 
-		SettingsManager.onSettingChange('dof', ({statusValue}) => {
+		this.listenToSettings();
+	}
+
+	private listenToSettings(): void {
+		this.manager.settings.onChange('dof', ({statusValue}) => {
 			const quality = statusValue === 'low' ? '0' : '1';
 
 			if (this.dofMaterial.defines.QUALITY !== quality) {
 				this.dofMaterial.defines.QUALITY = quality;
 				this.dofMaterial.recompile();
 			}
-		});
+		}, true);
 	}
 
 	private updateCoCDefines(camera: PerspectiveCamera): void {
 		const defines = {
-			F_NUMBER: SettingsManager.getSetting('dofAperture').numberValue.toFixed(16),
+			F_NUMBER: this.manager.settings.get('dofAperture').numberValue.toFixed(16),
 			FOCAL_LENGTH: getFocalLength(+this.cocMaterial.defines.SENSOR_HEIGHT, camera.fov).toFixed(16)
 		};
 

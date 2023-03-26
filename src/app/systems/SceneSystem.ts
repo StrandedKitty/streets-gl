@@ -13,9 +13,9 @@ import Labels from "../objects/Labels";
 import InstancedObject from "../objects/InstancedObject";
 import ModelManager from "../objects/models/ModelManager";
 import InstancedAircraft from "../objects/InstancedAircraft";
-import SettingsManager from "../ui/SettingsManager";
 import Terrain from "../objects/Terrain";
 import Tile from "~/app/objects/Tile";
+import SettingsSystem from "~/app/systems/SettingsSystem";
 
 interface SceneObjects {
 	wrapper: Object3D;
@@ -35,11 +35,17 @@ export default class SceneSystem extends System {
 	public pivotDelta: Vec2 = new Vec2();
 
 	public postInit(): void {
+		this.initScene();
+		this.listenToSettings();
+		this.listenToScreenResize();
+	}
+
+	private initScene(): void {
 		this.scene = new Object3D();
 
 		const wrapper = new Object3D();
 		const camera = new PerspectiveCamera({
-			fov: SettingsManager.getSetting('fov').numberValue,
+			fov: this.getCameraFoVFromSettings(),
 			near: 10,
 			far: 100000,
 			aspect: window.innerWidth / window.innerHeight
@@ -85,14 +91,37 @@ export default class SceneSystem extends System {
 			...this.objects.instancedObjects.values(),
 			...instancedAircraft
 		);
+	}
 
-		SettingsManager.onSettingChange('fov', ({numberValue}) => {
+	private getCameraFoVFromSettings(): number {
+		const settings = this.systemManager.getSystem(SettingsSystem).settings;
+
+		return settings.get('fov').numberValue;
+	}
+
+	private listenToSettings(): void {
+		const settings = this.systemManager.getSystem(SettingsSystem).settings;
+
+		settings.onChange('fov', ({numberValue}) => {
+			const {camera, csm} = this.objects;
+
 			camera.fov = numberValue;
 			camera.updateProjectionMatrix();
 			csm.updateFrustums();
 		});
+	}
 
+	private listenToScreenResize(): void {
 		window.addEventListener('resize', () => this.resize());
+	}
+
+	private resize(): void {
+		const width = window.innerWidth;
+		const height = window.innerHeight;
+
+		this.objects.camera.aspect = width / height;
+		this.objects.camera.updateProjectionMatrix();
+		this.objects.csm.updateFrustums();
 	}
 
 	public getObjectsToUpdateMesh(): RenderableObject3D[] {
@@ -160,14 +189,5 @@ export default class SceneSystem extends System {
 
 		this.objects.camera.updateMatrixWorldInverse();
 		this.objects.camera.updateFrustum();
-	}
-
-	private resize(): void {
-		const width = window.innerWidth;
-		const height = window.innerHeight;
-
-		this.objects.camera.aspect = width / height;
-		this.objects.camera.updateProjectionMatrix();
-		this.objects.csm.updateFrustums();
 	}
 }

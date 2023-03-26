@@ -15,15 +15,14 @@ import ScreenPass from "../render/passes/ScreenPass";
 import SSAOPass from "../render/passes/SSAOPass";
 import SelectionPass from "../render/passes/SelectionPass";
 import LabelPass from "../render/passes/LabelPass";
-import Tile from "../objects/Tile";
 import AtmosphereLUTPass from "../render/passes/AtmosphereLUTPass";
 import SSRPass from "../render/passes/SSRPass";
 import DoFPass from "../render/passes/DoFPass";
 import TerrainTexturesPass from "../render/passes/TerrainTexturesPass";
 import BloomPass from "../render/passes/BloomPass";
-import SettingsManager from "../ui/SettingsManager";
 import FullScreenTriangle from "../objects/FullScreenTriangle";
 import Node from "../../lib/render-graph/Node";
+import SettingsSystem from "~/app/systems/SettingsSystem";
 
 export default class RenderSystem extends System {
 	private renderer: AbstractRenderer;
@@ -52,7 +51,13 @@ export default class RenderSystem extends System {
 
 		this.renderGraph = new RG.RenderGraph();
 		this.renderGraphResourceFactory = new RenderGraphResourceFactory(this.renderer);
-		this.passManager = new PassManager(this.systemManager, this.renderer, this.renderGraphResourceFactory, this.renderGraph);
+		this.passManager = new PassManager(
+			this.systemManager,
+			this.renderer,
+			this.renderGraphResourceFactory,
+			this.renderGraph,
+			this.systemManager.getSystem(SettingsSystem).settings
+		);
 
 		this.passManager.addPasses(
 			new GBufferPass(this.passManager),
@@ -86,10 +91,11 @@ export default class RenderSystem extends System {
 	}
 
 	public update(deltaTime: number): void {
+		const settings = this.systemManager.getSystem(SettingsSystem).settings;
 		const sceneSystem = this.systemManager.getSystem(SceneSystem);
 		const tiles = sceneSystem.objects.tiles;
 
-		if (SettingsManager.getSetting('labels').statusValue === 'on') {
+		if (settings.get('labels').statusValue === 'on') {
 			//sceneSystem.objects.labels.updateFromTiles(tiles, sceneSystem.objects.camera, this.resolutionScene);
 		}
 
@@ -97,7 +103,14 @@ export default class RenderSystem extends System {
 			object.updateMesh(this.renderer);
 		}
 
-		sceneSystem.objects.camera.updateJitteredProjectionMatrix(this.frameCount, this.resolutionScene.x, this.resolutionScene.y);
+		const jitterFactor = settings.get('taa').statusValue === 'on' ? 1 : 0;
+
+		sceneSystem.objects.camera.updateJitteredProjectionMatrix(
+			this.frameCount,
+			this.resolutionScene.x,
+			this.resolutionScene.y,
+			jitterFactor
+		);
 
 		this.renderGraph.render();
 

@@ -11,7 +11,6 @@ import ShadingMaterialContainer from "../materials/ShadingMaterialContainer";
 import AbstractTexture3D from "~/lib/renderer/abstract-renderer/AbstractTexture3D";
 import Vec3 from "~/lib/math/Vec3";
 import AbstractTextureCube from "~/lib/renderer/abstract-renderer/AbstractTextureCube";
-import SettingsManager from "../../ui/SettingsManager";
 import TextureResource from "../render-graph/resources/TextureResource";
 
 export default class ShadingPass extends Pass<{

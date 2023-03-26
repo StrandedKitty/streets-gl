@@ -10,6 +10,12 @@ import Vec2 from "~/lib/math/Vec2";
 import {getAtoms} from "~/app/ui/state/atoms";
 import MapTimeSystem from "~/app/systems/MapTimeSystem";
 import PickingSystem from "~/app/systems/PickingSystem";
+import SettingsSystem from "~/app/systems/SettingsSystem";
+import SettingsStorageDecorator from "~/app/settings/SettingsStorageDecorator";
+import {SettingsSchema} from "~/app/settings/SettingsSchema";
+import {SettingsObject} from "~/app/settings/SettingsObject";
+import Utils from "~/app/Utils";
+import TileLoadingSystem, {OverpassEndpoint} from "~/app/systems/TileLoadingSystem";
 
 export interface RenderGraphSnapshot {
 	graph: {
@@ -35,6 +41,8 @@ export interface UISystemState {
 	renderGraph: RenderGraphSnapshot;
 	resourcesLoadingProgress: number;
 	northDirection: number;
+	settingsSchema: SettingsSchema;
+	overpassEndpoints: OverpassEndpoint[];
 }
 
 export interface UIActions {
@@ -42,6 +50,9 @@ export interface UIActions {
 	goToLatLon: (lat: number, lon: number) => void;
 	lookAtNorth: () => void;
 	setTime: (time: number) => void;
+	resetSettings: () => void;
+	setOverpassEndpoints: (endpoints: OverpassEndpoint[]) => void;
+	resetOverpassEndpoints: () => void;
 }
 
 const FPSUpdateInterval = 0.4;
@@ -59,7 +70,9 @@ export default class UISystem extends System {
 		mapTimeMultiplier: 1,
 		renderGraph: null,
 		resourcesLoadingProgress: 0,
-		northDirection: 0
+		northDirection: 0,
+		settingsSchema: {},
+		overpassEndpoints: []
 	};
 	private fpsUpdateTimer = 0;
 
@@ -81,10 +94,33 @@ export default class UISystem extends System {
 				}
 			});
 		});
+
+		this.systemManager.onSystemReady(TileLoadingSystem, system => {
+			this.ui.addStateFieldListener('overpassEndpoints', value => {
+				if (value.length > 0) {
+					system.overpassEndpoints = value;
+				}
+			});
+		});
+
+		this.state.settingsSchema = this.systemManager.getSystem(SettingsSystem).schema;
+
+		this.detectMobile();
+	}
+
+	private detectMobile(): void {
+		if (Utils.isMobileBrowser() || navigator.maxTouchPoints) {
+			alert('Mobile devices and touch devices are not supported. Please use a computer with a mouse and keyboard.');
+		}
 	}
 
 	private updateDOM(): void {
-		const atoms = getAtoms(this.ui);
+		const settingsSystem = this.systemManager.getSystem(SettingsSystem);
+		const commonStorage = this.ui;
+		const settingsStorage = new SettingsStorageDecorator(settingsSystem.settings);
+
+		const atoms = getAtoms(commonStorage, settingsStorage);
+
 		const actions: UIActions = {
 			updateRenderGraph: () => this.updateRenderGraph(),
 			goToLatLon: (lat: number, lon: number): void => {
@@ -95,6 +131,13 @@ export default class UISystem extends System {
 			},
 			setTime: (time: number) => {
 				this.ui.setStateFieldValue('mapTime', time);
+			},
+			resetSettings: () => settingsSystem.resetSettings(),
+			setOverpassEndpoints: (endpoints: OverpassEndpoint[]) => {
+				this.ui.setStateFieldValue('overpassEndpoints', endpoints);
+			},
+			resetOverpassEndpoints: () => {
+				this.systemManager.getSystem(TileLoadingSystem).resetOverpassEndpoints();
 			}
 		}
 
@@ -196,6 +239,12 @@ export default class UISystem extends System {
 			const dir = Vec3.applyMatrix4(new Vec3(0, 0, -1), scene.objects.camera.matrixWorld);
 			const angle = new Vec2(dir.x, dir.z).getAngle();
 			this.ui.setStateFieldValue('northDirection', Math.round(-MathUtils.toDeg(angle)));
+		}
+
+		const tileLoadingSystem = this.systemManager.getSystem(TileLoadingSystem);
+
+		if (tileLoadingSystem) {
+			this.ui.setStateFieldValue('overpassEndpoints', tileLoadingSystem.overpassEndpoints);
 		}
 	}
 }

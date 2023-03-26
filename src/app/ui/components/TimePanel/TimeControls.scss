@@ -29,7 +29,6 @@
 	color: white;
 	background: transparent;
 	border: none;
-	border-bottom: 1px solid white;
 	border-radius: 0;
 	padding: 4px 4px;
 	font-size: 16px;
@@ -54,6 +53,7 @@
 @include themify($themes) {
 	.timeInput {
 		color: themed('text-color');
+		border-bottom: 1px solid themed('text-color');
 	}
 }
 

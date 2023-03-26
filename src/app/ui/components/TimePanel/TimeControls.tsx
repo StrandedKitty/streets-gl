@@ -7,7 +7,6 @@ import {useRecoilState, useRecoilValue} from "recoil";
 import styles from './TimeControls.scss';
 import timeButtonStyles from './TimeButton.scss';
 import CenteredIcon from "~/app/ui/components/TimePanel/CenteredIcon";
-import { flushSync } from 'react-dom';
 
 const timeSpeedButtons = [1, 10, 100, 1000, 10000];
 

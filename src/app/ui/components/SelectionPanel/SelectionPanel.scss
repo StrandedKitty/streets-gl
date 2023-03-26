@@ -13,9 +13,7 @@
 	pointer-events: auto;
 	width: 500px;
 	max-width: 90%;
-	background: rgba(0, 0, 0, 0.75);
 	padding: 24px;
-	color: white;
 	position: relative;
 	transition: transform 400ms;
 	min-height: 321.5px;
@@ -75,6 +73,12 @@
 	}
 }
 
+@include themify($themes) {
+	.selectionInfo {
+		color: themed('text-color');
+	}
+}
+
 .links {
 	display: flex;
 	flex-direction: row;
@@ -92,7 +96,6 @@
 		color: #111;
 		font-size: 14px;
 		padding: 4px 8px;
-		background-color: rgb(255 255 255 / 85%);
 		font-weight: 600;
 		transition: background-color ease-in 200ms;
 
@@ -105,9 +108,17 @@
 			border: 2px solid #c73fa7;
 			color: #c73fa7;
 		}
+	}
+}
 
-		&:hover {
-			background-color: rgb(255 255 255 / 100%);
+@include themify($themes) {
+	.links {
+		&__button {
+			background-color: themed('button-bg');
+
+			&:hover {
+
+			}
 		}
 	}
 }
@@ -118,15 +129,13 @@
 	border-radius: 12px;
 
 	&__table {
-		background: rgb(255 255 255 / 75%);
-		color: #111;
+		color: inherit;
 		font-size: 12px;
 		table-layout: fixed;
 		border-collapse: collapse;
 		width: 100%;
 
 		td {
-			border: 1px solid black;
 			padding: 4px 8px;
 			word-break: break-word;
 		}
@@ -145,6 +154,18 @@
 
 		tr td:last-child {
 			border-right: 0;
+		}
+	}
+}
+
+@include themify($themes) {
+	.tags {
+		&__table {
+			background: themed('bg-primary');
+		}
+
+		td {
+			border: 1px solid themed('text-color');
 		}
 	}
 }

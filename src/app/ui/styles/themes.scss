@@ -2,16 +2,28 @@ $theme-map: null;
 
 $themes: (
 	light: (
-		panel-border-color: rgba(255, 255, 255, 0.8),
-		panel-bg: rgba(127, 127, 127, 0.3),
-		text-color: #fff,
-		text-color-opposite: #111,
+		panel-border-color: #ffffff,
+		panel-bg: rgb(255, 255, 255, 0.85),
+		text-color: #222,
+		text-color-opposite: #fff,
+		text-color-subtle: #6b6b6b,
+		bg-primary: #fff,
+		button-border: #ccc,
+		nav-icon-selected-bg: #d4d4d4,
+		category-bg: #fff,
+		button-bg: #fff,
 	),
 	dark: (
 		panel-border-color: #222,
-		panel-bg: rgba(0, 0, 0, 0.3),
+		panel-bg: rgb(30, 30, 30, 0.9),
 		text-color: #eee,
 		text-color-opposite: #111,
+		text-color-subtle: #6b6b6b,
+		bg-primary: #171717,
+		button-border: #ccc,
+		nav-icon-selected-bg: #424242,
+		category-bg: #171717,
+		button-bg: #171717
 	),
 );
 

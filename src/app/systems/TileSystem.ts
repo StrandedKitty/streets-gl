@@ -6,7 +6,7 @@ import Vec3 from "~/lib/math/Vec3";
 import ConvexHullGrahamScan from "~/lib/math/ConvexHullGrahamScan";
 import MathUtils from "~/lib/math/MathUtils";
 import Config from "../Config";
-import StaticGeometryLoadingSystem from "./StaticGeometryLoadingSystem";
+import TileLoadingSystem from "./TileLoadingSystem";
 import TileObjectsSystem from "./TileObjectsSystem";
 import System from "../System";
 import SceneSystem from './SceneSystem';
@@ -25,7 +25,7 @@ export default class TileSystem extends System {
 		const tile = new Tile(x, y);
 		this.tiles.set(`${x},${y}`, tile);
 
-		tile.load(this.systemManager.getSystem(StaticGeometryLoadingSystem));
+		tile.load(this.systemManager.getSystem(TileLoadingSystem));
 	}
 
 	public getTile(x: number, y: number): Tile {

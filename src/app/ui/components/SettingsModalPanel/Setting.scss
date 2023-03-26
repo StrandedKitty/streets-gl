@@ -1,0 +1,91 @@
+@import "../../styles/common.scss";
+
+.settingsRow {
+	display: flex;
+	flex-direction: row;
+	margin: 10px 0 0 0;
+	align-items: center;
+
+	&__title {
+		width: 45%;
+		font-size: 13px;
+		font-weight: 400;
+	}
+
+	&__body {
+		width: 55%;
+	}
+
+	&--sub {
+		.settingsRow__title {
+			padding: 0 0 0 16px;
+		}
+	}
+}
+
+.range {
+	width: 200px;
+
+	&__value {
+		width: 100%;
+		text-align: center;
+		font-size: 12px;
+		line-height: 12px;
+	}
+
+	&__input {
+		width: 100%;
+		display: block;
+		margin: 0;
+	}
+
+	&__footer {
+		width: 100%;
+
+		&__minMax {
+			font-size: 8px;
+			line-height: 12px;
+
+			&--left {
+				float: left;
+			}
+
+			&--right {
+				float: right;
+			}
+		}
+	}
+}
+
+@include themify($themes) {
+	.selectButtons {
+		display: flex;
+		flex-direction: row;
+
+		&__button {
+			display: block;
+			font-size: 12px;
+			font-weight: 600;
+			padding: 4px 8px;
+			color: themed('text-color');
+			background: themed('text-color-opposite');
+			border: 1px solid themed('button-border');
+			border-right: none;
+
+			&:first-child {
+				border-radius: 99px 0 0 99px;
+			}
+
+			&:last-child {
+				border-radius: 0 99px 99px 0;
+				border-right: 1px solid themed('button-border');
+			}
+
+			&--disabled {
+				color: themed('text-color-opposite');
+				background: themed('text-color');
+				border: 1px solid themed('text-color');
+			}
+		}
+	}
+}

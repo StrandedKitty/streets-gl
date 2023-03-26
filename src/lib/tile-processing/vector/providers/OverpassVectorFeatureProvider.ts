@@ -13,21 +13,13 @@ import VectorBuildingOutlinesCleaner from "~/lib/tile-processing/vector/VectorBu
 
 const TileRequestMargin = 0.05;
 
-const getRequestURLAndBody = (x: number, y: number, zoom: number): [string, string] => {
+const getRequestBody = (x: number, y: number, zoom: number): string => {
 	const position = [
 		MathUtils.tile2degrees(x - TileRequestMargin, y + 1 + TileRequestMargin, zoom),
 		MathUtils.tile2degrees(x + 1 + TileRequestMargin, y - TileRequestMargin, zoom)
 	];
 	const bbox = position[0].lat + ',' + position[0].lon + ',' + position[1].lat + ',' + position[1].lon;
-	const urls = [
-		//'http://overpass.openstreetmap.ru/cgi/interpreter',
-		'https://overpass.kumi.systems/api/interpreter'
-		//'https://overpass.nchc.org.tw/api/interpreter',
-		//'https://lz4.overpass-api.de/api/interpreter',
-		//'https://z.overpass-api.de/api/interpreter'
-	];
-	const url = urls[Math.floor(urls.length * Math.random())];
-	const body = `
+	return `
 		[out:json][timeout:30];
 		(
 			node(${bbox});
@@ -39,19 +31,9 @@ const getRequestURLAndBody = (x: number, y: number, zoom: number): [string, stri
 		>>;
 		out body qt;
 	`;
-
-	return [url, body];
 };
-const getRelationsRequestURLAndBody = (relations: number[]): [string, string] => {
-	const urls = [
-		//'http://overpass.openstreetmap.ru/cgi/interpreter',
-		'https://overpass.kumi.systems/api/interpreter'
-		//'https://overpass.nchc.org.tw/api/interpreter',
-		//'https://lz4.overpass-api.de/api/interpreter',
-		//'https://z.overpass-api.de/api/interpreter'
-	];
-	const url = urls[Math.floor(urls.length * Math.random())];
-	const body = `
+const getRelationsRequestBody = (relations: number[]): string => {
+	return `
 		[out:json][timeout:30];
 		(
 		  rel(id:${relations.join(',')});
@@ -59,14 +41,16 @@ const getRelationsRequestURLAndBody = (relations: number[]): [string, string] =>
 		);
 		out body;
 	`;
-
-	return [url, body];
 };
 const getRelationRequestURL = (relation: number): string => {
 	return `https://www.openstreetmap.org/api/0.6/relation/${relation}/relations.json`
 };
 
 export default class OverpassVectorFeatureProvider extends VectorFeatureProvider {
+	public constructor(private readonly overpassURL: string) {
+		super();
+	}
+
 	public async getCollection(
 		{
 			x,
@@ -79,8 +63,8 @@ export default class OverpassVectorFeatureProvider extends VectorFeatureProvider
 		}
 	): Promise<VectorFeatureCollection> {
 		const tileOrigin = MathUtils.tile2meters(x, y + 1, zoom);
-		const overpassData = await OverpassVectorFeatureProvider.fetchOverpassTile(x, y, zoom);
-		const repairedOverpassData = await OverpassVectorFeatureProvider.repairOverpassRelations(overpassData);
+		const overpassData = await OverpassVectorFeatureProvider.fetchOverpassTile(x, y, zoom, this.overpassURL);
+		const repairedOverpassData = await OverpassVectorFeatureProvider.repairOverpassRelations(overpassData, this.overpassURL);
 
 		const nodeHandlersMap: Map<number, OSMNodeHandler> = new Map();
 		const wayHandlersMap: Map<number, OSMWayHandler> = new Map();
@@ -195,17 +179,16 @@ export default class OverpassVectorFeatureProvider extends VectorFeatureProvider
 		return collection;
 	}
 
-	private static async fetchOverpassTile(x: number, y: number, zoom: number): Promise<OverpassDataObject> {
-		const [url, body] = getRequestURLAndBody(x, y, zoom);
-		const response = await fetch(url, {
+	private static async fetchOverpassTile(x: number, y: number, zoom: number, overpassURL: string): Promise<OverpassDataObject> {
+		const response = await fetch(overpassURL, {
 			method: 'POST',
-			body: body
+			body: getRequestBody(x, y, zoom)
 		});
 
 		return await response.json() as OverpassDataObject;
 	}
 
-	private static async repairOverpassRelations(data: OverpassDataObject): Promise<OverpassDataObject> {
+	private static async repairOverpassRelations(data: OverpassDataObject, overpassURL: string): Promise<OverpassDataObject> {
 		const relationIds: Set<number> = new Set();
 		const relationRequests: Promise<any>[] = [];
 
@@ -245,10 +228,10 @@ export default class OverpassVectorFeatureProvider extends VectorFeatureProvider
 			return data;
 		}
 
-		const [url, body] = getRelationsRequestURLAndBody(Array.from(relationIds.values()));
-		const response = await fetch(url, {
+		const requestBody = getRelationsRequestBody(Array.from(relationIds.values()));
+		const response = await fetch(overpassURL, {
 			method: 'POST',
-			body: body
+			body: requestBody
 		});
 		const patch: OverpassDataObject = await response.json();
 

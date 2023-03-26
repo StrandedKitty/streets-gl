@@ -7,9 +7,3 @@
 	color: #fff;
 	opacity: 0.8;
 }
-
-@include themify($themes) {
-	.attributionPanel {
-		color: themed('text-color');
-	}
-}

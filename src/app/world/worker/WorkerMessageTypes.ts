@@ -6,6 +6,7 @@ export enum WorkerMessageOutgoingType {
 export interface WorkerMessageOutgoing {
 	type: WorkerMessageOutgoingType;
 	tile: [number, number];
+	overpassURL: string;
 	heightArray?: any;
 }
 

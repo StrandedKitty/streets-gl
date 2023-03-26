@@ -5,7 +5,7 @@ import PickingSystem from "./systems/PickingSystem";
 import CursorStyleSystem from './systems/CursorStyleSystem';
 import SystemManager from "./SystemManager";
 import TileObjectsSystem from "./systems/TileObjectsSystem";
-import StaticGeometryLoadingSystem from "./systems/StaticGeometryLoadingSystem";
+import TileLoadingSystem from "./systems/TileLoadingSystem";
 import MapWorkerSystem from "./systems/MapWorkerSystem";
 import MapTimeSystem from "./systems/MapTimeSystem";
 import UISystem from "./systems/UISystem";
@@ -14,6 +14,7 @@ import ResourceManager, {ResourceJSON} from './world/ResourceManager';
 import resourcesList from '../resources/resources.json';
 import VehicleSystem from "./systems/VehicleSystem";
 import TerrainSystem from "./systems/TerrainSystem";
+import SettingsSystem from "~/app/systems/SettingsSystem";
 
 class App {
 	private loop = (deltaTime: number): void => this.update(deltaTime);
@@ -27,6 +28,7 @@ class App {
 	private init(): void {
 		this.systemManager = new SystemManager();
 
+		this.systemManager.addSystems(SettingsSystem);
 		this.systemManager.addSystems(UISystem);
 
 		ResourceManager.addFromJSON(resourcesList as ResourceJSON);
@@ -46,7 +48,7 @@ class App {
 				TileObjectsSystem,
 				RenderSystem,
 				MapWorkerSystem,
-				StaticGeometryLoadingSystem,
+				TileLoadingSystem,
 				VehicleSystem
 			);
 		});

@@ -5,8 +5,7 @@
 	top: 96px;
 	max-height: calc(100% - 192px);
 	right: 16px;
-	padding: 16px;
-	color: #fff;
+	padding: 20px 24px;
 	border: 1px solid #eee;
 	width: 600px;
 	font-size: 14px;
@@ -15,8 +14,8 @@
 	@extend %panel-border-radius;
 
 	&__header {
-		font-size: 20px;
-		font-weight: bold;
+		font-size: 24px;
+		font-weight: 600;
 		margin: 0 0 16px 0;
 		position: relative;
 		width: 90%;
@@ -46,6 +45,17 @@
 
 		&:hover {
 			background-color: rgba(255, 255, 255, 0.4);
+		}
+	}
+}
+
+@include themify($themes) {
+	.modal {
+		color: themed('text-color');
+
+		&__close {
+			background: themed('bg-primary');
+			color: themed('text-color-subtle');
 		}
 	}
 }

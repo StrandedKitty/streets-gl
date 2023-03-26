@@ -4,6 +4,7 @@ import React from "react";
 import { createRoot } from 'react-dom/client';
 import {RecoilRoot} from "recoil";
 import {AtomsCollection} from "~/app/ui/state/atoms";
+import {StateStorage} from "~/app/ui/state/utils";
 
 type Listeners = {
 	[Key in keyof UISystemState]?: ((value: UISystemState[Key]) => void)[];
@@ -12,7 +13,7 @@ type Listeners = {
 export const AtomsContext = React.createContext<AtomsCollection>(null);
 export const ActionsContext = React.createContext<UIActions>(null);
 
-export default class UI {
+export default class UI implements StateStorage {
 	private readonly state: UISystemState;
 	private readonly listeners: Listeners = {};
 

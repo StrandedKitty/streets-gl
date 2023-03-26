@@ -1,0 +1,18 @@
+@import "../../styles/common.scss";
+
+.categoryContainer {
+	padding: 12px;
+	border-radius: 12px;
+	margin: 0 0 16px 0;
+	box-shadow: 0 1px 2px 0 rgba(16, 24, 40, 0.05);
+
+	&:last-child {
+		margin: 0;
+	}
+}
+
+@include themify($themes) {
+	.categoryContainer {
+		background: themed('category-bg');
+	}
+}

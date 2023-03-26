@@ -6,6 +6,12 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
 const {EsbuildPlugin} = require('esbuild-loader');
 
+const childProcess = require('child_process');
+const {DefinePlugin} = require("webpack");
+const COMMIT_SHA = childProcess.execSync('git rev-parse HEAD').toString().trim();
+const COMMIT_BRANCH = childProcess.execSync("git rev-parse --abbrev-ref HEAD").toString().trim();
+const VERSION = require('./package.json').version;
+
 module.exports = (env, argv) => ([{
 	entry: './src/app/App.ts',
 	output: {
@@ -45,6 +51,11 @@ module.exports = (env, argv) => ([{
 		new ESLintPlugin({
 			context: './src',
 			extensions: ['ts', 'tsx']
+		}),
+		new DefinePlugin({
+			COMMIT_SHA: JSON.stringify(COMMIT_SHA),
+			COMMIT_BRANCH: JSON.stringify(COMMIT_BRANCH),
+			VERSION: JSON.stringify(VERSION)
 		})
 	],
 	module: {

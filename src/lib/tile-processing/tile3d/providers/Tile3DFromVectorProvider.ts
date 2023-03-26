@@ -19,7 +19,13 @@ import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/descriptors";
 import Intersection from "~/lib/road-graph/Intersection";
 
 export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
-	private vectorProvider: CombinedVectorFeatureProvider = new CombinedVectorFeatureProvider();
+	private readonly vectorProvider: CombinedVectorFeatureProvider;
+
+	public constructor(overpassURL: string) {
+		super();
+
+		this.vectorProvider = new CombinedVectorFeatureProvider(overpassURL);
+	}
 
 	public async getCollection(
 		{

@@ -1,0 +1,28 @@
+@import "../../styles/common.scss";
+
+.category {
+	margin: 0 0 16px 0;
+
+	&:last-child {
+		margin: 0;
+	}
+
+	&__title {
+		text-transform: uppercase;
+		font-size: 14px;
+		font-weight: 700;
+		margin: 0 0 12px 0;
+	}
+
+	&__body {
+
+	}
+}
+
+@include themify($themes) {
+	.category {
+		&__title {
+			color: themed('text-color-subtle');
+		}
+	}
+}
