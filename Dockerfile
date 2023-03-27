@@ -1,8 +1,6 @@
 FROM node:14 as builder
 
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y git
+RUN apt-get install -y --no-install-recommends git
 
 WORKDIR /usr/src/builder
 
