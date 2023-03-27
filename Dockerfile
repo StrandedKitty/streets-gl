@@ -1,4 +1,8 @@
-FROM node:14-alpine as builder
+FROM node:14 as builder
+
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y git
 
 WORKDIR /usr/src/builder
 
