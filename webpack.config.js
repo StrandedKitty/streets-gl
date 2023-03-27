@@ -88,13 +88,11 @@ module.exports = (env, argv) => ([{
 				],
 				sideEffects: true
 			}, {
-				test: /\.[jt]sx?$/,
-				loader: 'esbuild-loader',
-				options: {
-					target: 'es2020',
-					tsconfig: argv.mode === 'production' ? 'tsconfig.prod.json' : 'tsconfig.json'
-				}
-			},
+				test: /\.ts|.tsx$/,
+				loader: 'ts-loader',
+				options: {configFile: argv.mode === 'production' ? 'tsconfig.prod.json' : 'tsconfig.json'},
+				exclude: /node_modules/
+			}
 		]
 	},
 	resolve: {
