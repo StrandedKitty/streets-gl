@@ -1,4 +1,4 @@
-import Handler from "~/lib/tile-processing/tile3d/handlers/Handler";
+import Handler, {RequestedHeightParams} from "~/lib/tile-processing/tile3d/handlers/Handler";
 import Tile3DFeature from "~/lib/tile-processing/tile3d/features/Tile3DFeature";
 import VectorPolyline from "~/lib/tile-processing/vector/features/VectorPolyline";
 import OSMReference from "~/lib/tile-processing/vector/features/OSMReference";
@@ -23,6 +23,10 @@ export default class VectorPolylineHandler implements Handler {
 		this.osmReference = feature.osmReference;
 		this.descriptor = feature.descriptor;
 		this.vertices = feature.nodes.map(node => new Vec2(node.x, node.y));
+	}
+
+	public getRequestedHeightPositions(): RequestedHeightParams {
+		return null;
 	}
 
 	public getFeatures(): Tile3DFeature[] {
@@ -200,29 +204,8 @@ export default class VectorPolylineHandler implements Handler {
 				return 5;
 			case "tramway":
 				return 6;
-		}
-	}
-
-	private static getPathTextureId(
-		pathType: VectorPolylineDescriptor['pathType'],
-		pathMaterial: VectorPolylineDescriptor['pathMaterial'],
-	): number {
-		switch (pathType) {
-			case "footway":
-				return 1;
-			case "roadway": {
-				if (pathMaterial === 'asphalt') return 15;
-				if (pathMaterial === 'concrete') return 17;
-				if (pathMaterial === 'wood') return 19;
-
-				throw new Error('Unexpected path material');
-			}
-			case "cycleway":
-				return 8;
-			case "railway":
-				return 9;
-			case "tramway":
-				return 9;
+			case "runway":
+				return 7;
 		}
 	}
 
@@ -304,6 +287,13 @@ export default class VectorPolylineHandler implements Handler {
 				params.textureId = 9;
 				params.uvFollowRoad = true;
 				params.uvScale = 12;
+				break;
+			}
+			case "runway": {
+				params.uvFollowRoad = false;
+				params.textureId = 2;
+				params.uvScale = 10;
+
 				break;
 			}
 		}

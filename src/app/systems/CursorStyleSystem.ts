@@ -1,6 +1,4 @@
-import Config from "../Config";
 import System from "../System";
-import SystemManager from "../SystemManager";
 
 enum CursorStyle {
 	Default = 'default',

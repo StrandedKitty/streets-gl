@@ -2,16 +2,22 @@ import MapboxVectorFeatureProvider from "~/lib/tile-processing/vector/providers/
 import VectorFeatureProvider from "~/lib/tile-processing/vector/providers/VectorFeatureProvider";
 import VectorFeatureCollection from "~/lib/tile-processing/vector/features/VectorFeatureCollection";
 import OverpassVectorFeatureProvider from "~/lib/tile-processing/vector/providers/OverpassVectorFeatureProvider";
+import {Tile3DProviderParams} from "~/lib/tile-processing/tile3d/providers/Tile3DFromVectorProvider";
 
 export default class CombinedVectorFeatureProvider extends VectorFeatureProvider {
 	private readonly overpassProvider: OverpassVectorFeatureProvider;
 	private readonly mapboxProvider: MapboxVectorFeatureProvider;
 
-	public constructor(overpassURL: string) {
+	public constructor(params: Tile3DProviderParams) {
 		super();
 
-		this.overpassProvider = new OverpassVectorFeatureProvider(overpassURL);
-		this.mapboxProvider = new MapboxVectorFeatureProvider();
+		this.overpassProvider = new OverpassVectorFeatureProvider(
+			params.overpassEndpoint
+		);
+		this.mapboxProvider = new MapboxVectorFeatureProvider(
+			params.mapboxEndpointTemplate,
+			params.mapboxAccessToken
+		);
 	}
 
 	public async getCollection(
@@ -28,9 +34,6 @@ export default class CombinedVectorFeatureProvider extends VectorFeatureProvider
 		const mapboxRequest = this.mapboxProvider.getCollection({x, y, zoom});
 		const overpassRequest = this.overpassProvider.getCollection({x, y, zoom});
 
-		mapboxRequest.catch(e => console.error(e));
-		overpassRequest.catch(e => console.error(e));
-
 		return new Promise((resolve, reject) => {
 			Promise.allSettled([mapboxRequest, overpassRequest]).then(([mapboxData, overpassData]) => {
 				if (overpassData.status === 'fulfilled' && mapboxData.status === 'fulfilled') {
@@ -39,7 +42,15 @@ export default class CombinedVectorFeatureProvider extends VectorFeatureProvider
 					return;
 				}
 
-				reject();
+				if (overpassData.status === 'rejected') {
+					reject(overpassData.reason);
+					return;
+				}
+
+				if (mapboxData.status === 'rejected') {
+					reject(mapboxData.reason);
+					return;
+				}
 			});
 		});
 	}

@@ -87,6 +87,11 @@ vec3 getWaterNormalMapValue(vec2 uv) {
     return col * 2. - 1.;
 }
 
+bool isPointMasked(vec2 maskUV, sampler2D mask) {
+    vec2 size = vec2(textureSize(mask, 0));
+    return texelFetch(mask, ivec2(maskUV * size), 0).r > 0.5;
+}
+
 void main() {
     if (edgeFactor() > 0.9) {
         //discard;
@@ -94,8 +99,11 @@ void main() {
 
     float waterMask = 1.;
 
-    if (vMaskUV.x >= 0. && vMaskUV.x <= 1. && vMaskUV.y >= 0. && vMaskUV.y <= 1.) {
-        waterMask = 1. - texture(tWaterMask, vMaskUV).r;
+    if (
+        vMaskUV.x >= 0. && vMaskUV.x <= 1. && vMaskUV.y >= 0. && vMaskUV.y <= 1. &&
+        isPointMasked(vMaskUV, tWaterMask)
+    ) {
+        waterMask = 0.;
     }
 
     vec3 detailNormal = getNormal(textureNoTile(tDetailNoise, tDetailNormal, vDetailUV, 0.01));
@@ -114,7 +122,7 @@ void main() {
 
     outColor = vec4(detailColor, 1);
     outNormal = packNormal(detailNormal);
-    outRoughnessMetalnessF0 = vec3(0.8, 0, 0.001);
+    outRoughnessMetalnessF0 = vec3(0.8, 0, 0.005);
 
     if (waterFactor > 0.5) {
         vec2 normalizedTileUV = fract(vDetailUV / 611.4962158203125);

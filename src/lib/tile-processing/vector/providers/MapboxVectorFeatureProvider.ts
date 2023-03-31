@@ -1,18 +1,12 @@
-import VectorFeatureProvider from "~/lib/tile-processing/vector/providers/VectorFeatureProvider";
 import VectorFeatureCollection from "~/lib/tile-processing/vector/features/VectorFeatureCollection";
 import VectorArea from "~/lib/tile-processing/vector/features/VectorArea";
 import PBFPolygonParser, {PBFPolygon} from "~/lib/tile-processing/vector/providers/pbf/PBFPolygonParser";
 import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/descriptors";
 import MapboxAreaHandler from "~/lib/tile-processing/vector/handlers/MapboxAreaHandler";
 import Pbf from 'pbf';
+import {FeatureProvider} from "~/lib/tile-processing/types";
 
 const proto = require('./pbf/vector_tile.js').Tile;
-
-const AccessToken = 'pk.eyJ1Ijoidmhhd2siLCJhIjoiY2xmbWpqOXBoMGNmZDN2cjJwZXk0MXBzZiJ9.192VNPJG0VV9dGOCOX1gUw';
-
-const getRequestURL = (x: number, y: number, zoom: number): string => {
-	return `https://api.mapbox.com/v4/mapbox.mapbox-streets-v8/${zoom}/${x}/${y}.vector.pbf?access_token=${AccessToken}`;
-};
 
 const AreasConfig: Record<'water', {
 	descriptor: VectorAreaDescriptor;
@@ -24,7 +18,15 @@ const AreasConfig: Record<'water', {
 	}
 }
 
-export default class MapboxVectorFeatureProvider extends VectorFeatureProvider {
+export default class MapboxVectorFeatureProvider implements FeatureProvider<VectorFeatureCollection> {
+	private readonly endpointTemplate: string;
+	private readonly accessToken: string;
+
+	public constructor(endpointTemplate: string, accessToken: string) {
+		this.endpointTemplate = endpointTemplate;
+		this.accessToken = accessToken;
+	}
+
 	public async getCollection(
 		{
 			x,
@@ -37,7 +39,7 @@ export default class MapboxVectorFeatureProvider extends VectorFeatureProvider {
 		}
 	): Promise<VectorFeatureCollection> {
 		const areas: VectorArea[] = [];
-		const polygons = await MapboxVectorFeatureProvider.fetchTile(x, y, zoom);
+		const polygons = await this.fetchTile(x, y, zoom);
 
 		for (const [name, polygonList] of Object.entries(polygons)) {
 			const config = AreasConfig[name as keyof typeof AreasConfig];
@@ -62,17 +64,19 @@ export default class MapboxVectorFeatureProvider extends VectorFeatureProvider {
 		};
 	}
 
-	private static async fetchTile(x: number, y: number, zoom: number): Promise<Record<keyof typeof AreasConfig, PBFPolygon[]>> {
+	private async fetchTile(x: number, y: number, zoom: number): Promise<Record<keyof typeof AreasConfig, PBFPolygon[]>> {
 		const size = 40075016.68 / (1 << zoom);
 		const polygons: Record<keyof typeof AreasConfig, PBFPolygon[]> = {
 			water: []
 		};
-		const response = await fetch(getRequestURL(x, y, zoom), {
+		const url = this.buildRequestURL(x, y, zoom);
+		const response = await fetch(url, {
 			method: 'GET'
 		});
 
 		if (response.status !== 200) {
-			return polygons;
+			const error = await response.text();
+			throw new Error(error);
 		}
 
 		const pbf = new Pbf(await response.arrayBuffer());
@@ -91,5 +95,13 @@ export default class MapboxVectorFeatureProvider extends VectorFeatureProvider {
 		}
 
 		return polygons;
+	}
+
+	private buildRequestURL(x: number, y: number, zoom: number): string {
+		return this.endpointTemplate
+			.replace('{x}', x.toString())
+			.replace('{y}', y.toString())
+			.replace('{z}', zoom.toString())
+			.replace('{access_token}', this.accessToken);
 	}
 }

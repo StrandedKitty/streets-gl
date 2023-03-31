@@ -1,14 +1,17 @@
 import System from "../System";
-import SystemManager from "../SystemManager";
 import SceneSystem from "./SceneSystem";
 import MathUtils from "~/lib/math/MathUtils";
 import Vec2 from "~/lib/math/Vec2";
 import Config from "../Config";
-import HeightTileSource from "../world/terrain/HeightTileSource";
-import WaterTileSource from "../world/terrain/WaterTileSource";
-import TileAreaLoader from "../world/terrain/TileAreaLoader";
+import HeightTileSource from "../terrain/tile-source/HeightTileSource";
+import WaterTileSource from "../terrain/tile-source/WaterTileSource";
+import TileAreaLoader from "../terrain/TileAreaLoader";
 import Terrain from "~/app/objects/Terrain";
 import Object3D from "~/lib/core/Object3D";
+import TerrainHeightProvider from "~/app/terrain/TerrainHeightProvider";
+import WaterTileSourceFactory from "~/app/terrain/tile-source/factory/WaterTileSourceFactory";
+import HeightReusedTileSourceFactory from "~/app/terrain/tile-source/factory/HeightReusedTileSourceFactory";
+import HeightTileSourceFactory from "~/app/terrain/tile-source/factory/HeightTileSourceFactory";
 
 export interface TerrainAreaLoaders {
 	water0: TileAreaLoader<WaterTileSource>;
@@ -20,32 +23,33 @@ export interface TerrainAreaLoaders {
 export default class TerrainSystem extends System {
 	public maskOrigin: Vec2 = new Vec2();
 	public areaLoaders: Readonly<TerrainAreaLoaders>;
+	public readonly terrainHeightProvider: TerrainHeightProvider = new TerrainHeightProvider(12, 13);
 
 	public postInit(): void {
 		this.areaLoaders = {
 			water0: new TileAreaLoader({
-				sourceClass: WaterTileSource,
+				sourceFactory: new WaterTileSourceFactory(),
 				zoom: 13,
 				maxStoredTiles: 100,
 				viewportSize: 4,
 				bufferSize: 1
 			}),
 			water1: new TileAreaLoader({
-				sourceClass: WaterTileSource,
+				sourceFactory: new WaterTileSourceFactory(),
 				zoom: 9,
 				maxStoredTiles: 100,
 				viewportSize: 4,
 				bufferSize: 1
 			}),
 			height0: new TileAreaLoader({
-				sourceClass: HeightTileSource,
+				sourceFactory: new HeightReusedTileSourceFactory(this.terrainHeightProvider, 0),
 				zoom: 12,
 				maxStoredTiles: 100,
 				viewportSize: 4,
 				bufferSize: 1
 			}),
 			height1: new TileAreaLoader({
-				sourceClass: HeightTileSource,
+				sourceFactory: new HeightTileSourceFactory(),
 				zoom: 9,
 				maxStoredTiles: 100,
 				viewportSize: 4,

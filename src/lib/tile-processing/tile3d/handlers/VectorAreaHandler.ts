@@ -1,4 +1,4 @@
-import Handler from "~/lib/tile-processing/tile3d/handlers/Handler";
+import Handler, {RequestedHeightParams} from "~/lib/tile-processing/tile3d/handlers/Handler";
 import Tile3DFeature from "~/lib/tile-processing/tile3d/features/Tile3DFeature";
 import VectorArea, {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
 import OSMReference from "~/lib/tile-processing/vector/features/OSMReference";
@@ -16,11 +16,33 @@ export default class VectorAreaHandler implements Handler {
 	private readonly osmReference: OSMReference;
 	private readonly descriptor: VectorAreaDescriptor;
 	private readonly rings: VectorAreaRing[];
+	private terrainHeight: number = 0;
 
 	public constructor(feature: VectorArea) {
 		this.osmReference = feature.osmReference;
 		this.descriptor = feature.descriptor;
 		this.rings = feature.rings;
+	}
+
+	public getRequestedHeightPositions(): RequestedHeightParams {
+		if (this.descriptor.type === 'building' || this.descriptor.type === 'buildingPart') {
+			const positions: number[] = [];
+
+			for (const ring of this.rings) {
+				for (const vertex of ring.nodes) {
+					positions.push(vertex.x, vertex.y);
+				}
+			}
+
+			return {
+				positions: new Float64Array(positions),
+				callback: (heights: Float64Array): void => {
+					this.terrainHeight = Math.min.apply(null, Array.from(heights));
+				}
+			};
+		}
+
+		return null;
 	}
 
 	public getFeatures(): Tile3DFeature[] {
@@ -130,6 +152,7 @@ export default class VectorAreaHandler implements Handler {
 		const roofParams = this.getRoofParams();
 
 		const {skirt, facadeHeightOverride} = builder.addRoof({
+			terrainHeight: this.terrainHeight,
 			type: roofParams.type,
 			buildingHeight: this.descriptor.buildingHeight,
 			minHeight: this.descriptor.buildingHeight - this.descriptor.buildingRoofHeight,
@@ -146,6 +169,7 @@ export default class VectorAreaHandler implements Handler {
 		});
 
 		builder.addWalls({
+			terrainHeight: this.terrainHeight,
 			levels: this.descriptor.buildingLevels,
 			windowWidth: facadeParams.windowWidth,
 			minHeight: this.descriptor.buildingMinHeight,

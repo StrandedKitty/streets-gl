@@ -1,7 +1,6 @@
 import Object3D from "~/lib/core/Object3D";
 import MathUtils from "~/lib/math/MathUtils";
 import HeightProvider from "../world/HeightProvider";
-import TileLoadingSystem from "../systems/TileLoadingSystem";
 import Camera from "~/lib/core/Camera";
 import Vec2 from "~/lib/math/Vec2";
 import TileExtrudedMesh from "./TileExtrudedMesh";
@@ -110,10 +109,10 @@ export default class Tile extends Object3D {
 		this.updateMatrix();
 	}
 
-	public async load(tileProvider: TileLoadingSystem): Promise<void> {
+	public async load(buffersPromise: Promise<Tile3DBuffers>): Promise<void> {
 		return Promise.all([
 			HeightProvider.prepareDataForTile(this.x, this.y),
-			tileProvider.getTileObjects(this),
+			buffersPromise,
 		]).then(([_, buffers]: [void[], Tile3DBuffers]) => {
 			this.updateExtrudedGeometryOffsets(buffers.extruded);
 

@@ -1,27 +1,30 @@
 import Vec2 from "~/lib/math/Vec2";
-import HeightProvider from "../HeightProvider";
-import {
-	WorkerMessageIncoming,
-	WorkerMessageIncomingType,
-	WorkerMessageOutgoing,
-	WorkerMessageOutgoingType
-} from "./WorkerMessageTypes";
 import {StaticTileGeometry} from "../../objects/Tile";
+import {WorkerMessage} from "~/app/world/worker/WorkerMessage";
+
+export interface TileRequestParams {
+	overpassEndpoint: string;
+	mapboxEndpointTemplate: string;
+	mapboxAccessToken: string;
+}
 
 export default class MapWorker {
 	private worker: Worker;
 	public queueLength = 0;
-	private tilesInProgress: Map<string, {resolve: {(a: any): void}; reject: {(a: any): void}}> = new Map();
+	private tilesInProgress: Map<string, {
+		resolve: (value: StaticTileGeometry) => void;
+		reject: (reason?: any) => void;
+	}> = new Map();
+	private readonly terrainHeightCallback: (positions: Float64Array) => Float64Array;
 
-	public constructor() {
+	public constructor(terrainHeightCallback: (positions: Float64Array) => Float64Array) {
+		this.terrainHeightCallback = terrainHeightCallback;
 		this.worker = new Worker(new URL('./WorkerInstance.ts', import.meta.url));
 
-		this.worker.addEventListener('message', (e: MessageEvent) => {
-			this.processMessage(e);
-		});
+		this.worker.addEventListener('message', (e: MessageEvent) => this.processMessage(e));
 	}
 
-	public async start(x: number, y: number, overpassURL: string): Promise<StaticTileGeometry> {
+	public async requestTile(x: number, y: number, params: TileRequestParams): Promise<StaticTileGeometry> {
 		this.queueLength++;
 
 		const promise = new Promise<StaticTileGeometry>((resolve, reject) => {
@@ -29,39 +32,41 @@ export default class MapWorker {
 		});
 
 		this.sendMessage({
-			type: WorkerMessageOutgoingType.Start,
-			overpassURL: overpassURL,
-			tile: [x, y]
+			type: WorkerMessage.ToWorkerType.Start,
+			tile: [x, y],
+			...params
 		});
 
 		return promise;
 	}
 
-	private sendMessage(msg: WorkerMessageOutgoing): void {
-		this.worker.postMessage(msg);
+	private sendMessage(msg: WorkerMessage.ToWorker, transferables: Transferable[] = []): void {
+		this.worker.postMessage(msg, transferables);
 	}
 
 	private async processMessage(e: MessageEvent): Promise<void> {
-		const data = e.data as WorkerMessageIncoming;
+		const data = e.data as WorkerMessage.FromWorker;
 		const tilePosition = new Vec2(data.tile[0], data.tile[1]);
 		const tileInProgress = this.tilesInProgress.get(`${tilePosition.x},${tilePosition.y}`);
 
 		switch (data.type) {
-			case WorkerMessageIncomingType.Success:
+			case WorkerMessage.FromWorkerType.Success:
 				this.queueLength--;
-				tileInProgress.resolve(data.result);
+				tileInProgress.resolve(data.payload);
 				break;
-			case WorkerMessageIncomingType.Error:
+			case WorkerMessage.FromWorkerType.Error:
 				this.queueLength--;
-				tileInProgress.reject(data.result);
+				tileInProgress.reject(data.payload);
 				break;
-			case WorkerMessageIncomingType.RequestHeight:
-				const height = await HeightProvider.getTileAsync(data.tile[0], data.tile[1]);
-				/*this.sendMessage({
-					type: WorkerMessageOutgoingType.SendHeightData,
-					tile: data.tile,
-					heightArray: height
-				});*/
+			case WorkerMessage.FromWorkerType.RequestHeight:
+				const positions = data.payload as Float64Array;
+				const heightArray = this.terrainHeightCallback(positions);
+
+				this.sendMessage({
+					type: WorkerMessage.ToWorkerType.Height,
+					tile: [tilePosition.x, tilePosition.y],
+					height: heightArray
+				}, [heightArray.buffer]);
 				break;
 		}
 	}

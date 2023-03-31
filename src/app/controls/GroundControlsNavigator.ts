@@ -3,13 +3,14 @@ import Vec2 from "~/lib/math/Vec2";
 import Vec3 from "~/lib/math/Vec3";
 import Config from "../Config";
 import MathUtils from "~/lib/math/MathUtils";
-import HeightProvider from "../world/HeightProvider";
 import CursorStyleSystem from "../systems/CursorStyleSystem";
 import {ControlsState} from "../systems/ControlsSystem";
 import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
+import TerrainHeightProvider from "~/app/terrain/TerrainHeightProvider";
 
 export default class GroundControlsNavigator extends ControlsNavigator {
 	private readonly cursorStyleSystem: CursorStyleSystem;
+	private readonly terrainHeightProvider: TerrainHeightProvider;
 	public target: Vec3 = new Vec3();
 	private direction: Vec3 = new Vec3();
 	private normalizedDistance: number = 10;
@@ -31,11 +32,21 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 	private yawMinusKeyPressed: boolean = false;
 	private yawPlusKeyPressed: boolean = false;
 
-	public constructor(element: HTMLElement, camera: PerspectiveCamera, cursorStyleSystem: CursorStyleSystem) {
+	public constructor(
+		element: HTMLElement,
+		camera: PerspectiveCamera,
+		cursorStyleSystem: CursorStyleSystem,
+		terrainHeightProvider: TerrainHeightProvider
+	) {
 		super(element, camera);
 
 		this.cursorStyleSystem = cursorStyleSystem;
+		this.terrainHeightProvider = terrainHeightProvider;
 
+		this.addEventListeners();
+	}
+
+	private addEventListeners(): void {
 		this.element.addEventListener('mousedown', (e: MouseEvent) => this.mouseDownEvent(e));
 		this.element.addEventListener('mouseleave', (e: MouseEvent) => this.mouseLeaveEvent(e));
 		this.element.addEventListener('mouseup', (e: MouseEvent) => this.mouseUpEvent(e));
@@ -265,11 +276,10 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 	}
 
 	private updateTargetHeightFromHeightmap(): void {
-		const tileSpacePosition = MathUtils.meters2tile(this.target.x, this.target.z);
-		const tilePosition = new Vec2(Math.floor(tileSpacePosition.x), Math.floor(tileSpacePosition.y));
+		const currentHeight = this.terrainHeightProvider.getHeightGlobalInterpolated(this.target.x, this.target.z, true);
 
-		if (HeightProvider.getTile(tilePosition.x, tilePosition.y)) {
-			this.target.y = HeightProvider.getHeight(tilePosition.x, tilePosition.y, tileSpacePosition.x % 1, tileSpacePosition.y % 1);
+		if (currentHeight !== null) {
+			this.target.y = currentHeight;
 		}
 	}
 

@@ -197,6 +197,27 @@ export class VectorDescriptorFactory {
 			return descriptors;
 		}
 
+		if (tags.aeroway === 'runway' || tags.aeroway === 'taxiway') {
+			let width = this.parseUnits(tags.width);
+
+			if (width === undefined) {
+				if (tags.aeroway === 'runway') {
+					width = 45;
+				} else {
+					width = 20;
+				}
+			}
+
+			return [{
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'path',
+					pathType: 'runway',
+					width: width
+				}
+			}];
+		}
+
 		if (tags.railway === 'rail') {
 			return [{
 				type: ContainerType.Descriptor,
@@ -333,7 +354,10 @@ export class VectorDescriptorFactory {
 			};
 		}
 
-		if (tags.amenity === 'parking' && tags.parking === 'surface' || tags.amenity === 'bicycle_parking') {
+		if (
+			tags.amenity === 'parking' && (tags.parking === 'surface' || tags.parking === undefined) ||
+			tags.amenity === 'bicycle_parking'
+		) {
 			return {
 				type: ContainerType.Descriptor,
 				data: {
@@ -359,6 +383,15 @@ export class VectorDescriptorFactory {
 		}
 
 		if (tags.man_made === 'bridge') {
+			return {
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'footway'
+				}
+			};
+		}
+
+		if (tags.aeroway === 'apron') {
 			return {
 				type: ContainerType.Descriptor,
 				data: {
@@ -421,8 +454,10 @@ export class VectorDescriptorFactory {
 
 	private static parsePathMaterial(str: string): VectorPolylineDescriptor['pathMaterial'] {
 		switch (str) {
-			case 'concrete': return 'concrete';
-			case 'wood': return 'wood';
+			case 'concrete':
+				return 'concrete';
+			case 'wood':
+				return 'wood';
 		}
 
 		return 'asphalt';

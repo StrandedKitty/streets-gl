@@ -956,7 +956,7 @@ export default class PassManager {
 								width: 1,
 								height: 1,
 								depth: 1,
-								format: RendererTypes.TextureFormat.R16Float,
+								format: RendererTypes.TextureFormat.R32Float,
 								minFilter: RendererTypes.MinFilter.NearestMipmapNearest,
 								magFilter: RendererTypes.MagFilter.Nearest,
 								wrap: RendererTypes.TextureWrap.ClampToEdge,

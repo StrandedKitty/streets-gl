@@ -4,3 +4,4 @@ export default interface Tile3DInstance extends Tile3DFeature {
 	type: 'instance';
 	interleavedBuffer: Float32Array;
 }
+

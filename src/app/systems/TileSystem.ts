@@ -1,7 +1,6 @@
 import Tile from "../objects/Tile";
 import Frustum from "~/lib/core/Frustum";
 import Vec2 from "~/lib/math/Vec2";
-import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 import Vec3 from "~/lib/math/Vec3";
 import ConvexHullGrahamScan from "~/lib/math/ConvexHullGrahamScan";
 import MathUtils from "~/lib/math/MathUtils";
@@ -11,6 +10,7 @@ import TileObjectsSystem from "./TileObjectsSystem";
 import System from "../System";
 import SceneSystem from './SceneSystem';
 import Camera from "~/lib/core/Camera";
+import TerrainSystem from "~/app/systems/TerrainSystem";
 
 export default class TileSystem extends System {
 	public tiles: Map<string, Tile> = new Map();
@@ -25,7 +25,10 @@ export default class TileSystem extends System {
 		const tile = new Tile(x, y);
 		this.tiles.set(`${x},${y}`, tile);
 
-		tile.load(this.systemManager.getSystem(TileLoadingSystem));
+		const terrain = this.systemManager.getSystem(TerrainSystem);
+
+		const tilePromise = this.systemManager.getSystem(TileLoadingSystem).getTileObjects(tile);
+		tile.load(tilePromise);
 	}
 
 	public getTile(x: number, y: number): Tile {

@@ -1,13 +1,11 @@
 export interface VectorNodeDescriptor {
-	name?: string;
 	type?: 'tree' | 'hydrant' | 'transmissionTower' | 'utilityPole' | 'artwork' | 'adColumn';
 	direction?: number;
 }
 
 export interface VectorPolylineDescriptor {
-	name?: string;
 	type: 'path' | 'fence' | 'hedge' | 'powerLine';
-	pathType?: 'roadway' | 'footway' | 'cycleway' | 'railway' | 'tramway';
+	pathType?: 'roadway' | 'footway' | 'cycleway' | 'railway' | 'tramway' | 'runway';
 	pathMaterial?: 'asphalt' | 'concrete' | 'dirt' | 'sand' | 'gravel' | 'cobblestone' | 'wood';
 	width?: number;
 	height?: number;
@@ -18,7 +16,7 @@ export interface VectorPolylineDescriptor {
 }
 
 export interface VectorAreaDescriptor {
-	name?: string;
+	label?: string;
 	type: 'building' | 'buildingPart' | 'roadway' | 'roadwayIntersection' | 'footway' | 'water' | 'farmland' | 'sand' | 'rock' | 'pitch' | 'manicuredGrass';
 	intersectionMaterial?: 'asphalt' | 'concrete';
 	pitchType?: 'football' | 'basketball' | 'tennis';

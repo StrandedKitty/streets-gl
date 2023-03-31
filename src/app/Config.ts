@@ -36,6 +36,7 @@ const Config = {
 	CSMShadowCameraFar: 20000,
 	TerrainRingCount: 6,
 	TerrainRingSegmentCount: 64,
+	TerrainRingSizeZoom: 13,
 	TerrainRingSize: 40075016.68 / (1 << 13),
 	TerrainWaterMaskResolution: 32,
 	TerrainNormalMixRange: [10000, 14500],
@@ -122,10 +123,12 @@ const Config = {
 		}
 	} as SettingsSchema,
 	OverpassEndpoints: [
-		{url: 'https://overpass-api.de/api/interpreter', isEnabled: false},
+		{url: 'https://overpass-api.de/api/interpreter', isEnabled: true},
 		{url: 'https://overpass.openstreetmap.ru/cgi/interpreter', isEnabled: false},
-		{url: 'https://overpass.kumi.systems/api/interpreter', isEnabled: true}
-	]
+		{url: 'https://overpass.kumi.systems/api/interpreter', isEnabled: false}
+	],
+	MapboxStreetsEndpointTemplate: 'https://api.mapbox.com/v4/mapbox.mapbox-streets-v8/{z}/{x}/{y}.vector.pbf?access_token={access_token}',
+	MapboxAccessToken: 'pk.eyJ1Ijoidmhhd2siLCJhIjoiY2xmbWpqOXBoMGNmZDN2cjJwZXk0MXBzZiJ9.192VNPJG0VV9dGOCOX1gUw'
 };
 
 export default Config;

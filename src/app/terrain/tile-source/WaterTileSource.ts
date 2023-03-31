@@ -119,6 +119,10 @@ export default class WaterTileSource extends TileSource<Float32Array> {
 
 	public delete(): void {
 		this.deleted = true;
+
+		if (this.mesh) {
+			this.mesh.delete();
+		}
 	}
 
 	private static getURL(x: number, y: number, zoom: number): string {

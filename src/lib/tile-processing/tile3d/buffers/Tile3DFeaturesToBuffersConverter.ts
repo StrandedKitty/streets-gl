@@ -1,6 +1,6 @@
 import Tile3DBuffers, {
 	BoundingBox,
-	Tile3DBuffersExtruded, Tile3DBuffersHugging,
+	Tile3DBuffersExtruded, Tile3DBuffersHugging, Tile3DBuffersLabels,
 	Tile3DBuffersProjected
 } from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
 import Tile3DFeatureCollection from "~/lib/tile-processing/tile3d/features/Tile3DFeatureCollection";
@@ -9,6 +9,7 @@ import AABB3D from "~/lib/math/AABB3D";
 import Tile3DExtrudedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DExtrudedGeometry";
 import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DProjectedGeometry";
 import Tile3DHuggingGeometry from "~/lib/tile-processing/tile3d/features/Tile3DHuggingGeometry";
+import Tile3DLabel from "~/lib/tile-processing/tile3d/features/Tile3DLabel";
 
 export class Tile3DFeaturesToBuffersConverter {
 	public static convert(collection: Tile3DFeatureCollection): Tile3DBuffers {
@@ -16,6 +17,7 @@ export class Tile3DFeaturesToBuffersConverter {
 			extruded: this.getExtrudedBuffers(collection.extruded),
 			projected: this.getProjectedBuffers(collection.projected),
 			hugging: this.getHuggingBuffers(collection.hugging),
+			labels: this.getLabelsBuffers(collection.labels),
 			instances: {}
 		};
 	}
@@ -135,6 +137,24 @@ export class Tile3DFeaturesToBuffersConverter {
 			uvBuffer: uvBufferMerged,
 			textureIdBuffer: textureIdBufferMerged,
 			boundingBox: this.boundingBoxToFlatObject(boundingBox)
+		};
+	}
+
+	private static getLabelsBuffers(features: Tile3DLabel[]): Tile3DBuffersLabels {
+		const positionArray: number[] = [];
+		const priorityArray: number[] = [];
+		const textArray: string[] = [];
+
+		for (const feature of features) {
+			positionArray.push(feature.position[0], feature.position[1], feature.position[2]);
+			priorityArray.push(feature.priority);
+			textArray.push(feature.text);
+		}
+
+		return {
+			position: new Float32Array(positionArray),
+			priority: new Float32Array(priorityArray),
+			text: textArray
 		};
 	}
 

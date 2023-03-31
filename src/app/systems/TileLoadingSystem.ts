@@ -76,10 +76,14 @@ export default class TileLoadingSystem extends System {
 			const endpoint = this.getNextOverpassEndpoint();
 			const {tile, onLoad} = this.getNearestTileInQueue();
 
-			worker.start(tile.x, tile.y, endpoint).then(result => {
+			worker.requestTile(tile.x, tile.y, {
+				overpassEndpoint: endpoint,
+				mapboxEndpointTemplate: Config.MapboxStreetsEndpointTemplate,
+				mapboxAccessToken: Config.MapboxAccessToken
+			}).then(result => {
 				onLoad(result);
 			}, error => {
-				//console.error(error, `${tile.x}, ${tile.y}`);
+				console.error(`Failed to load tile ${tile.x},${tile.y}. Retrying...`, error);
 				this.queue.unshift({tile, onLoad});
 			});
 		}

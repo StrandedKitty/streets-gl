@@ -1,18 +1,16 @@
 import Vec3 from "~/lib/math/Vec3";
 import MathUtils from "~/lib/math/MathUtils";
-import Camera from "~/lib/core/Camera";
 import URLControlsStateHandler from "../controls/URLControlsStateHandler";
 import Config from "../Config";
 import System from "../System";
-import SystemManager from "../SystemManager";
 import SceneSystem from './SceneSystem';
 import Easing from "~/lib/math/Easing";
 import GroundControlsNavigator from "../controls/GroundControlsNavigator";
 import ControlsNavigator from "../controls/ControlsNavigator";
 import FreeControlsNavigator from "../controls/FreeControlsNavigator";
 import CursorStyleSystem from "./CursorStyleSystem";
-import UI from "~/app/ui/UI";
 import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
+import TerrainSystem from "~/app/systems/TerrainSystem";
 
 const WheelZoomFactor = 6;
 
@@ -69,9 +67,10 @@ export default class ControlsSystem extends System {
 		this.camera = this.systemManager.getSystem(SceneSystem).objects.camera;
 
 		const cursorStyleSystem = this.systemManager.getSystem(CursorStyleSystem);
+		const terrainHeightProvider = this.systemManager.getSystem(TerrainSystem).terrainHeightProvider;
 
-		this.groundNavigator = new GroundControlsNavigator(this.element, this.camera, cursorStyleSystem);
-		this.freeNavigator = new FreeControlsNavigator(this.element, this.camera);
+		this.groundNavigator = new GroundControlsNavigator(this.element, this.camera, cursorStyleSystem, terrainHeightProvider);
+		this.freeNavigator = new FreeControlsNavigator(this.element, this.camera, terrainHeightProvider);
 
 		this.activeNavigator = this.groundNavigator;
 		this.groundNavigator.enable();

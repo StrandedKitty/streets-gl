@@ -1,7 +1,6 @@
 import Tile3DFeatureCollection from "~/lib/tile-processing/tile3d/features/Tile3DFeatureCollection";
-import Tile3DFeatureProvider from "~/lib/tile-processing/tile3d/providers/Tile3DFeatureProvider";
 import CombinedVectorFeatureProvider from "~/lib/tile-processing/vector/providers/CombinedVectorFeatureProvider";
-import Handler from "~/lib/tile-processing/tile3d/handlers/Handler";
+import Handler, {RequestedHeightParams} from "~/lib/tile-processing/tile3d/handlers/Handler";
 import VectorNodeHandler from "~/lib/tile-processing/tile3d/handlers/VectorNodeHandler";
 import VectorPolylineHandler from "~/lib/tile-processing/tile3d/handlers/VectorPolylineHandler";
 import VectorAreaHandler from "~/lib/tile-processing/tile3d/handlers/VectorAreaHandler";
@@ -17,14 +16,23 @@ import RoadGraph from "~/lib/road-graph/RoadGraph";
 import {VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
 import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/descriptors";
 import Intersection from "~/lib/road-graph/Intersection";
+import {FeatureProvider} from "~/lib/tile-processing/types";
+import Utils from "~/app/Utils";
 
-export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
+export interface Tile3DProviderParams {
+	overpassEndpoint: string;
+	mapboxEndpointTemplate: string;
+	mapboxAccessToken: string;
+	heightPromise: (positions: Float64Array) => Promise<Float64Array>;
+}
+
+export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DFeatureCollection> {
 	private readonly vectorProvider: CombinedVectorFeatureProvider;
+	private readonly params: Tile3DProviderParams;
 
-	public constructor(overpassURL: string) {
-		super();
-
-		this.vectorProvider = new CombinedVectorFeatureProvider(overpassURL);
+	public constructor(params: Tile3DProviderParams) {
+		this.params = params;
+		this.vectorProvider = new CombinedVectorFeatureProvider(params);
 	}
 
 	public async getCollection(
@@ -38,15 +46,24 @@ export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
 			zoom: number;
 		}
 	): Promise<Tile3DFeatureCollection> {
-		const vectorTile = await this.vectorProvider.getCollection({x, y, zoom});
+		try {
+			const vectorTile = await this.vectorProvider.getCollection({x, y, zoom});
 
-		const handlers = Tile3DFromVectorProvider.createHandlersFromVectorFeatureCollection(vectorTile);
-		Tile3DFromVectorProvider.addRoadGraphToHandlers(handlers);
+			const handlers = Tile3DFromVectorProvider.createHandlersFromVectorFeatureCollection(vectorTile);
 
-		const collection = Tile3DFromVectorProvider.getFeaturesFromHandlers(handlers);
-		applyMercatorFactorToExtrudedFeatures(collection.extruded, x, y, zoom);
+			await Tile3DFromVectorProvider.updateFeaturesHeight(handlers, this.params.heightPromise);
+			Tile3DFromVectorProvider.addRoadGraphToHandlers(handlers);
 
-		return collection;
+			const collection = Tile3DFromVectorProvider.getFeaturesFromHandlers(handlers);
+
+			applyMercatorFactorToExtrudedFeatures(collection.extruded, x, y, zoom);
+
+			return collection;
+		} catch (e) {
+			console.error(e);
+		}
+
+		return null;
 	}
 
 	private static createHandlersFromVectorFeatureCollection(collection: VectorFeatureCollection): Handler[] {
@@ -143,6 +160,7 @@ export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
 			extruded: [],
 			projected: [],
 			hugging: [],
+			labels: [],
 			instances: []
 		};
 
@@ -170,5 +188,53 @@ export default class Tile3DFromVectorProvider extends Tile3DFeatureProvider {
 		}
 
 		return collection;
+	}
+
+	private static async updateFeaturesHeight(
+		features: Handler[],
+		heightPromise: (positions: Float64Array) => Promise<Float64Array>
+	): Promise<void> {
+		const paramsList: RequestedHeightParams[] = [];
+
+		for (const feature of features) {
+			const params = feature.getRequestedHeightPositions();
+
+			if (params) {
+				paramsList.push(params);
+			}
+		}
+
+		const positionArrays: Float64Array[] = [];
+		const offsets: number[] = [];
+		let currentOffset: number = 0;
+
+		for (const params of paramsList) {
+			currentOffset += params.positions.length / 2;
+			offsets.push(currentOffset);
+			positionArrays.push(params.positions);
+		}
+
+		const mergedPositions = Utils.mergeTypedArrays(Float64Array, positionArrays);
+		const height = await heightPromise(mergedPositions);
+		const parts = this.splitHeightArray(height, offsets);
+
+		for (let i = 0; i < parts.length; i++) {
+			paramsList[i].callback(parts[i]);
+		}
+	}
+
+	private static splitHeightArray(array: Float64Array, offsets: number[]): Float64Array[] {
+		const parts: Float64Array[] = [];
+		let startIndex: number = 0;
+
+		for (let i = 0; i < offsets.length; i++) {
+			const endIndex = offsets[i];
+
+			parts.push(array.slice(startIndex, endIndex));
+
+			startIndex = endIndex;
+		}
+
+		return parts;
 	}
 }

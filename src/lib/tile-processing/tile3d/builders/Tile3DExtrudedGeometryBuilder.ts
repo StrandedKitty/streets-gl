@@ -67,6 +67,7 @@ export default class Tile3DExtrudedGeometryBuilder {
 
 	public addWalls(
 		{
+			terrainHeight,
 			minHeight,
 			height,
 			skirt,
@@ -76,6 +77,7 @@ export default class Tile3DExtrudedGeometryBuilder {
 			textureIdWindow,
 			textureIdWall
 		}: {
+			terrainHeight: number;
 			minHeight: number;
 			height: number;
 			skirt: RoofSkirt;
@@ -103,12 +105,14 @@ export default class Tile3DExtrudedGeometryBuilder {
 					textureIdWall,
 					textureIdWindow
 				});
+
 				this.addAndPaintGeometry({
 					position: walls.position,
 					normal: walls.normal,
 					uv: walls.uv,
 					color,
-					textureId: walls.textureId
+					textureId: walls.textureId,
+					heightOffset: terrainHeight
 				});
 			}
 		}
@@ -124,12 +128,14 @@ export default class Tile3DExtrudedGeometryBuilder {
 					textureIdWall,
 					textureIdWindow
 				});
+
 				this.addAndPaintGeometry({
 					position: walls.position,
 					normal: walls.normal,
 					uv: walls.uv,
 					color,
-					textureId: walls.textureId
+					textureId: walls.textureId,
+					heightOffset: terrainHeight
 				});
 			}
 		}
@@ -148,17 +154,20 @@ export default class Tile3DExtrudedGeometryBuilder {
 				scaleY: 10,
 				isStretched: false
 			});
+
 			this.addAndPaintGeometry({
 				position: roof.position,
 				normal: roof.normal,
 				uv: roof.uv,
 				color,
-				textureId: 7
+				textureId: 7,
+				heightOffset: terrainHeight
 			});
 		}
 	}
 
 	public addRoof(params: {
+		terrainHeight: number;
 		type: RoofType;
 		buildingHeight: number;
 		minHeight: number;
@@ -229,7 +238,8 @@ export default class Tile3DExtrudedGeometryBuilder {
 			normal: roof.normal,
 			uv: roof.uv,
 			color: params.color,
-			textureId: params.textureId
+			textureId: params.textureId,
+			heightOffset: params.terrainHeight
 		});
 
 		return {
@@ -254,15 +264,18 @@ export default class Tile3DExtrudedGeometryBuilder {
 			normal,
 			uv,
 			color,
-			textureId
+			textureId,
+			heightOffset
 		}: {
 			position: number[];
 			normal: number[];
 			uv: number[];
 			color: number;
 			textureId: number | number[];
+			heightOffset: number;
 		}
 	): void {
+		this.applyHeightOffsetToVertices(position, heightOffset);
 		this.addVerticesToBoundingBox(position);
 
 		let shouldPushTextureId = true;
@@ -294,6 +307,12 @@ export default class Tile3DExtrudedGeometryBuilder {
 		for (let i = 0; i < vertices.length; i += 3) {
 			tempVec3.set(vertices[i], vertices[i + 1], vertices[i + 2]);
 			this.boundingBox.includePoint(tempVec3);
+		}
+	}
+
+	private applyHeightOffsetToVertices(vertices: number[], heightOffset: number): void {
+		for (let i = 1; i < vertices.length; i += 3) {
+			vertices[i] += heightOffset;
 		}
 	}
 

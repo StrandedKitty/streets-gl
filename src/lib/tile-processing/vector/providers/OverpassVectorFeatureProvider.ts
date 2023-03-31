@@ -47,7 +47,9 @@ const getRelationRequestURL = (relation: number): string => {
 };
 
 export default class OverpassVectorFeatureProvider extends VectorFeatureProvider {
-	public constructor(private readonly overpassURL: string) {
+	public constructor(
+		private readonly overpassURL: string
+	) {
 		super();
 	}
 

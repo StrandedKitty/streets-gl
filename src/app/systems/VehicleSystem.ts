@@ -100,7 +100,7 @@ export default class VehicleSystem extends System {
 	public async fetchData(): Promise<any> {
 		const tilesBoundingBox = this.getLoadedTilesBoundingBox();
 
-		fetch(`http://localhost:3000/vehicles?bbox=${tilesBoundingBox.join(',')}`, {
+		fetch(`https://tiles.streets.gl/vehicles?bbox=${tilesBoundingBox.join(',')}`, {
 			method: 'GET'
 		}).then(async r => {
 			const response: VehiclesQueryResponse = await r.json();

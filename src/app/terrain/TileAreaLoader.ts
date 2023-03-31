@@ -1,6 +1,7 @@
 import Vec2 from "~/lib/math/Vec2";
 import MathUtils from "~/lib/math/MathUtils";
-import TileSource from "./TileSource";
+import TileSource from "./tile-source/TileSource";
+import TileSourceFactory from "~/app/terrain/tile-source/factory/TileSourceFactory";
 
 export interface TileAreaLoaderCellState<TileSourceType extends TileSource<any>> {
 	localX: number;
@@ -11,8 +12,6 @@ export interface TileAreaLoaderCellState<TileSourceType extends TileSource<any>>
 	tile: TileSourceType | null;
 }
 
-type TileSourceConstructor<T extends TileSource<any>> = {new(x: number, y: number, zoom: number): T};
-
 export default class TileAreaLoader<T extends TileSource<any>> {
 	public readonly zoom: number;
 	public readonly bufferSize: number;
@@ -20,24 +19,24 @@ export default class TileAreaLoader<T extends TileSource<any>> {
 	public readonly viewportSize: number;
 	private readonly states: TileAreaLoaderCellState<T>[] = [];
 	private readonly tiles: Map<string, T> = new Map();
-	private readonly sourceClass: TileSourceConstructor<T>;
+	private readonly sourceFactory: TileSourceFactory<T>;
 
 	public constructor(
 		{
-			sourceClass,
+			sourceFactory,
 			zoom,
 			maxStoredTiles,
 			viewportSize,
 			bufferSize
 		}: {
-			sourceClass: TileSourceConstructor<T>;
+			sourceFactory: TileSourceFactory<T>;
 			zoom: number;
 			maxStoredTiles: number;
 			viewportSize: number;
 			bufferSize: number;
 		}
 	) {
-		this.sourceClass = sourceClass;
+		this.sourceFactory = sourceFactory;
 		this.zoom = zoom;
 		this.bufferSize = bufferSize;
 		this.maxStoredTiles = maxStoredTiles;
@@ -98,11 +97,15 @@ export default class TileAreaLoader<T extends TileSource<any>> {
 			}
 		}
 
+		this.markDirtyTileStates(min);
+	}
+
+	private markDirtyTileStates(viewportOrigin: Vec2): void {
 		for (let x = 0; x < this.viewportSize; x++) {
 			for (let y = 0; y < this.viewportSize; y++) {
 				const state = this.getState(x, y);
-				const tileX = x + min.x;
-				const tileY = y + min.y;
+				const tileX = x + viewportOrigin.x;
+				const tileY = y + viewportOrigin.y;
 
 				if (state.x !== tileX || state.y !== tileY) {
 					state.dirty = true;
@@ -132,7 +135,7 @@ export default class TileAreaLoader<T extends TileSource<any>> {
 	}
 
 	private fetchTile(x: number, y: number): void {
-		const tile = new (this.sourceClass)(x, y, this.zoom);
+		const tile = this.sourceFactory.create(x, y, this.zoom);
 		this.setTile(x, y, tile);
 		tile.markUsed();
 

@@ -6,8 +6,10 @@ import MathUtils from "~/lib/math/MathUtils";
 import HeightProvider from "../world/HeightProvider";
 import {ControlsState} from "../systems/ControlsSystem";
 import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
+import TerrainHeightProvider from "~/app/terrain/TerrainHeightProvider";
 
 export default class FreeControlsNavigator extends ControlsNavigator {
+	private readonly terrainHeightProvider: TerrainHeightProvider;
 	private pitch: number = MathUtils.toRad(45);
 	private yaw: number = MathUtils.toRad(0);
 	private forwardKeyPressed: boolean = false;
@@ -21,9 +23,19 @@ export default class FreeControlsNavigator extends ControlsNavigator {
 	private yawPlusKeyPressed: boolean = false;
 	private pointerLocked: boolean = false;
 
-	public constructor(element: HTMLElement, camera: PerspectiveCamera) {
+	public constructor(
+		element: HTMLElement,
+		camera: PerspectiveCamera,
+		terrainHeightProvider: TerrainHeightProvider
+	) {
 		super(element, camera);
 
+		this.terrainHeightProvider = terrainHeightProvider;
+
+		this.addEventListeners();
+	}
+
+	private addEventListeners(): void {
 		this.element.addEventListener('mousedown', (e: MouseEvent) => this.mouseDownEvent(e));
 		this.element.addEventListener('mousemove', (e: MouseEvent) => this.mouseMoveEvent(e));
 		document.addEventListener('keydown', (e: KeyboardEvent) => this.keyDownEvent(e));
@@ -134,12 +146,11 @@ export default class FreeControlsNavigator extends ControlsNavigator {
 		}
 	}
 
-	private getHeightmapValueAtPosition(x: number, y: number): number {
-		const tileSpacePosition = MathUtils.meters2tile(x, y);
-		const tilePosition = new Vec2(Math.floor(tileSpacePosition.x), Math.floor(tileSpacePosition.y));
+	private getHeightmapValueAtPosition(x: number, z: number): number {
+		const currentHeight = this.terrainHeightProvider.getHeightGlobalInterpolated(x, z, true);
 
-		if (HeightProvider.getTile(tilePosition.x, tilePosition.y)) {
-			return HeightProvider.getHeight(tilePosition.x, tilePosition.y, tileSpacePosition.x % 1, tileSpacePosition.y % 1);
+		if (currentHeight !== null) {
+			return currentHeight;
 		}
 
 		return 0;
@@ -231,7 +242,7 @@ export default class FreeControlsNavigator extends ControlsNavigator {
 		this.camera.position.z += movementDelta.z;
 
 		const heightmapValue = this.getHeightmapValueAtPosition(this.camera.position.x, this.camera.position.z);
-		this.camera.position.y = Math.max(this.camera.position.y, heightmapValue + 15);
+		this.camera.position.y = Math.max(this.camera.position.y, heightmapValue + Config.MinCameraDistance);
 
 		this.camera.updateMatrix();
 

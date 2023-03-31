@@ -35,11 +35,20 @@ export interface Tile3DBuffersHugging {
 	boundingBox: BoundingBox;
 }
 
-type Tile3DBuffersInstance = Float32Array;
+export interface Tile3DBuffersLabels {
+	position: Float32Array;
+	priority: Float32Array;
+	text: string[];
+}
+
+export interface Tile3DBuffersInstance {
+	interleavedBuffer: Float32Array;
+}
 
 export default interface Tile3DBuffers {
 	extruded: Tile3DBuffersExtruded;
 	projected: Tile3DBuffersProjected;
 	hugging: Tile3DBuffersHugging;
+	labels: Tile3DBuffersLabels;
 	instances: Record<string, Tile3DBuffersInstance>;
 }

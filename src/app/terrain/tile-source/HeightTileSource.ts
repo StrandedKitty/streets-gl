@@ -2,12 +2,27 @@ import TileSource from "./TileSource";
 import AbstractTexture2D from "~/lib/renderer/abstract-renderer/AbstractTexture2D";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
+import TerrainHeightLoaderBitmap from "~/app/terrain/TerrainHeightLoaderBitmap";
 
 export default class HeightTileSource extends TileSource<ImageBitmap> {
 	private texture: AbstractTexture2D = null;
+	private loaderBitmap: TerrainHeightLoaderBitmap = null;
+	private id: symbol = null;
 
-	public constructor(x: number, y: number, zoom: number) {
+	public constructor(x: number, y: number, zoom: number, bitmapPromise?: Promise<TerrainHeightLoaderBitmap>, id?: symbol) {
 		super(x, y, zoom);
+
+		if (bitmapPromise) {
+			bitmapPromise.then(bitmap => {
+				if (this.deleted) {
+					return;
+				}
+
+				this.data = bitmap.bitmap;
+				this.loaderBitmap = bitmap;
+				this.id = id;
+			})
+		}
 
 		this.load();
 	}
@@ -56,10 +71,16 @@ export default class HeightTileSource extends TileSource<ImageBitmap> {
 	}
 
 	public delete(): void {
-		if (this.data) {
-			this.deleted = true;
+		this.deleted = true;
+
+		if (this.data && !this.loaderBitmap) {
 			this.data.close();
 		}
+
+		if (this.loaderBitmap) {
+			this.loaderBitmap.tracker.release(this.id);
+		}
+
 		if (this.texture) {
 			this.texture.delete();
 		}
