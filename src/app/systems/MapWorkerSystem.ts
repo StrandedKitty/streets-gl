@@ -12,7 +12,13 @@ export default class MapWorkerSystem extends System {
 			const heights = new Float64Array(positions.length / 2);
 
 			for (let i = 0; i < positions.length; i += 2) {
-				heights[i / 2] = heightProvider.getHeightGlobalInterpolated(positions[i], positions[i + 1], false);
+				const height = heightProvider.getHeightGlobalInterpolated(positions[i], positions[i + 1], false);
+
+				if (height === null) {
+					console.error(`Couldn't sample height`);
+				}
+
+				heights[i / 2] = height;
 			}
 
 			return heights;

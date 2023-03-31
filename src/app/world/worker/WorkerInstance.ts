@@ -94,15 +94,13 @@ class WorkerInstance {
 			const handler = async (event: MessageEvent): Promise<void> => {
 				const data = event.data as WorkerMessage.ToWorker;
 
-				if (x !== data.tile[0] && y !== data.tile[1]) {
+				if (x !== data.tile[0] || y !== data.tile[1] || data.type !== WorkerMessage.ToWorkerType.Height) {
 					return;
 				}
 
-				if (data.type === WorkerMessage.ToWorkerType.Height) {
-					resolve(data.height);
-				}
-
 				ctx.removeEventListener('message', handler);
+
+				resolve(data.height);
 			};
 
 			ctx.addEventListener('message', handler);

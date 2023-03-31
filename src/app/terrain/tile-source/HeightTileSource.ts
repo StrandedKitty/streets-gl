@@ -2,26 +2,29 @@ import TileSource from "./TileSource";
 import AbstractTexture2D from "~/lib/renderer/abstract-renderer/AbstractTexture2D";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
-import TerrainHeightLoaderBitmap from "~/app/terrain/TerrainHeightLoaderBitmap";
+import TerrainHeightLoader, {HeightLoaderTile} from "~/app/terrain/TerrainHeightLoader";
 
 export default class HeightTileSource extends TileSource<ImageBitmap> {
 	private texture: AbstractTexture2D = null;
-	private loaderBitmap: TerrainHeightLoaderBitmap = null;
-	private id: symbol = null;
+	private heightLoaderTile: HeightLoaderTile = null;
 
-	public constructor(x: number, y: number, zoom: number, bitmapPromise?: Promise<TerrainHeightLoaderBitmap>, id?: symbol) {
+	public constructor(x: number, y: number, zoom: number, heightLoader?: TerrainHeightLoader, level?: number) {
 		super(x, y, zoom);
 
-		if (bitmapPromise) {
-			bitmapPromise.then(bitmap => {
+		if (heightLoader) {
+			const tilePromise = heightLoader.getOrLoadTile(x, y, zoom, this);
+
+			tilePromise.then(tile => {
 				if (this.deleted) {
+					this.heightLoaderTile.tracker.release(this);
 					return;
 				}
 
-				this.data = bitmap.bitmap;
-				this.loaderBitmap = bitmap;
-				this.id = id;
-			})
+				this.heightLoaderTile = tile;
+				this.data = tile.getLevel(level).bitmap;
+			});
+
+			return;
 		}
 
 		this.load();
@@ -73,12 +76,12 @@ export default class HeightTileSource extends TileSource<ImageBitmap> {
 	public delete(): void {
 		this.deleted = true;
 
-		if (this.data && !this.loaderBitmap) {
+		if (this.data && !this.heightLoaderTile) {
 			this.data.close();
 		}
 
-		if (this.loaderBitmap) {
-			this.loaderBitmap.tracker.release(this.id);
+		if (this.heightLoaderTile) {
+			this.heightLoaderTile.tracker.release(this);
 		}
 
 		if (this.texture) {

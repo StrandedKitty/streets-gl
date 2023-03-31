@@ -1,23 +1,4 @@
-type AnyObject = any;
-
-export class UsageTracker {
-	private users: Set<AnyObject> = new Set();
-
-	public use(id: AnyObject): void {
-		this.users.add(id);
-	}
-
-	public release(id: AnyObject): void {
-		this.users.delete(id);
-	}
-
-	public isUsed(): boolean {
-		return this.users.size > 0;
-	}
-}
-
 export default class TerrainHeightLoaderBitmap {
-	public tracker: UsageTracker = new UsageTracker();
 	public readonly bitmap: ImageBitmap;
 	private readonly data: Float32Array;
 	private readonly width: number;
@@ -32,13 +13,6 @@ export default class TerrainHeightLoaderBitmap {
 
 	public fetchNearest(x: number, y: number): number {
 		return this.data[y * this.width + x];
-	}
-
-	public fetchNearestNormalized(x: number, y: number): number {
-		const texelX = Math.min(Math.floor(x * this.width), this.width - 1);
-		const texelY = Math.min(Math.floor(y * this.height), this.height - 1);
-
-		return this.fetchNearest(texelX, texelY);
 	}
 
 	public downscale(): TerrainHeightLoaderBitmap {

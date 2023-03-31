@@ -1,16 +1,53 @@
 import TerrainHeightLoaderBitmap from "~/app/terrain/TerrainHeightLoaderBitmap";
 
+type AnyObject = any;
+
+export class UsageTracker {
+	private users: Set<AnyObject> = new Set();
+
+	public use(id: AnyObject): void {
+		this.users.add(id);
+	}
+
+	public release(id: AnyObject): void {
+		this.users.delete(id);
+	}
+
+	public isUsed(): boolean {
+		return this.users.size > 0;
+	}
+}
+
+export class HeightLoaderTile {
+	public tracker: UsageTracker = new UsageTracker();
+	public levels: Map<number, TerrainHeightLoaderBitmap> = new Map();
+
+	public setLevel(levelId: number, bitmap: TerrainHeightLoaderBitmap): void {
+		this.levels.set(levelId, bitmap);
+	}
+
+	public getLevel(levelId: number): TerrainHeightLoaderBitmap {
+		return this.levels.get(levelId);
+	}
+
+	public delete(): void {
+		for (const level of this.levels.values()) {
+			level.delete();
+		}
+	}
+}
+
 export default class TerrainHeightLoader {
-	private readonly tiles: Map<string, Map<number, TerrainHeightLoaderBitmap>> = new Map();
+	private readonly tiles: Map<string, HeightLoaderTile> = new Map();
 
 	public async load(
 		x: number,
 		y: number,
 		zoom: number,
 		downscaleTimes: number,
-		ownerId: symbol
+		owner: AnyObject
 	): Promise<void> {
-		//this.removeUnusedTiles();
+		this.removeUnusedTiles();
 
 		const url = TerrainHeightLoader.getURL(x, y, zoom);
 		const response = await fetch(url, {
@@ -26,7 +63,6 @@ export default class TerrainHeightLoader {
 		const blob = await response.blob();
 		const bitmap = await createImageBitmap(blob);
 		const decoded = TerrainHeightLoader.decodeBitmap(bitmap);
-		decoded.tracker.use(ownerId);
 
 		this.addBitmap(decoded, x, y, zoom, 0);
 
@@ -35,60 +71,77 @@ export default class TerrainHeightLoader {
 			const ty = Math.floor(y / (2 ** i));
 
 			const downscaled = decoded.downscale();
-			downscaled.tracker.use(ownerId);
-
 			this.addBitmap(downscaled, tx, ty, zoom, i + 1);
 		}
-	}
 
-	private addBitmap(bitmap: TerrainHeightLoaderBitmap, x: number, y: number, zoom: number, level: number): void {
-		const key = `${x},${y},${zoom}`;
-
-		if (!this.tiles.has(key)) {
-			this.tiles.set(key, new Map());
-		}
-
-		this.tiles.get(key).set(level, bitmap);
+		this.getTile(x, y, zoom).tracker.use(owner);
 	}
 
 	private removeUnusedTiles(): void {
-		for (const tile of this.tiles.values()) {
-			for (const [level, bitmap] of tile.entries()) {
-				if (!bitmap.tracker.isUsed()) {
-					console.log(tile, level)
-					bitmap.delete();
-					tile.delete(level);
-				}
+		for (const [key, tile] of this.tiles.entries()) {
+			if (!tile.tracker.isUsed()) {
+				tile.delete();
+				this.tiles.delete(key);
 			}
 		}
 	}
 
+	public getTile(x: number, y: number, zoom: number): HeightLoaderTile {
+		const key = `${x},${y},${zoom}`;
+		const tile = this.tiles.get(key);
+
+		if (tile) {
+			return tile;
+		}
+
+		return null;
+	}
+
+	private addTile(x: number, y: number, zoom: number): HeightLoaderTile {
+		const key = `${x},${y},${zoom}`;
+		const tile = new HeightLoaderTile();
+
+		this.tiles.set(key, tile);
+
+		return tile;
+	}
+
+	private addBitmap(bitmap: TerrainHeightLoaderBitmap, x: number, y: number, zoom: number, level: number): void {
+		let tile = this.getTile(x, y, zoom);
+
+		if (!tile) {
+			tile = this.addTile(x, y, zoom);
+		}
+
+		tile.setLevel(level, bitmap);
+	}
+
 	public getBitmap(x: number, y: number, zoom: number, level: number): TerrainHeightLoaderBitmap {
-		const tile = this.tiles.get(`${x},${y},${zoom}`);
+		const tile = this.getTile(x, y, zoom);
 
 		if (!tile) {
 			return null;
 		}
 
-		return tile.get(level);
+		return tile.getLevel(level);
 	}
 
-	public async getOrLoadBitmap(
+	public async getOrLoadTile(
 		x: number,
 		y: number,
 		zoom: number,
-		level: number,
-		ownerId: symbol
-	): Promise<TerrainHeightLoaderBitmap> {
-		const loaded = this.getBitmap(x, y, zoom, level);
+		owner: AnyObject
+	): Promise<HeightLoaderTile> {
+		const tile = this.getTile(x, y, zoom);
 
-		if (loaded) {
-			loaded.tracker.use(ownerId);
-			return Promise.resolve(loaded);
+		if (tile) {
+			tile.tracker.use(owner);
+
+			return Promise.resolve(tile);
 		}
 
-		await this.load(x, y, zoom, 1, ownerId);
-		return this.getBitmap(x, y, zoom, level);
+		await this.load(x, y, zoom, 1, owner);
+		return this.getTile(x, y, zoom);
 	}
 
 	private static decodeBitmap(bitmap: ImageBitmap): TerrainHeightLoaderBitmap {

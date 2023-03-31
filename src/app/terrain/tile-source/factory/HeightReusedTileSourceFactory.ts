@@ -11,9 +11,6 @@ export default class HeightReusedTileSourceFactory extends TileSourceFactory<Hei
 	}
 
 	public create(x: number, y: number, zoom: number): HeightTileSource {
-		const id = Symbol();
-		const bitmapPromise = this.terrainHeightProvider.heightLoader.getOrLoadBitmap(x, y, zoom, this.level, id);
-
-		return new HeightTileSource(x, y, zoom, bitmapPromise, id);
+		return new HeightTileSource(x, y, zoom, this.terrainHeightProvider.heightLoader, this.level);
 	}
 }

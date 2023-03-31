@@ -11,6 +11,7 @@ import System from "../System";
 import SceneSystem from './SceneSystem';
 import Camera from "~/lib/core/Camera";
 import TerrainSystem from "~/app/systems/TerrainSystem";
+import {HeightLoaderTile} from "~/app/terrain/TerrainHeightLoader";
 
 export default class TileSystem extends System {
 	public tiles: Map<string, Tile> = new Map();
@@ -25,10 +26,10 @@ export default class TileSystem extends System {
 		const tile = new Tile(x, y);
 		this.tiles.set(`${x},${y}`, tile);
 
-		const terrain = this.systemManager.getSystem(TerrainSystem);
-
-		const tilePromise = this.systemManager.getSystem(TileLoadingSystem).getTileObjects(tile);
-		tile.load(tilePromise);
+		this.claimHeightDataForTile(x, y, tile).then(() => {
+			const tilePromise = this.systemManager.getSystem(TileLoadingSystem).getTileObjects(tile);
+			tile.load(tilePromise);
+		});
 	}
 
 	public getTile(x: number, y: number): Tile {
@@ -39,6 +40,12 @@ export default class TileSystem extends System {
 		const tile = this.getTile(x, y);
 
 		this.objectsManager.removeTile(tile);
+
+		const heightProvider = this.systemManager.getSystem(TerrainSystem).terrainHeightProvider;
+
+		for (const pos of tile.usedHeightTiles) {
+			heightProvider.heightLoader.getTile(pos.x, pos.y, 12).tracker.release(tile);
+		}
 
 		tile.dispose();
 		this.tiles.delete(`${x},${y}`);
@@ -52,6 +59,39 @@ export default class TileSystem extends System {
 		}
 
 		return null;
+	}
+
+	private async claimHeightDataForTile(x: number, y: number, tile: Tile): Promise<HeightLoaderTile[]> {
+		const dataZoom = 16;
+		const heightZoom = 12;
+		const factor = 2 ** (dataZoom - heightZoom);
+
+		const tileX = Math.floor(x / factor);
+		const tileY = Math.floor(y / factor);
+
+		const positions: Vec2[] = [];
+
+		// Load nearby tiles just in case we need to handle huge features (buildings, etc.)
+		for (let dx = -1; dx <= 1; dx++) {
+			for (let dy = -1; dy <= 1; dy++) {
+				positions.push(new Vec2(
+					tileX + dx,
+					tileY + dy
+				));
+			}
+		}
+
+		const heightProvider = this.systemManager.getSystem(TerrainSystem).terrainHeightProvider;
+		const heightPromises: Promise<HeightLoaderTile>[] = [];
+
+		for (const position of positions) {
+			heightPromises.push(
+				heightProvider.heightLoader.getOrLoadTile(position.x, position.y, heightZoom, tile)
+			);
+			tile.usedHeightTiles.push(position);
+		}
+
+		return Promise.all(heightPromises);
 	}
 
 	public update(deltaTime: number): void {
@@ -207,7 +247,7 @@ export default class TileSystem extends System {
 	}
 
 	private sortTilesByDistanceToCamera(tiles: Vec2[], cameraPosition: Vec3): Vec2[] {
-		const tilesList: { distance: number; tile: Vec2 }[] = [];
+		const tilesList: {distance: number; tile: Vec2}[] = [];
 
 		for (let i = 0; i < tiles.length; i++) {
 			const worldPosition = MathUtils.tile2meters(tiles[i].x + 0.5, tiles[i].y + 0.5);
@@ -218,7 +258,7 @@ export default class TileSystem extends System {
 			});
 		}
 
-		tilesList.sort((a: { distance: number }, b: { distance: number }) => (a.distance > b.distance) ? 1 : -1);
+		tilesList.sort((a: {distance: number}, b: {distance: number}) => (a.distance > b.distance) ? 1 : -1);
 
 		const result: Vec2[] = [];
 
@@ -230,7 +270,7 @@ export default class TileSystem extends System {
 	}
 
 	private removeCulledTiles(): void {
-		type tileEntry = { tile: Tile; distance: number };
+		type tileEntry = {tile: Tile; distance: number};
 		const tileList: tileEntry[] = [];
 
 		for (const tile of this.tiles.values()) {

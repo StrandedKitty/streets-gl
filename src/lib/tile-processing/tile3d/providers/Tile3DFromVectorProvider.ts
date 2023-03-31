@@ -46,24 +46,18 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 			zoom: number;
 		}
 	): Promise<Tile3DFeatureCollection> {
-		try {
-			const vectorTile = await this.vectorProvider.getCollection({x, y, zoom});
+		const vectorTile = await this.vectorProvider.getCollection({x, y, zoom});
 
-			const handlers = Tile3DFromVectorProvider.createHandlersFromVectorFeatureCollection(vectorTile);
+		const handlers = Tile3DFromVectorProvider.createHandlersFromVectorFeatureCollection(vectorTile);
 
-			await Tile3DFromVectorProvider.updateFeaturesHeight(handlers, this.params.heightPromise);
-			Tile3DFromVectorProvider.addRoadGraphToHandlers(handlers);
+		await Tile3DFromVectorProvider.updateFeaturesHeight(handlers, this.params.heightPromise);
+		Tile3DFromVectorProvider.addRoadGraphToHandlers(handlers);
 
-			const collection = Tile3DFromVectorProvider.getFeaturesFromHandlers(handlers);
+		const collection = Tile3DFromVectorProvider.getFeaturesFromHandlers(handlers);
 
-			applyMercatorFactorToExtrudedFeatures(collection.extruded, x, y, zoom);
+		applyMercatorFactorToExtrudedFeatures(collection.extruded, x, y, zoom);
 
-			return collection;
-		} catch (e) {
-			console.error(e);
-		}
-
-		return null;
+		return collection;
 	}
 
 	private static createHandlersFromVectorFeatureCollection(collection: VectorFeatureCollection): Handler[] {

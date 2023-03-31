@@ -3,6 +3,7 @@ import System from "../System";
 import MapWorkerSystem from "./MapWorkerSystem";
 import Tile3DBuffers from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
 import Config from "~/app/Config";
+import MapWorker from "~/app/world/worker/MapWorker";
 
 interface QueueItem {
 	tile: Tile;
@@ -72,21 +73,27 @@ export default class TileLoadingSystem extends System {
 		const mapWorkerSystem = this.systemManager.getSystem(MapWorkerSystem);
 
 		while (this.queue.length > 0 && mapWorkerSystem.getFreeWorker() && this.getNextOverpassEndpoint()) {
-			const worker = mapWorkerSystem.getFreeWorker();
-			const endpoint = this.getNextOverpassEndpoint();
-			const {tile, onLoad} = this.getNearestTileInQueue();
-
-			worker.requestTile(tile.x, tile.y, {
-				overpassEndpoint: endpoint,
-				mapboxEndpointTemplate: Config.MapboxStreetsEndpointTemplate,
-				mapboxAccessToken: Config.MapboxAccessToken
-			}).then(result => {
-				onLoad(result);
-			}, error => {
-				console.error(`Failed to load tile ${tile.x},${tile.y}. Retrying...`, error);
-				this.queue.unshift({tile, onLoad});
-			});
+			this.loadTile(
+				this.getNearestTileInQueue(),
+				mapWorkerSystem.getFreeWorker(),
+				this.getNextOverpassEndpoint()
+			);
 		}
+	}
+
+	private loadTile(queuedTile: QueueItem, worker: MapWorker, overpassEndpoint: string): void {
+		const {tile, onLoad} = queuedTile;
+
+		worker.requestTile(tile.x, tile.y, {
+			overpassEndpoint: overpassEndpoint,
+			mapboxEndpointTemplate: Config.MapboxStreetsEndpointTemplate,
+			mapboxAccessToken: Config.MapboxAccessToken
+		}).then(result => {
+			onLoad(result);
+		}, error => {
+			console.error(`Failed to load tile ${tile.x},${tile.y}. Retrying...`, error);
+			this.queue.unshift({tile, onLoad});
+		});
 	}
 
 	private removeDisposedTiles(): void {

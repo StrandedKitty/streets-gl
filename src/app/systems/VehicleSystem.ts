@@ -4,6 +4,7 @@ import Vec2 from "~/lib/math/Vec2";
 import MathUtils from "~/lib/math/MathUtils";
 import HeightProvider from "../world/HeightProvider";
 import SettingsSystem from "~/app/systems/SettingsSystem";
+import TerrainSystem from "~/app/systems/TerrainSystem";
 
 interface QueryAircraft {
 	id: string;
@@ -179,7 +180,7 @@ export default class VehicleSystem extends System {
 		for (const aircraft of aircraftOfType) {
 			const prevState = aircraft.prevState;
 			const targetState = aircraft.targetState;
-			const lerpedState = VehicleSystem.lerpAircraftStates(prevState, targetState, progress);
+			const lerpedState = this.lerpAircraftStates(prevState, targetState, progress);
 
 			aircraft.lastLerpedState = lerpedState;
 
@@ -192,9 +193,9 @@ export default class VehicleSystem extends System {
 		return buffer;
 	}
 
-	private static lerpAircraftStates(a: AircraftState, b: AircraftState, t: number): AircraftState {
-		const heightA = VehicleSystem.getActualAltitude(a.x, a.y, a.altitude);
-		const heightB = VehicleSystem.getActualAltitude(b.x, b.y, b.altitude);
+	private lerpAircraftStates(a: AircraftState, b: AircraftState, t: number): AircraftState {
+		const heightA = this.getActualAltitude(a.x, a.y, a.altitude);
+		const heightB = this.getActualAltitude(b.x, b.y, b.altitude);
 
 		return {
 			x: MathUtils.lerp(a.x, b.x, t),
@@ -202,6 +203,20 @@ export default class VehicleSystem extends System {
 			altitude: MathUtils.lerp(heightA, heightB, t),
 			heading: MathUtils.lerpAngle(a.heading, b.heading, t),
 		};
+	}
+
+	private getActualAltitude(x: number, z: number, altitude: number): number {
+		const heightProvider = this.systemManager.getSystem(TerrainSystem).terrainHeightProvider;
+		const height = heightProvider.getHeightGlobalInterpolated(x, z, true);
+
+		if (height === null || altitude > height) {
+			const lat = MathUtils.meters2degrees(x, z).lat;
+			const mercatorFactor = MathUtils.getMercatorScaleFactor(lat);
+
+			return altitude * mercatorFactor;
+		}
+
+		return height;
 	}
 
 	private static convertQueryAircraftToAircraftState(query: QueryAircraft): AircraftState {
@@ -212,22 +227,6 @@ export default class VehicleSystem extends System {
 			altitude: query.altitude,
 			heading: MathUtils.toRad(-query.heading)
 		};
-	}
-
-	private static getActualAltitude(x: number, z: number, altitude: number): number {
-		const tilePosition = MathUtils.meters2tile(x, z, 16);
-		const height = HeightProvider.getHeight(
-			Math.floor(tilePosition.x),
-			Math.floor(tilePosition.y),
-			tilePosition.x % 1,
-			tilePosition.y % 1
-		);
-
-		if (altitude < height) {
-			return height;
-		}
-
-		return altitude;
 	}
 
 	private static getPlaneTypeInteger(state: QueryAircraft): number {
