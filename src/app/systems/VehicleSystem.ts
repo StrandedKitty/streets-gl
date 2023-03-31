@@ -2,7 +2,6 @@ import System from "../System";
 import TileSystem from "./TileSystem";
 import Vec2 from "~/lib/math/Vec2";
 import MathUtils from "~/lib/math/MathUtils";
-import HeightProvider from "../world/HeightProvider";
 import SettingsSystem from "~/app/systems/SettingsSystem";
 import TerrainSystem from "~/app/systems/TerrainSystem";
 
