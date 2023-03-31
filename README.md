@@ -1,3 +1,5 @@
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/strandedkitty/streets-gl)
+
 # Streets GL
 
 **Streets GL** is a real-time 3D map renderer built for visualizing OpenStreetMap data with a heavy focus on eye-candy features.
