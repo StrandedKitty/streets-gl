@@ -18,6 +18,7 @@ import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/descriptors";
 import Intersection from "~/lib/road-graph/Intersection";
 import {FeatureProvider} from "~/lib/tile-processing/types";
 import Utils from "~/app/Utils";
+import Tile3DLabel from "~/lib/tile-processing/tile3d/features/Tile3DLabel";
 
 export interface Tile3DProviderParams {
 	overpassEndpoint: string;
@@ -175,6 +176,9 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 							break;
 						case 'hugging':
 							collection.hugging.push(feature as Tile3DHuggingGeometry);
+							break;
+						case 'label':
+							collection.labels.push(feature as Tile3DLabel);
 							break;
 					}
 				}

@@ -591,6 +591,7 @@ export class VectorDescriptorFactory {
 	}
 
 	private static parseBuildingParams(tags: Tags, onlyRoof: boolean = false): {
+		label: string;
 		buildingLevels: number;
 		buildingHeight: number;
 		buildingMinHeight: number;
@@ -615,7 +616,7 @@ export class VectorDescriptorFactory {
 		const roofMatAndColor = this.getRoofMaterialAndColor(
 			tags['roof:material'],
 			tags['roof:colour'],
-			tags.building === 'houseboat' || roofType !== 'flat' || !!tags['bridge:support'] || !!tags['ship:type']
+			tags.building === 'stadium' || tags.building === 'houseboat' || roofType !== 'flat' || !!tags['bridge:support'] || !!tags['ship:type']
 		);
 		const roofDirection = this.parseFloat(tags['roof:direction']) ?? 0;
 
@@ -651,11 +652,13 @@ export class VectorDescriptorFactory {
 		const color = this.parseColor(tags['building:colour'], fallbackFacadeColor);
 		const material = this.parseFacadeMaterial(tags['building:material'], 'plaster');
 		const windows = this.isBuildingHasWindows(tags);
+		const label = tags.name ?? null;
 
 		return {
+			label: label,
 			buildingLevels: levels - minLevel,
 			buildingHeight: height,
-			buildingMinHeight: onlyRoof ? height : minHeight,
+			buildingMinHeight: onlyRoof ? (height - roofHeight) : minHeight,
 			buildingRoofHeight: roofHeight,
 			buildingRoofType: roofType,
 			buildingRoofOrientation: roofOrientation,

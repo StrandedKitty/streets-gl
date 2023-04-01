@@ -5,54 +5,15 @@ import Vec2 from "~/lib/math/Vec2";
 import TileExtrudedMesh from "./TileExtrudedMesh";
 import TileProjectedMesh from "./TileProjectedMesh";
 import TileLabelBuffers from "./TileLabelBuffers";
-import Tile3DBuffers, {Tile3DBuffersExtruded} from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
+import Tile3DBuffers, {
+	Tile3DBuffersExtruded,
+	Tile3DBuffersLabels
+} from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
 import TileHuggingMesh from "~/app/objects/TileHuggingMesh";
 
 // position.xyz, scale, rotation
 export type InstanceBufferInterleaved = Float32Array;
 export type InstanceType = 'tree';
-
-export interface GroundGeometryBuffers {
-	position: Float32Array;
-	uv: Float32Array;
-	normal: Float32Array;
-	index: Uint32Array;
-}
-
-export interface StaticTileGeometry {
-	buildings: {
-		position: Float32Array;
-		uv: Float32Array;
-		normal: Float32Array;
-		textureId: Uint8Array;
-		color: Uint8Array;
-		id: Uint32Array;
-		offset: Uint32Array;
-		localId: Uint32Array;
-	};
-	ground: GroundGeometryBuffers;
-	roads: {
-		position: Float32Array;
-		uv: Float32Array;
-		normal: Float32Array;
-		textureId: Uint8Array;
-	};
-	instancesLOD0: Record<InstanceType, InstanceBufferInterleaved>;
-	instancesLOD1: Record<InstanceType, InstanceBufferInterleaved>;
-	bbox: {
-		min: number[];
-		max: number[];
-	};
-	bboxGround: {
-		min: number[];
-		max: number[];
-	};
-	labels: {
-		position: number[];
-		priority: number[];
-		text: string[];
-	};
-}
 
 export type TileInstanceBuffers = Map<InstanceType, {
 	rawLOD0: InstanceBufferInterleaved;
@@ -70,10 +31,10 @@ export default class Tile extends Object3D {
 	public readonly y: number;
 	public readonly localId: number;
 
-	public buildingLocalToPackedMap: Map<number, number> = new Map();
-	public buildingPackedToLocalMap: Map<number, number> = new Map();
-	public buildingOffsetMap: Map<number, [number, number]> = new Map();
-	public buildingVisibilityMap: Map<number, boolean> = new Map();
+	public readonly buildingLocalToPackedMap: Map<number, number> = new Map();
+	public readonly buildingPackedToLocalMap: Map<number, number> = new Map();
+	public readonly buildingOffsetMap: Map<number, [number, number]> = new Map();
+	public readonly buildingVisibilityMap: Map<number, boolean> = new Map();
 
 	public inFrustum: boolean = true;
 	public distanceToCamera: number = null;
@@ -119,7 +80,7 @@ export default class Tile extends Object3D {
 			this.huggingMesh = new TileHuggingMesh(buffers.hugging);
 
 			this.add(this.extrudedMesh, this.projectedMesh, this.huggingMesh);
-			//this.updateLabelBufferList();
+			this.updateLabelBufferList(buffers.labels);
 
 			/*for (const [key, LOD0Value] of Object.entries(this.staticGeometry.instancesLOD0)) {
 				const LOD1Value = this.staticGeometry.instancesLOD1[key as InstanceType];
@@ -164,19 +125,25 @@ export default class Tile extends Object3D {
 		return transformed;
 	}
 
-	/*private updateLabelBufferList(): void {
-		for (let i = 0; i < this.staticGeometry.labels.text.length; i++) {
-			const label = new TileLabelBuffers({
-				text: this.staticGeometry.labels.text[i],
-				priority: this.staticGeometry.labels.priority[i],
-				x: this.position.x + this.staticGeometry.labels.position[i * 3],
-				y: this.position.y + this.staticGeometry.labels.position[i * 3 + 1],
-				z: this.position.z + this.staticGeometry.labels.position[i * 3 + 2],
-			});
+	private updateLabelBufferList(buffers: Tile3DBuffersLabels): void {
+		for (let i = 0; i < buffers.text.length; i++) {
+			const text = buffers.text[i];
+			const priority = buffers.priority[i];
+			const mercatorScale = MathUtils.getMercatorScaleFactorForTile(this.x, this.y, 16);
+			const x = this.position.x + buffers.position[i * 3];
+			const y = this.position.y + buffers.position[i * 3 + 1] * mercatorScale;
+			const z = this.position.z + buffers.position[i * 3 + 2];
 
+			const label = new TileLabelBuffers({
+				text,
+				priority,
+				x,
+				y,
+				z
+			});
 			this.labelBuffersList.push(label);
 		}
-	}*/
+	}
 
 	public updateDistanceToCamera(camera: Camera): void {
 		const worldPosition = MathUtils.tile2meters(this.x + 0.5, this.y + 0.5);

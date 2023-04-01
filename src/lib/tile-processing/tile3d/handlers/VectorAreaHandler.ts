@@ -8,20 +8,38 @@ import Tile3DExtrudedGeometryBuilder, {
 } from "~/lib/tile-processing/tile3d/builders/Tile3DExtrudedGeometryBuilder";
 import Vec2 from "~/lib/math/Vec2";
 import Tile3DExtrudedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DExtrudedGeometry";
-import {Tile3DRingType} from "~/lib/tile-processing/tile3d/builders/Tile3DRing";
+import Tile3DRing, {Tile3DRingType} from "~/lib/tile-processing/tile3d/builders/Tile3DRing";
 import Tile3DProjectedGeometryBuilder from "~/lib/tile-processing/tile3d/builders/Tile3DProjectedGeometryBuilder";
 import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DProjectedGeometry";
+import Tile3DLabel from "~/lib/tile-processing/tile3d/features/Tile3DLabel";
+import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 
 export default class VectorAreaHandler implements Handler {
 	private readonly osmReference: OSMReference;
 	private readonly descriptor: VectorAreaDescriptor;
 	private readonly rings: VectorAreaRing[];
 	private terrainHeight: number = 0;
+	private multipolygon: Tile3DMultipolygon = null;
 
 	public constructor(feature: VectorArea) {
 		this.osmReference = feature.osmReference;
 		this.descriptor = feature.descriptor;
 		this.rings = feature.rings;
+	}
+
+	private getMultipolygon(): Tile3DMultipolygon {
+		if (this.multipolygon === null) {
+			this.multipolygon = new Tile3DMultipolygon();
+
+			for (const ring of this.rings) {
+				const type = ring.type === VectorAreaRingType.Inner ? Tile3DRingType.Inner : Tile3DRingType.Outer;
+				const nodes = ring.nodes.map(node => new Vec2(node.x, node.y));
+
+				this.multipolygon.addRing(new Tile3DRing(type, nodes));
+			}
+		}
+
+		return this.multipolygon;
 	}
 
 	public getRequestedHeightPositions(): RequestedHeightParams {
@@ -53,7 +71,7 @@ export default class VectorAreaHandler implements Handler {
 		switch (this.descriptor.type) {
 			case 'building':
 			case 'buildingPart':
-				return [this.handleBuilding()];
+				return this.handleBuilding();
 			case 'water': {
 				return [this.handleGenericSurface({
 					textureId: 0,
@@ -138,15 +156,8 @@ export default class VectorAreaHandler implements Handler {
 		});
 	}
 
-	private handleBuilding(): Tile3DExtrudedGeometry {
-		const builder = new Tile3DExtrudedGeometryBuilder(this.osmReference);
-
-		for (const ring of this.rings) {
-			const type = ring.type === VectorAreaRingType.Inner ? Tile3DRingType.Inner : Tile3DRingType.Outer;
-			const nodes = ring.nodes.map(node => new Vec2(node.x, node.y));
-
-			builder.addRing(type, nodes);
-		}
+	private handleBuilding(): Tile3DFeature[] {
+		const builder = new Tile3DExtrudedGeometryBuilder(this.osmReference, this.getMultipolygon());
 
 		const facadeParams = this.getFacadeParams();
 		const roofParams = this.getRoofParams();
@@ -180,7 +191,22 @@ export default class VectorAreaHandler implements Handler {
 			textureIdWindow: facadeParams.textureIdWindow,
 		});
 
-		return builder.getGeometry();
+		const features: Tile3DFeature[] = [builder.getGeometry()];
+
+		if (this.descriptor.label) {
+			const pole = this.getMultipolygon().getPoleOfInaccessibility();
+			const height = this.terrainHeight + this.descriptor.buildingHeight + 5;
+			const labelFeature: Tile3DLabel = {
+				type: 'label',
+				position: [pole.x, height, pole.y],
+				priority: pole.z,
+				text: this.descriptor.label
+			};
+
+			features.push(labelFeature);
+		}
+
+		return features;
 	}
 
 	private handleGenericSurface(

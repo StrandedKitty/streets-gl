@@ -7,7 +7,7 @@ import MapWorker from "~/app/world/worker/MapWorker";
 
 interface QueueItem {
 	tile: Tile;
-	onLoad: (...args: any[]) => any;
+	onLoad: (buffers: Tile3DBuffers) => void;
 }
 
 export interface OverpassEndpoint {

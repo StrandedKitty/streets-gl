@@ -60,4 +60,18 @@ export default class Tile3DRing {
 
 		return this.cachedAABB;
 	}
+
+	public getDistanceToPoint(point: Vec2): number {
+		let minDistance = Infinity;
+
+		for (const node of this.nodes) {
+			const distance = Vec2.distance(node, point);
+
+			if (distance < minDistance) {
+				minDistance = distance;
+			}
+		}
+
+		return minDistance;
+	}
 }

@@ -1,9 +1,11 @@
 import Tile3DRing, {Tile3DRingType} from "~/lib/tile-processing/tile3d/builders/Tile3DRing";
 import earcut from "earcut";
-import {SkeletonBuilder, Skeleton} from "straight-skeleton";
+import {Skeleton, SkeletonBuilder} from "straight-skeleton";
 import AABB2D from "~/lib/math/AABB2D";
 import Vec2 from "~/lib/math/Vec2";
 import * as OMBB from "~/lib/math/OMBB";
+import polylabel from "polylabel";
+import Vec3 from "~/lib/math/Vec3";
 
 interface EarcutInput {
 	vertices: number[];
@@ -17,6 +19,7 @@ export default class Tile3DMultipolygon {
 
 	private cachedStraightSkeleton: Skeleton = null;
 	private cachedOMBB: OMBBResult = null;
+	private cachedPoleOfInaccessibility: Vec3 = null;
 
 	public constructor() {
 
@@ -98,7 +101,7 @@ export default class Tile3DMultipolygon {
 			try {
 				skeleton = SkeletonBuilder.BuildFromGeoJSON(inputRings);
 			} catch (e) {
-				//console.error(e);
+				console.error('Failed to build straight skeleton', e);
 			}
 
 			this.cachedStraightSkeleton = skeleton;
@@ -161,5 +164,31 @@ export default class Tile3DMultipolygon {
 		}
 
 		return this.cachedOMBB;
+	}
+
+	public getPoleOfInaccessibility(): Vec3 {
+		if (!this.cachedPoleOfInaccessibility) {
+			const outerRing = this.rings.find(ring => ring.type === Tile3DRingType.Outer);
+			const innerRings = this.rings.filter(ring => ring.type === Tile3DRingType.Inner);
+
+			const outerPolygon = outerRing.getGeoJSONVertices();
+			const innerPolygons = innerRings.map(ring => ring.getGeoJSONVertices());
+
+			const result = polylabel([outerPolygon, ...innerPolygons], 1);
+			const centerVec = new Vec2(result[0], result[1]);
+			let radius = Infinity;
+
+			for (const ring of this.rings) {
+				radius = Math.min(radius, ring.getDistanceToPoint(centerVec));
+			}
+
+			this.cachedPoleOfInaccessibility = new Vec3(
+				result[0],
+				result[1],
+				radius
+			);
+		}
+
+		return this.cachedPoleOfInaccessibility;
 	}
 }

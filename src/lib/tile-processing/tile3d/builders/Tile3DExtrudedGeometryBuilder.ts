@@ -53,16 +53,12 @@ export default class Tile3DExtrudedGeometryBuilder {
 		textureId: [],
 		color: []
 	};
-	private readonly multipolygon: Tile3DMultipolygon = new Tile3DMultipolygon();
+	private readonly multipolygon: Tile3DMultipolygon;
 	private readonly boundingBox: AABB3D = new AABB3D();
 
-	public constructor(osmReference: OSMReference) {
+	public constructor(osmReference: OSMReference, multipolygon: Tile3DMultipolygon) {
 		this.osmReference = osmReference;
-	}
-
-	public addRing(type: Tile3DRingType, nodes: Vec2[]): void {
-		const ring = new Tile3DRing(type, nodes);
-		this.multipolygon.addRing(ring);
+		this.multipolygon = multipolygon;
 	}
 
 	public addWalls(

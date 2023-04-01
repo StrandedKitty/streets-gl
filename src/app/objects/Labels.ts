@@ -83,7 +83,7 @@ export default class Labels extends RenderableObject3D {
 		}
 	}
 
-	public updateFromTiles(tiles: Tile[], camera: Camera, resolution: Vec2): void {
+	private getVisibleLabels(tiles: Tile[], camera: Camera): TileLabelBuffers[] {
 		const visibleLabels: TileLabelBuffers[] = [];
 
 		for (const tile of tiles) {
@@ -109,16 +109,22 @@ export default class Labels extends RenderableObject3D {
 			}
 		}
 
-		const sortedLabels = visibleLabels.sort((a: TileLabelBuffers, b: TileLabelBuffers) => {
+		return visibleLabels;
+	}
+
+	private sortLabelsByPriority(labels: TileLabelBuffers[]): TileLabelBuffers[] {
+		return labels.sort((a: TileLabelBuffers, b: TileLabelBuffers) => {
 			return b.priority - a.priority;
 		});
+	}
+
+	private declutterLabels(labels: TileLabelBuffers[], camera: Camera, resolution: Vec2): TileLabelBuffers[] {
+		const declutteredLabels: TileLabelBuffers[] = [];
 
 		this.tree.clear();
 
-		const declutteredLabels: TileLabelBuffers[] = [];
-
-		for (let i = 0; i < Math.min(sortedLabels.length, 300); i++) {
-			const label = sortedLabels[i];
+		for (let i = 0; i < Math.min(labels.length, 300); i++) {
+			const label = labels[i];
 			const p = Vec3.applyMatrix4(label.tempPosition, this.matrixWorld);
 			const projected = Vec3.project(p, camera);
 			const x = (projected.x * 0.5 + 0.5) * resolution.x;
@@ -140,14 +146,23 @@ export default class Labels extends RenderableObject3D {
 			this.tree.insert(item);
 		}
 
+		return declutteredLabels;
+	}
+
+	private mergeLabelsIntoBuffers(labels: TileLabelBuffers[], camera: Camera): {
+		position: Float32Array;
+		offset: Float32Array;
+		uv: Float32Array;
+		index: Uint32Array;
+	} {
 		const positionBuffers: Float32Array[] = [];
 		const offsetBuffers: Float32Array[] = [];
 		const uvBuffers: Float32Array[] = [];
 		const indexBuffers: Uint32Array[] = [];
 		let vertexIdOffset: number = 0;
 
-		for (let i = 0; i < declutteredLabels.length; i++) {
-			const labelBuffers = declutteredLabels[i];
+		for (let i = 0; i < labels.length; i++) {
+			const labelBuffers = labels[i];
 			const position = labelBuffers.tempPosition;
 
 			const p = Vec3.applyMatrix4(position, this.matrixWorld);
@@ -173,6 +188,20 @@ export default class Labels extends RenderableObject3D {
 			vertexIdOffset += labelBuffers.vertexCount;
 		}
 
+		return {
+			position: Utils.mergeTypedArrays(Float32Array, positionBuffers),
+			offset: Utils.mergeTypedArrays(Float32Array, offsetBuffers),
+			uv: Utils.mergeTypedArrays(Float32Array, uvBuffers),
+			index: Utils.mergeTypedArrays(Uint32Array, indexBuffers)
+		};
+	}
+
+	public updateFromTiles(tiles: Tile[], camera: Camera, resolution: Vec2): void {
+		const visibleLabels = this.getVisibleLabels(tiles, camera);
+		const sortedLabels = this.sortLabelsByPriority(visibleLabels);
+		const declutteredLabels = this.declutterLabels(sortedLabels, camera, resolution);
+		const buffers = this.mergeLabelsIntoBuffers(declutteredLabels, camera);
+
 		this.position.x = camera.position.x;
 		this.position.y = camera.position.y;
 		this.position.z = camera.position.z;
@@ -180,10 +209,10 @@ export default class Labels extends RenderableObject3D {
 		this.updateMatrix();
 		this.updateMatrixWorld();
 
-		this.attributeBuffers.position = Utils.mergeTypedArrays(Float32Array, positionBuffers);
-		this.attributeBuffers.offset = Utils.mergeTypedArrays(Float32Array, offsetBuffers);
-		this.attributeBuffers.uv = Utils.mergeTypedArrays(Float32Array, uvBuffers);
-		this.attributeBuffers.index = Utils.mergeTypedArrays(Uint32Array, indexBuffers);
+		this.attributeBuffers.position = buffers.position;
+		this.attributeBuffers.offset = buffers.offset;
+		this.attributeBuffers.uv = buffers.uv;
+		this.attributeBuffers.index = buffers.index;
 
 		this.attributeBuffersDirty = true;
 	}
