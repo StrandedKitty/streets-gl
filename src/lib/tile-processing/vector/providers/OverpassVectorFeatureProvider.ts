@@ -25,6 +25,7 @@ const getRequestBody = (x: number, y: number, zoom: number): string => {
 			node(${bbox});
 			way(${bbox});
 			rel["type"~"^(multipolygon|building)"](${bbox});
+			//rel(br); // this is SLOW
 		);
 		
 		out body qt;
@@ -190,6 +191,8 @@ export default class OverpassVectorFeatureProvider extends VectorFeatureProvider
 		return await response.json() as OverpassDataObject;
 	}
 
+	// A hacky (but fast) way to get relations that include relations from OverpassDataObject as members.
+	// This is much faster than fetching these relations in the main Overpass query.
 	private static async repairOverpassRelations(data: OverpassDataObject, overpassURL: string): Promise<OverpassDataObject> {
 		const relationIds: Set<number> = new Set();
 		const relationRequests: Promise<any>[] = [];

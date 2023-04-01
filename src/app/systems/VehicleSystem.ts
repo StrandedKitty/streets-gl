@@ -1,9 +1,9 @@
 import System from "../System";
-import TileSystem from "./TileSystem";
 import Vec2 from "~/lib/math/Vec2";
 import MathUtils from "~/lib/math/MathUtils";
 import SettingsSystem from "~/app/systems/SettingsSystem";
 import TerrainSystem from "~/app/systems/TerrainSystem";
+import SceneSystem from "~/app/systems/SceneSystem";
 
 interface QueryAircraft {
 	id: string;
@@ -12,6 +12,8 @@ interface QueryAircraft {
 	altitude: number;
 	heading: number;
 	type: string;
+	onGround: boolean;
+	timestamp: number;
 }
 
 interface QueryVessel {
@@ -30,31 +32,41 @@ interface AircraftState {
 	y: number;
 	altitude: number;
 	heading: number;
+	onGround: boolean;
+	timestamp: number;
+}
+
+interface AircraftPosition {
+	x: number;
+	y: number;
+	height: number;
+	heading: number;
 }
 
 interface AircraftEntry {
 	type: number;
-	prevState: AircraftState;
-	targetState: AircraftState;
-	lastLerpedState: AircraftState;
+	states: AircraftState[];
 	isUpdatedTemp: boolean;
 }
 
 interface VehiclesQueryResponse {
+	timestamp: number;
 	aircraft: QueryAircraft[][];
 	vessels: QueryVessel[];
 }
 
 const QueryInterval = 10000;
+const AircraftRollbackTime = 20000;
 
 export default class VehicleSystem extends System {
 	public aircraftMap: Map<string, AircraftEntry> = new Map();
 	private lastUpdateTimestamp: number = 0;
+	private serverTimeOffset: number = null;
 	private enabled: boolean = true;
 
 	public postInit(): void {
-		this.startTimer();
 		this.listenToSettings();
+		this.startTimer();
 	}
 
 	private listenToSettings(): void {
@@ -72,77 +84,44 @@ export default class VehicleSystem extends System {
 			}
 		};
 
-		fn();
+		setTimeout(fn, 0);
 		setInterval(fn, QueryInterval);
 	}
 
 	public update(deltaTime: number): void {
-
 	}
 
-	private getLoadedTilesBoundingBox(): number[] {
-		const tileSystem = this.systemManager.getSystem(TileSystem);
-		let minX = Infinity;
-		let minY = Infinity;
-		let maxX = -Infinity;
-		let maxY = -Infinity;
+	public async fetchData(): Promise<void> {
+		const camera = this.systemManager.getSystem(SceneSystem).objects.camera;
+		const normalizedPosition = MathUtils.meters2tile(camera.position.x, camera.position.z, 0);
 
-		for (const tile of tileSystem.tiles.values()) {
-			minX = Math.min(minX, tile.x);
-			minY = Math.min(minY, tile.y);
-			maxX = Math.max(maxX, tile.x);
-			maxY = Math.max(maxY, tile.y);
-		}
-
-		return [minX, maxX, minY, maxY];
-	}
-
-	public async fetchData(): Promise<any> {
-		const tilesBoundingBox = this.getLoadedTilesBoundingBox();
-
-		fetch(`https://tiles.streets.gl/vehicles?bbox=${tilesBoundingBox.join(',')}`, {
+		fetch(`https://tiles.streets.gl/vehicles?x=${normalizedPosition.x}&y=${normalizedPosition.y}`, {
 			method: 'GET'
 		}).then(async r => {
 			const response: VehiclesQueryResponse = await r.json();
 
+			if (this.serverTimeOffset === null) {
+				this.serverTimeOffset = response.timestamp - Date.now();
+			}
+
 			this.handleQueryResponse(response);
 		}).catch(() => {
-			// ignore it
+			console.warn('Failed to fetch vehicles');
 		});
 	}
 
 	private handleQueryResponse(response: VehiclesQueryResponse): void {
-		for (const aircraft of this.aircraftMap.values()) {
-			aircraft.isUpdatedTemp = false;
-		}
+		this.aircraftMap.clear();
 
 		for (const aircraft of response.aircraft) {
-			const id = aircraft[aircraft.length - 1].id;
-			const lastState = VehicleSystem.convertQueryAircraftToAircraftState(aircraft[aircraft.length - 1]);
-			let prevState;
+			const id = aircraft[0].id;
+			const states = aircraft.map(VehicleSystem.convertQueryAircraftToAircraftState);
 
-			if (this.aircraftMap.get(id) && this.aircraftMap.get(id).lastLerpedState) {
-				prevState = this.aircraftMap.get(id).lastLerpedState;
-			} else {
-				prevState = VehicleSystem.convertQueryAircraftToAircraftState(aircraft[0]);
-			}
-
-			const savedEntry = this.aircraftMap.get(id);
-
-			if (!savedEntry) {
-				this.aircraftMap.set(id, {
-					prevState: prevState,
-					targetState: lastState,
-					lastLerpedState: null,
-					type: VehicleSystem.getPlaneTypeInteger(aircraft[0]),
-					isUpdatedTemp: true
-				});
-			} else {
-				savedEntry.prevState = prevState;
-				savedEntry.targetState = lastState;
-				savedEntry.lastLerpedState = null;
-				savedEntry.isUpdatedTemp = true;
-			}
+			this.aircraftMap.set(id, {
+				states: states,
+				type: VehicleSystem.getPlaneTypeInteger(aircraft[0]),
+				isUpdatedTemp: true
+			});
 		}
 
 		for (const [key, aircraft] of this.aircraftMap.entries()) {
@@ -172,19 +151,13 @@ export default class VehicleSystem extends System {
 		}
 
 		const buffer = new Float32Array(aircraftOfType.length * 4);
-		const progress = (Date.now() - this.lastUpdateTimestamp) / QueryInterval;
-
 		let i = 0;
 
 		for (const aircraft of aircraftOfType) {
-			const prevState = aircraft.prevState;
-			const targetState = aircraft.targetState;
-			const lerpedState = this.lerpAircraftStates(prevState, targetState, progress);
-
-			aircraft.lastLerpedState = lerpedState;
+			const lerpedState = this.lerpAircraftStates(aircraft.states);
 
 			buffer[i++] = lerpedState.x - origin.x;
-			buffer[i++] = lerpedState.altitude;
+			buffer[i++] = lerpedState.height;
 			buffer[i++] = lerpedState.y - origin.y;
 			buffer[i++] = lerpedState.heading;
 		}
@@ -192,27 +165,83 @@ export default class VehicleSystem extends System {
 		return buffer;
 	}
 
-	private lerpAircraftStates(a: AircraftState, b: AircraftState, t: number): AircraftState {
-		const heightA = this.getActualAltitude(a.x, a.y, a.altitude);
-		const heightB = this.getActualAltitude(b.x, b.y, b.altitude);
+	private lerpAircraftStates(states: AircraftState[]): AircraftPosition {
+		const serverTime = Date.now() + this.serverTimeOffset - AircraftRollbackTime;
+
+		if (states.length > 1) {
+			for (let i = 0; i < states.length - 1; i++) {
+				const a = states[i];
+				const b = states[i + 1];
+
+				if (serverTime >= a.timestamp && serverTime < b.timestamp) {
+					const progress = (serverTime - a.timestamp) / (b.timestamp - a.timestamp);
+					const lerpedX = MathUtils.lerp(a.x, b.x, progress);
+					const lerpedY = MathUtils.lerp(a.y, b.y, progress);
+					const height = this.getActualAltitude(a, b, progress);
+					const lerpedHeading = MathUtils.lerpAngle(a.heading, b.heading, progress);
+
+					return {
+						x: lerpedX,
+						y: lerpedY,
+						height: height,
+						heading: lerpedHeading
+					};
+				}
+			}
+		}
+
+		const lastState = states[states.length - 1];
 
 		return {
-			x: MathUtils.lerp(a.x, b.x, t),
-			y: MathUtils.lerp(a.y, b.y, t),
-			altitude: MathUtils.lerp(heightA, heightB, t),
-			heading: MathUtils.lerpAngle(a.heading, b.heading, t),
+			x: lastState.x,
+			y: lastState.y,
+			height: this.getActualAltitude(lastState, lastState, 0),
+			heading: lastState.heading,
 		};
 	}
 
-	private getActualAltitude(x: number, z: number, altitude: number): number {
+	private getActualAltitude(
+		stateFrom: AircraftState,
+		stateTo: AircraftState,
+		progress: number
+	): number {
 		const heightProvider = this.systemManager.getSystem(TerrainSystem).terrainHeightProvider;
-		const height = heightProvider.getHeightGlobalInterpolated(x, z, true);
+		const x = MathUtils.lerp(stateFrom.x, stateTo.x, progress);
+		const y = MathUtils.lerp(stateFrom.y, stateTo.y, progress);
 
-		if (height === null || altitude > height) {
-			const lat = MathUtils.meters2degrees(x, z).lat;
-			const mercatorFactor = MathUtils.getMercatorScaleFactor(lat);
+		const mercatorScale = MathUtils.getMercatorScaleFactor(MathUtils.meters2degrees(x, y).lat);
+		const height = heightProvider.getHeightGlobalInterpolated(x, y, true);
+		const lerpedAltitude = MathUtils.lerp(stateFrom.altitude, stateTo.altitude, progress);
+		const correctedAltitude = lerpedAltitude * mercatorScale;
 
-			return altitude * mercatorFactor;
+		if (stateFrom.onGround && stateTo.onGround) {
+			return height ?? correctedAltitude;
+		}
+
+		if (stateFrom.onGround && !stateTo.onGround) {
+			let heightFrom = heightProvider.getHeightGlobalInterpolated(stateFrom.x, stateFrom.y, true);
+			const heightTo = stateTo.altitude * mercatorScale;
+
+			if (heightFrom === null) {
+				heightFrom = stateFrom.altitude * mercatorScale;
+			}
+
+			return MathUtils.lerp(heightFrom, heightTo, progress);
+		}
+
+		if (!stateFrom.onGround && stateTo.onGround) {
+			const heightFrom = stateFrom.altitude * mercatorScale;
+			let heightTo = heightProvider.getHeightGlobalInterpolated(stateTo.x, stateTo.y, true);
+
+			if (heightTo === null) {
+				heightTo = stateTo.altitude * mercatorScale;
+			}
+
+			return MathUtils.lerp(heightFrom, heightTo, progress);
+		}
+
+		if (height === null || correctedAltitude > height) {
+			return correctedAltitude;
 		}
 
 		return height;
@@ -224,7 +253,9 @@ export default class VehicleSystem extends System {
 			x,
 			y,
 			altitude: query.altitude,
-			heading: MathUtils.toRad(-query.heading)
+			heading: MathUtils.toRad(-query.heading),
+			onGround: query.onGround,
+			timestamp: query.timestamp
 		};
 	}
 

@@ -72,6 +72,9 @@
 	"woodRoadDiffuse": {"url": "/textures/surfaces/wood_road_diffuse.png", "type": "image"},
 	"woodRoadNormal": {"url": "/textures/surfaces/wood_road_normal.png", "type": "image"},
 	"woodRoadMask": {"url": "/textures/surfaces/wood_road_mask.png", "type": "image"},
+	"helipadDiffuse": {"url": "/textures/surfaces/helipad_diffuse.png", "type": "image"},
+	"helipadNormal": {"url": "/textures/surfaces/common_normal.png", "type": "image"},
+	"helipadMask": {"url": "/textures/surfaces/common_mask.png", "type": "image"},
 
 	"biomeMap": {
 		"url": "/textures/biomes_blurred.png",

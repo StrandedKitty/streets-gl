@@ -400,6 +400,15 @@ export class VectorDescriptorFactory {
 			};
 		}
 
+		if (tags.aeroway === 'helipad') {
+			return {
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'helipad'
+				}
+			};
+		}
+
 		return null;
 	}
 
@@ -444,6 +453,19 @@ export class VectorDescriptorFactory {
 					descriptor: {
 						type: 'roadwayIntersection',
 						intersectionMaterial: 'asphalt'
+					}
+				}
+			};
+		}
+
+		if (tags.aeroway === 'helipad') {
+			return {
+				type: ContainerType.Modifier,
+				data: {
+					type: ModifierType.CircleArea,
+					radius: 8,
+					descriptor: {
+						type: 'helipad'
 					}
 				}
 			};

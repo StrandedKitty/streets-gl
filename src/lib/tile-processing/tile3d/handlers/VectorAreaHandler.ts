@@ -131,6 +131,13 @@ export default class VectorAreaHandler implements Handler {
 					uvScale: 0.1,
 				})];
 			}
+			case 'helipad': {
+				return [this.handleGenericSurface({
+					textureId: 20,
+					isOriented: true,
+					zIndex: 10
+				})];
+			}
 		}
 
 		return [];
