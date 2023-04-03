@@ -87,7 +87,13 @@ export default class Labels extends RenderableObject3D {
 		const visibleLabels: TileLabelBuffers[] = [];
 
 		for (const tile of tiles) {
-			if (!tile.extrudedMesh || !tile.extrudedMesh.inCameraFrustum(camera)) {
+			if (tile.labelBuffersList.length === 0) {
+				continue;
+			}
+
+			const isInFrustum = camera.isFrustumIntersectsBoundingBox(tile.labelsAABB.toSpace(tile.matrixWorld));
+
+			if (!isInFrustum) {
 				continue;
 			}
 

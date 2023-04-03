@@ -275,7 +275,8 @@ export class VectorDescriptorFactory {
 					spacing: 10,
 					randomness: 1,
 					descriptor: {
-						type: 'tree'
+						type: 'tree',
+						height: this.parseHeight(tags.height, 10)
 					}
 				}
 			}];
@@ -421,12 +422,17 @@ export class VectorDescriptorFactory {
 			return {
 				type: ContainerType.Descriptor,
 				data: {
-					type: 'tree'
+					type: 'tree',
+					height: this.parseHeight(tags.height, 10)
 				}
 			};
 		}
 
-		if (tags.emergency === 'fire_hydrant') {
+		if (
+			tags.emergency === 'fire_hydrant' && (
+				tags['fire_hydrant:type'] === 'pillar' || tags['fire_hydrant:type'] === undefined
+			)
+		) {
 			return {
 				type: ContainerType.Descriptor,
 				data: {
@@ -440,6 +446,33 @@ export class VectorDescriptorFactory {
 				type: ContainerType.Descriptor,
 				data: {
 					type: 'adColumn'
+				}
+			};
+		}
+
+		if (tags.power === 'tower') {
+			return {
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'transmissionTower'
+				}
+			};
+		}
+
+		if (tags.power === 'pole') {
+			return {
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'utilityPole'
+				}
+			};
+		}
+
+		if (tags.natural === 'rock') {
+			return {
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'rock'
 				}
 			};
 		}

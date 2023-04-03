@@ -10,7 +10,10 @@ import Tile3DInstance from "~/lib/tile-processing/tile3d/features/Tile3DInstance
 import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DProjectedGeometry";
 import Tile3DExtrudedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DExtrudedGeometry";
 import * as Simplify from "simplify-js";
-import {applyMercatorFactorToExtrudedFeatures} from "~/lib/tile-processing/tile3d/utils";
+import {
+	applyMercatorFactorToExtrudedFeatures,
+	applyMercatorFactorToInstances
+} from "~/lib/tile-processing/tile3d/utils";
 import Tile3DHuggingGeometry from "~/lib/tile-processing/tile3d/features/Tile3DHuggingGeometry";
 import RoadGraph from "~/lib/road-graph/RoadGraph";
 import {VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
@@ -57,12 +60,15 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 		const collection = Tile3DFromVectorProvider.getFeaturesFromHandlers(handlers);
 
 		applyMercatorFactorToExtrudedFeatures(collection.extruded, x, y, zoom);
+		applyMercatorFactorToInstances(collection.instances, x, y, zoom);
 
 		return collection;
 	}
 
-	private static createHandlersFromVectorFeatureCollection(collection: VectorFeatureCollection): Handler[] {
-		const handlers: Handler[] = [];
+	private static createHandlersFromVectorFeatureCollection(collection: VectorFeatureCollection):
+		(VectorNodeHandler | VectorPolylineHandler | VectorAreaHandler)[]
+	{
+		const handlers: (VectorNodeHandler | VectorPolylineHandler | VectorAreaHandler)[] = [];
 
 		for (const feature of collection.nodes) {
 			handlers.push(new VectorNodeHandler(feature));

@@ -3,6 +3,7 @@ import Mat4 from "../math/Mat4";
 import Frustum from "./Frustum";
 import Plane from "./Plane";
 import Vec3 from "~/lib/math/Vec3";
+import AABB3D from "~/lib/math/AABB3D";
 
 const jitterOffsets: [number, number][] = [
 	[-7 / 8, 1 / 8],
@@ -73,5 +74,24 @@ export default abstract class Camera extends Object3D {
 		this.jitteredProjectionMatrix.values[9] = offsetY / height * factor;
 
 		this.jitteredProjectionMatrixInverse = Mat4.inverse(this.jitteredProjectionMatrix);
+	}
+
+	public isFrustumIntersectsBoundingBox(boundingBox: AABB3D): boolean {
+		const planes = this.frustumPlanes;
+
+		for (let i = 0; i < 6; ++i) {
+			const plane = planes[i];
+			const point = new Vec3(
+				plane.x > 0 ? boundingBox.max.x : boundingBox.min.x,
+				plane.y > 0 ? boundingBox.max.y : boundingBox.min.y,
+				plane.z > 0 ? boundingBox.max.z : boundingBox.min.z
+			);
+
+			if (plane.distanceToPoint(point) < 0) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }

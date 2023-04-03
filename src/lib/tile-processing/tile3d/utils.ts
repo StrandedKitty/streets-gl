@@ -1,6 +1,8 @@
 import MathUtils from "~/lib/math/MathUtils";
 import Tile3DExtrudedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DExtrudedGeometry";
 import Tile3DBuffers from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
+import Tile3DInstance from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
+import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DProjectedGeometry";
 
 export function applyMercatorFactorToExtrudedFeatures(extruded: Tile3DExtrudedGeometry[], x: number, y: number, zoom: number): void {
 	const scale = MathUtils.getMercatorScaleFactorForTile(x, y, zoom);
@@ -12,6 +14,15 @@ export function applyMercatorFactorToExtrudedFeatures(extruded: Tile3DExtrudedGe
 		for (let i = 1; i < geometry.positionBuffer.length; i += 3) {
 			geometry.positionBuffer[i] *= scale;
 		}
+	}
+}
+
+export function applyMercatorFactorToInstances(instances: Tile3DInstance[], x: number, y: number, zoom: number): void {
+	const scale = MathUtils.getMercatorScaleFactorForTile(x, y, zoom);
+
+	for (const feature of instances) {
+		feature.y *= scale;
+		feature.scale *= scale;
 	}
 }
 
@@ -58,7 +69,8 @@ export function getTile3DBuffersTransferables(buffers: Tile3DBuffers): Transfera
 	];
 
 	for (const instance of Object.values(buffers.instances)) {
-		transferables.push(instance.interleavedBuffer.buffer);
+		transferables.push(instance.interleavedBufferLOD0.buffer);
+		transferables.push(instance.interleavedBufferLOD1.buffer);
 	}
 
 	return transferables;

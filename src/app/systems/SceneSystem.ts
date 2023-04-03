@@ -84,6 +84,9 @@ export default class SceneSystem extends System {
 		};
 
 		this.objects.instancedObjects.set('tree', new InstancedObject(ModelManager.getGLTFModel('treeModel')));
+		this.objects.instancedObjects.set('adColumn', new InstancedObject(ModelManager.getGLTFModel('adColumn')));
+		this.objects.instancedObjects.set('transmissionTower', new InstancedObject(ModelManager.getGLTFModel('transmissionTower')));
+		this.objects.instancedObjects.set('hydrant', new InstancedObject(ModelManager.getGLTFModel('hydrant')));
 
 		this.scene.add(wrapper);
 		wrapper.add(

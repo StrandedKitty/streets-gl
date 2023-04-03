@@ -199,5 +199,41 @@
 	"aircraftERJ135Normal": {
 		"url": "/models/erj135/normal.png",
 		"type": "image"
+	},
+	"adColumn": {
+		"url": "/models/ad_column/ad_column.glb",
+		"type": "gltf"
+	},
+	"adColumnDiffuse": {
+		"url": "/models/ad_column/diffuse.png",
+		"type": "image"
+	},
+	"adColumnNormal": {
+		"url": "/models/ad_column/normal.png",
+		"type": "image"
+	},
+	"transmissionTower": {
+		"url": "/models/transmission_tower/transmission_tower.glb",
+		"type": "gltf"
+	},
+	"transmissionTowerDiffuse": {
+		"url": "/models/transmission_tower/diffuse.png",
+		"type": "image"
+	},
+	"transmissionTowerNormal": {
+		"url": "/models/transmission_tower/normal.png",
+		"type": "image"
+	},
+	"hydrant": {
+		"url": "/models/hydrant/hydrant.glb",
+		"type": "gltf"
+	},
+	"hydrantDiffuse": {
+		"url": "/models/hydrant/diffuse.png",
+		"type": "image"
+	},
+	"hydrantNormal": {
+		"url": "/models/hydrant/normal.png",
+		"type": "image"
 	}
 }

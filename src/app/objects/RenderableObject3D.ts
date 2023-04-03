@@ -23,27 +23,9 @@ export default abstract class RenderableObject3D extends Object3D {
 
 	public inCameraFrustum(camera: Camera): boolean {
 		if (this.boundingBox) {
-			const planes = camera.frustumPlanes;
-
-			for (let i = 0; i < 6; ++i) {
-				const plane = planes[i];
-
-				const viewSpaceAABB = this.boundingBox.toSpace(this.matrixWorld);
-
-				const point = new Vec3(
-					plane.x > 0 ? viewSpaceAABB.max.x : viewSpaceAABB.min.x,
-					plane.y > 0 ? viewSpaceAABB.max.y : viewSpaceAABB.min.y,
-					plane.z > 0 ? viewSpaceAABB.max.z : viewSpaceAABB.min.z
-				);
-
-				if (plane.distanceToPoint(point) < 0) {
-					return false;
-				}
-			}
-
-			return true;
+			return camera.isFrustumIntersectsBoundingBox(this.boundingBox.toSpace(this.matrixWorld));
 		} else {
-			throw new Error('RenderableObject has no bbox');
+			throw new Error('RenderableObject has no bounding box');
 		}
 	}
 }

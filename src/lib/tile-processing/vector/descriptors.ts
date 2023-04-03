@@ -1,6 +1,7 @@
 export interface VectorNodeDescriptor {
-	type?: 'tree' | 'hydrant' | 'transmissionTower' | 'utilityPole' | 'artwork' | 'adColumn';
+	type?: 'tree' | 'rock' | 'hydrant' | 'transmissionTower' | 'utilityPole' | 'artwork' | 'adColumn' | 'windTurbine';
 	direction?: number;
+	height?: number;
 }
 
 export interface VectorPolylineDescriptor {
@@ -17,20 +18,23 @@ export interface VectorPolylineDescriptor {
 
 export interface VectorAreaDescriptor {
 	label?: string;
-	type: 'building' | 'buildingPart' | 'roadway' | 'roadwayIntersection' | 'footway' | 'water' | 'farmland' | 'sand' | 'rock' | 'pitch' | 'manicuredGrass' | 'helipad';
+	type: 'building' | 'buildingPart' | 'roadway' | 'roadwayIntersection' | 'footway' | 'water' | 'farmland' | 'sand' |
+		'rock' | 'pitch' | 'manicuredGrass' | 'helipad';
 	intersectionMaterial?: 'asphalt' | 'concrete';
 	pitchType?: 'football' | 'basketball' | 'tennis';
 	buildingLevels?: number;
 	buildingHeight?: number;
 	buildingMinHeight?: number;
 	buildingRoofHeight?: number;
-	buildingRoofType?: 'flat' | 'hipped' | 'gabled' | 'pyramidal' | 'onion' | 'dome' | 'round' | 'skillion' | 'mansard' | 'quadrupleSaltbox';
+	buildingRoofType?: 'flat' | 'hipped' | 'gabled' | 'pyramidal' | 'onion' | 'dome' | 'round' | 'skillion' | 'mansard'
+		| 'quadrupleSaltbox';
 	buildingRoofOrientation?: 'along' | 'across';
 	buildingRoofDirection?: number;
 	buildingRoofAngle?: number;
 	buildingFacadeMaterial?: 'plaster' | 'brick' | 'wood' | 'glass' | 'mirror' | 'cementBlock';
 	buildingFacadeColor?: number;
-	buildingRoofMaterial?: 'default' | 'tiles' | 'metal' | 'concrete' | 'thatch' | 'eternit' | 'grass' | 'glass' | 'tar';
+	buildingRoofMaterial?: 'default' | 'tiles' | 'metal' | 'concrete' | 'thatch' | 'eternit' | 'grass' | 'glass'
+		| 'tar';
 	buildingRoofColor?: number;
 	buildingWindows?: boolean;
 }

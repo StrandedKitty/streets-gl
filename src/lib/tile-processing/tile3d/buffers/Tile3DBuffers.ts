@@ -39,10 +39,12 @@ export interface Tile3DBuffersLabels {
 	position: Float32Array;
 	priority: Float32Array;
 	text: string[];
+	boundingBox: BoundingBox;
 }
 
 export interface Tile3DBuffersInstance {
-	interleavedBuffer: Float32Array;
+	interleavedBufferLOD0: Float32Array;
+	interleavedBufferLOD1: Float32Array;
 }
 
 export default interface Tile3DBuffers {

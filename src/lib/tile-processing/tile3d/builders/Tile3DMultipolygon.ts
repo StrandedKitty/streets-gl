@@ -101,7 +101,7 @@ export default class Tile3DMultipolygon {
 			try {
 				skeleton = SkeletonBuilder.BuildFromGeoJSON(inputRings);
 			} catch (e) {
-				console.error('Failed to build straight skeleton', e);
+				console.error('Failed to build straight skeleton\n', e);
 			}
 
 			this.cachedStraightSkeleton = skeleton;

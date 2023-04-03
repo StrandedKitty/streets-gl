@@ -1,6 +1,6 @@
 import Tile3DBuffers, {
 	BoundingBox,
-	Tile3DBuffersExtruded, Tile3DBuffersHugging, Tile3DBuffersLabels,
+	Tile3DBuffersExtruded, Tile3DBuffersHugging, Tile3DBuffersInstance, Tile3DBuffersLabels,
 	Tile3DBuffersProjected
 } from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
 import Tile3DFeatureCollection from "~/lib/tile-processing/tile3d/features/Tile3DFeatureCollection";
@@ -10,6 +10,8 @@ import Tile3DExtrudedGeometry from "~/lib/tile-processing/tile3d/features/Tile3D
 import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DProjectedGeometry";
 import Tile3DHuggingGeometry from "~/lib/tile-processing/tile3d/features/Tile3DHuggingGeometry";
 import Tile3DLabel from "~/lib/tile-processing/tile3d/features/Tile3DLabel";
+import Vec3 from "~/lib/math/Vec3";
+import Tile3DInstance from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
 
 export class Tile3DFeaturesToBuffersConverter {
 	public static convert(collection: Tile3DFeatureCollection): Tile3DBuffers {
@@ -18,7 +20,7 @@ export class Tile3DFeaturesToBuffersConverter {
 			projected: this.getProjectedBuffers(collection.projected),
 			hugging: this.getHuggingBuffers(collection.hugging),
 			labels: this.getLabelsBuffers(collection.labels),
-			instances: {}
+			instances: this.getInstanceBuffers(collection.instances)
 		};
 	}
 
@@ -144,18 +146,70 @@ export class Tile3DFeaturesToBuffersConverter {
 		const positionArray: number[] = [];
 		const priorityArray: number[] = [];
 		const textArray: string[] = [];
+		const boundingBox = new AABB3D();
 
 		for (const feature of features) {
-			positionArray.push(feature.position[0], feature.position[1], feature.position[2]);
+			const position = new Vec3(feature.position[0], feature.position[1], feature.position[2]);
+
+			positionArray.push(position.x, position.y, position.z);
 			priorityArray.push(feature.priority);
 			textArray.push(feature.text);
+			boundingBox.includePoint(position);
 		}
 
 		return {
 			position: new Float32Array(positionArray),
 			priority: new Float32Array(priorityArray),
-			text: textArray
+			text: textArray,
+			boundingBox: this.boundingBoxToFlatObject(boundingBox)
 		};
+	}
+
+	private static getInstanceBuffers(features: Tile3DInstance[]): Record<string, Tile3DBuffersInstance> {
+		const collections: Map<string, Tile3DInstance[]> = new Map();
+
+		for (const feature of features) {
+			if (!collections.has(feature.instanceType)) {
+				collections.set(feature.instanceType, []);
+			}
+
+			collections.get(feature.instanceType).push(feature);
+		}
+
+		const buffers: Record<string, Tile3DBuffersInstance> = {};
+
+		for (const [name, collection] of collections.entries()) {
+			const instanceCount = collection.length;
+			const instanceCountHalf = Math.floor(instanceCount / 2);
+
+			const interleavedArray: Float32Array = new Float32Array(instanceCount * 5);
+			const interleavedArrayHalf: Float32Array = new Float32Array(instanceCountHalf * 5);
+
+			for (let i = 0; i < instanceCount; i++) {
+				const feature = collection[i];
+
+				interleavedArray[i * 5] = feature.x;
+				interleavedArray[i * 5 + 1] = feature.y;
+				interleavedArray[i * 5 + 2] = feature.z;
+				interleavedArray[i * 5 + 3] = feature.scale;
+				interleavedArray[i * 5 + 4] = feature.rotation;
+
+				if (i < instanceCountHalf) {
+					interleavedArrayHalf[i * 5] = feature.x;
+					interleavedArrayHalf[i * 5 + 1] = feature.y;
+					interleavedArrayHalf[i * 5 + 2] = feature.z;
+					interleavedArrayHalf[i * 5 + 3] = feature.scale;
+					interleavedArrayHalf[i * 5 + 4] = feature.rotation;
+				}
+			}
+
+			buffers[name] = {
+				interleavedBufferLOD0: interleavedArray,
+				interleavedBufferLOD1: interleavedArrayHalf
+			};
+		}
+
+		return buffers;
 	}
 
 	private static joinBoundingBoxes(features: {boundingBox: AABB3D}[]): AABB3D {

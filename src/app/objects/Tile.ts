@@ -10,10 +10,12 @@ import Tile3DBuffers, {
 	Tile3DBuffersLabels
 } from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
 import TileHuggingMesh from "~/app/objects/TileHuggingMesh";
+import AABB3D from "~/lib/math/AABB3D";
+import Vec3 from "~/lib/math/Vec3";
 
 // position.xyz, scale, rotation
 export type InstanceBufferInterleaved = Float32Array;
-export type InstanceType = 'tree';
+export type InstanceType = 'tree' | 'adColumn' | 'transmissionTower' | 'hydrant';
 
 export type TileInstanceBuffers = Map<InstanceType, {
 	rawLOD0: InstanceBufferInterleaved;
@@ -40,6 +42,7 @@ export default class Tile extends Object3D {
 	public distanceToCamera: number = null;
 	public disposed = false;
 	public labelBuffersList: TileLabelBuffers[] = [];
+	public labelsAABB: AABB3D = null;
 	public buildingsNeedFiltering: boolean = true;
 	public instanceBuffers: TileInstanceBuffers = new Map();
 
@@ -82,18 +85,19 @@ export default class Tile extends Object3D {
 			this.add(this.extrudedMesh, this.projectedMesh, this.huggingMesh);
 			this.updateLabelBufferList(buffers.labels);
 
-			/*for (const [key, LOD0Value] of Object.entries(this.staticGeometry.instancesLOD0)) {
-				const LOD1Value = this.staticGeometry.instancesLOD1[key as InstanceType];
+			for (const [key, instanceBuffers] of Object.entries(buffers.instances)) {
+				const LOD0 = instanceBuffers.interleavedBufferLOD0;
+				const LOD1 = instanceBuffers.interleavedBufferLOD1;
 
 				this.instanceBuffers.set(key as InstanceType, {
-					rawLOD0: LOD0Value,
-					rawLOD1: LOD1Value,
-					transformedLOD0: new Float32Array(LOD0Value),
-					transformedLOD1: new Float32Array(LOD1Value),
+					rawLOD0: LOD0,
+					rawLOD1: LOD1,
+					transformedLOD0: new Float32Array(LOD0),
+					transformedLOD1: new Float32Array(LOD1),
 					transformOriginLOD0: new Vec2(NaN, NaN),
 					transformOriginLOD1: new Vec2(NaN, NaN)
 				});
-			}*/
+			}
 		});
 	}
 
@@ -143,6 +147,12 @@ export default class Tile extends Object3D {
 			});
 			this.labelBuffersList.push(label);
 		}
+
+		const box = buffers.boundingBox;
+		this.labelsAABB = new AABB3D(
+			new Vec3(box.minX, box.minY, box.minZ),
+			new Vec3(box.maxX, box.maxY, box.maxZ)
+		);
 	}
 
 	public updateDistanceToCamera(camera: Camera): void {

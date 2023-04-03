@@ -11,6 +11,7 @@ import BuildingDepthMaterialContainer from "../materials/BuildingDepthMaterialCo
 import ProjectedMeshDepthMaterialContainer from "~/app/render/materials/ProjectedMeshDepthMaterialContainer";
 import AbstractTexture2DArray from "~/lib/renderer/abstract-renderer/AbstractTexture2DArray";
 import CSMCascadeCamera from "~/app/render/CSMCascadeCamera";
+import InstanceDepthMaterialContainer from "~/app/render/materials/InstanceDepthMaterialContainer";
 
 export default class ShadowMappingPass extends Pass<{
 	ShadowMaps: {
@@ -25,6 +26,7 @@ export default class ShadowMappingPass extends Pass<{
 	private readonly buildingDepthMaterial: AbstractMaterial;
 	private readonly huggingMeshMaterial: AbstractMaterial;
 	private readonly treeMaterial: AbstractMaterial;
+	private readonly instanceMaterial: AbstractMaterial;
 	private readonly aircraftMaterial: AbstractMaterial;
 
 	public constructor(manager: PassManager) {
@@ -39,6 +41,7 @@ export default class ShadowMappingPass extends Pass<{
 		this.buildingDepthMaterial = new BuildingDepthMaterialContainer(this.renderer).material;
 		this.huggingMeshMaterial = new ProjectedMeshDepthMaterialContainer(this.renderer).material;
 		this.treeMaterial = new TreeDepthMaterialContainer(this.renderer).material;
+		this.instanceMaterial = new InstanceDepthMaterialContainer(this.renderer).material;
 		this.aircraftMaterial = new AircraftDepthMaterialContainer(this.renderer).material;
 
 		this.listenToSettings();
@@ -128,10 +131,43 @@ export default class ShadowMappingPass extends Pass<{
 		}
 	}
 
+	private renderInstances(shadowCamera: CSMCascadeCamera): void {
+		for (const [name, instancedObject] of this.manager.sceneSystem.objects.instancedObjects.entries()) {
+			const mvMatrix = Mat4.multiply(shadowCamera.matrixWorldInverse, instancedObject.matrixWorld);
+			const material = name === 'tree' ? this.treeMaterial : this.instanceMaterial;
+
+			this.renderer.useMaterial(material);
+
+			material.getUniform('projectionMatrix', 'MainBlock').value = new Float32Array(shadowCamera.projectionMatrix.values);
+			material.getUniform('modelViewMatrix', 'MainBlock').value = new Float32Array(mvMatrix.values);
+			material.updateUniformBlock('MainBlock');
+
+			instancedObject.mesh.draw();
+		}
+	}
+
+	private renderAircraft(shadowCamera: CSMCascadeCamera): void {
+		const aircraftList = this.manager.sceneSystem.objects.instancedAircraft;
+
+		for (let i = 0; i < aircraftList.length; i++) {
+			const aircraft = aircraftList[i];
+
+			if (aircraft.mesh && aircraft.mesh.instanceCount > 0) {
+				const mvMatrix = Mat4.multiply(shadowCamera.matrixWorldInverse, aircraft.matrixWorld);
+
+				this.renderer.useMaterial(this.aircraftMaterial);
+
+				this.aircraftMaterial.getUniform('projectionMatrix', 'MainBlock').value = new Float32Array(shadowCamera.projectionMatrix.values);
+				this.aircraftMaterial.getUniform('modelViewMatrix', 'MainBlock').value = new Float32Array(mvMatrix.values);
+				this.aircraftMaterial.updateUniformBlock('MainBlock');
+
+				aircraft.mesh.draw();
+			}
+		}
+	}
+
 	public render(): void {
 		const csm = this.manager.sceneSystem.objects.csm;
-		const trees = this.manager.sceneSystem.objects.instancedObjects.get('tree')
-		const aircraftList = this.manager.sceneSystem.objects.instancedAircraft;
 		const pass = this.getPhysicalResource('ShadowMaps');
 
 		for (let i = 0; i < csm.cascadeCameras.length; i++) {
@@ -142,31 +178,8 @@ export default class ShadowMappingPass extends Pass<{
 			this.renderer.beginRenderPass(pass);
 
 			if (i < 2) {
-				const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, trees.matrixWorld);
-
-				this.renderer.useMaterial(this.treeMaterial);
-
-				this.treeMaterial.getUniform('projectionMatrix', 'MainBlock').value = new Float32Array(camera.projectionMatrix.values);
-				this.treeMaterial.getUniform('modelViewMatrix', 'MainBlock').value = new Float32Array(mvMatrix.values);
-				this.treeMaterial.updateUniformBlock('MainBlock');
-
-				trees.mesh.draw();
-
-				for (let i = 0; i < aircraftList.length; i++) {
-					const aircraft = aircraftList[i];
-
-					if (aircraft.mesh && aircraft.mesh.instanceCount > 0) {
-						const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, aircraft.matrixWorld);
-
-						this.renderer.useMaterial(this.aircraftMaterial);
-
-						this.aircraftMaterial.getUniform('projectionMatrix', 'MainBlock').value = new Float32Array(camera.projectionMatrix.values);
-						this.aircraftMaterial.getUniform('modelViewMatrix', 'MainBlock').value = new Float32Array(mvMatrix.values);
-						this.aircraftMaterial.updateUniformBlock('MainBlock');
-
-						aircraft.mesh.draw();
-					}
-				}
+				this.renderInstances(camera);
+				this.renderAircraft(camera);
 			}
 
 			this.renderBuildings(camera);
