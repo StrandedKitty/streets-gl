@@ -10,17 +10,17 @@ export interface LODConfig {
 
 export const Tile3DInstanceLODConfig: Record<Tile3DInstanceType, LODConfig> = {
 	tree: {
-		LOD0MaxDistance: 2500,
+		LOD0MaxDistance: 2000,
 		LOD1MaxDistance: 5000,
 		LOD1Fraction: 0.5,
 	},
 	adColumn: {
-		LOD0MaxDistance: 2500,
+		LOD0MaxDistance: 1000,
 		LOD1MaxDistance: 0,
 		LOD1Fraction: 0,
 	},
 	transmissionTower: {
-		LOD0MaxDistance: 2500,
+		LOD0MaxDistance: 3000,
 		LOD1MaxDistance: 0,
 		LOD1Fraction: 0,
 	},

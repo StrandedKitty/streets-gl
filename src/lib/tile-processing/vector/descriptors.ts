@@ -18,9 +18,9 @@ export interface VectorPolylineDescriptor {
 
 export interface VectorAreaDescriptor {
 	label?: string;
-	type: 'building' | 'buildingPart' | 'roadway' | 'roadwayIntersection' | 'footway' | 'water' | 'farmland' | 'sand' |
+	type: 'building' | 'buildingPart' | 'asphalt' | 'roadwayIntersection' | 'pavement' | 'water' | 'farmland' | 'sand' |
 		'rock' | 'pitch' | 'manicuredGrass' | 'helipad' | 'forest';
-	intersectionMaterial?: 'asphalt' | 'concrete';
+	intersectionMaterial?: 'asphalt' | 'concrete' | 'cobblestone';
 	pitchType?: 'football' | 'basketball' | 'tennis';
 	buildingLevels?: number;
 	buildingHeight?: number;

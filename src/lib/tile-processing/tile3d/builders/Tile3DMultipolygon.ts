@@ -202,8 +202,8 @@ export default class Tile3DMultipolygon {
 		for (const tile of tiles) {
 			const [x, y] = tile.split(' ').map(v => +v);
 			const point = new Vec2(
-				(x + 0.7 - Math.random() * 0.4) / resolution * tileSize,
-				(y + 0.7 - Math.random() * 0.4) / resolution * tileSize,
+				(x + 0.75 - Math.random() * 0.5) / resolution * tileSize,
+				(y + 0.75 - Math.random() * 0.5) / resolution * tileSize,
 			);
 
 			let isInMultipolygon = true;

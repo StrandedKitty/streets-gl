@@ -10,15 +10,20 @@ export default class MapWorkerSystem extends System {
 		const heightProvider = this.systemManager.getSystem(TerrainSystem).terrainHeightProvider;
 		const getTerrainHeight = (positions: Float64Array): Float64Array => {
 			const heights = new Float64Array(positions.length / 2);
+			let isError: boolean = false;
 
 			for (let i = 0; i < positions.length; i += 2) {
 				const height = heightProvider.getHeightGlobalInterpolated(positions[i], positions[i + 1], false);
 
 				if (height === null) {
-					console.error(`Couldn't sample height`);
+					isError = true;
 				}
 
 				heights[i / 2] = height;
+			}
+
+			if (isError) {
+				console.warn(`Couldn't sample height`);
 			}
 
 			return heights;

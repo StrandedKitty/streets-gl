@@ -2,7 +2,7 @@ import Handler, {RequestedHeightParams} from "~/lib/tile-processing/tile3d/handl
 import Tile3DFeature from "~/lib/tile-processing/tile3d/features/Tile3DFeature";
 import VectorPolyline from "~/lib/tile-processing/vector/features/VectorPolyline";
 import OSMReference from "~/lib/tile-processing/vector/features/OSMReference";
-import {VectorPolylineDescriptor} from "~/lib/tile-processing/vector/descriptors";
+import {VectorAreaDescriptor, VectorPolylineDescriptor} from "~/lib/tile-processing/vector/descriptors";
 import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DProjectedGeometry";
 import Vec2 from "~/lib/math/Vec2";
 import Tile3DProjectedGeometryBuilder from "~/lib/tile-processing/tile3d/builders/Tile3DProjectedGeometryBuilder";
@@ -91,7 +91,8 @@ export default class VectorPolylineHandler implements Handler {
 			this.descriptor.pathMaterial,
 			this.descriptor.lanesForward,
 			this.descriptor.lanesBackward,
-			this.descriptor.width
+			this.descriptor.width,
+			this.mercatorScale
 		);
 
 		const pointStart = this.vertices[0];
@@ -189,12 +190,20 @@ export default class VectorPolylineHandler implements Handler {
 		return {...result, type: 'hugging'};
 	}
 
-	public getIntersectionMaterial(): 'asphalt' | 'concrete' {
+	public getIntersectionMaterial(): VectorAreaDescriptor['intersectionMaterial'] {
 		if (this.descriptor.pathMaterial === 'concrete') {
 			return 'concrete';
 		}
 
-		return 'asphalt';
+		if (this.descriptor.pathMaterial === 'asphalt') {
+			return 'asphalt';
+		}
+
+		if (this.descriptor.pathMaterial === 'cobblestone') {
+			return 'cobblestone';
+		}
+
+		return null;
 	}
 
 	private static getPathZIndex(pathType: VectorPolylineDescriptor['pathType']): number {
@@ -219,7 +228,8 @@ export default class VectorPolylineHandler implements Handler {
 		pathMaterial: VectorPolylineDescriptor['pathMaterial'],
 		lanesForward: number,
 		lanesBackward: number,
-		width: number
+		width: number,
+		mercatorScale: number
 	): {
 		textureId: number;
 		uvScale: number;
@@ -275,7 +285,15 @@ export default class VectorPolylineHandler implements Handler {
 					case "wood": {
 						params.textureId = 19;
 						params.uvScaleY = 4;
+						params.uvMinX = 0;
 						params.uvMaxX = width / 4;
+						break;
+					}
+					case "cobblestone": {
+						params.textureId = 3;
+						params.uvMinX = 0;
+						params.uvMaxX = width * mercatorScale / 6;
+						params.uvScaleY = 6;
 						break;
 					}
 				}

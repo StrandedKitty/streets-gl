@@ -7,7 +7,6 @@ import Tile3DExtrudedGeometryBuilder, {
 	RoofType
 } from "~/lib/tile-processing/tile3d/builders/Tile3DExtrudedGeometryBuilder";
 import Vec2 from "~/lib/math/Vec2";
-import Tile3DExtrudedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DExtrudedGeometry";
 import Tile3DRing, {Tile3DRingType} from "~/lib/tile-processing/tile3d/builders/Tile3DRing";
 import Tile3DProjectedGeometryBuilder from "~/lib/tile-processing/tile3d/builders/Tile3DProjectedGeometryBuilder";
 import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DProjectedGeometry";
@@ -133,7 +132,7 @@ export default class VectorAreaHandler implements Handler {
 					textureId: 7,
 					isOriented: false,
 					zIndex: 1,
-					uvScale: 0.05,
+					uvScale: 20,
 				})];
 			}
 			case 'rock': {
@@ -141,7 +140,7 @@ export default class VectorAreaHandler implements Handler {
 					textureId: 10,
 					isOriented: false,
 					zIndex: 1,
-					uvScale: 0.03,
+					uvScale: 32,
 				})];
 			}
 			case 'sand': {
@@ -149,82 +148,68 @@ export default class VectorAreaHandler implements Handler {
 					textureId: 11,
 					isOriented: false,
 					zIndex: 1,
-					uvScale: 0.08,
+					uvScale: 12,
 				})];
 			}
-			case 'roadway': {
-				return [this.handleRoadway()];
+			case 'asphalt': {
+				return [this.handleGenericSurface({
+					textureId: 2,
+					isOriented: false,
+					zIndex: 4.5,
+					uvScale: 20
+				})];
 			}
 			case 'roadwayIntersection': {
 				return [this.handleRoadIntersection()];
 			}
-			case 'footway': {
+			case 'pavement': {
 				return [this.handleGenericSurface({
 					textureId: 1,
 					isOriented: false,
 					zIndex: 1.5,
-					uvScale: 0.1,
+					uvScale: 10,
 				})];
 			}
 			case 'helipad': {
-				return [this.handleGenericSurface({
-					textureId: 20,
-					isOriented: true,
-					zIndex: 10
-				})];
+				return [
+					this.handleGenericSurface({
+						textureId: 20,
+						isOriented: true,
+						zIndex: 10
+					}),
+					this.handleGenericSurface({
+						textureId: 1,
+						isOriented: false,
+						zIndex: 1.5,
+						uvScale: 10,
+					})
+				];
 			}
 			case 'forest': {
-				if (this.instancePositions.length === 0) {
-					return [];
-				}
-
-				const trees: Tile3DInstance[] = [];
-				const seed = Math.floor(this.instancePositions[0].x) + Math.floor(this.instancePositions[0].z);
-				const rnd = new SeededRandom(seed);
-
-				for (const position of this.instancePositions) {
-					if (position.x < 0 || position.x > Config.TileSize || position.z < 0 || position.z > Config.TileSize) {
-						continue;
-					}
-
-					const height = 15 + rnd.generate() * 10;
-					const rotation = rnd.generate() * Math.PI * 2;
-
-					trees.push({
-						type: 'instance',
-						instanceType: 'tree',
-						x: position.x,
-						y: position.y * this.mercatorScale,
-						z: position.z,
-						scale: height * this.mercatorScale,
-						rotation: rotation
-					});
-				}
-
-				return trees;
+				return this.handleForest();
 			}
 		}
 
 		return [];
 	}
 
-	private handleRoadway(): Tile3DProjectedGeometry {
-		return this.handleGenericSurface({
-			textureId: 2,
-			isOriented: false,
-			zIndex: 3.5,
-			uvScale: 0.1
-		});
-	}
-
 	private handleRoadIntersection(): Tile3DProjectedGeometry {
-		const textureId = this.descriptor.intersectionMaterial === 'asphalt' ? 16 : 18;
+		const params: Record<
+			VectorAreaDescriptor['intersectionMaterial'],
+			{textureId: number; scale: number}
+		> = {
+			asphalt: {textureId: 16, scale: 20},
+			concrete: {textureId: 18, scale: 20},
+			cobblestone: {textureId: 3, scale: 6},
+		};
+
+		const {textureId, scale} = params[this.descriptor.intersectionMaterial] ?? params.asphalt;
 
 		return this.handleGenericSurface({
 			textureId: textureId,
 			isOriented: false,
 			zIndex: 4.5,
-			uvScale: 0.05
+			uvScale: scale
 		});
 	}
 
@@ -314,18 +299,59 @@ export default class VectorAreaHandler implements Handler {
 		return builder.getGeometry();
 	}
 
+	private handleForest(): Tile3DInstance[] {
+		if (this.instancePositions.length === 0) {
+			return [];
+		}
+
+		const trees: Tile3DInstance[] = [];
+		const seed = Math.floor(this.instancePositions[0].x) + Math.floor(this.instancePositions[0].z);
+		const rnd = new SeededRandom(seed);
+
+		for (const position of this.instancePositions) {
+			if (position.x < 0 || position.x > Config.TileSize || position.z < 0 || position.z > Config.TileSize) {
+				continue;
+			}
+
+			const height = 14 + rnd.generate() * 8;
+			const rotation = rnd.generate() * Math.PI * 2;
+
+			trees.push({
+				type: 'instance',
+				instanceType: 'tree',
+				x: position.x,
+				y: position.y * this.mercatorScale,
+				z: position.z,
+				scale: height * this.mercatorScale,
+				rotation: rotation
+			});
+		}
+
+		return trees;
+	}
+
 	private static getRoofTypeFromString(str: VectorAreaDescriptor['buildingRoofType']): RoofType {
 		switch (str) {
-			case 'flat': return RoofType.Flat;
-			case 'gabled': return RoofType.Gabled;
-			case 'hipped': return RoofType.Hipped;
-			case 'pyramidal': return RoofType.Pyramidal;
-			case 'onion': return RoofType.Onion;
-			case 'dome': return RoofType.Dome;
-			case 'round': return RoofType.Round;
-			case 'skillion': return RoofType.Skillion;
-			case 'mansard': return RoofType.Mansard;
-			case 'quadrupleSaltbox': return RoofType.QuadrupleSaltbox;
+			case 'flat':
+				return RoofType.Flat;
+			case 'gabled':
+				return RoofType.Gabled;
+			case 'hipped':
+				return RoofType.Hipped;
+			case 'pyramidal':
+				return RoofType.Pyramidal;
+			case 'onion':
+				return RoofType.Onion;
+			case 'dome':
+				return RoofType.Dome;
+			case 'round':
+				return RoofType.Round;
+			case 'skillion':
+				return RoofType.Skillion;
+			case 'mansard':
+				return RoofType.Mansard;
+			case 'quadrupleSaltbox':
+				return RoofType.QuadrupleSaltbox;
 		}
 
 		console.error(`Roof type ${str} is not supported`);

@@ -48,8 +48,10 @@ export default class InstanceMaterialContainer extends MaterialContainer {
 						data: [
 							ResourceManager.get('adColumnDiffuse'),
 							ResourceManager.get('adColumnNormal'),
+
 							ResourceManager.get('transmissionTowerDiffuse'),
 							ResourceManager.get('transmissionTowerNormal'),
+
 							ResourceManager.get('hydrantDiffuse'),
 							ResourceManager.get('hydrantNormal')
 						],

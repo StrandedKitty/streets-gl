@@ -44,7 +44,11 @@ export default class TileSystem extends System {
 		const heightProvider = this.systemManager.getSystem(TerrainSystem).terrainHeightProvider;
 
 		for (const pos of tile.usedHeightTiles) {
-			heightProvider.heightLoader.getTile(pos.x, pos.y, 12).tracker.release(tile);
+			const tile = heightProvider.heightLoader.getTile(pos.x, pos.y, 12);
+
+			if (tile) {
+				tile.tracker.release(tile);
+			}
 		}
 
 		tile.dispose();

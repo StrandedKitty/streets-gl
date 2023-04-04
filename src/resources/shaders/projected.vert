@@ -57,7 +57,7 @@ void main() {
 	vTextureId = int(textureId);
 
 	vUv = uv;
-	vNormal = vec3(modelViewMatrix * vec4(normal, 0));
+	vNormal = normal;
 	vNormalFollowsGround = normal == vec3(0, 1, 0) ? 1 : 0;
 	vLocalPosition = position;
 
@@ -120,7 +120,7 @@ void main() {
 	vec4 cameraSpacePosition = modelViewMatrix * vec4(transformedPosition, 1);
 	vec4 cameraSpacePositionPrev = modelViewMatrixPrev * vec4(transformedPosition, 1);
 
-	vPosition = vec3(cameraSpacePosition);
+	vPosition = position;
 
 	vClipPos = projectionMatrix * cameraSpacePosition;
 	vClipPosPrev = projectionMatrix * cameraSpacePositionPrev;

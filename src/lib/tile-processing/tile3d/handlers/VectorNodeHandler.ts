@@ -41,7 +41,7 @@ export default class VectorNodeHandler implements Handler {
 				x: this.x,
 				y: this.terrainHeight,
 				z: this.y,
-				scale: this.descriptor.height,
+				scale: this.descriptor.height * this.mercatorScale,
 				rotation: rnd.generate() * Math.PI * 2
 			}];
 		}

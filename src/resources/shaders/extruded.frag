@@ -31,7 +31,7 @@ vec3 getRoofMask(int textureId) {
 }
 
 vec3 getRoofNormal(int textureId) {
-    mat3 tbn = getTBN(vNormal, vPosition, vUv);
+    mat3 tbn = getTBN(vNormal, vPosition, vec2(vUv.x, 1. - vUv.y));
     vec3 mapValue = texture(tRoof, vec3(vUv, textureId * 3 + 1)).xyz * 2. - 1.;
     vec3 normal = normalize(tbn * mapValue);
 

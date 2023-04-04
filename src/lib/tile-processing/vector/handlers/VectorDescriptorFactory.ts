@@ -362,7 +362,7 @@ export class VectorDescriptorFactory {
 			return {
 				type: ContainerType.Descriptor,
 				data: {
-					type: 'roadway'
+					type: 'asphalt'
 				}
 			};
 		}
@@ -378,7 +378,7 @@ export class VectorDescriptorFactory {
 			return {
 				type: ContainerType.Descriptor,
 				data: {
-					type: 'footway'
+					type: 'pavement'
 				}
 			};
 		}
@@ -387,7 +387,7 @@ export class VectorDescriptorFactory {
 			return {
 				type: ContainerType.Descriptor,
 				data: {
-					type: 'footway'
+					type: 'pavement'
 				}
 			};
 		}
@@ -396,7 +396,7 @@ export class VectorDescriptorFactory {
 			return {
 				type: ContainerType.Descriptor,
 				data: {
-					type: 'footway'
+					type: 'pavement'
 				}
 			};
 		}
@@ -423,7 +423,7 @@ export class VectorDescriptorFactory {
 				type: ContainerType.Descriptor,
 				data: {
 					type: 'tree',
-					height: this.parseHeight(tags.height, 20)
+					height: this.parseHeight(tags.height, 15)
 				}
 			};
 		}
@@ -513,6 +513,14 @@ export class VectorDescriptorFactory {
 				return 'concrete';
 			case 'wood':
 				return 'wood';
+			case 'paving_stones':
+			case 'sett':
+			case 'cobblestone':
+			case 'pebblestone':
+			case 'rock':
+			case 'stone':
+				return 'cobblestone';
+
 		}
 
 		return 'asphalt';

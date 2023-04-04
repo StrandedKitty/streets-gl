@@ -90,26 +90,30 @@ void main() {
 
 	int layer = (vTextureId - 1) * 3;
 	vec4 color = texture(tMap, vec3(vUv, layer));
-	vec3 normalMapUnpacked = texture(tMap, vec3(vec2(vUv.x, 1. - vUv.y), layer + 1)).xyz * 2. - 1.;
+	vec3 normalMapUnpacked = texture(tMap, vec3(vUv, layer + 1)).xyz * 2. - 1.;
 	vec3 mask = texture(tMap, vec3(vUv, layer + 2)).rgb;
 
 	if (color.a < 0.5) {
 		discard;
 	}
 
-	vec3 heightMapNormal = sampleNormalMap();
-	vec3 reorientedNormal = normalBlendUnpackedRNM(heightMapNormal, normalMapUnpacked);
+	vec3 heightMapWorld = sampleNormalMap();
+
+	mat3 tbn = getTBN(vNormal, vPosition, vec2(vUv.x, 1. - vUv.y));
+	vec3 normalMapWorld = normalize(tbn * normalMapUnpacked);
+
+	vec3 reorientedNormalWorld = normalBlendUnpackedRNM(heightMapWorld.xzy, normalMapWorld.xzy).xzy;
 
 	#if IS_EXTRUDED == 0
-		vec3 kindaVNormal = vec3(modelViewMatrix * vec4(reorientedNormal, 0));
+		vec3 reorientedNormalView = vec3(modelViewMatrix * vec4(reorientedNormalWorld, 0));
 	#else
-		vec3 kindaVNormal = (vNormalFollowsGround == 1) ?
-			vec3(modelViewMatrix * vec4(reorientedNormal, 0)) :
-			getNormal(normalMapUnpacked);
+		vec3 reorientedNormalView = (vNormalFollowsGround == 1) ?
+			vec3(modelViewMatrix * vec4(reorientedNormalWorld, 0)) :
+			vec3(modelViewMatrix * vec4(normalMapWorld, 0));
 	#endif
 
 	outColor = color;
-	outNormal = packNormal(kindaVNormal);
+	outNormal = packNormal(reorientedNormalView);
 	outRoughnessMetalnessF0 = vec3(mask.xy, 0.03);
 	outMotion = getMotionVector(vClipPos, vClipPosPrev);
 	outObjectId = 0u;

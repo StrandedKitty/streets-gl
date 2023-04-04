@@ -3,12 +3,19 @@ import MathUtils from "~/lib/math/MathUtils";
 import TileSource from "./tile-source/TileSource";
 import TileSourceFactory from "~/app/terrain/tile-source/factory/TileSourceFactory";
 
+export enum TileAreaLoaderCellStateType {
+	Empty,
+	Clear,
+	WithData
+}
+
 export interface TileAreaLoaderCellState<TileSourceType extends TileSource<any>> {
+	type: TileAreaLoaderCellStateType;
+	lastRenderType: TileAreaLoaderCellStateType;
 	localX: number;
 	localY: number;
 	x: number;
 	y: number;
-	dirty: boolean;
 	tile: TileSourceType | null;
 }
 
@@ -49,11 +56,12 @@ export default class TileAreaLoader<T extends TileSource<any>> {
 		for (let y = 0; y < this.viewportSize; y++) {
 			for (let x = 0; x < this.viewportSize; x++) {
 				this.states.push({
+					type: TileAreaLoaderCellStateType.Clear,
+					lastRenderType: TileAreaLoaderCellStateType.Empty,
 					localX: x,
 					localY: y,
 					x: -1,
 					y: -1,
-					dirty: false,
 					tile: null
 				});
 			}
@@ -108,9 +116,9 @@ export default class TileAreaLoader<T extends TileSource<any>> {
 				const tileY = y + viewportOrigin.y;
 
 				if (state.x !== tileX || state.y !== tileY) {
-					state.dirty = true;
 					state.x = tileX;
 					state.y = tileY;
+					state.type = TileAreaLoaderCellStateType.Clear;
 					state.tile = this.getTile(tileX, tileY);
 				}
 			}
@@ -121,13 +129,18 @@ export default class TileAreaLoader<T extends TileSource<any>> {
 		const result: TileAreaLoaderCellState<T>[] = [];
 
 		for (const state of this.states) {
-			if (state.dirty) {
-				const tile = state.tile;
+			if (
+				state.type === TileAreaLoaderCellStateType.Clear &&
+				state.tile &&
+				state.tile.data !== null
+			) {
+				state.lastRenderType = TileAreaLoaderCellStateType.Empty;
+				state.type = TileAreaLoaderCellStateType.WithData;
+			}
 
-				if (tile && tile.data !== null) {
-					result.push(state);
-					state.dirty = false;
-				}
+			if (state.type !== state.lastRenderType) {
+				result.push(state);
+				state.lastRenderType = state.type;
 			}
 		}
 

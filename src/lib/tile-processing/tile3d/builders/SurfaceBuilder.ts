@@ -44,7 +44,7 @@ export default class SurfaceBuilder {
 		}
 
 		for (let i = 0; i < footprint.uvs.length; i++) {
-			footprint.uvs[i] *= uvScale;
+			footprint.uvs[i] /= uvScale;
 		}
 
 		return {

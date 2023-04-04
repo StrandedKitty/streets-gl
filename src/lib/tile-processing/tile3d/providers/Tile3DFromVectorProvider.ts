@@ -104,6 +104,11 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 		for (const {intersection, polygon} of intersectionPolygons) {
 			const material = this.getIntersectionMaterial(intersection);
 
+			if (material === null) {
+				// Skip intersection if it has no material
+				continue;
+			}
+
 			polygon.push(polygon[0]);
 			polygon.reverse();
 
@@ -131,18 +136,28 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 		}
 	}
 
-	private static getIntersectionMaterial(intersection: Intersection<VectorPolylineHandler>): VectorAreaDescriptor['intersectionMaterial'] {
+	private static getIntersectionMaterial(intersection: Intersection<VectorPolylineHandler>):
+		VectorAreaDescriptor['intersectionMaterial'] | null
+	{
 		const frequencyTable: Record<VectorAreaDescriptor['intersectionMaterial'], number> = {
 			asphalt: 0,
-			concrete: 0
+			concrete: 0,
+			cobblestone: 0
 		};
 
 		for (const dir of intersection.directions) {
 			const material = dir.road.ref.getIntersectionMaterial();
-			++frequencyTable[material];
+
+			if (material !== null) {
+				++frequencyTable[material];
+			}
 		}
 
 		const sorted = Object.entries(frequencyTable).sort((a, b) => b[1] - a[1]);
+
+		if (sorted[0][1] === 0) {
+			return null;
+		}
 
 		return sorted[0][0] as VectorAreaDescriptor['intersectionMaterial'];
 	}
