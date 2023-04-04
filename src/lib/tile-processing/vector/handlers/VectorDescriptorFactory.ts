@@ -272,11 +272,11 @@ export class VectorDescriptorFactory {
 				type: ContainerType.Modifier,
 				data: {
 					type: ModifierType.NodeRow,
-					spacing: 10,
+					spacing: 12,
 					randomness: 1,
 					descriptor: {
 						type: 'tree',
-						height: this.parseHeight(tags.height, 10)
+						height: this.parseHeight(tags.height, 15)
 					}
 				}
 			}];
@@ -423,7 +423,7 @@ export class VectorDescriptorFactory {
 				type: ContainerType.Descriptor,
 				data: {
 					type: 'tree',
-					height: this.parseHeight(tags.height, 10)
+					height: this.parseHeight(tags.height, 20)
 				}
 			};
 		}

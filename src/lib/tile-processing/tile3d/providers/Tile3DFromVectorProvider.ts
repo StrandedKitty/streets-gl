@@ -10,10 +10,7 @@ import Tile3DInstance from "~/lib/tile-processing/tile3d/features/Tile3DInstance
 import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DProjectedGeometry";
 import Tile3DExtrudedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DExtrudedGeometry";
 import * as Simplify from "simplify-js";
-import {
-	applyMercatorFactorToExtrudedFeatures,
-	applyMercatorFactorToInstances
-} from "~/lib/tile-processing/tile3d/utils";
+import {applyMercatorFactorToExtrudedFeatures} from "~/lib/tile-processing/tile3d/utils";
 import Tile3DHuggingGeometry from "~/lib/tile-processing/tile3d/features/Tile3DHuggingGeometry";
 import RoadGraph from "~/lib/road-graph/RoadGraph";
 import {VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
@@ -22,6 +19,7 @@ import Intersection from "~/lib/road-graph/Intersection";
 import {FeatureProvider} from "~/lib/tile-processing/types";
 import Utils from "~/app/Utils";
 import Tile3DLabel from "~/lib/tile-processing/tile3d/features/Tile3DLabel";
+import MathUtils from "~/lib/math/MathUtils";
 
 export interface Tile3DProviderParams {
 	overpassEndpoint: string;
@@ -54,20 +52,19 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 
 		const handlers = Tile3DFromVectorProvider.createHandlersFromVectorFeatureCollection(vectorTile);
 
+		Tile3DFromVectorProvider.updateFeaturesMercatorScale(handlers, x, y, zoom);
 		await Tile3DFromVectorProvider.updateFeaturesHeight(handlers, this.params.heightPromise);
 		Tile3DFromVectorProvider.addRoadGraphToHandlers(handlers);
 
 		const collection = Tile3DFromVectorProvider.getFeaturesFromHandlers(handlers);
 
 		applyMercatorFactorToExtrudedFeatures(collection.extruded, x, y, zoom);
-		applyMercatorFactorToInstances(collection.instances, x, y, zoom);
 
 		return collection;
 	}
 
 	private static createHandlersFromVectorFeatureCollection(collection: VectorFeatureCollection):
-		(VectorNodeHandler | VectorPolylineHandler | VectorAreaHandler)[]
-	{
+		(VectorNodeHandler | VectorPolylineHandler | VectorAreaHandler)[] {
 		const handlers: (VectorNodeHandler | VectorPolylineHandler | VectorAreaHandler)[] = [];
 
 		for (const feature of collection.nodes) {
@@ -192,6 +189,14 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 		}
 
 		return collection;
+	}
+
+	private static updateFeaturesMercatorScale(features: Handler[], x: number, y: number, zoom: number): void {
+		const scale = MathUtils.getMercatorScaleFactorForTile(x, y, zoom);
+
+		for (const feature of features) {
+			feature.setMercatorScale(scale);
+		}
 	}
 
 	private static async updateFeaturesHeight(

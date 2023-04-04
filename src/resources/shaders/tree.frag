@@ -20,13 +20,14 @@ uniform sampler2D tVolumeNormal;
 
 #include <packNormal>
 #include <getMotionVector>
+#include <getTBN>
 
 vec4 readDiffuse(vec2 uv) {
-    return texture(tColor, vec3(uv, 0));
+    return texture(tColor, vec3(uv, 1));
 }
 
 vec4 readNormal(vec2 uv) {
-    return texture(tNormal, vec3(uv, 0));
+    return texture(tNormal, vec3(uv, 1));
 }
 
 vec4 readVolumeNormal(vec2 uv) {
@@ -34,7 +35,7 @@ vec4 readVolumeNormal(vec2 uv) {
 }
 
 vec3 getNormal() {
-    vec2 uv = gl_FrontFacing ? vUv : -vUv;
+    /*vec2 uv = gl_FrontFacing ? vUv : -vUv;
 
     vec3 pos_dx = dFdx(vPosition);
     vec3 pos_dy = dFdy(vPosition);
@@ -46,7 +47,8 @@ vec3 getNormal() {
 
     t = normalize(t - ng * dot(ng, t));
     vec3 b = normalize(cross(ng, t));
-    mat3 tbn = mat3(t, b, ng);
+    mat3 tbn = mat3(t, b, ng);*/
+    mat3 tbn = getTBN(vNormal, vPosition, vUv);
 
     vec3 map1 = readNormal(vUv).rgb * 2. - 1.;
     vec3 map2 = readVolumeNormal(vUv).rgb * 2. - 1.;
@@ -66,7 +68,7 @@ void main() {
     }
 
     outColor = vec4(color.rgb, 1);
-    outNormal = packNormal(vNormal * (float(gl_FrontFacing) * 2.0 - 1.0));
+    outNormal = packNormal(getNormal());
     outRoughnessMetalnessF0 = vec3(0.9, 0, 0.03);
     outMotion = getMotionVector(vClipPos, vClipPosPrev);
     outObjectId = 0u;

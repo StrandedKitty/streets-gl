@@ -6,7 +6,7 @@ import {
 	UniformInt1,
 	UniformMatrix4
 } from "~/lib/renderer/abstract-renderer/Uniform";
-import Tile, {InstanceType} from "../../objects/Tile";
+import Tile from "../../objects/Tile";
 import Mat4 from "~/lib/math/Mat4";
 import Pass from "./Pass";
 import RenderPassResource from "../render-graph/resources/RenderPassResource";
@@ -27,11 +27,11 @@ import AbstractTexture2D from "~/lib/renderer/abstract-renderer/AbstractTexture2
 import MathUtils from "~/lib/math/MathUtils";
 import Config from "../../Config";
 import TerrainSystem from "../../systems/TerrainSystem";
-import TerrainRing from "../../objects/TerrainRing";
 import AbstractTexture2DArray from "~/lib/renderer/abstract-renderer/AbstractTexture2DArray";
 import Camera from "~/lib/core/Camera";
 import Utils from "~/app/Utils";
 import InstanceMaterialContainer from "~/app/render/materials/InstanceMaterialContainer";
+import {Tile3DInstanceLODConfig, Tile3DInstanceType} from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
 
 export default class GBufferPass extends Pass<{
 	GBufferRenderPass: {
@@ -376,11 +376,11 @@ export default class GBufferPass extends Pass<{
 		}
 	}
 
-	private renderTrees(instancesOrigin: Vec2): void {
+	private renderInstances(instancesOrigin: Vec2): void {
 		const camera = this.manager.sceneSystem.objects.camera;
 		const tiles = this.manager.sceneSystem.objects.tiles;
 
-		const textureIds: Record<InstanceType, number> = {
+		const textureIds: Record<Tile3DInstanceType, number> = {
 			tree: -1,
 			adColumn: 0,
 			transmissionTower: 1,
@@ -389,17 +389,25 @@ export default class GBufferPass extends Pass<{
 
 		for (const [name, instancedObject] of this.manager.sceneSystem.objects.instancedObjects.entries()) {
 			const buffers: Float32Array[] = [];
+			const config = Tile3DInstanceLODConfig[name as Tile3DInstanceType];
 
 			for (const tile of tiles) {
-				if (tile.distanceToCamera > 5000) {
+				if (tile.distanceToCamera < config.LOD0MaxDistance) {
+					const tileBuffer = tile.getInstanceBufferWithTransform(name as Tile3DInstanceType, 0, instancesOrigin);
+
+					if (tileBuffer) {
+						buffers.push(tileBuffer);
+					}
+
 					continue;
 				}
 
-				const lod = tile.distanceToCamera < 2500 ? 0 : 1;
-				const tileBuffer = tile.getInstanceBufferWithTransform(name as InstanceType, lod, instancesOrigin);
+				if (tile.distanceToCamera < config.LOD1MaxDistance) {
+					const tileBuffer = tile.getInstanceBufferWithTransform(name as Tile3DInstanceType, 1, instancesOrigin);
 
-				if (tileBuffer) {
-					buffers.push(tileBuffer);
+					if (tileBuffer) {
+						buffers.push(tileBuffer);
+					}
 				}
 			}
 
@@ -425,50 +433,12 @@ export default class GBufferPass extends Pass<{
 			material.updateUniformBlock('MainBlock');
 
 			if (name !== 'tree') {
-				material.getUniform('textureId', 'PerInstanceType').value = new Float32Array([textureIds[name as InstanceType]]);
+				material.getUniform('textureId', 'PerInstanceType').value = new Float32Array([textureIds[name as Tile3DInstanceType]]);
 				material.updateUniformBlock('PerInstanceType');
 			}
 
 			instancedObject.mesh.draw();
 		}
-
-		/*const trees = this.manager.sceneSystem.objects.instancedObjects.get('tree');
-		const buffers: Float32Array[] = [];
-
-		for (const tile of tiles) {
-			if (tile.distanceToCamera > 5000) {
-				continue;
-			}
-
-			const lod = tile.distanceToCamera < 2500 ? 0 : 1;
-			const trees = tile.getInstanceBufferWithTransform('tree', lod, instancesOrigin);
-
-			if (trees) {
-				buffers.push(trees);
-			}
-		}
-
-		trees.position.set(instancesOrigin.x, 0, instancesOrigin.y);
-		trees.updateMatrix();
-		trees.updateMatrixWorld();
-		const mergedTrees = Utils.mergeTypedArrays(Float32Array, buffers);
-		trees.setInstancesInterleavedBuffer(mergedTrees, mergedTrees.length / 5);
-
-		if (buffers.length === 0) {
-			return;
-		}
-
-		const mvMatrixPrev = Mat4.multiply(this.cameraMatrixWorldInversePrev, trees.matrixWorld);
-
-		this.renderer.useMaterial(this.treeMaterial);
-
-		this.treeMaterial.getUniform('projectionMatrix', 'MainBlock').value = new Float32Array(camera.jitteredProjectionMatrix.values);
-		this.treeMaterial.getUniform('modelMatrix', 'MainBlock').value = new Float32Array(trees.matrixWorld.values);
-		this.treeMaterial.getUniform('viewMatrix', 'MainBlock').value = new Float32Array(camera.matrixWorldInverse.values);
-		this.treeMaterial.getUniform('modelViewMatrixPrev', 'MainBlock').value = new Float32Array(mvMatrixPrev.values);
-		this.treeMaterial.updateUniformBlock('MainBlock');
-
-		trees.mesh.draw();*/
 	}
 
 	private writeToObjectIdBuffer(): void {
@@ -510,7 +480,7 @@ export default class GBufferPass extends Pass<{
 		this.renderTerrain();
 		this.renderProjectedMeshes();
 		this.renderHuggingMeshes();
-		this.renderTrees(instancesOrigin);
+		this.renderInstances(instancesOrigin);
 		this.writeToObjectIdBuffer();
 
 		this.saveCameraMatrixWorldInverse();

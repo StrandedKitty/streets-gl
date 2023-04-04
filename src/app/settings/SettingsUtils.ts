@@ -16,7 +16,7 @@ export function fetchSettingsFromLocalStorage(): Record<string, any> {
 	return json;
 }
 
-export function saveSettingsInLocalStorage(settings: SettingsObject): void {
+export function saveSettingsToLocalStorage(settings: SettingsObject): void {
 	localStorage.setItem('settings', JSON.stringify(settings));
 }
 

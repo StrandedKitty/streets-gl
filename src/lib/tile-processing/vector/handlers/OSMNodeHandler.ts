@@ -1,14 +1,14 @@
 import {NodeElement} from "~/lib/tile-processing/vector/providers/OverpassDataObject";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import VectorArea, {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
-import Handler from './Handler';
+import OSMHandler from './OSMHandler';
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
 import {ContainerType, VectorDescriptorFactory} from "~/lib/tile-processing/vector/handlers/VectorDescriptorFactory";
 import {cleanupTags} from "~/lib/tile-processing/vector/utils";
 import {ModifierType} from "~/lib/tile-processing/vector/modifiers";
 import Vec2 from "~/lib/math/Vec2";
 
-export default class OSMNodeHandler implements Handler {
+export default class OSMNodeHandler implements OSMHandler {
 	private readonly x: number;
 	private readonly y: number;
 	private readonly osmElement: NodeElement;

@@ -148,7 +148,12 @@ export default class GeometryGroundProjector {
 
 	private static getIntersectingGroundTrianglesForTriangle(triangle: [number, number][], segmentCount: number): [number, number][][] {
 		const groundTriangles: [number, number][][] = [];
-		const coveredTiles = this.getTilesUnderTriangle(triangle, segmentCount, segmentCount);
+		const coveredTiles = MathUtils.getTilesUnderTriangle(
+			triangle,
+			segmentCount, segmentCount,
+			0, 0,
+			segmentCount, segmentCount
+		);
 
 		for (const tilePos of coveredTiles) {
 			groundTriangles.push(
@@ -216,53 +221,6 @@ export default class GeometryGroundProjector {
 		}
 
 		return result;
-	}
-
-	private static getTilesUnderTriangle(
-		triangle: [number, number][],
-		triangleScaleX: number,
-		triangleScaleY: number
-	): Vec2[] {
-		const sx = triangleScaleX;
-		const sy = triangleScaleY;
-		const pointA = new Vec2(triangle[0][0] * sx, triangle[0][1] * sy);
-		const pointB = new Vec2(triangle[1][0] * sx, triangle[1][1] * sy);
-		const pointC = new Vec2(triangle[2][0] * sx, triangle[2][1] * sy);
-
-		const tilesA = MathUtils.getTilesIntersectingLine(pointA, pointB);
-		const tilesB = MathUtils.getTilesIntersectingLine(pointB, pointC);
-		const tilesC = MathUtils.getTilesIntersectingLine(pointC, pointA);
-
-		const tilesOnEdges: Vec2[] = tilesA.concat(tilesB, tilesC);
-		const tilesUnderTriangle: Vec2[] = [];
-
-		let minY = Infinity;
-		let maxY = -Infinity;
-		let minX = 0;
-
-		for (const tile of tilesOnEdges) {
-			if (minY <= tile.y) {
-				minX = Math.min(tile.x, minX);
-			}
-
-			minY = Math.min(tile.y, minY);
-			maxY = Math.max(tile.y, maxY);
-		}
-
-		for (let y = minY; y <= maxY; y++) {
-			const minX = tilesOnEdges.reduce((a, b) => a.x < b.x ? a : b).x;
-			const maxX = tilesOnEdges.reduce((a, b) => a.x > b.x ? a : b).x;
-
-			for (let x = minX; x <= maxX; x++) {
-				if (x < 0 || y < 0 || x >= triangleScaleX || y >= triangleScaleY) {
-					continue;
-				}
-
-				tilesUnderTriangle.push(new Vec2(x, y));
-			}
-		}
-
-		return tilesUnderTriangle;
 	}
 
 	private static getTriangle(quadX: number, quadY: number, index: 0 | 1, segmentCount: number): [number, number][] {

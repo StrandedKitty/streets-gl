@@ -13,18 +13,28 @@ import Tile3DProjectedGeometryBuilder from "~/lib/tile-processing/tile3d/builder
 import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DProjectedGeometry";
 import Tile3DLabel from "~/lib/tile-processing/tile3d/features/Tile3DLabel";
 import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
+import Config from "~/app/Config";
+import Tile3DInstance from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
+import Vec3 from "~/lib/math/Vec3";
+import SeededRandom from "~/lib/math/SeededRandom";
 
 export default class VectorAreaHandler implements Handler {
 	private readonly osmReference: OSMReference;
 	private readonly descriptor: VectorAreaDescriptor;
 	private readonly rings: VectorAreaRing[];
+	private mercatorScale: number = 1;
 	private terrainHeight: number = 0;
 	private multipolygon: Tile3DMultipolygon = null;
+	private instancePositions: Vec3[] = [];
 
 	public constructor(feature: VectorArea) {
 		this.osmReference = feature.osmReference;
 		this.descriptor = feature.descriptor;
 		this.rings = feature.rings;
+	}
+
+	public setMercatorScale(scale: number): void {
+		this.mercatorScale = scale;
 	}
 
 	private getMultipolygon(): Tile3DMultipolygon {
@@ -56,6 +66,31 @@ export default class VectorAreaHandler implements Handler {
 				positions: new Float64Array(positions),
 				callback: (heights: Float64Array): void => {
 					this.terrainHeight = Math.min.apply(null, Array.from(heights));
+				}
+			};
+		}
+
+		if (this.descriptor.type === 'forest') {
+			const points2D = this.getMultipolygon().populateWithPoints(
+				Math.floor(40 / this.mercatorScale),
+				Config.TileSize
+			);
+			const points3D: Vec3[] = [];
+			const positions: number[] = [];
+
+			for (const point of points2D) {
+				positions.push(point.x, point.y);
+				points3D.push(new Vec3(point.x, 0, point.y));
+			}
+
+			return {
+				positions: new Float64Array(positions),
+				callback: (heights: Float64Array): void => {
+					for (let i = 0; i < points3D.length; i++) {
+						points3D[i].y = heights[i];
+					}
+
+					this.instancePositions = points3D;
 				}
 			};
 		}
@@ -137,6 +172,36 @@ export default class VectorAreaHandler implements Handler {
 					isOriented: true,
 					zIndex: 10
 				})];
+			}
+			case 'forest': {
+				if (this.instancePositions.length === 0) {
+					return [];
+				}
+
+				const trees: Tile3DInstance[] = [];
+				const seed = Math.floor(this.instancePositions[0].x) + Math.floor(this.instancePositions[0].z);
+				const rnd = new SeededRandom(seed);
+
+				for (const position of this.instancePositions) {
+					if (position.x < 0 || position.x > Config.TileSize || position.z < 0 || position.z > Config.TileSize) {
+						continue;
+					}
+
+					const height = 15 + rnd.generate() * 10;
+					const rotation = rnd.generate() * Math.PI * 2;
+
+					trees.push({
+						type: 'instance',
+						instanceType: 'tree',
+						x: position.x,
+						y: position.y * this.mercatorScale,
+						z: position.z,
+						scale: height * this.mercatorScale,
+						rotation: rotation
+					});
+				}
+
+				return trees;
 			}
 		}
 

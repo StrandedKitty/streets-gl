@@ -12,12 +12,12 @@ import Tile3DBuffers, {
 import TileHuggingMesh from "~/app/objects/TileHuggingMesh";
 import AABB3D from "~/lib/math/AABB3D";
 import Vec3 from "~/lib/math/Vec3";
+import {Tile3DInstanceType} from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
 
 // position.xyz, scale, rotation
 export type InstanceBufferInterleaved = Float32Array;
-export type InstanceType = 'tree' | 'adColumn' | 'transmissionTower' | 'hydrant';
 
-export type TileInstanceBuffers = Map<InstanceType, {
+export type TileInstanceBuffers = Map<Tile3DInstanceType, {
 	rawLOD0: InstanceBufferInterleaved;
 	rawLOD1: InstanceBufferInterleaved;
 	transformedLOD0: InstanceBufferInterleaved;
@@ -89,7 +89,7 @@ export default class Tile extends Object3D {
 				const LOD0 = instanceBuffers.interleavedBufferLOD0;
 				const LOD1 = instanceBuffers.interleavedBufferLOD1;
 
-				this.instanceBuffers.set(key as InstanceType, {
+				this.instanceBuffers.set(key as Tile3DInstanceType, {
 					rawLOD0: LOD0,
 					rawLOD1: LOD1,
 					transformedLOD0: new Float32Array(LOD0),
@@ -101,7 +101,7 @@ export default class Tile extends Object3D {
 		});
 	}
 
-	public getInstanceBufferWithTransform(instanceName: InstanceType, lod: number, origin: Vec2): InstanceBufferInterleaved {
+	public getInstanceBufferWithTransform(instanceName: Tile3DInstanceType, lod: number, origin: Vec2): InstanceBufferInterleaved {
 		const buffers = this.instanceBuffers.get(instanceName);
 
 		if (!buffers) {

@@ -1,22 +1,13 @@
 import VectorFeatureCollection from "~/lib/tile-processing/vector/features/VectorFeatureCollection";
 import VectorArea from "~/lib/tile-processing/vector/features/VectorArea";
 import PBFPolygonParser, {PBFPolygon} from "~/lib/tile-processing/vector/providers/pbf/PBFPolygonParser";
-import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/descriptors";
 import MapboxAreaHandler from "~/lib/tile-processing/vector/handlers/MapboxAreaHandler";
 import Pbf from 'pbf';
 import {FeatureProvider} from "~/lib/tile-processing/types";
+import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
+import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/descriptors";
 
 const proto = require('./pbf/vector_tile.js').Tile;
-
-const AreasConfig: Record<'water', {
-	descriptor: VectorAreaDescriptor;
-}> = {
-	water: {
-		descriptor: {
-			type: 'water'
-		}
-	}
-}
 
 export default class MapboxVectorFeatureProvider implements FeatureProvider<VectorFeatureCollection> {
 	private readonly endpointTemplate: string;
@@ -39,13 +30,14 @@ export default class MapboxVectorFeatureProvider implements FeatureProvider<Vect
 		}
 	): Promise<VectorFeatureCollection> {
 		const areas: VectorArea[] = [];
+		const nodes: VectorNode[] = [];
 		const polygons = await this.fetchTile(x, y, zoom);
 
 		for (const [name, polygonList] of Object.entries(polygons)) {
-			const config = AreasConfig[name as keyof typeof AreasConfig];
-
 			for (const polygon of polygonList) {
-				const handler = new MapboxAreaHandler(config.descriptor);
+				const handler = new MapboxAreaHandler({
+					type: name as VectorAreaDescriptor['type']
+				});
 
 				for (const ring of polygon) {
 					handler.addRing(ring);
@@ -58,16 +50,17 @@ export default class MapboxVectorFeatureProvider implements FeatureProvider<Vect
 		}
 
 		return {
-			nodes: [],
+			nodes,
 			polylines: [],
 			areas
 		};
 	}
 
-	private async fetchTile(x: number, y: number, zoom: number): Promise<Record<keyof typeof AreasConfig, PBFPolygon[]>> {
+	private async fetchTile(x: number, y: number, zoom: number): Promise<Record<string, PBFPolygon[]>> {
 		const size = 40075016.68 / (1 << zoom);
-		const polygons: Record<keyof typeof AreasConfig, PBFPolygon[]> = {
-			water: []
+		const polygons: Record<string, PBFPolygon[]> = {
+			water: [],
+			forest: []
 		};
 		const url = this.buildRequestURL(x, y, zoom);
 		const response = await fetch(url, {
@@ -83,13 +76,33 @@ export default class MapboxVectorFeatureProvider implements FeatureProvider<Vect
 		const obj = proto.read(pbf);
 
 		for (const layer of obj.layers) {
-			const name = layer.name as keyof typeof AreasConfig;
+			const name = layer.name;
+			const keys = layer.keys;
+			const values = layer.values;
 
-			if (AreasConfig[name]) {
+			if (name === 'water') {
 				for (const feature of layer.features) {
 					const polygon = PBFPolygonParser.convertCommandsToPolygons(feature.geometry, size);
 
-					polygons[name].push(polygon);
+					polygons['water'].push(polygon);
+				}
+			}
+
+			if (name === 'landuse') {
+				for (const {geometry, tags} of layer.features) {
+					const tagsMap: Record<string, string> = {};
+
+					for (let i = 0; i < tags.length; i += 2) {
+						const key = keys[tags[i]];
+						const value = values[tags[i + 1]];
+
+						tagsMap[key] = value.string_value;
+					}
+
+					if (tagsMap.type === 'wood' || tagsMap.type === 'forest') {
+						const polygon = PBFPolygonParser.convertCommandsToPolygons(geometry, size);
+						polygons['forest'].push(polygon);
+					}
 				}
 			}
 		}

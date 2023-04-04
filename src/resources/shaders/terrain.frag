@@ -48,6 +48,7 @@ uniform sampler2D tWaterNormal;
 #include <getTBN>
 #include <textureNoTile>
 #include <sampleWaterNormal>
+#include <RNM>
 
 vec3 sampleNormalMap() {
     vec2 size = vec2(textureSize(tNormal, 0));
@@ -60,17 +61,10 @@ vec3 sampleNormalMap() {
 
 vec3 getNormal(vec3 normalTextureValue) {
     vec3 heightMapNormal = sampleNormalMap();
-    vec3 kindaVNormal = normalize(vec3(modelViewMatrix * vec4(heightMapNormal, 0)));
+    vec3 normalMapUnpacked = normalTextureValue * 2. - 1.;
+    vec3 reorientedNormal = normalBlendUnpackedRNM(heightMapNormal, normalMapUnpacked);
 
-    mat3 tbn = getTBN(kindaVNormal, vPosition, vDetailUV);
-    vec3 mapValue = normalTextureValue * 2. - 1.;
-    mapValue.x *= 0.2;
-    mapValue.y *= 0.2;
-    vec3 normal = normalize(tbn * normalize(mapValue));
-
-    normal *= float(gl_FrontFacing) * 2. - 1.;
-
-    return kindaVNormal;
+    return vec3(modelViewMatrix * vec4(reorientedNormal, 0));
 }
 
 float edgeFactor() {

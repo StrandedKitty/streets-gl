@@ -1,5 +1,6 @@
 import Vec2 from "~/lib/math/Vec2";
 import AABB2D from "~/lib/math/AABB2D";
+import MathUtils from "~/lib/math/MathUtils";
 
 export enum Tile3DRingType {
 	Outer,
@@ -73,5 +74,9 @@ export default class Tile3DRing {
 		}
 
 		return minDistance;
+	}
+
+	public isContainsPoints(point: Vec2): boolean {
+		return MathUtils.isPointInsidePolygonVec2(point, this.nodes);
 	}
 }

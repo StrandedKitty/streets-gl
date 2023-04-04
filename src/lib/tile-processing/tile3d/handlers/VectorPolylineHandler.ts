@@ -16,6 +16,7 @@ export default class VectorPolylineHandler implements Handler {
 	private readonly osmReference: OSMReference;
 	private readonly descriptor: VectorPolylineDescriptor;
 	private readonly vertices: Vec2[];
+	private mercatorScale: number = 1;
 	private graph: RoadGraph<VectorPolylineHandler> = null;
 	private graphGroup: number = -1;
 
@@ -27,6 +28,10 @@ export default class VectorPolylineHandler implements Handler {
 
 	public getRequestedHeightPositions(): RequestedHeightParams {
 		return null;
+	}
+
+	public setMercatorScale(scale: number): void {
+		this.mercatorScale = scale;
 	}
 
 	public getFeatures(): Tile3DFeature[] {
@@ -70,7 +75,7 @@ export default class VectorPolylineHandler implements Handler {
 			if (type !== -1) {
 				this.graph = graph;
 				this.graphGroup = type;
-				graph.addRoad(this, this.vertices, this.descriptor.width, type);
+				graph.addRoad(this, this.vertices, this.descriptor.width * this.mercatorScale, type);
 			}
 		}
 	}
@@ -141,7 +146,7 @@ export default class VectorPolylineHandler implements Handler {
 		}
 
 		builder.addPath({
-			width: this.descriptor.width,
+			width: this.descriptor.width * this.mercatorScale,
 			uvMinX: uvAndTextureParams.uvMinX,
 			uvMaxX: uvAndTextureParams.uvMaxX,
 			textureId: uvAndTextureParams.textureId,

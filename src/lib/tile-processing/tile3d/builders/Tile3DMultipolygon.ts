@@ -6,6 +6,9 @@ import Vec2 from "~/lib/math/Vec2";
 import * as OMBB from "~/lib/math/OMBB";
 import polylabel from "polylabel";
 import Vec3 from "~/lib/math/Vec3";
+import {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
+import MathUtils from "~/lib/math/MathUtils";
+import {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
 
 interface EarcutInput {
 	vertices: number[];
@@ -190,5 +193,81 @@ export default class Tile3DMultipolygon {
 		}
 
 		return this.cachedPoleOfInaccessibility;
+	}
+
+	public populateWithPoints(resolution: number, tileSize: number): Vec2[] {
+		const tiles = this.getCoveredTiles(resolution, tileSize);
+		const points: Vec2[] = [];
+
+		for (const tile of tiles) {
+			const [x, y] = tile.split(' ').map(v => +v);
+			const point = new Vec2(
+				(x + 0.7 - Math.random() * 0.4) / resolution * tileSize,
+				(y + 0.7 - Math.random() * 0.4) / resolution * tileSize,
+			);
+
+			let isInMultipolygon = true;
+
+			for (const ring of this.rings) {
+				if (ring.type === Tile3DRingType.Outer) {
+					if (!ring.isContainsPoints(point)) {
+						isInMultipolygon = false;
+					}
+				} else {
+					if (ring.isContainsPoints(point)) {
+						isInMultipolygon = false;
+					}
+				}
+			}
+
+			if (isInMultipolygon) {
+				points.push(point);
+			}
+		}
+
+		return points;
+	}
+
+	private getCoveredTiles(resolution: number, tileSize: number): Set<string> {
+		const tiles: Set<string> = new Set();
+		const multipolygons: Tile3DRing[][] = [];
+
+		for (const ring of this.rings) {
+			if (ring.type === Tile3DRingType.Outer) {
+				multipolygons.push([ring]);
+			} else {
+				if (!multipolygons[multipolygons.length - 1]) {
+					console.error('Invalid ring order, skipping covered tiles calculation');
+					return tiles;
+				}
+
+				multipolygons[multipolygons.length - 1].push(ring);
+			}
+		}
+
+		for (const multipolygon of multipolygons) {
+			const {vertices, holes} = this.getRingEarcutInput(multipolygon[0], multipolygon.slice(1));
+			const triangles = earcut(vertices, holes);
+
+			for (let i = 0; i < triangles.length; i += 3) {
+				const triangle: [number, number][] = [
+					[vertices[triangles[i] * 2], vertices[triangles[i] * 2 + 1]],
+					[vertices[triangles[i + 1] * 2], vertices[triangles[i + 1] * 2 + 1]],
+					[vertices[triangles[i + 2] * 2], vertices[triangles[i + 2] * 2 + 1]]
+				];
+
+				const covered = MathUtils.getTilesUnderTriangle(
+					triangle,
+					1 / tileSize * resolution,
+					1 / tileSize * resolution
+				);
+
+				for (const tile of covered) {
+					tiles.add(`${tile.x} ${tile.y}`);
+				}
+			}
+		}
+
+		return tiles;
 	}
 }

@@ -2,11 +2,10 @@ import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/descriptors";
 import VectorArea, {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
-import Handler from "./Handler";
 
-type Ring = [number, number][];
+type RingInput = [number, number][];
 
-export default class MapboxAreaHandler implements Handler {
+export default class MapboxAreaHandler {
 	private readonly rings: VectorAreaRing[] = [];
 	private readonly descriptor: VectorAreaDescriptor;
 
@@ -14,7 +13,7 @@ export default class MapboxAreaHandler implements Handler {
 		this.descriptor = descriptor;
 	}
 
-	public addRing(ring: Ring): void {
+	public addRing(ring: RingInput): void {
 		if (!MapboxAreaHandler.validateRing(ring)) {
 			throw new Error('Invalid MapBox ring');
 		}
@@ -58,19 +57,7 @@ export default class MapboxAreaHandler implements Handler {
 		return areas;
 	}
 
-	public getStructuralFeature(): VectorArea {
-		return null;
-	}
-
-	public preventFeatureOutput(): void {
-
-	}
-
-	public markAsBuildingPartInRelation(): void {
-
-	}
-
-	private static isRingClockwise(ring: Ring): boolean {
+	private static isRingClockwise(ring: RingInput): boolean {
 		let sum = 0;
 
 		for (let i = 0; i < ring.length; i++) {
@@ -82,7 +69,7 @@ export default class MapboxAreaHandler implements Handler {
 		return sum < 0;
 	}
 
-	private static validateRing(ring: Ring): boolean {
+	private static validateRing(ring: RingInput): boolean {
 		const first = ring[0];
 		const last = ring[ring.length - 1];
 

@@ -2,7 +2,7 @@ import OSMNodeHandler from "~/lib/tile-processing/vector/handlers/OSMNodeHandler
 import {WayElement} from "~/lib/tile-processing/vector/providers/OverpassDataObject";
 import VectorArea, {VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
 import VectorPolyline from "~/lib/tile-processing/vector/features/VectorPolyline";
-import Handler from "~/lib/tile-processing/vector/handlers/Handler";
+import OSMHandler from "~/lib/tile-processing/vector/handlers/OSMHandler";
 import {ContainerType, VectorDescriptorFactory,} from "~/lib/tile-processing/vector/handlers/VectorDescriptorFactory";
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
 import {ModifierType} from "~/lib/tile-processing/vector/modifiers";
@@ -10,7 +10,7 @@ import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import {cleanupTags} from "~/lib/tile-processing/vector/utils";
 import Ring from "~/lib/tile-processing/vector/handlers/Ring";
 
-export default class OSMWayHandler implements Handler {
+export default class OSMWayHandler implements OSMHandler {
 	private readonly osmElement: WayElement;
 	private readonly tags: Record<string, string>;
 	private readonly nodes: OSMNodeHandler[];

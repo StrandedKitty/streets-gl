@@ -129,19 +129,19 @@
 		"type": "image"
 	},
 	"tree1Diffuse": {
-		"url": "/models/tree/tree_volume_normal.png",
+		"url": "/models/tree/tree1_diffuse.png",
 		"type": "image"
 	},
 	"tree2Diffuse": {
-		"url": "/models/tree/tree_volume_normal.png",
+		"url": "/models/tree/tree2_diffuse.png",
 		"type": "image"
 	},
 	"tree1Normal": {
-		"url": "/models/tree/tree_volume_normal.png",
+		"url": "/models/tree/tree1_normal.png",
 		"type": "image"
 	},
 	"tree2Normal": {
-		"url": "/models/tree/tree_volume_normal.png",
+		"url": "/models/tree/tree2_normal.png",
 		"type": "image"
 	},
 	"treeVolumeNormal": {

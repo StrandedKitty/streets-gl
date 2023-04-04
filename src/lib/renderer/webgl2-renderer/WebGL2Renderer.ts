@@ -1,29 +1,24 @@
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
-import AbstractTexture2D, {AbstractTexture2DParams} from "~/lib/renderer/abstract-renderer/AbstractTexture2D";
+import {AbstractTexture2DParams} from "~/lib/renderer/abstract-renderer/AbstractTexture2D";
 import WebGL2Texture from "~/lib/renderer/webgl2-renderer/WebGL2Texture";
 import WebGL2Extensions from "~/lib/renderer/webgl2-renderer/WebGL2Extensions";
 import WebGL2Texture2D from "~/lib/renderer/webgl2-renderer/WebGL2Texture2D";
-import AbstractTexture2DArray, {
-	AbstractTexture2DArrayParams
-} from "~/lib/renderer/abstract-renderer/AbstractTexture2DArray";
+import {AbstractTexture2DArrayParams} from "~/lib/renderer/abstract-renderer/AbstractTexture2DArray";
 import WebGL2Texture2DArray from "~/lib/renderer/webgl2-renderer/WebGL2Texture2DArray";
-import AbstractTextureCube, {AbstractTextureCubeParams} from "~/lib/renderer/abstract-renderer/AbstractTextureCube";
+import {AbstractTextureCubeParams} from "~/lib/renderer/abstract-renderer/AbstractTextureCube";
 import WebGL2TextureCube from "~/lib/renderer/webgl2-renderer/WebGL2TextureCube";
-import AbstractMaterial, {
-	AbstractMaterialBlendParams,
-	AbstractMaterialParams
-} from "~/lib/renderer/abstract-renderer/AbstractMaterial";
+import {AbstractMaterialBlendParams, AbstractMaterialParams} from "~/lib/renderer/abstract-renderer/AbstractMaterial";
 import WebGL2Material from "~/lib/renderer/webgl2-renderer/WebGL2Material";
-import AbstractAttribute, {AbstractAttributeParams} from "~/lib/renderer/abstract-renderer/AbstractAttribute";
+import {AbstractAttributeParams} from "~/lib/renderer/abstract-renderer/AbstractAttribute";
 import WebGL2Attribute from "~/lib/renderer/webgl2-renderer/WebGL2Attribute";
-import AbstractMesh, {AbstractMeshParams} from "~/lib/renderer/abstract-renderer/AbstractMesh";
+import {AbstractMeshParams} from "~/lib/renderer/abstract-renderer/AbstractMesh";
 import WebGL2Mesh from "~/lib/renderer/webgl2-renderer/WebGL2Mesh";
 import WebGL2Constants from "~/lib/renderer/webgl2-renderer/WebGL2Constants";
 import WebGL2Framebuffer from "~/lib/renderer/webgl2-renderer/WebGL2Framebuffer";
-import AbstractRenderPass, {AbstractRenderPassParams} from "~/lib/renderer/abstract-renderer/AbstractRenderPass";
+import {AbstractRenderPassParams} from "~/lib/renderer/abstract-renderer/AbstractRenderPass";
 import WebGL2RenderPass from "~/lib/renderer/webgl2-renderer/WebGL2RenderPass";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
-import AbstractTexture3D, {AbstractTexture3DParams} from "~/lib/renderer/abstract-renderer/AbstractTexture3D";
+import {AbstractTexture3DParams} from "~/lib/renderer/abstract-renderer/AbstractTexture3D";
 import WebGL2Texture3D from "~/lib/renderer/webgl2-renderer/WebGL2Texture3D";
 
 export default class WebGL2Renderer implements AbstractRenderer {
@@ -67,7 +62,6 @@ export default class WebGL2Renderer implements AbstractRenderer {
 		this.extensions = {
 			anisotropy: this.gl.getExtension("EXT_texture_filter_anisotropic"),
 			floatRenderable: this.gl.getExtension("EXT_color_buffer_float"),
-			debugInfo: this.gl.getExtension("WEBGL_debug_renderer_info"),
 			floatLinear: this.gl.getExtension("OES_texture_float_linear"),
 			timerQuery: this.gl.getExtension("EXT_disjoint_timer_query_webgl2"),
 			rendererInfo: this.gl.getExtension("WEBGL_debug_renderer_info")
@@ -336,7 +330,7 @@ export default class WebGL2Renderer implements AbstractRenderer {
 			];
 		}
 
-		return ['', ''];
+		return ['WEBGL_debug_renderer_info is not available', ''];
 	}
 
 	public async fence(): Promise<void> {

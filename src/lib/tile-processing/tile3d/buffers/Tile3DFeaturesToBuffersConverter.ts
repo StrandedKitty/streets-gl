@@ -1,6 +1,9 @@
 import Tile3DBuffers, {
 	BoundingBox,
-	Tile3DBuffersExtruded, Tile3DBuffersHugging, Tile3DBuffersInstance, Tile3DBuffersLabels,
+	Tile3DBuffersExtruded,
+	Tile3DBuffersHugging,
+	Tile3DBuffersInstance,
+	Tile3DBuffersLabels,
 	Tile3DBuffersProjected
 } from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
 import Tile3DFeatureCollection from "~/lib/tile-processing/tile3d/features/Tile3DFeatureCollection";
@@ -11,7 +14,25 @@ import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3
 import Tile3DHuggingGeometry from "~/lib/tile-processing/tile3d/features/Tile3DHuggingGeometry";
 import Tile3DLabel from "~/lib/tile-processing/tile3d/features/Tile3DLabel";
 import Vec3 from "~/lib/math/Vec3";
-import Tile3DInstance from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
+import Tile3DInstance, {
+	LODConfig,
+	Tile3DInstanceLODConfig,
+	Tile3DInstanceType
+} from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
+
+const getRandom = <T>(arr: T[], n: number): T[] => {
+	let result = new Array<T>(n),
+		len = arr.length,
+		taken = new Array(len);
+	if (n > len)
+		throw new RangeError("getRandom: more elements taken than available");
+	while (n--) {
+		const x = Math.floor(Math.random() * len);
+		result[n] = arr[x in taken ? taken[x] : x];
+		taken[x] = --len in taken ? taken[len] : len;
+	}
+	return result;
+}
 
 export class Tile3DFeaturesToBuffersConverter {
 	public static convert(collection: Tile3DFeatureCollection): Tile3DBuffers {
@@ -166,7 +187,7 @@ export class Tile3DFeaturesToBuffersConverter {
 	}
 
 	private static getInstanceBuffers(features: Tile3DInstance[]): Record<string, Tile3DBuffersInstance> {
-		const collections: Map<string, Tile3DInstance[]> = new Map();
+		const collections: Map<Tile3DInstanceType, Tile3DInstance[]> = new Map();
 
 		for (const feature of features) {
 			if (!collections.has(feature.instanceType)) {
@@ -179,37 +200,71 @@ export class Tile3DFeaturesToBuffersConverter {
 		const buffers: Record<string, Tile3DBuffersInstance> = {};
 
 		for (const [name, collection] of collections.entries()) {
-			const instanceCount = collection.length;
-			const instanceCountHalf = Math.floor(instanceCount / 2);
-
-			const interleavedArray: Float32Array = new Float32Array(instanceCount * 5);
-			const interleavedArrayHalf: Float32Array = new Float32Array(instanceCountHalf * 5);
-
-			for (let i = 0; i < instanceCount; i++) {
-				const feature = collection[i];
-
-				interleavedArray[i * 5] = feature.x;
-				interleavedArray[i * 5 + 1] = feature.y;
-				interleavedArray[i * 5 + 2] = feature.z;
-				interleavedArray[i * 5 + 3] = feature.scale;
-				interleavedArray[i * 5 + 4] = feature.rotation;
-
-				if (i < instanceCountHalf) {
-					interleavedArrayHalf[i * 5] = feature.x;
-					interleavedArrayHalf[i * 5 + 1] = feature.y;
-					interleavedArrayHalf[i * 5 + 2] = feature.z;
-					interleavedArrayHalf[i * 5 + 3] = feature.scale;
-					interleavedArrayHalf[i * 5 + 4] = feature.rotation;
-				}
-			}
+			const lodConfig = Tile3DInstanceLODConfig[name];
+			const lods = Tile3DFeaturesToBuffersConverter.getInstancesBuffers(collection, lodConfig);
 
 			buffers[name] = {
-				interleavedBufferLOD0: interleavedArray,
-				interleavedBufferLOD1: interleavedArrayHalf
+				interleavedBufferLOD0: lods[0],
+				interleavedBufferLOD1: lods[1]
 			};
 		}
 
 		return buffers;
+	}
+
+	private static getInstancesBuffers(instances: Tile3DInstance[], config: LODConfig): [Float32Array, Float32Array] {
+		const halfInstances = config.LOD1Fraction > 0 ?
+			this.clearInstancesWithHeatMap(instances, 12, config.LOD1Fraction) : [];
+
+		return [
+			this.createInstanceInterleavedBuffer(instances),
+			this.createInstanceInterleavedBuffer(halfInstances)
+		];
+	}
+
+	private static clearInstancesWithHeatMap(
+		instances: Tile3DInstance[],
+		resolution: number,
+		factor: number
+	): Tile3DInstance[] {
+		const TileSize = 611.4962158203125;
+		const heatMap: Tile3DInstance[][] = new Array(resolution ** 2).fill(null).map(() => []);
+
+		for (const instance of instances) {
+			const x = instance.x / TileSize * resolution;
+			const y = instance.z / TileSize * resolution;
+			const index = Math.floor(x) + Math.floor(y) * resolution;
+
+			heatMap[index].push(instance);
+		}
+
+		const cleared: Tile3DInstance[] = [];
+
+		for (const cell of heatMap) {
+			if (cell.length === 0) {
+				continue;
+			}
+
+			const newCount = Math.max(Math.round(cell.length * factor), 1);
+			cleared.push(...getRandom(cell, newCount));
+		}
+
+		return cleared;
+	}
+
+	private static createInstanceInterleavedBuffer(instances: Tile3DInstance[]): Float32Array {
+		const buffer = new Float32Array(instances.length * 5);
+
+		for (let i = 0; i < instances.length; i++) {
+			const feature = instances[i];
+			buffer[i * 5] = feature.x;
+			buffer[i * 5 + 1] = feature.y;
+			buffer[i * 5 + 2] = feature.z;
+			buffer[i * 5 + 3] = feature.scale;
+			buffer[i * 5 + 4] = feature.rotation;
+		}
+
+		return buffer;
 	}
 
 	private static joinBoundingBoxes(features: {boundingBox: AABB3D}[]): AABB3D {

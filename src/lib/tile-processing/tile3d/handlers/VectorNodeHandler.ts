@@ -3,7 +3,8 @@ import Tile3DFeature from "~/lib/tile-processing/tile3d/features/Tile3DFeature";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import OSMReference from "~/lib/tile-processing/vector/features/OSMReference";
 import {VectorNodeDescriptor} from "~/lib/tile-processing/vector/descriptors";
-import Tile3DInstance from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
+import Tile3DInstance, {Tile3DInstanceType} from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
+import SeededRandom from "~/lib/math/SeededRandom";
 
 const TileSize = 611.4962158203125;
 
@@ -12,6 +13,7 @@ export default class VectorNodeHandler implements Handler {
 	private readonly descriptor: VectorNodeDescriptor;
 	private readonly x: number;
 	private readonly y: number;
+	private mercatorScale: number = 1;
 	private terrainHeight: number = 0;
 
 	public constructor(feature: VectorNode) {
@@ -21,60 +23,54 @@ export default class VectorNodeHandler implements Handler {
 		this.y = feature.y;
 	}
 
-	public getFeatures(): Tile3DFeature[] {
+	public setMercatorScale(scale: number): void {
+		this.mercatorScale = scale;
+	}
+
+	public getFeatures(): Tile3DInstance[] {
 		if (this.isOutOfBounds()) {
 			return [];
 		}
 
 		if (this.descriptor.type === 'tree') {
-			return [<Tile3DInstance>{
+			const rnd = new SeededRandom(Math.floor(this.x + this.y));
+
+			return [{
 				type: 'instance',
 				instanceType: 'tree',
 				x: this.x,
 				y: this.terrainHeight,
 				z: this.y,
 				scale: this.descriptor.height,
-				rotation: 0
+				rotation: rnd.generate() * Math.PI * 2
 			}];
 		}
 
 		if (this.descriptor.type === 'adColumn') {
-			return [<Tile3DInstance>{
-				type: 'instance',
-				instanceType: 'adColumn',
-				x: this.x,
-				y: this.terrainHeight,
-				z: this.y,
-				scale: 1,
-				rotation: 0
-			}];
+			return [this.getGenericInstanceFeature('adColumn')];
 		}
 
 		if (this.descriptor.type === 'transmissionTower') {
-			return [<Tile3DInstance>{
-				type: 'instance',
-				instanceType: 'transmissionTower',
-				x: this.x,
-				y: this.terrainHeight,
-				z: this.y,
-				scale: 1,
-				rotation: 0
-			}];
+			return [this.getGenericInstanceFeature('transmissionTower')];
 		}
 
 		if (this.descriptor.type === 'hydrant') {
-			return [<Tile3DInstance>{
-				type: 'instance',
-				instanceType: 'hydrant',
-				x: this.x,
-				y: this.terrainHeight,
-				z: this.y,
-				scale: 1,
-				rotation: 0
-			}];
+			return [this.getGenericInstanceFeature('hydrant')];
 		}
 
 		return [];
+	}
+
+	private getGenericInstanceFeature(type: Tile3DInstanceType): Tile3DInstance {
+		return {
+			type: 'instance',
+			instanceType: type,
+			x: this.x,
+			y: this.terrainHeight,
+			z: this.y,
+			scale: this.mercatorScale,
+			rotation: 0
+		};
 	}
 
 	public getRequestedHeightPositions(): RequestedHeightParams {
@@ -86,7 +82,7 @@ export default class VectorNodeHandler implements Handler {
 			return {
 				positions: new Float64Array([this.x, this.y]),
 				callback: (heights: Float64Array): void => {
-					this.terrainHeight = heights[0];
+					this.terrainHeight = heights[0] * this.mercatorScale;
 				}
 			};
 		}

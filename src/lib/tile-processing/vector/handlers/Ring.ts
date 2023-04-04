@@ -1,6 +1,7 @@
 import {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import {VectorNodeDescriptor} from "~/lib/tile-processing/vector/descriptors";
+import {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
 
 const removeFirstEl = (arr: VectorNode[]): VectorNode[] => {
 	return arr.slice(1);
@@ -155,7 +156,7 @@ export default class Ring {
 				y,
 				rotation: 0,
 				descriptor,
-				osmReference: null
+				osmReference: {type: OSMReferenceType.None, id: 0}
 			};
 		});
 	}

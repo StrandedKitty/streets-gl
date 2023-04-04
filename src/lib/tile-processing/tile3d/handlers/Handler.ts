@@ -6,6 +6,7 @@ export interface RequestedHeightParams {
 }
 
 export default interface Handler {
+	setMercatorScale(scale: number): void;
 	getFeatures(): Tile3DFeature[];
 	getRequestedHeightPositions(): RequestedHeightParams;
 }

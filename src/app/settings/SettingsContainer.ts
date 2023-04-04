@@ -1,5 +1,6 @@
 import {SettingsObject, SettingsObjectEntry} from "~/app/settings/SettingsObject";
 import SettingsEventEmitter from "~/app/settings/SettingsEventEmitter";
+import {saveSettingsToLocalStorage} from "~/app/settings/SettingsUtils";
 
 export default class SettingsContainer {
 	private readonly emitter: SettingsEventEmitter = new SettingsEventEmitter();
@@ -15,6 +16,7 @@ export default class SettingsContainer {
 
 	public update(key: string, value: SettingsObjectEntry): void {
 		this.settingsObject[key] = value;
+		this.saveSettings();
 
 		this.emitter.updateSetting(key, value);
 	}
@@ -36,5 +38,9 @@ export default class SettingsContainer {
 		callback: (value: SettingsObjectEntry) => void
 	): void {
 		this.emitter.removeOnChangeListener(key, callback);
+	}
+
+	private saveSettings(): void {
+		saveSettingsToLocalStorage(this.settingsObject);
 	}
 }

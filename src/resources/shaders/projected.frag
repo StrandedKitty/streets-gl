@@ -40,6 +40,7 @@ uniform sampler2D tWaterNormal;
 #include <sampleCatmullRom>
 #include <getTBN>
 #include <sampleWaterNormal>
+#include <RNM>
 
 vec3 sampleNormalMap() {
 	vec2 size = vec2(textureSize(tNormal, 0));
@@ -67,26 +68,6 @@ vec3 getNormal(vec3 normalMapValue) {
 	return normal;
 }
 
-// RNM
-vec3 NormalBlend_RNM(vec3 n1, vec3 n2)
-{
-	// Unpack (see article on why it's not just n*2-1)
-	n1 = n1*vec3( 2,  2, 2) + vec3(-1, -1,  0);
-	n2 = n2*vec3(-2, -2, 2) + vec3( 1,  1, -1);
-
-	// Blend
-	return n1*dot(n1, n2)/n1.z - n2;
-}
-
-// RNM - Already unpacked
-vec3 NormalBlend_UnpackedRNM(vec3 n1, vec3 n2)
-{
-	n1 += vec3(0, 0, 1);
-	n2 *= vec3(-1, -1, 1);
-
-	return n1*dot(n1, n2)/n1.z - n2;
-}
-
 void main() {
 	if (edgeFactor() > 0.9) {
 		//discard;
@@ -96,7 +77,7 @@ void main() {
 		vec2 normalizedUV = vUv / 611.4962158203125;
 		normalizedUV = vec2(normalizedUV.y, 1. - normalizedUV.x);
 		vec3 waterNormal = sampleWaterNormal(normalizedUV, time, tWaterNormal);
-		vec3 mvWaterNormal = vec3(modelViewMatrix * vec4( NormalBlend_UnpackedRNM(vec3(0, 0, 1), waterNormal), 0));
+		vec3 mvWaterNormal = vec3(modelViewMatrix * vec4(normalBlendUnpackedRNM(vec3(0, 0, 1), waterNormal), 0));
 
 		outColor = vec4(0.15, 0.2, 0.25, 0.5);
 		outNormal = packNormal(mvWaterNormal);
@@ -117,13 +98,13 @@ void main() {
 	}
 
 	vec3 heightMapNormal = sampleNormalMap();
+	vec3 reorientedNormal = normalBlendUnpackedRNM(heightMapNormal, normalMapUnpacked);
 
 	#if IS_EXTRUDED == 0
-		vec3 combined = NormalBlend_UnpackedRNM(heightMapNormal, normalMapUnpacked);
-		vec3 kindaVNormal = vec3(modelViewMatrix * vec4(combined, 0));
+		vec3 kindaVNormal = vec3(modelViewMatrix * vec4(reorientedNormal, 0));
 	#else
 		vec3 kindaVNormal = (vNormalFollowsGround == 1) ?
-			vec3(modelViewMatrix * vec4(NormalBlend_UnpackedRNM(heightMapNormal, normalMapUnpacked), 0)) :
+			vec3(modelViewMatrix * vec4(reorientedNormal, 0)) :
 			getNormal(normalMapUnpacked);
 	#endif
 
