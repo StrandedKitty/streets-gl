@@ -126,6 +126,8 @@ export default class ControlsSystem extends System {
 
 	private keyDownEvent(e: KeyboardEvent): void {
 		if (e.code === 'Tab') {
+			e.preventDefault();
+
 			this.mode = this.mode === ControlsMode.Ground ? ControlsMode.Free : ControlsMode.Ground;
 
 			if (this.mode === ControlsMode.Ground) {
