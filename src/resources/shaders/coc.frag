@@ -8,6 +8,8 @@ uniform sampler2D tDepth;
 
 uniform MainBlock {
     mat4 projectionMatrixInverse;
+    vec2 pointerPosition;
+    float distanceToGround;
 };
 
 #include <reconstructPositionFromDepth>
@@ -22,7 +24,7 @@ float getCoC(float depth, float focusPoint) {
 
 void main() {
     float depth = getDepth(vUv);
-    float focusDistance = getDepth(vec2(0.5));
+    float focusDistance = getDepth(pointerPosition);
     float size = getCoC(depth, focusDistance) * float(textureSize(tDepth, 0).y) * 0.5; // in pixels
 
     FragColor = vec4(size);

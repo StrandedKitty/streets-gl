@@ -11,13 +11,16 @@ import Tile3DHuggingGeometry from "~/lib/tile-processing/tile3d/features/Tile3DH
 import {RoadSide} from "~/lib/tile-processing/tile3d/builders/RoadBuilder";
 import {getRoadUV} from "~/lib/tile-processing/tile3d/utils";
 import RoadGraph from "~/lib/road-graph/RoadGraph";
+import Road from "~/lib/road-graph/Road";
+import {IntersectionDirection} from "~/lib/road-graph/Intersection";
 
 export default class VectorPolylineHandler implements Handler {
 	private readonly osmReference: OSMReference;
 	private readonly descriptor: VectorPolylineDescriptor;
 	private readonly vertices: Vec2[];
 	private mercatorScale: number = 1;
-	private graph: RoadGraph<VectorPolylineHandler> = null;
+	private graph: RoadGraph = null;
+	private graphRoad: Road = null;
 	private graphGroup: number = -1;
 
 	public constructor(feature: VectorPolyline) {
@@ -50,7 +53,7 @@ export default class VectorPolylineHandler implements Handler {
 		return [];
 	}
 
-	public setRoadGraph(graph: RoadGraph<VectorPolylineHandler>): void {
+	public setRoadGraph(graph: RoadGraph): void {
 		if (this.descriptor.type === 'path') {
 			let type = -1;
 
@@ -75,9 +78,13 @@ export default class VectorPolylineHandler implements Handler {
 			if (type !== -1) {
 				this.graph = graph;
 				this.graphGroup = type;
-				graph.addRoad(this, this.vertices, this.descriptor.width * this.mercatorScale, type);
+				this.graphRoad = graph.addRoad(this.vertices, this.descriptor.width * this.mercatorScale, type);
 			}
 		}
+	}
+
+	public getGraphRoad(): Road {
+		return this.graphRoad;
 	}
 
 	private handlePath(): Tile3DProjectedGeometry {
@@ -100,19 +107,19 @@ export default class VectorPolylineHandler implements Handler {
 		let vertexAdjacentToStart: Vec2 = null;
 		let vertexAdjacentToEnd: Vec2 = null;
 
-		if (!pointStart.equals(pointEnd) && this.graph) {
+		if (!pointStart.equals(pointEnd) && this.graphRoad) {
 			const intersectionStart = this.graph.getIntersectionByPoint(pointStart, this.graphGroup);
 			const intersectionEnd = this.graph.getIntersectionByPoint(pointEnd, this.graphGroup);
 
 			if (intersectionStart) {
 				if (intersectionStart.directions.length === 2) {
 					for (const {road, vertex} of intersectionStart.directions) {
-						if (road.ref !== this) {
+						if (road !== this.graphRoad) {
 							vertexAdjacentToStart = vertex.vector;
 						}
 					}
 				} else if (intersectionStart.directions.length > 2) {
-					const dir = intersectionStart.directions.find(dir => dir.road.ref === this);
+					const dir = intersectionStart.directions.find((dir: IntersectionDirection) => dir.road === this.graphRoad);
 
 					if (dir && dir.trimmedEnd && this.vertices.length > 1) {
 						if (dir.trimmedEnd.equals(this.vertices[1])) {
@@ -127,12 +134,12 @@ export default class VectorPolylineHandler implements Handler {
 			if (intersectionEnd) {
 				if (intersectionEnd.directions.length === 2) {
 					for (const {road, vertex} of intersectionEnd.directions) {
-						if (road.ref !== this) {
+						if (road !== this.graphRoad) {
 							vertexAdjacentToEnd = vertex.vector;
 						}
 					}
 				} else if (intersectionEnd.directions.length > 2) {
-					const dir = intersectionEnd.directions.find(dir => dir.road.ref === this);
+					const dir = intersectionEnd.directions.find((dir: IntersectionDirection) => dir.road === this.graphRoad);
 
 					if (dir && dir.trimmedEnd && this.vertices.length > 1) {
 						if (dir.trimmedEnd.equals(this.vertices[this.vertices.length - 2])) {

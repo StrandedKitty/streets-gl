@@ -53,7 +53,7 @@ export default class ProjectedMeshDepthMaterialContainer extends MaterialContain
 							ResourceManager.get('commonMask'),
 
 							ResourceManager.get('tennisPitchDiffuse'),
-							ResourceManager.get('commonNormal'),
+							ResourceManager.get('tennisPitchNormal'),
 							ResourceManager.get('commonMask'),
 
 							ResourceManager.get('manicuredGrassDiffuse'),

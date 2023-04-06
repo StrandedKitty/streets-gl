@@ -1,15 +1,13 @@
 import Vec2 from "~/lib/math/Vec2";
 import LinkedVertex from "~/lib/road-graph/LinkedVertex";
 
-export default class Road<Reference> {
-	public readonly ref: Reference;
+export default class Road {
 	public readonly width: number;
 	public readonly vertices: LinkedVertex[] = [];
 	private readonly startVertex: LinkedVertex = null;
 	private readonly endVertex: LinkedVertex = null;
 
-	public constructor(ref: Reference, vertices: Vec2[], width: number) {
-		this.ref = ref;
+	public constructor(vertices: Vec2[], width: number) {
 		this.width = width;
 
 		const isClosed = vertices[0].equals(vertices[vertices.length - 1]);

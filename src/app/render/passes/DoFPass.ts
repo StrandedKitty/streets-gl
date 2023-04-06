@@ -14,6 +14,7 @@ import CoCAntialiasMaterialContainer from "../materials/CoCAntialiasMaterialCont
 import DoFCombineMaterialContainer from "../materials/DoFCombineMaterialContainer";
 import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 import MathUtils from "~/lib/math/MathUtils";
+import Vec2 from "~/lib/math/Vec2";
 
 const getFocalLength = (sensorSize: number, cameraFoV: number): number => {
 	return sensorSize / (Math.tan(MathUtils.toRad(cameraFoV) / 2) * 2);
@@ -64,6 +65,7 @@ export default class DoFPass extends Pass<{
 	private readonly dofBlurMaterial: AbstractMaterial;
 	private readonly dofCombineMaterial: AbstractMaterial;
 	private readonly fullScreenTriangle: FullScreenTriangle;
+	private readonly pointerPosition: Vec2 = new Vec2(0.5, 0.5);
 
 	public constructor(manager: PassManager) {
 		super('DoFPass', manager, {
@@ -88,6 +90,7 @@ export default class DoFPass extends Pass<{
 		this.fullScreenTriangle = this.manager.renderSystem.fullScreenTriangle;
 
 		this.listenToSettings();
+		this.listenToPointerMovement();
 	}
 
 	private listenToSettings(): void {
@@ -99,6 +102,17 @@ export default class DoFPass extends Pass<{
 				this.dofMaterial.recompile();
 			}
 		}, true);
+	}
+
+	private listenToPointerMovement(): void {
+		const canvas = document.getElementById('canvas');
+
+		canvas.addEventListener('pointermove', e => {
+			const normalizedX = e.clientX / window.innerWidth;
+			const normalizedY = e.clientY / window.innerHeight;
+
+			this.pointerPosition.set(normalizedX, 1 - normalizedY);
+		});
 	}
 
 	private updateCoCDefines(camera: PerspectiveCamera): void {
@@ -137,10 +151,14 @@ export default class DoFPass extends Pass<{
 		const camera = this.manager.sceneSystem.objects.camera;
 		const depthTexture = <AbstractTexture2D>this.getPhysicalResource('GBuffer').depthAttachment.texture;
 
+		const focusPointerPosition = this.manager.settings.get('dofMode').statusValue === 'center' ?
+			[0.5, 0.5] : [this.pointerPosition.x, this.pointerPosition.y];
+
 		this.renderer.beginRenderPass(this.getPhysicalResource('CoC'));
 
 		this.cocMaterial.getUniform('tDepth').value = depthTexture;
 		this.cocMaterial.getUniform('projectionMatrixInverse', 'MainBlock').value = new Float32Array(camera.projectionMatrixInverse.values);
+		this.cocMaterial.getUniform('pointerPosition', 'MainBlock').value = new Float32Array(focusPointerPosition);
 		this.cocMaterial.updateUniformBlock('MainBlock');
 
 		this.renderer.useMaterial(this.cocMaterial);

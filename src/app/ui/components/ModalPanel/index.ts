@@ -1,4 +1,2 @@
-import ModalPanel, {ParStyles, TableStyles} from "./ModalPanel";
-
-export {ParStyles, TableStyles};
+import ModalPanel from "./ModalPanel";
 export default ModalPanel;

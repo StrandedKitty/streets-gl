@@ -47,6 +47,7 @@
 	"footballPitchDiffuse": {"url": "/textures/surfaces/football_pitch_diffuse.png", "type": "image"},
 	"basketballPitchDiffuse": {"url": "/textures/surfaces/basketball_pitch_diffuse.png", "type": "image"},
 	"tennisPitchDiffuse": {"url": "/textures/surfaces/tennis_pitch_diffuse.png", "type": "image"},
+	"tennisPitchNormal": {"url": "/textures/surfaces/tennis_pitch_diffuse.png", "type": "image"},
 	"manicuredGrassDiffuse": {"url": "/textures/surfaces/manicured_grass_diffuse.png", "type": "image"},
 	"railwayDiffuse": {"url": "/textures/surfaces/railway_diffuse.png", "type": "image"},
 	"railwayNormal": {"url": "/textures/surfaces/railway_normal.png", "type": "image"},
@@ -75,6 +76,15 @@
 	"helipadDiffuse": {"url": "/textures/surfaces/helipad_diffuse.png", "type": "image"},
 	"helipadNormal": {"url": "/textures/surfaces/common_normal.png", "type": "image"},
 	"helipadMask": {"url": "/textures/surfaces/common_mask.png", "type": "image"},
+	"gardenDiffuse": {"url": "/textures/surfaces/garden_diffuse.png", "type": "image"},
+	"gardenNormal": {"url": "/textures/surfaces/garden_normal.png", "type": "image"},
+	"gardenMask": {"url": "/textures/surfaces/common_mask.png", "type": "image"},
+	"soilDiffuse": {"url": "/textures/surfaces/soil_diffuse.png", "type": "image"},
+	"soilNormal": {"url": "/textures/surfaces/soil_normal.png", "type": "image"},
+	"soilMask": {"url": "/textures/surfaces/soil_mask.png", "type": "image"},
+	"grassDiffuse": {"url": "/textures/surfaces/grass_diffuse.png", "type": "image"},
+	"grassNormal": {"url": "/textures/surfaces/grass_normal.png", "type": "image"},
+	"grassMask": {"url": "/textures/surfaces/common_mask.png", "type": "image"},
 
 	"biomeMap": {
 		"url": "/textures/biomes_blurred.png",
@@ -234,6 +244,30 @@
 	},
 	"hydrantNormal": {
 		"url": "/models/hydrant/normal.png",
+		"type": "image"
+	},
+	"trackedCrane": {
+		"url": "/models/tracked_crane/tracked_crane.glb",
+		"type": "gltf"
+	},
+	"trackedCraneDiffuse": {
+		"url": "/models/tracked_crane/diffuse.png",
+		"type": "image"
+	},
+	"trackedCraneNormal": {
+		"url": "/models/tracked_crane/normal.png",
+		"type": "image"
+	},
+	"towerCrane": {
+		"url": "/models/tower_crane/tower_crane.glb",
+		"type": "gltf"
+	},
+	"towerCraneDiffuse": {
+		"url": "/models/tower_crane/diffuse.png",
+		"type": "image"
+	},
+	"towerCraneNormal": {
+		"url": "/models/tower_crane/normal.png",
 		"type": "image"
 	}
 }

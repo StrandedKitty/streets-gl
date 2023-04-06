@@ -1,10 +1,11 @@
 import Handler, {RequestedHeightParams} from "~/lib/tile-processing/tile3d/handlers/Handler";
-import Tile3DFeature from "~/lib/tile-processing/tile3d/features/Tile3DFeature";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import OSMReference from "~/lib/tile-processing/vector/features/OSMReference";
 import {VectorNodeDescriptor} from "~/lib/tile-processing/vector/descriptors";
 import Tile3DInstance, {Tile3DInstanceType} from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
 import SeededRandom from "~/lib/math/SeededRandom";
+import RoadGraph from "~/lib/road-graph/RoadGraph";
+import Vec2 from "~/lib/math/Vec2";
 
 const TileSize = 611.4962158203125;
 
@@ -15,12 +16,17 @@ export default class VectorNodeHandler implements Handler {
 	private readonly y: number;
 	private mercatorScale: number = 1;
 	private terrainHeight: number = 0;
+	private graph: RoadGraph = null;
 
 	public constructor(feature: VectorNode) {
 		this.osmReference = feature.osmReference;
 		this.descriptor = feature.descriptor;
 		this.x = feature.x;
 		this.y = feature.y;
+	}
+
+	public setRoadGraph(graph: RoadGraph): void {
+		this.graph = graph;
 	}
 
 	public setMercatorScale(scale: number): void {
@@ -55,13 +61,24 @@ export default class VectorNodeHandler implements Handler {
 		}
 
 		if (this.descriptor.type === 'hydrant') {
-			return [this.getGenericInstanceFeature('hydrant')];
+			return [this.getGenericInstanceFeature('hydrant', true)];
 		}
 
 		return [];
 	}
 
-	private getGenericInstanceFeature(type: Tile3DInstanceType): Tile3DInstance {
+	private getGenericInstanceFeature(
+		type: Tile3DInstanceType,
+		rotateToNearestPath: boolean = false
+	): Tile3DInstance {
+		let rotation: number = 0;
+
+		if (rotateToNearestPath && this.graph) {
+			const selfPosition = new Vec2(this.x, this.y);
+			const projection = this.graph.getClosestProjection(selfPosition);
+			rotation = Vec2.sub(projection, selfPosition).getAngle();
+		}
+
 		return {
 			type: 'instance',
 			instanceType: type,
@@ -69,7 +86,7 @@ export default class VectorNodeHandler implements Handler {
 			y: this.terrainHeight,
 			z: this.y,
 			scale: this.mercatorScale,
-			rotation: 0
+			rotation: rotation
 		};
 	}
 

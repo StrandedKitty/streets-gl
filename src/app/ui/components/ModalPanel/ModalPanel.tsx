@@ -1,7 +1,5 @@
 import React from "react";
 import styles from './ModalPanel.scss';
-import ParStyles from './ModalPar.scss';
-import TableStyles from './ModalTable.scss';
 
 const ModalPanel: React.FC<{
 	title: string;
@@ -26,5 +24,4 @@ const ModalPanel: React.FC<{
 	);
 }
 
-export {ParStyles, TableStyles};
 export default React.memo(ModalPanel);

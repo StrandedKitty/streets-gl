@@ -355,6 +355,42 @@ export class VectorDescriptorFactory {
 			};
 		}
 
+		if (tags.leisure === 'garden') {
+			return {
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'garden'
+				}
+			};
+		}
+
+		if (tags.landuse === 'grass') {
+			return {
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'grass'
+				}
+			};
+		}
+
+		if (tags.landuse === 'construction') {
+			return {
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'construction'
+				}
+			};
+		}
+
+		if (tags.building === 'construction') {
+			return {
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'buildingConstruction'
+				}
+			};
+		}
+
 		if (
 			tags.amenity === 'parking' && (tags.parking === 'surface' || tags.parking === undefined) ||
 			tags.amenity === 'bicycle_parking'
@@ -644,7 +680,7 @@ export class VectorDescriptorFactory {
 	}
 
 	private static isBuildingHasWindows(tags: Tags): boolean {
-		if (tags['bridge:support']) {
+		if (tags['bridge:support'] || tags.man_made === 'storage_tank' || tags.man_made === 'chimney') {
 			return false;
 		}
 
@@ -679,7 +715,9 @@ export class VectorDescriptorFactory {
 		const roofMatAndColor = this.getRoofMaterialAndColor(
 			tags['roof:material'],
 			tags['roof:colour'],
-			tags.building === 'stadium' || tags.building === 'houseboat' || roofType !== 'flat' || !!tags['bridge:support'] || !!tags['ship:type']
+			tags.building === 'stadium' || tags.building === 'houseboat' || roofType !== 'flat' ||
+			!!tags['bridge:support'] || !!tags['ship:type'] ||
+			tags.man_made === 'storage_tank' || tags.man_made === 'chimney'
 		);
 		const roofDirection = this.parseFloat(tags['roof:direction']) ?? 0;
 

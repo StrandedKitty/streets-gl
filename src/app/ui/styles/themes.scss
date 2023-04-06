@@ -12,6 +12,11 @@ $themes: (
 		nav-icon-selected-bg: #d4d4d4,
 		category-bg: #fff,
 		button-bg: #fff,
+
+		keyboard-key-border-color: #c9c9c9,
+		keyboard-key-shadow-color: #d7d7d7,
+		keyboard-key-bg-color: #f2f2f2,
+		keyboard-key-text-color: #111,
 	),
 	dark: (
 		panel-border-color: #222,
@@ -23,7 +28,12 @@ $themes: (
 		button-border: #ccc,
 		nav-icon-selected-bg: #424242,
 		category-bg: #171717,
-		button-bg: #171717
+		button-bg: #171717,
+
+		keyboard-key-border-color: #414141,
+		keyboard-key-shadow-color: #2d2d2d,
+		keyboard-key-bg-color: #272727,
+		keyboard-key-text-color: #eee,
 	),
 );
 

@@ -95,8 +95,8 @@ const Config = {
 			label: 'Focusing mode',
 			parent: 'dof',
 			parentStatusCondition: ['low', 'high'],
-			status: ['center', 'ground', 'cursor'],
-			statusLabels: ['Screen center', 'Ground', 'Cursor position'],
+			status: ['center', 'cursor'],
+			statusLabels: ['Screen center', 'Cursor position'],
 			statusDefault: 'center',
 			category: 'graphics'
 		},

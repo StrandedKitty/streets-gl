@@ -20,6 +20,16 @@ export default class CoCMaterialContainer extends MaterialContainer {
 					block: 'MainBlock',
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array(16)
+				}, {
+					name: 'pointerPosition',
+					block: 'MainBlock',
+					type: RendererTypes.UniformType.Float2,
+					value: new Float32Array(16)
+				}, {
+					name: 'distanceToGround',
+					block: 'MainBlock',
+					type: RendererTypes.UniformType.Float1,
+					value: new Float32Array(1)
 				}
 			],
 			defines: {

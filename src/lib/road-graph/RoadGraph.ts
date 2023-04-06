@@ -2,25 +2,29 @@ import Vec2 from "~/lib/math/Vec2";
 import Road from "~/lib/road-graph/Road";
 import Intersection from "~/lib/road-graph/Intersection";
 import LinkedVertex from "~/lib/road-graph/LinkedVertex";
+import SegmentGroup from "~/lib/road-graph/SegmentGroup";
 
-interface Group<T> {
-	roads: Road<T>[];
-	intersections: Intersection<T>[];
-	intersectionMap: Map<string, Intersection<T>>;
+interface Group {
+	roads: Road[];
+	intersections: Intersection[];
+	intersectionMap: Map<string, Intersection>;
 }
 
-export default class RoadGraph<RoadRef> {
-	private groups: Map<number, Group<RoadRef>> = new Map();
+export default class RoadGraph {
+	private groups: Map<number, Group> = new Map();
+	private segmentGroup: SegmentGroup = new SegmentGroup();
 
-	public addRoad(ref: RoadRef, vertices: Vec2[], width: number, groupId: number): Road<RoadRef> {
+	public addRoad(vertices: Vec2[], width: number, groupId: number): Road {
 		const group = this.getGroup(groupId);
-		const road = new Road(ref, vertices, width);
+		const road = new Road(vertices, width);
 		group.roads.push(road);
+
+		this.segmentGroup.addSegmentsFromVertices(vertices);
 
 		return road;
 	}
 
-	private getGroup(id: number): Group<RoadRef> {
+	private getGroup(id: number): Group {
 		if (!this.groups.has(id)) {
 			this.groups.set(id, {
 				roads: [],
@@ -34,7 +38,7 @@ export default class RoadGraph<RoadRef> {
 
 	public initIntersections(): void {
 		for (const group of this.groups.values()) {
-			const intersectionPoints: Map<string, [LinkedVertex, Road<RoadRef>][]> = new Map();
+			const intersectionPoints: Map<string, [LinkedVertex, Road][]> = new Map();
 
 			for (const road of group.roads) {
 				for (const vertex of road.vertices) {
@@ -54,7 +58,7 @@ export default class RoadGraph<RoadRef> {
 				}
 
 				const center = point[0][0].vector;
-				const intersection = new Intersection<RoadRef>(center);
+				const intersection = new Intersection(center);
 
 				for (const [vertex, road] of point) {
 					const next = vertex.next;
@@ -80,11 +84,11 @@ export default class RoadGraph<RoadRef> {
 	}
 
 	public buildIntersectionPolygons(groupId: number): {
-		intersection: Intersection<RoadRef>;
+		intersection: Intersection;
 		polygon: Vec2[];
 	}[] {
 		const group = this.getGroup(groupId);
-		const polygons: {intersection: Intersection<RoadRef>; polygon: Vec2[]}[] = [];
+		const polygons: {intersection: Intersection; polygon: Vec2[]}[] = [];
 
 		for (const intersection of group.intersections) {
 			if (intersection.directions.length > 2) {
@@ -95,9 +99,13 @@ export default class RoadGraph<RoadRef> {
 		return polygons;
 	}
 
-	public getIntersectionByPoint(point: Vec2, groupId: number): Intersection<RoadRef> {
+	public getIntersectionByPoint(point: Vec2, groupId: number): Intersection {
 		const group = this.getGroup(groupId);
 
 		return group.intersectionMap.get(`${point.x} ${point.y}`);
+	}
+
+	public getClosestProjection(point: Vec2): Vec2 {
+		return this.segmentGroup.getClosestProjection(point);
 	}
 }

@@ -20,6 +20,7 @@ import {FeatureProvider} from "~/lib/tile-processing/types";
 import Utils from "~/app/Utils";
 import Tile3DLabel from "~/lib/tile-processing/tile3d/features/Tile3DLabel";
 import MathUtils from "~/lib/math/MathUtils";
+import Road from "~/lib/road-graph/Road";
 
 export interface Tile3DProviderParams {
 	overpassEndpoint: string;
@@ -86,23 +87,34 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 	}
 
 	private static addRoadGraphToHandlers(handlers: Handler[]): void {
-		const graph = new RoadGraph<VectorPolylineHandler>();
+		const graph = new RoadGraph();
+		const roadIntersectionMaterials = new Map<Road, VectorAreaDescriptor['intersectionMaterial']>();
 
 		for (const handler of handlers) {
+			handler.setRoadGraph(graph);
+
 			if (handler instanceof VectorPolylineHandler) {
-				handler.setRoadGraph(graph);
+				const road = handler.getGraphRoad();
+
+				if (road !== null) {
+					roadIntersectionMaterials.set(road, handler.getIntersectionMaterial());
+				}
 			}
 		}
 
 		graph.initIntersections();
-		this.addIntersectionPolygonsToHandlers(graph, handlers);
+		this.addIntersectionPolygonsToHandlers(graph, handlers, roadIntersectionMaterials);
 	}
 
-	private static addIntersectionPolygonsToHandlers(graph: RoadGraph<VectorPolylineHandler>, handlers: Handler[]): void {
+	private static addIntersectionPolygonsToHandlers(
+		graph: RoadGraph,
+		handlers: Handler[],
+		intersectionMaterials: Map<Road, VectorAreaDescriptor['intersectionMaterial']>
+	): void {
 		const intersectionPolygons = graph.buildIntersectionPolygons(0);
 
 		for (const {intersection, polygon} of intersectionPolygons) {
-			const material = this.getIntersectionMaterial(intersection);
+			const material = this.getIntersectionMaterial(intersection, intersectionMaterials);
 
 			if (material === null) {
 				// Skip intersection if it has no material
@@ -136,7 +148,10 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 		}
 	}
 
-	private static getIntersectionMaterial(intersection: Intersection<VectorPolylineHandler>):
+	private static getIntersectionMaterial(
+		intersection: Intersection,
+		materialsMap: Map<Road, VectorAreaDescriptor['intersectionMaterial']>
+	):
 		VectorAreaDescriptor['intersectionMaterial'] | null
 	{
 		const frequencyTable: Record<VectorAreaDescriptor['intersectionMaterial'], number> = {
@@ -146,7 +161,7 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 		};
 
 		for (const dir of intersection.directions) {
-			const material = dir.road.ref.getIntersectionMaterial();
+			const material = materialsMap.get(dir.road);
 
 			if (material !== null) {
 				++frequencyTable[material];

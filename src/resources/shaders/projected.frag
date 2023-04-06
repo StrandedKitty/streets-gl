@@ -59,15 +59,6 @@ float edgeFactor() {
 	return min(min(a3.x, a3.y), a3.z);
 }
 
-vec3 getNormal(vec3 normalMapValue) {
-	mat3 tbn = getTBN(vNormal, vPosition, vUv);
-	vec3 normal = normalize(tbn * normalMapValue);
-
-	normal *= float(gl_FrontFacing) * 2. - 1.;
-
-	return normal;
-}
-
 void main() {
 	if (edgeFactor() > 0.9) {
 		//discard;
@@ -101,6 +92,7 @@ void main() {
 
 	mat3 tbn = getTBN(vNormal, vPosition, vec2(vUv.x, 1. - vUv.y));
 	vec3 normalMapWorld = normalize(tbn * normalMapUnpacked);
+	normalMapWorld *= float(gl_FrontFacing) * 2. - 1.;
 
 	vec3 reorientedNormalWorld = normalBlendUnpackedRNM(heightMapWorld.xzy, normalMapWorld.xzy).xzy;
 

@@ -12,7 +12,7 @@ vec3 sampleWaterNormal(vec2 uv, float time, sampler2D waterNormalTexture) {
         getWaterNormalMapValue(uv * 1. - waveTime * 0.5, waterNormalTexture) * 0.1
     );
 
-    normalValue = mix(normalValue, vec3(0, 0, 1), 0.7);
+    normalValue = mix(normalValue, vec3(0, 0, 1), 0.8);
 
     return normalize(normalValue.xzy);
 }

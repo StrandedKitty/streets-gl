@@ -177,18 +177,13 @@ export default class Tile3DMultipolygon {
 			const outerPolygon = outerRing.getGeoJSONVertices();
 			const innerPolygons = innerRings.map(ring => ring.getGeoJSONVertices());
 
-			const result = polylabel([outerPolygon, ...innerPolygons], 1);
-			const centerVec = new Vec2(result[0], result[1]);
-			let radius = Infinity;
-
-			for (const ring of this.rings) {
-				radius = Math.min(radius, ring.getDistanceToPoint(centerVec));
-			}
+			const result = polylabel([outerPolygon, ...innerPolygons], 1) as unknown as
+				{0: number; 1: number; distance: number};
 
 			this.cachedPoleOfInaccessibility = new Vec3(
 				result[0],
 				result[1],
-				radius
+				result.distance
 			);
 		}
 

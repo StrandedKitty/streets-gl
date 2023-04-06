@@ -43,7 +43,7 @@ export default class InstanceMaterialContainer extends MaterialContainer {
 					value: this.renderer.createTexture2DArray({
 						width: 512,
 						height: 512,
-						depth: 6,
+						depth: 10,
 						anisotropy: 16,
 						data: [
 							ResourceManager.get('adColumnDiffuse'),
@@ -53,7 +53,13 @@ export default class InstanceMaterialContainer extends MaterialContainer {
 							ResourceManager.get('transmissionTowerNormal'),
 
 							ResourceManager.get('hydrantDiffuse'),
-							ResourceManager.get('hydrantNormal')
+							ResourceManager.get('hydrantNormal'),
+
+							ResourceManager.get('trackedCraneDiffuse'),
+							ResourceManager.get('trackedCraneNormal'),
+
+							ResourceManager.get('towerCraneDiffuse'),
+							ResourceManager.get('towerCraneNormal')
 						],
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,

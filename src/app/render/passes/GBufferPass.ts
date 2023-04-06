@@ -384,7 +384,9 @@ export default class GBufferPass extends Pass<{
 			tree: -1,
 			adColumn: 0,
 			transmissionTower: 1,
-			hydrant: 2
+			hydrant: 2,
+			trackedCrane: 3,
+			towerCrane: 4
 		};
 
 		for (const [name, instancedObject] of this.manager.sceneSystem.objects.instancedObjects.entries()) {

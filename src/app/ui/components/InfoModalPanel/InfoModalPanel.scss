@@ -1,23 +1,49 @@
-.modalInfo {
-	&__subheader {
-		font-size: 18px;
-		font-weight: bold;
-		margin: 0 0 16px 0;
+@import "./../../styles/common.scss";
+
+.controls {
+	width: 100%;
+}
+
+.controlsRow {
+	display: flex;
+	flex-direction: row;
+	margin: 10px 0 0 0;
+	align-items: center;
+	line-height: 1.5em;
+	font-size: 13px;
+	justify-content: space-between;
+
+	&__desc {
+		width: 45%;
+	}
+
+	&__keys {
+		width: 50%;
+		line-height: 2em;
 	}
 }
 
 .keyboardKey {
-	border: 1px solid #b8b8b8;
-	box-shadow: 0 1px 0 1px #d4d4d4;
-	font-size: .85em;
-	line-height: .85em;
+	font-size: 0.85em;
+	line-height: 0.85em;
 	display: inline-block;
-	font-weight: 600;
-	letter-spacing: .05em;
+	font-weight: 400;
+	letter-spacing: 0.05em;
 	padding: 4px 5px;
 	white-space: nowrap;
 	border-radius: 4px;
 	font-family: monospace;
-	background: #e8e8e8;
-	color: #111;
+}
+
+@include themify($themes) {
+	.keyboardKey {
+		border: 1px solid themed('keyboard-key-border-color');
+		box-shadow: 0 1px 0 1px themed('keyboard-key-shadow-color');
+		background-color: themed('keyboard-key-bg-color');
+		color: themed('keyboard-key-text-color');
+	}
+}
+
+.anchorIcon {
+	margin: 0 4px -3px 0;
 }

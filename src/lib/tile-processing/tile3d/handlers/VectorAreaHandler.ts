@@ -13,9 +13,12 @@ import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3
 import Tile3DLabel from "~/lib/tile-processing/tile3d/features/Tile3DLabel";
 import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 import Config from "~/app/Config";
-import Tile3DInstance from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
+import Tile3DInstance, {Tile3DInstanceType} from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
 import Vec3 from "~/lib/math/Vec3";
 import SeededRandom from "~/lib/math/SeededRandom";
+import RoadGraph from "~/lib/road-graph/RoadGraph";
+
+const TileSize = 611.4962158203125;
 
 export default class VectorAreaHandler implements Handler {
 	private readonly osmReference: OSMReference;
@@ -24,13 +27,17 @@ export default class VectorAreaHandler implements Handler {
 	private mercatorScale: number = 1;
 	private terrainHeight: number = 0;
 	private multipolygon: Tile3DMultipolygon = null;
-	private instancePositions: Vec3[] = [];
+	private instances: Tile3DInstance[] = [];
 
 	public constructor(feature: VectorArea) {
 		this.osmReference = feature.osmReference;
 		this.descriptor = feature.descriptor;
 		this.rings = feature.rings;
 	}
+
+	public setRoadGraph(graph: RoadGraph): void {
+
+    }
 
 	public setMercatorScale(scale: number): void {
 		this.mercatorScale = scale;
@@ -78,6 +85,10 @@ export default class VectorAreaHandler implements Handler {
 			const positions: number[] = [];
 
 			for (const point of points2D) {
+				if (point.x < 0 || point.y < 0 || point.x > TileSize || point.y > TileSize) {
+					continue;
+				}
+
 				positions.push(point.x, point.y);
 				points3D.push(new Vec3(point.x, 0, point.y));
 			}
@@ -86,12 +97,42 @@ export default class VectorAreaHandler implements Handler {
 				positions: new Float64Array(positions),
 				callback: (heights: Float64Array): void => {
 					for (let i = 0; i < points3D.length; i++) {
-						points3D[i].y = heights[i];
-					}
+						const x = points3D[i].x;
+						const y = heights[i];
+						const z = points3D[i].z;
 
-					this.instancePositions = points3D;
+						this.instances.push(this.createTree(x, y, z));
+					}
 				}
 			};
+		}
+
+		if (this.descriptor.type === 'construction') {
+			const center = this.getMultipolygon().getPoleOfInaccessibility();
+
+			if (center.x < 0 || center.y < 0 || center.x > TileSize || center.y > TileSize) {
+				return null;
+			}
+
+			let instanceType: Tile3DInstanceType = null;
+
+			if (center.z > 12 * this.mercatorScale) {
+				instanceType = 'trackedCrane';
+			}
+
+			if (center.z > 32 * this.mercatorScale) {
+				instanceType = 'towerCrane';
+			}
+
+			if (instanceType) {
+				return {
+					positions: new Float64Array([center.x, center.y]),
+					callback: (heights: Float64Array): void => {
+						const instance = this.createGenericInstance(center.x, heights[0], center.y, instanceType);
+						this.instances.push(instance);
+					}
+				};
+			}
 		}
 
 		return null;
@@ -133,6 +174,42 @@ export default class VectorAreaHandler implements Handler {
 					isOriented: false,
 					zIndex: 1,
 					uvScale: 20,
+				})];
+			}
+			case 'garden': {
+				return [this.handleGenericSurface({
+					textureId: 21,
+					isOriented: false,
+					zIndex: 1,
+					uvScale: 16,
+				})];
+			}
+			case 'construction': {
+				const features: Tile3DFeature[] = [this.handleGenericSurface({
+					textureId: 22,
+					isOriented: false,
+					zIndex: 1,
+					uvScale: 25,
+				})];
+
+				features.push(...this.instances);
+
+				return features;
+			}
+			case 'buildingConstruction': {
+				return [this.handleGenericSurface({
+					textureId: 22,
+					isOriented: false,
+					zIndex: 1,
+					uvScale: 25,
+				})];
+			}
+			case 'grass': {
+				return [this.handleGenericSurface({
+					textureId: 23,
+					isOriented: false,
+					zIndex: 1,
+					uvScale: 25,
 				})];
 			}
 			case 'rock': {
@@ -186,7 +263,7 @@ export default class VectorAreaHandler implements Handler {
 				];
 			}
 			case 'forest': {
-				return this.handleForest();
+				return this.instances;
 			}
 		}
 
@@ -299,35 +376,39 @@ export default class VectorAreaHandler implements Handler {
 		return builder.getGeometry();
 	}
 
-	private handleForest(): Tile3DInstance[] {
-		if (this.instancePositions.length === 0) {
-			return [];
-		}
-
-		const trees: Tile3DInstance[] = [];
-		const seed = Math.floor(this.instancePositions[0].x) + Math.floor(this.instancePositions[0].z);
+	private createTree(x: number, y: number, z: number): Tile3DInstance {
+		const seed = Math.floor(x) + Math.floor(z);
 		const rnd = new SeededRandom(seed);
 
-		for (const position of this.instancePositions) {
-			if (position.x < 0 || position.x > Config.TileSize || position.z < 0 || position.z > Config.TileSize) {
-				continue;
-			}
+		const height = 14 + rnd.generate() * 8;
+		const rotation = rnd.generate() * Math.PI * 2;
 
-			const height = 14 + rnd.generate() * 8;
-			const rotation = rnd.generate() * Math.PI * 2;
+		return {
+			type: 'instance',
+			instanceType: 'tree',
+			x: x,
+			y: y * this.mercatorScale,
+			z: z,
+			scale: height * this.mercatorScale,
+			rotation: rotation
+		};
+	}
 
-			trees.push({
-				type: 'instance',
-				instanceType: 'tree',
-				x: position.x,
-				y: position.y * this.mercatorScale,
-				z: position.z,
-				scale: height * this.mercatorScale,
-				rotation: rotation
-			});
-		}
+	private createGenericInstance(x: number, y: number, z: number, type: Tile3DInstanceType): Tile3DInstance {
+		const seed = Math.floor(x) + Math.floor(z);
+		const rnd = new SeededRandom(seed);
 
-		return trees;
+		const rotation = rnd.generate() * Math.PI * 2;
+
+		return {
+			type: 'instance',
+			instanceType: type,
+			x: x,
+			y: y * this.mercatorScale,
+			z: z,
+			scale: this.mercatorScale,
+			rotation: rotation
+		};
 	}
 
 	private static getRoofTypeFromString(str: VectorAreaDescriptor['buildingRoofType']): RoofType {
