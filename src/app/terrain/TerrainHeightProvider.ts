@@ -67,7 +67,7 @@ export default class TerrainHeightProvider {
 		const texelXFract = texelX - texelXFloor;
 		const texelYFract = texelY - texelYFloor;
 
-		const isEven = (texelX + texelY) % 2 === 0;
+		const isEven = (texelXFloor + texelYFloor) % 2 === 0;
 
 		const trianglesList = [
 			[0, 0, 1, 0, 0, 1],
