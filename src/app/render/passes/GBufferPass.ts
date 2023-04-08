@@ -386,7 +386,13 @@ export default class GBufferPass extends Pass<{
 			transmissionTower: 1,
 			hydrant: 2,
 			trackedCrane: 3,
-			towerCrane: 4
+			towerCrane: 4,
+			bench: 5,
+			picnicTable: 6,
+			busStop: 7,
+			windTurbine: 8,
+			memorial: 9,
+			statue: 10
 		};
 
 		for (const [name, instancedObject] of this.manager.sceneSystem.objects.instancedObjects.entries()) {

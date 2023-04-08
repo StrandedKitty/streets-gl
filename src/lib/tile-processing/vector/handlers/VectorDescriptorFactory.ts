@@ -272,7 +272,7 @@ export class VectorDescriptorFactory {
 				type: ContainerType.Modifier,
 				data: {
 					type: ModifierType.NodeRow,
-					spacing: 12,
+					spacing: 10,
 					randomness: 1,
 					descriptor: {
 						type: 'tree',
@@ -509,6 +509,64 @@ export class VectorDescriptorFactory {
 				type: ContainerType.Descriptor,
 				data: {
 					type: 'rock'
+				}
+			};
+		}
+
+		if (tags.amenity === 'bench') {
+			return {
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'bench'
+				}
+			};
+		}
+
+		if (tags.leisure === 'picnic_table') {
+			return {
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'picnicTable'
+				}
+			};
+		}
+
+		if (tags.highway === 'bus_stop') {
+			return {
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'busStop'
+				}
+			};
+		}
+
+		if (tags.power === 'generator' && tags['generator:source'] === 'wind') {
+			return {
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'windTurbine',
+					height: this.parseHeight(tags.height, 150)
+				}
+			};
+		}
+
+		if (
+			tags.historic === 'memorial' && tags.memorial === 'statue' ||
+			tags.tourism === 'artwork' && tags.artwork_type === 'statue'
+		) {
+			return {
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'statue'
+				}
+			};
+		}
+
+		if (tags.historic === 'memorial') {
+			return {
+				type: ContainerType.Descriptor,
+				data: {
+					type: 'memorial'
 				}
 			};
 		}

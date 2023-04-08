@@ -12,7 +12,7 @@ class Segment {
 	public getProjectionOnSegment(point: Vec2): Vec2 {
 		const v = Vec2.sub(point, this.start);
 		const w = Vec2.sub(this.end, this.start);
-		const dot = Vec2.dot(v, w);
+		const dot = v.x * w.x + v.y * w.y;
 		const len2 = w.x * w.x + w.y * w.y;
 
 		const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, dot / len2));

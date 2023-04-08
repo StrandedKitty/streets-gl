@@ -316,7 +316,7 @@ export default class VectorPolylineHandler implements Handler {
 			case "railway": {
 				params.textureId = 9;
 				params.uvFollowRoad = true;
-				params.uvScale = 12;
+				params.uvScaleY = 10;
 				break;
 			}
 			case "runway": {

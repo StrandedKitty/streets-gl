@@ -1,6 +1,7 @@
 import Tile3DFeature from "~/lib/tile-processing/tile3d/features/Tile3DFeature";
 
-export type Tile3DInstanceType = 'tree' | 'adColumn' | 'transmissionTower' | 'hydrant' | 'trackedCrane' | 'towerCrane';
+export type Tile3DInstanceType = 'tree' | 'adColumn' | 'transmissionTower' | 'hydrant' | 'trackedCrane' | 'towerCrane' |
+	'bench' | 'picnicTable' | 'busStop' | 'windTurbine' | 'memorial' | 'statue';
 
 export interface LODConfig {
 	LOD0MaxDistance: number;
@@ -25,7 +26,7 @@ export const Tile3DInstanceLODConfig: Record<Tile3DInstanceType, LODConfig> = {
 		LOD1Fraction: 0,
 	},
 	hydrant: {
-		LOD0MaxDistance: 500,
+		LOD0MaxDistance: 1000,
 		LOD1MaxDistance: 0,
 		LOD1Fraction: 0,
 	},
@@ -36,6 +37,36 @@ export const Tile3DInstanceLODConfig: Record<Tile3DInstanceType, LODConfig> = {
 	},
 	towerCrane: {
 		LOD0MaxDistance: 3000,
+		LOD1MaxDistance: 0,
+		LOD1Fraction: 0,
+	},
+	bench: {
+		LOD0MaxDistance: 1000,
+		LOD1MaxDistance: 0,
+		LOD1Fraction: 0,
+	},
+	picnicTable: {
+		LOD0MaxDistance: 1000,
+		LOD1MaxDistance: 0,
+		LOD1Fraction: 0,
+	},
+	busStop: {
+		LOD0MaxDistance: 1000,
+		LOD1MaxDistance: 0,
+		LOD1Fraction: 0,
+	},
+	windTurbine: {
+		LOD0MaxDistance: 5000,
+		LOD1MaxDistance: 0,
+		LOD1Fraction: 0,
+	},
+	memorial: {
+		LOD0MaxDistance: 2000,
+		LOD1MaxDistance: 0,
+		LOD1Fraction: 0,
+	},
+	statue: {
+		LOD0MaxDistance: 1000,
 		LOD1MaxDistance: 0,
 		LOD1Fraction: 0,
 	}

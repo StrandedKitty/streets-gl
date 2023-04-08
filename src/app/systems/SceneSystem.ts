@@ -89,6 +89,12 @@ export default class SceneSystem extends System {
 		this.objects.instancedObjects.set('hydrant', new InstancedObject(ModelManager.getGLTFModel('hydrant')));
 		this.objects.instancedObjects.set('trackedCrane', new InstancedObject(ModelManager.getGLTFModel('trackedCrane')));
 		this.objects.instancedObjects.set('towerCrane', new InstancedObject(ModelManager.getGLTFModel('towerCrane')));
+		this.objects.instancedObjects.set('bench', new InstancedObject(ModelManager.getGLTFModel('bench')));
+		this.objects.instancedObjects.set('picnicTable', new InstancedObject(ModelManager.getGLTFModel('picnicTable')));
+		this.objects.instancedObjects.set('busStop', new InstancedObject(ModelManager.getGLTFModel('busStop')));
+		this.objects.instancedObjects.set('windTurbine', new InstancedObject(ModelManager.getGLTFModel('windTurbine')));
+		this.objects.instancedObjects.set('memorial', new InstancedObject(ModelManager.getGLTFModel('memorial')));
+		this.objects.instancedObjects.set('statue', new InstancedObject(ModelManager.getGLTFModel('statue0')));
 
 		this.scene.add(wrapper);
 		wrapper.add(

@@ -12,14 +12,15 @@ interface Group {
 
 export default class RoadGraph {
 	private groups: Map<number, Group> = new Map();
-	private segmentGroup: SegmentGroup = new SegmentGroup();
+	private segmentGroups: Map<number, SegmentGroup> = new Map();
 
 	public addRoad(vertices: Vec2[], width: number, groupId: number): Road {
 		const group = this.getGroup(groupId);
 		const road = new Road(vertices, width);
 		group.roads.push(road);
 
-		this.segmentGroup.addSegmentsFromVertices(vertices);
+		const segmentGroup = this.getSegmentGroup(groupId);
+		segmentGroup.addSegmentsFromVertices(vertices);
 
 		return road;
 	}
@@ -34,6 +35,14 @@ export default class RoadGraph {
 		}
 
 		return this.groups.get(id);
+	}
+
+	private getSegmentGroup(id: number): SegmentGroup {
+		if (!this.segmentGroups.has(id)) {
+			this.segmentGroups.set(id, new SegmentGroup());
+		}
+
+		return this.segmentGroups.get(id);
 	}
 
 	public initIntersections(): void {
@@ -105,7 +114,34 @@ export default class RoadGraph {
 		return group.intersectionMap.get(`${point.x} ${point.y}`);
 	}
 
-	public getClosestProjection(point: Vec2): Vec2 {
-		return this.segmentGroup.getClosestProjection(point);
+	private getClosestProjectionGlobal(point: Vec2): Vec2 {
+		let closest: Vec2 = null;
+		let closestDistance = Infinity;
+
+		for (const group of this.segmentGroups.values()) {
+			const projection = group.getClosestProjection(point);
+			const distance = Vec2.distance(point, projection);
+
+			if (distance < closestDistance) {
+				closest = projection;
+				closestDistance = distance;
+			}
+		}
+
+		return closest;
+	}
+
+	public getClosestProjection(point: Vec2, groupId?: number): Vec2 {
+		if (groupId !== undefined) {
+			const segmentGroup = this.getSegmentGroup(groupId);
+
+			if (!segmentGroup) {
+				return null;
+			}
+
+			return segmentGroup.getClosestProjection(point);
+		}
+
+		return this.getClosestProjectionGlobal(point);
 	}
 }

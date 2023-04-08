@@ -269,5 +269,77 @@
 	"towerCraneNormal": {
 		"url": "/models/tower_crane/normal.png",
 		"type": "image"
+	},
+	"bench": {
+		"url": "/models/bench/bench.glb",
+		"type": "gltf"
+	},
+	"benchDiffuse": {
+		"url": "/models/bench/diffuse.png",
+		"type": "image"
+	},
+	"benchNormal": {
+		"url": "/models/bench/normal.png",
+		"type": "image"
+	},
+	"picnicTable": {
+		"url": "/models/picnic_table/picnic_table.glb",
+		"type": "gltf"
+	},
+	"picnicTableDiffuse": {
+		"url": "/models/picnic_table/diffuse.png",
+		"type": "image"
+	},
+	"picnicTableNormal": {
+		"url": "/models/picnic_table/normal.png",
+		"type": "image"
+	},
+	"busStop": {
+		"url": "/models/bus_stop/bus_stop.glb",
+		"type": "gltf"
+	},
+	"busStopDiffuse": {
+		"url": "/models/bus_stop/diffuse.png",
+		"type": "image"
+	},
+	"busStopNormal": {
+		"url": "/models/bus_stop/normal.png",
+		"type": "image"
+	},
+	"windTurbine": {
+		"url": "/models/wind_turbine/wind_turbine.glb",
+		"type": "gltf"
+	},
+	"windTurbineDiffuse": {
+		"url": "/models/wind_turbine/diffuse.png",
+		"type": "image"
+	},
+	"windTurbineNormal": {
+		"url": "/models/wind_turbine/normal.png",
+		"type": "image"
+	},
+	"memorial": {
+		"url": "/models/memorial/memorial.glb",
+		"type": "gltf"
+	},
+	"memorialDiffuse": {
+		"url": "/models/memorial/diffuse.png",
+		"type": "image"
+	},
+	"memorialNormal": {
+		"url": "/models/memorial/normal.png",
+		"type": "image"
+	},
+	"statue0": {
+		"url": "/models/statue_0/the_thinker.glb",
+		"type": "gltf"
+	},
+	"statue0Diffuse": {
+		"url": "/models/statue_0/diffuse.png",
+		"type": "image"
+	},
+	"statue0Normal": {
+		"url": "/models/statue_0/normal.png",
+		"type": "image"
 	}
 }

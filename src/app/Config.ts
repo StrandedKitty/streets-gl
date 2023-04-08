@@ -10,6 +10,7 @@ const Config = {
 	StartPosition: [40.76050, -73.98088],
 	MinCameraDistance: 20,
 	MaxCameraDistance: 3000,
+	MinFreeCameraHeight: 10,
 	CameraZoomSmoothing: 0.4,
 	MinCameraPitch: 5,
 	MaxCameraPitch: 89.99,

@@ -240,7 +240,7 @@ export default class FreeControlsNavigator extends ControlsNavigator {
 		this.camera.position.z += movementDelta.z;
 
 		const heightmapValue = this.getHeightmapValueAtPosition(this.camera.position.x, this.camera.position.z);
-		this.camera.position.y = Math.max(this.camera.position.y, heightmapValue + Config.MinCameraDistance);
+		this.camera.position.y = Math.max(this.camera.position.y, heightmapValue + Config.MinFreeCameraHeight);
 
 		this.camera.updateMatrix();
 

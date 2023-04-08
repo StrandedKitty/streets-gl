@@ -1,5 +1,6 @@
 export interface VectorNodeDescriptor {
-	type?: 'tree' | 'rock' | 'hydrant' | 'transmissionTower' | 'utilityPole' | 'artwork' | 'adColumn' | 'windTurbine';
+	type?: 'tree' | 'rock' | 'hydrant' | 'transmissionTower' | 'utilityPole' | 'artwork' | 'adColumn' | 'windTurbine' |
+	'bench' | 'picnicTable' | 'busStop' | 'memorial' | 'statue';
 	direction?: number;
 	height?: number;
 }
