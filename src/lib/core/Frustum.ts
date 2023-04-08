@@ -32,14 +32,16 @@ export default class Frustum {
 	}
 
 	public updateViewSpaceVertices(): void {
-		const nearPlaneY = this.near * Math.tan(MathUtils.toRad(this.fov / 2));
+		const halfTan = Math.tan(MathUtils.toRad(this.fov / 2));
+
+		const nearPlaneY = this.near * halfTan;
 		const nearPlaneX = this.aspect * nearPlaneY;
 
-		const farPlaneY = this.far * Math.tan(MathUtils.toRad(this.fov / 2));
+		const farPlaneY = this.far * halfTan;
 		const farPlaneX = this.aspect * farPlaneY;
 
-		// 3 --- 0  vertices order
-		// |     |
+		// 3 --- 0
+		// |     |  vertex order
 		// 2 --- 1
 
 		this.vertices.near = [

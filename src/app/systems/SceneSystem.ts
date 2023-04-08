@@ -112,7 +112,6 @@ export default class SceneSystem extends System {
 
 			camera.fov = numberValue;
 			camera.updateProjectionMatrix();
-			csm.updateFrustums();
 		});
 	}
 
@@ -126,7 +125,6 @@ export default class SceneSystem extends System {
 
 		this.objects.camera.aspect = width / height;
 		this.objects.camera.updateProjectionMatrix();
-		this.objects.csm.updateFrustums();
 	}
 
 	public getObjectsToUpdateMesh(): RenderableObject3D[] {

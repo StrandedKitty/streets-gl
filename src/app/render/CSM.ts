@@ -83,7 +83,7 @@ export default class CSM extends Object3D {
 		}
 	}
 
-	public updateFrustums(): void {
+	private updateFrustums(): void {
 		this.mainFrustum = new Frustum(this.camera.fov, this.camera.aspect, this.near, this.far);
 		this.mainFrustum.updateViewSpaceVertices();
 
@@ -113,12 +113,23 @@ export default class CSM extends Object3D {
 		}
 	}
 
-	public update(): void {
+	private checkForCameraChanges(): void {
+		if (this.mainFrustum.fov !== this.camera.fov || this.mainFrustum.aspect !== this.camera.aspect) {
+			this.updateFrustums();
+		}
+	}
+
+	private fixDirection(): void {
 		this.direction = Vec3.normalize(this.direction);
 
 		if (this.direction.equals(Vec3.Empty)) {
 			this.direction.x = 1;
 		}
+	}
+
+	public update(): void {
+		this.checkForCameraChanges();
+		this.fixDirection();
 
 		for (let i = 0; i < this.frustums.length; i++) {
 			const worldSpaceFrustum = this.frustums[i].toSpace(this.camera.matrix);
@@ -131,8 +142,8 @@ export default class CSM extends Object3D {
 
 			const lightSpaceFrustum = worldSpaceFrustum.toSpace(lightOrientationMatrixInverse);
 			const bbox = AABB3D.fromFrustum(lightSpaceFrustum);
+			const bboxSideSize = Math.max(bbox.max.x - bbox.min.x, bbox.max.y - bbox.min.y) + texelSize * 2;
 
-			const bboxSideSize = Vec3.distance(lightSpaceFrustum.vertices.far[0], lightSpaceFrustum.vertices.far[2]);
 			let bboxCenter = bbox.getCenter();
 
 			bboxCenter.z = bbox.max.z + ShadowCameraTopOffset;
