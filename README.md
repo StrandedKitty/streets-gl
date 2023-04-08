@@ -1,13 +1,14 @@
-# Streets GL
+<div align="center">
+    <h1>Streets GL</h1>
+</div>
 
-**Streets GL** is a real-time 3D map renderer built for visualizing OpenStreetMap data with a heavy focus on eye-candy features.
+**Streets GL** is a real-time 3D map renderer built for visualizing [OpenStreetMap](https://www.openstreetmap.org/) data with a heavy focus on eye-candy features.
 
-> **Warning**<br>
-> The project is still in early development, expect bugs and missing features.
+> **Warning**: This project is still in early development, expect bugs and missing features.
 
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/strandedkitty/streets-gl)
 
-## Features
+## ⭐ Features
 
 - Support for the most common OpenStreetMap features
 - Configurable time of day
@@ -18,7 +19,7 @@
 - Rich postprocessing: TAA, SSAO, depth of field, screen-space reflections, bloom
 - Realistic atmosphere and aerial perspective rendering
 
-## Minimum requirements
+## 💻 Minimum requirements
 
 To run this application you need a machine that supports WebGL2 with following extensions:
 - EXT_texture_filter_anisotropic
@@ -27,21 +28,21 @@ To run this application you need a machine that supports WebGL2 with following e
 
 In order to have smooth experience you also probably need a modern discrete GPU.
 
-## Modules
+## 📦 Modules
 
 This repository includes several separable modules without any external dependencies that can be used in other projects with minimal modifications.
 
-`/src/lib/renderer` — a simple WebGL2 renderer built from scratch (WebGPU support is also planned but hasn't been implemented yet).
+- [renderer](src/lib/renderer) — a simple WebGL2 renderer built from scratch (WebGPU support is also planned but hasn't been implemented yet).
 
-`/src/lib/render-graph` — a minimal render graph (a.k.a. frame graph) implementation for easier rendering pipeline management. It automatically reorders render passes each frame, taking into account their dependencies, and culls out render passes that don't contribute to the final image. It also does basic memory management for framebuffers.
+- [render-graph](src/lib/render-graph) — a minimal render graph (a.k.a. frame graph) implementation for easier rendering pipeline management. It automatically reorders render passes each frame, taking into account their dependencies, and culls out render passes that don't contribute to the final image. It also does basic memory management for framebuffers.
 
-`/src/lib/math` — math utilities.
+- [math](src/lib/math) — math utilities.
 
-`/src/lib/core` — includes scene graph and some basic classes that describe a 3D scene. Depends on `math`.
+- [core](src/lib/core) — includes scene graph and some basic classes that describe a 3D scene. Depends on `math`.
 
-`/src/lib/bmfont` — a bitmap text geometry generator optimized for large bitmaps and real-time use.
+- [bmfont](src/lib/bmfont) — a bitmap text geometry generator optimized for large bitmaps and real-time use.
 
-## Contributing
+## 💡 Contributing
 
 Please report any bugs you find by opening an issue (but first make sure it hasn't been reported yet). Suggestions and pull requests are also welcome.
 

@@ -78,13 +78,20 @@ export default class OSMRelationHandler implements OSMHandler {
 		const parsed = VectorDescriptorFactory.parseAreaTags(this.tags);
 
 		if (parsed) {
+			const rings = this.getVectorAreaRings();
+
+			if (!rings.some(r => r.type === VectorAreaRingType.Outer)) {
+				console.warn(`Relation ${this.osmElement.id} has no outer ring`);
+				return [];
+			}
+
 			switch (parsed.type) {
 				case ContainerType.Descriptor: {
 					features.push({
 						type: 'area',
 						osmReference: this.getOSMReference(),
 						descriptor: parsed.data,
-						rings: this.getVectorAreaRings(),
+						rings: rings,
 						isBuildingPartInRelation: this.isBuildingPartInRelation
 					});
 					break;

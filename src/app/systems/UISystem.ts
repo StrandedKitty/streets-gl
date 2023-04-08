@@ -40,6 +40,7 @@ export interface UISystemState {
 	mapTimeMode: number;
 	renderGraph: RenderGraphSnapshot;
 	resourcesLoadingProgress: number;
+	resourceInProgressPath: string;
 	northDirection: number;
 	settingsSchema: SettingsSchema;
 	overpassEndpoints: OverpassEndpoint[];
@@ -70,6 +71,7 @@ export default class UISystem extends System {
 		mapTimeMultiplier: 1,
 		renderGraph: null,
 		resourcesLoadingProgress: 0,
+		resourceInProgressPath: '',
 		northDirection: 0,
 		settingsSchema: {},
 		overpassEndpoints: []
@@ -146,6 +148,10 @@ export default class UISystem extends System {
 
 	public setResourcesLoadingProgress(progress: number): void {
 		this.ui.setStateFieldValue('resourcesLoadingProgress', progress);
+	}
+
+	public setResourceInProgressPath(path: string): void {
+		this.ui.setStateFieldValue('resourceInProgressPath', path);
 	}
 
 	public setActiveFeature(type: number, id: number): void {

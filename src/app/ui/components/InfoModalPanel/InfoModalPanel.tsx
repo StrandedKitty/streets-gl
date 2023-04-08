@@ -1,7 +1,7 @@
 import React from "react";
 import styles from './InfoModalPanel.scss';
 import ModalPanel from "~/app/ui/components/ModalPanel";
-import {IoLogoGithub} from "react-icons/io5";
+import {IoLogoDiscord, IoLogoGithub} from "react-icons/io5";
 import ModalCategoryContainer from "~/app/ui/components/ModalPanel/ModalCategoryContainer";
 import ModalCategory from "~/app/ui/components/ModalPanel/ModalCategory";
 import ModalPar from "~/app/ui/components/ModalPanel/ModalPar";
@@ -43,14 +43,6 @@ const InfoModalPanel: React.FC<{
 	return <ModalPanel title={'Information'} onClose={onClose}>
 		<ModalCategoryContainer>
 			<ModalCategory>
-				<ModalPar>
-					<ModalParAnchor
-						href={RepositoryURL}
-					>
-						<IoLogoGithub size={16} className={styles.anchorIcon}/>
-						GitHub repository
-					</ModalParAnchor>
-				</ModalPar>
 				<ModalPar isSmall={true}>
 					Streets GL v{VERSION}
 					{' '}
@@ -61,6 +53,24 @@ const InfoModalPanel: React.FC<{
 					</ModalParAnchor>
 					{' '}
 					{COMMIT_BRANCH}
+				</ModalPar>
+				<ModalPar>
+					<div className={styles.links}>
+						<a
+							className={styles.anchor}
+							href={RepositoryURL}
+							target={'_blank'}
+						>
+							<button className={styles.button}>
+								<IoLogoGithub size={16} className={styles.button__icon}/>
+								GitHub repository
+							</button>
+						</a>
+						{/*<button className={styles.button}>
+							<IoLogoDiscord size={16} className={styles.anchorIcon}/>
+							Discord server
+						</button>*/}
+					</div>
 				</ModalPar>
 			</ModalCategory>
 		</ModalCategoryContainer>

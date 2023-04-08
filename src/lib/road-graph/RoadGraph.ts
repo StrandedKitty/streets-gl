@@ -120,6 +120,11 @@ export default class RoadGraph {
 
 		for (const group of this.segmentGroups.values()) {
 			const projection = group.getClosestProjection(point);
+
+			if (!projection) {
+				continue;
+			}
+
 			const distance = Vec2.distance(point, projection);
 
 			if (distance < closestDistance) {

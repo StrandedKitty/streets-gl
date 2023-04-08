@@ -174,6 +174,10 @@ export default class Tile3DMultipolygon {
 			const outerRing = this.rings.find(ring => ring.type === Tile3DRingType.Outer);
 			const innerRings = this.rings.filter(ring => ring.type === Tile3DRingType.Inner);
 
+			if (!outerRing) {
+				return null;
+			}
+
 			const outerPolygon = outerRing.getGeoJSONVertices();
 			const innerPolygons = innerRings.map(ring => ring.getGeoJSONVertices());
 

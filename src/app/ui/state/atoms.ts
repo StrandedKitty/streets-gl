@@ -13,6 +13,7 @@ export interface AtomsCollection {
 	mapTimeMultiplier: RecoilState<number>;
 	mapTimeMode: RecoilState<number>;
 	resourcesLoadingProgress: RecoilState<number>;
+	resourceInProgressPath: RecoilState<string>;
 	renderGraph: RecoilState<RenderGraphSnapshot>;
 	northDirection: RecoilState<number>;
 	settingsObject: (param: string) => RecoilState<SettingsObjectEntry>;
@@ -52,6 +53,10 @@ export const getAtoms = (
 		resourcesLoadingProgress: atom({
 			key: 'resourcesLoadingProgress',
 			effects: [bidirectionalSyncEffect('resourcesLoadingProgress', commonStorage)]
+		}),
+		resourceInProgressPath: atom({
+			key: 'resourceInProgressPath',
+			effects: [bidirectionalSyncEffect('resourceInProgressPath', commonStorage)]
 		}),
 		renderGraph: atom({
 			key: 'renderGraph',

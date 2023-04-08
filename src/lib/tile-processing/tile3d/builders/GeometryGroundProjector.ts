@@ -32,6 +32,10 @@ export default class GeometryGroundProjector {
 			attributeArrays.set(name, []);
 		}
 
+		if (MathUtils.isTriangleDegenerate(flatTriangle)) {
+			return this.mergePositionsAndAttributes(positionArrays, attributeArrays);
+		}
+
 		for (let i = 0; i < groundTriangles.length; i++) {
 			const polygon = MathUtils.findIntersectionTriangleTriangle(groundTriangles[i], triangleNormalized);
 

@@ -197,6 +197,10 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 
 			if (output) {
 				for (const feature of output) {
+					if (feature === null) {
+						continue;
+					}
+
 					switch (feature.type) {
 						case 'instance':
 							collection.instances.push(feature as Tile3DInstance);

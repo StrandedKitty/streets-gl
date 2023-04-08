@@ -35,6 +35,9 @@ class App {
 		ResourceManager.load({
 			onFileLoad: (loaded: number, total: number) => {
 				this.systemManager.getSystem(UISystem).setResourcesLoadingProgress(loaded / total);
+			},
+			onLoadedFileNameChange: (name: string) => {
+				this.systemManager.getSystem(UISystem).setResourceInProgressPath(name);
 			}
 		}).then(() => {
 			this.systemManager.addSystems(

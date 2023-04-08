@@ -36,15 +36,17 @@ export default new class ResourceManager {
 
 	public async load(
 		{
-			onFileLoad
+			onFileLoad,
+			onLoadedFileNameChange
 		}: {
 			onFileLoad: (loaded: number, total: number) => void;
+			onLoadedFileNameChange: (name: string) => void;
 		}
 	): Promise<void> {
 		let loaded = 0;
 		const total = this.requests.size;
 
-		return new Promise<void>(resolve => {
+		return new Promise<void>(async resolve => {
 			for (const [name, request] of this.requests.entries()) {
 				let promise: Promise<any> = null;
 
@@ -59,15 +61,16 @@ export default new class ResourceManager {
 					}
 				}
 
-				if (promise) {
-					promise.then(r => {
-						this.resources.set(name, r);
-						onFileLoad(++loaded, total);
+				onLoadedFileNameChange(request.url);
 
-						if (loaded === total) {
-							resolve();
-						}
-					});
+				const r = await promise;
+
+				this.resources.set(name, r);
+				onFileLoad(++loaded, total);
+
+				if (loaded === total) {
+					onLoadedFileNameChange('');
+					resolve();
 				}
 			}
 		});

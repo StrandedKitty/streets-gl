@@ -12,7 +12,7 @@ import {RoadSide} from "~/lib/tile-processing/tile3d/builders/RoadBuilder";
 import {getRoadUV} from "~/lib/tile-processing/tile3d/utils";
 import RoadGraph from "~/lib/road-graph/RoadGraph";
 import Road from "~/lib/road-graph/Road";
-import {IntersectionDirection} from "~/lib/road-graph/Intersection";
+import Intersection, {IntersectionDirection} from "~/lib/road-graph/Intersection";
 
 export default class VectorPolylineHandler implements Handler {
 	private readonly osmReference: OSMReference;
@@ -88,10 +88,6 @@ export default class VectorPolylineHandler implements Handler {
 	}
 
 	private handlePath(): Tile3DProjectedGeometry {
-		const builder = new Tile3DProjectedGeometryBuilder();
-		builder.setZIndex(VectorPolylineHandler.getPathZIndex(this.descriptor.pathType));
-		builder.addRing(Tile3DRingType.Outer, this.vertices);
-
 		const side = VectorPolylineHandler.getRoadSideFromDescriptor(this.descriptor.side);
 		const uvAndTextureParams = VectorPolylineHandler.getPathTextureIdAndUV(
 			this.descriptor.pathType,
@@ -101,57 +97,15 @@ export default class VectorPolylineHandler implements Handler {
 			this.descriptor.width,
 			this.mercatorScale
 		);
+		const {vertices, vertexAdjacentToStart, vertexAdjacentToEnd} = this.getPathBuilderVertices();
 
-		const pointStart = this.vertices[0];
-		const pointEnd = this.vertices[this.vertices.length - 1];
-		let vertexAdjacentToStart: Vec2 = null;
-		let vertexAdjacentToEnd: Vec2 = null;
-
-		if (!pointStart.equals(pointEnd) && this.graphRoad) {
-			const intersectionStart = this.graph.getIntersectionByPoint(pointStart, this.graphGroup);
-			const intersectionEnd = this.graph.getIntersectionByPoint(pointEnd, this.graphGroup);
-
-			if (intersectionStart) {
-				if (intersectionStart.directions.length === 2) {
-					for (const {road, vertex} of intersectionStart.directions) {
-						if (road !== this.graphRoad) {
-							vertexAdjacentToStart = vertex.vector;
-						}
-					}
-				} else if (intersectionStart.directions.length > 2) {
-					const dir = intersectionStart.directions.find((dir: IntersectionDirection) => dir.road === this.graphRoad);
-
-					if (dir && dir.trimmedEnd && this.vertices.length > 1) {
-						if (dir.trimmedEnd.equals(this.vertices[1])) {
-							this.vertices.shift();
-						} else {
-							const start = this.vertices[0];
-							start.set(dir.trimmedEnd.x, dir.trimmedEnd.y);
-						}
-					}
-				}
-			}
-			if (intersectionEnd) {
-				if (intersectionEnd.directions.length === 2) {
-					for (const {road, vertex} of intersectionEnd.directions) {
-						if (road !== this.graphRoad) {
-							vertexAdjacentToEnd = vertex.vector;
-						}
-					}
-				} else if (intersectionEnd.directions.length > 2) {
-					const dir = intersectionEnd.directions.find((dir: IntersectionDirection) => dir.road === this.graphRoad);
-
-					if (dir && dir.trimmedEnd && this.vertices.length > 1) {
-						if (dir.trimmedEnd.equals(this.vertices[this.vertices.length - 2])) {
-							this.vertices.pop();
-						} else {
-							const end = this.vertices[this.vertices.length - 1];
-							end.set(dir.trimmedEnd.x, dir.trimmedEnd.y);
-						}
-					}
-				}
-			}
+		if (vertices.length < 2) {
+			return null;
 		}
+
+		const builder = new Tile3DProjectedGeometryBuilder();
+		builder.setZIndex(VectorPolylineHandler.getPathZIndex(this.descriptor.pathType));
+		builder.addRing(Tile3DRingType.Outer, vertices);
 
 		builder.addPath({
 			width: this.descriptor.width * this.mercatorScale,
@@ -167,6 +121,70 @@ export default class VectorPolylineHandler implements Handler {
 		});
 
 		return builder.getGeometry();
+	}
+
+	private getPathBuilderVertices(): {
+		vertices: Vec2[];
+		vertexAdjacentToStart: Vec2;
+		vertexAdjacentToEnd: Vec2;
+	} {
+		const vertices: Vec2[] = [...this.vertices];
+		const pointStart = vertices[0];
+		const pointEnd = vertices[vertices.length - 1];
+
+		let vertexAdjacentToStart: Vec2 = null;
+		let vertexAdjacentToEnd: Vec2 = null;
+
+		if (!pointStart.equals(pointEnd) && this.graphRoad) {
+			const intersectionStart = this.graph.getIntersectionByPoint(pointStart, this.graphGroup);
+			const intersectionEnd = this.graph.getIntersectionByPoint(pointEnd, this.graphGroup);
+
+			if (intersectionStart && vertices.length > 1) {
+				vertexAdjacentToStart = this.processPathEnd(vertices, intersectionStart, 'first');
+			}
+			if (intersectionEnd && vertices.length > 1) {
+				vertexAdjacentToEnd = this.processPathEnd(vertices, intersectionEnd, 'last');
+			}
+		}
+
+		return {
+			vertices,
+			vertexAdjacentToStart,
+			vertexAdjacentToEnd
+		};
+	}
+
+	private processPathEnd(vertices: Vec2[], intersection: Intersection, type: 'first' | 'last'): Vec2 {
+		let adjacentVertex: Vec2 = null;
+
+		if (intersection.directions.length === 2) {
+			for (const {road, vertex} of intersection.directions) {
+				const prevVertexIndex = type === 'first' ? 1 : vertices.length - 2;
+
+				if (
+					road !== this.graphRoad &&
+					!vertex.vector.equals(vertices[prevVertexIndex])
+				) {
+					adjacentVertex = vertex.vector;
+				}
+			}
+		} else if (intersection.directions.length > 2) {
+			const dir = intersection.directions.find((dir: IntersectionDirection) => dir.road === this.graphRoad);
+
+			if (dir && dir.trimmedEnd && vertices.length > 1) {
+				const prevVertexIndex = type === 'first' ? 1 : vertices.length - 2;
+
+				if (dir.trimmedEnd.equals(vertices[prevVertexIndex])) {
+					vertices.shift();
+				} else {
+					const vertexIndex = type === 'first' ? 0 : vertices.length - 1;
+
+					vertices[vertexIndex].set(dir.trimmedEnd.x, dir.trimmedEnd.y);
+				}
+			}
+		}
+
+		return adjacentVertex;
 	}
 
 	private handleFence(): Tile3DHuggingGeometry {

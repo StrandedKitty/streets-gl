@@ -8,7 +8,7 @@ const Config = {
 	WebWorkersNumber: Math.min(6, navigator.hardwareConcurrency),
 	ShadowCascades: 3,
 	StartPosition: [40.76050, -73.98088],
-	MinCameraDistance: 20,
+	MinCameraDistance: 10,
 	MaxCameraDistance: 3000,
 	MinFreeCameraHeight: 10,
 	CameraZoomSmoothing: 0.4,
@@ -44,7 +44,7 @@ const Config = {
 	SettingsSchema: {
 		fov: {
 			label: 'Vertical field of view',
-			selectRange: [10, 120, 1],
+			selectRange: [5, 120, 1],
 			selectRangeDefault: 40,
 			category: 'general'
 		},

@@ -3,11 +3,12 @@ import classes from './LoadingScreen.scss';
 import {AtomsContext} from "~/app/ui/UI";
 import {useRecoilValue} from "recoil";
 
-const RepositoryURL = 'https://github.com/StrandedKitty/streets-gl';
+const IssuesURL = 'https://github.com/StrandedKitty/streets-gl/issues';
 
 const LoadingScreen: React.FC = () => {
 	const atoms = useContext(AtomsContext);
 	const loadingProgress = useRecoilValue(atoms.resourcesLoadingProgress);
+	const loadingPath = useRecoilValue(atoms.resourceInProgressPath);
 	const [showSelf, setShowSelf] = useState<boolean>(true);
 
 	if (!showSelf) {
@@ -26,11 +27,16 @@ const LoadingScreen: React.FC = () => {
 	>
 		<div className={classes.loadingScreen}>
 			<div className={classes.loadingScreen__title}>Streets GL</div>
-			<div className={classes.loadingScreen__progress}>
-				<div className={classes.loadingScreen__progress__inner} style={{width: `${loadingProgress * 100}%`}}/>
+			<div className={classes.loadingScreen__progressBar}>
+				<div className={classes.loadingScreen__progressBar__inner} style={{width: `${loadingProgress * 100}%`}}/>
 			</div>
+			<div className={classes.loadingScreen__filePath}>{
+				loadingPath ? `Loading ${loadingPath}` : 'Done'
+			}</div>
 			<div className={classes.loadingScreen__info}>
-				<a href={RepositoryURL} target={'_blank'}>GitHub repository</a>
+				<a href={IssuesURL} target={'_blank'}>
+					Report an issue
+				</a>
 			</div>
 		</div>
 	</div>;

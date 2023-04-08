@@ -8,7 +8,8 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: #fff;
+	flex-direction: column;
+	color: #eee;
 	opacity: 1;
 	transition: opacity 400ms linear 0.25s;
 
@@ -18,6 +19,9 @@
 }
 
 .loadingScreen {
+	display: flex;
+	align-items: center;
+	flex-direction: column;
 	text-align: center;
 
 	&__title {
@@ -26,24 +30,29 @@
 		margin: 0 0 32px 0;
 	}
 
-	&__progress {
+	&__progressBar {
 		width: 300px;
 		height: 5px;
 		background-color: #222;
 		overflow: hidden;
 		border-radius: 5px;
+		margin: 0 0 16px 0;
 
 		&__inner {
-			background: #fff;
+			background: #eee;
 			height: 100%;
 			width: 0;
 			border-radius: 5px;
 		}
 	}
 
+	&__filePath {
+		font-size: 12px;
+		color: #9b9b9b;
+	}
+
 	&__info {
 		margin: 32px 0 0 0;
 		font-size: 14px;
-		opacity: 0.75;
 	}
 }

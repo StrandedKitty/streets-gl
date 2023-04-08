@@ -176,20 +176,31 @@ export default class MathUtils {
 		return new Vec3(u, v, w);
 	}
 
-	public static sign(p1: number[], p2: number[], p3: number[]): number {
+	public static isTriangleDegenerate(triangle: number[]): boolean {
+		const a = new Vec2(triangle[0], triangle[1]);
+		const b = new Vec2(triangle[2], triangle[3]);
+		const c = new Vec2(triangle[4], triangle[5]);
+
+		const v0 = Vec2.sub(b, a);
+		const v1 = Vec2.sub(c, a);
+
+		return v0.x * v1.y - v1.x * v0.y === 0;
+	}
+
+	public static getTriangleAreaSigned(p1: number[], p2: number[], p3: number[]): number {
 		return (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1]);
 	}
 
 	public static isPointInTriangle(point: [number, number], triangle: [number, number][]): boolean {
 		const [v1, v2, v3] = triangle;
-		const d1 = MathUtils.sign(point, v1, v2);
-		const d2 = MathUtils.sign(point, v2, v3);
-		const d3 = MathUtils.sign(point, v3, v1);
+		const d1 = MathUtils.getTriangleAreaSigned(point, v1, v2);
+		const d2 = MathUtils.getTriangleAreaSigned(point, v2, v3);
+		const d3 = MathUtils.getTriangleAreaSigned(point, v3, v1);
 
-		const has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
-		const has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+		const hasNeg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+		const hasPos = (d1 > 0) || (d2 > 0) || (d3 > 0);
 
-		return !(has_neg && has_pos);
+		return !(hasNeg && hasPos);
 	}
 
 	public static getIntersectionLineLine(
