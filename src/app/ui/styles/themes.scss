@@ -17,6 +17,12 @@ $themes: (
 		keyboard-key-shadow-color: #d7d7d7,
 		keyboard-key-bg-color: #f2f2f2,
 		keyboard-key-text-color: #111,
+
+		modal-button-bg: #fff,
+		modal-button-bg-hover: #eee,
+		modal-button-text-color: #222,
+		modal-button-border-color: #e6e6e6,
+		modal-button-shadow-color: rgba(16, 24, 40, 0.1)
 	),
 	dark: (
 		panel-border-color: #222,
@@ -34,6 +40,12 @@ $themes: (
 		keyboard-key-shadow-color: #2d2d2d,
 		keyboard-key-bg-color: #272727,
 		keyboard-key-text-color: #eee,
+
+		modal-button-bg: #171717,
+		modal-button-bg-hover: #414141,
+		modal-button-text-color: #eee,
+		modal-button-border-color: #6c6c6c,
+		modal-button-shadow-color: rgba(161, 161, 161, 0.1)
 	),
 );
 

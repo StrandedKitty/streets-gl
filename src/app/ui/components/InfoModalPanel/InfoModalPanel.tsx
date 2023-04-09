@@ -6,6 +6,7 @@ import ModalCategoryContainer from "~/app/ui/components/ModalPanel/ModalCategory
 import ModalCategory from "~/app/ui/components/ModalPanel/ModalCategory";
 import ModalPar from "~/app/ui/components/ModalPanel/ModalPar";
 import ModalParAnchor from "~/app/ui/components/ModalPanel/ModalParAnchor";
+import ModalButton from "~/app/ui/components/ModalButton";
 
 const RepositoryURL = 'https://github.com/StrandedKitty/streets-gl';
 
@@ -30,6 +31,9 @@ const KeysConfig: {keys: JSX.Element; desc: string}[] = [
 	}, {
 		keys: <><Key text='Ctrl'/> + <Key text='U'/></>,
 		desc: 'Toggle UI visibility'
+	}, {
+		keys: <><Key text='Ctrl'/> + <Key text='B'/></>,
+		desc: 'Pause air traffic'
 	}
 ];
 
@@ -61,15 +65,21 @@ const InfoModalPanel: React.FC<{
 							href={RepositoryURL}
 							target={'_blank'}
 						>
-							<button className={styles.button}>
-								<IoLogoGithub size={16} className={styles.button__icon}/>
-								GitHub repository
-							</button>
+							<ModalButton
+								text={'GitHub repository'}
+								icon={<IoLogoGithub size={16}/>}
+							/>
 						</a>
-						{/*<button className={styles.button}>
-							<IoLogoDiscord size={16} className={styles.anchorIcon}/>
-							Discord server
-						</button>*/}
+						{/*<a
+							className={styles.anchor}
+							href={RepositoryURL}
+							target={'_blank'}
+						>
+							<ModalButton
+								text={'Discord server'}
+								icon={<IoLogoDiscord size={16}/>}
+							/>
+						</a>*/}
 					</div>
 				</ModalPar>
 			</ModalCategory>

@@ -47,6 +47,7 @@ interface AircraftEntry {
 	type: number;
 	states: AircraftState[];
 	isUpdatedTemp: boolean;
+	lastPosition?: AircraftPosition;
 }
 
 interface VehiclesQueryResponse {
@@ -59,14 +60,26 @@ const QueryInterval = 10000;
 const AircraftRollbackTime = 20000;
 
 export default class VehicleSystem extends System {
-	public aircraftMap: Map<string, AircraftEntry> = new Map();
+	public readonly aircraftMap: Map<string, AircraftEntry> = new Map();
 	private lastUpdateTimestamp: number = 0;
 	private serverTimeOffset: number = null;
 	private enabled: boolean = true;
+	private lockAircraftPositions: boolean = false;
 
 	public postInit(): void {
 		this.listenToSettings();
 		this.startTimer();
+		this.addListeners();
+	}
+
+	private addListeners(): void {
+		window.addEventListener('keydown', (e: KeyboardEvent): void => {
+			if (e.code === 'KeyB' && (e.ctrlKey || e.metaKey)) {
+				e.preventDefault();
+
+				this.lockAircraftPositions = !this.lockAircraftPositions;
+			}
+		});
 	}
 
 	private listenToSettings(): void {
@@ -111,15 +124,19 @@ export default class VehicleSystem extends System {
 	}
 
 	private handleQueryResponse(response: VehiclesQueryResponse): void {
-		this.aircraftMap.clear();
+		for (const aircraft of this.aircraftMap.values()) {
+			aircraft.isUpdatedTemp = false;
+		}
 
 		for (const aircraft of response.aircraft) {
 			const id = aircraft[0].id;
 			const states = aircraft.map(VehicleSystem.convertQueryAircraftToAircraftState);
+			const oldAircraft = this.aircraftMap.get(id);
 
 			this.aircraftMap.set(id, {
 				states: states,
 				type: VehicleSystem.getPlaneTypeInteger(aircraft[0]),
+				lastPosition: oldAircraft?.lastPosition,
 				isUpdatedTemp: true
 			});
 		}
@@ -154,15 +171,26 @@ export default class VehicleSystem extends System {
 		let i = 0;
 
 		for (const aircraft of aircraftOfType) {
-			const lerpedState = this.lerpAircraftStates(aircraft.states);
+			const position = this.getAircraftPosition(aircraft);
 
-			buffer[i++] = lerpedState.x - origin.x;
-			buffer[i++] = lerpedState.height;
-			buffer[i++] = lerpedState.y - origin.y;
-			buffer[i++] = lerpedState.heading;
+			buffer[i++] = position.x - origin.x;
+			buffer[i++] = position.height;
+			buffer[i++] = position.y - origin.y;
+			buffer[i++] = position.heading;
 		}
 
 		return buffer;
+	}
+
+	private getAircraftPosition(aircraft: AircraftEntry): AircraftPosition {
+		if (this.lockAircraftPositions && aircraft.lastPosition) {
+			return aircraft.lastPosition;
+		}
+
+		const lerpedPosition = this.lerpAircraftStates(aircraft.states);
+		aircraft.lastPosition = lerpedPosition;
+
+		return lerpedPosition;
 	}
 
 	private lerpAircraftStates(states: AircraftState[]): AircraftPosition {

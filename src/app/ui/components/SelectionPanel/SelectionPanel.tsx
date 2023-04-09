@@ -6,6 +6,7 @@ import {AtomsContext} from "~/app/ui/UI";
 import Skeleton, {SkeletonTheme} from "react-loading-skeleton";
 import 'react-loading-skeleton/dist/skeleton.css';
 import buildingTypes from "~/app/ui/components/SelectionPanel/buildingTypes";
+import ModalButton from "~/app/ui/components/ModalButton";
 
 enum FeatureType {
 	Way,
@@ -145,17 +146,16 @@ const SelectionPanel: React.FC = () => {
 						{
 							description ? (
 								<a className={styles.links__anchor} href={description.osmURL} target='_blank'>
-									<button
-										className={styles.links__button + ' ' + styles['links__button--primary']}
-									>
-										Open on openstreetmap.org
-									</button>
+									<ModalButton
+										icon={<div className={styles.imageIcon + ' ' + styles['imageIcon--osm']} />}
+										text={'Open on openstreetmap.org'}
+									/>
 								</a>
 							) : (
 								<Skeleton
 									className={styles.skeleton + ' ' + styles['skeleton--button']}
-									width={'210px'}
-									height={'29px'}
+									width={'205px'}
+									height={'30px'}
 									borderRadius={'100px'}
 								/>
 							)
@@ -163,17 +163,16 @@ const SelectionPanel: React.FC = () => {
 						{
 							description ? (
 								<a className={styles.links__anchor} href={description.idURL} target='_blank'>
-									<button
-										className={styles.links__button + ' ' + styles['links__button--secondary']}
-									>
-										Edit in iD
-									</button>
+									<ModalButton
+										icon={<div className={styles.imageIcon + ' ' + styles['imageIcon--id']} />}
+										text={'Edit in iD'}
+									/>
 								</a>
 							) : (
 								<Skeleton
 									className={styles.skeleton + ' ' + styles['skeleton--button']}
-									width={'80px'}
-									height={'29px'}
+									width={'93px'}
+									height={'30px'}
 									borderRadius={'100px'}
 								/>
 							)

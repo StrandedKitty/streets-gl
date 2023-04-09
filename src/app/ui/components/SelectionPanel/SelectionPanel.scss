@@ -89,26 +89,6 @@
 		margin: 0 8px 0 0;
 		text-decoration: none;
 	}
-
-	&__button {
-		border-radius: 20px;
-		border: 2px solid #111;
-		color: #111;
-		font-size: 14px;
-		padding: 4px 8px;
-		font-weight: 600;
-		transition: background-color ease-in 200ms;
-
-		&--primary {
-			border: 2px solid #3152bd;
-			color: #3152bd;
-		}
-
-		&--secondary {
-			border: 2px solid #c73fa7;
-			color: #c73fa7;
-		}
-	}
 }
 
 @include themify($themes) {
@@ -175,5 +155,26 @@
 
 	&--button {
 		margin: 0 8px 0 0;
+	}
+}
+
+.imageIcon {
+	width: 16px;
+	height: 16px;
+
+	&--id {
+		-webkit-mask: url("/images/id.png") center/contain;
+		mask: url("/images/id.png") center/contain;
+	}
+
+	&--osm {
+		-webkit-mask: url("/images/osm.png") center/contain;
+		mask: url("/images/osm.png") center/contain;
+	}
+}
+
+@include themify($themes) {
+	.imageIcon {
+		background-color: themed('modal-button-text-color');
 	}
 }

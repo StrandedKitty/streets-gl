@@ -45,10 +45,6 @@ export default class OSMRelationHandler implements OSMHandler {
 			if (feature && feature.type === 'polyline') {
 				const type = OSMRelationHandler.getRingTypeFromRole(osmMember.role);
 
-				if (type === null) {
-					continue;
-				}
-
 				rings.push(new Ring(
 					feature.nodes,
 					type
@@ -81,7 +77,7 @@ export default class OSMRelationHandler implements OSMHandler {
 			const rings = this.getVectorAreaRings();
 
 			if (!rings.some(r => r.type === VectorAreaRingType.Outer)) {
-				console.warn(`Relation ${this.osmElement.id} has no outer ring`);
+				console.warn(`Relation ${this.osmElement.id} has no outer rings`);
 				return [];
 			}
 
@@ -173,10 +169,6 @@ export default class OSMRelationHandler implements OSMHandler {
 			return VectorAreaRingType.Inner;
 		}
 
-		if (role === 'outer') {
-			return VectorAreaRingType.Outer;
-		}
-
-		return null;
+		return VectorAreaRingType.Outer;
 	}
 }

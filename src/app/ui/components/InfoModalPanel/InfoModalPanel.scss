@@ -44,27 +44,13 @@
 	}
 }
 
-.anchor {
-	text-decoration: none;
-}
-
-.button {
-	border-radius: 999px;
-	padding: 6px 10px;
-	font-size: 12px;
-	font-weight: 600;
-	min-width: 36px;
-	display: block;
-	box-shadow: 0 1px 2px 0 rgba(16, 24, 40, 0.05);
-	border: 1px solid #e6e6e6;
-	margin: 0 8px 0 0;
-
-	&__icon {
-		margin: 0 4px -3px 0;
-	}
-}
-
 .links {
 	display: flex;
 	flex-direction: row;
+}
+
+.anchor {
+	display: block;
+	margin: 0 8px 0 0;
+	text-decoration: none;
 }

@@ -8,6 +8,7 @@ import ModalCategoryContainer from "~/app/ui/components/ModalPanel/ModalCategory
 import Endpoints from "~/app/ui/components/ModalPanel/Endpoints";
 import SettingGroup, {SettingsGroupStructure} from "~/app/ui/components/SettingsModalPanel/SettingGroup";
 import ModalButtonRow from "~/app/ui/components/ModalPanel/ModalButtonRow";
+import {AiOutlinePlus, AiOutlineUndo} from "react-icons/ai";
 
 const SettingsModalPanel: React.FC<{
 	onClose: () => void;
@@ -65,6 +66,7 @@ const SettingsModalPanel: React.FC<{
 				</ModalCategory>
 				<ModalButtonRow
 					labels={['Reset to defaults']}
+					icons={[<AiOutlineUndo size={16} />]}
 					onClicks={[
 						(): void => actions.resetSettings()
 					]}
@@ -79,6 +81,10 @@ const SettingsModalPanel: React.FC<{
 				</ModalCategory>
 				<ModalButtonRow
 					labels={['Add endpoint', 'Reset to defaults']}
+					icons={[
+						<AiOutlinePlus size={16} />,
+						<AiOutlineUndo size={16} />
+					]}
 					onClicks={[
 						(): void => { },
 						(): void => actions.resetOverpassEndpoints()
