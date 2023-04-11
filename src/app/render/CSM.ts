@@ -97,6 +97,8 @@ export default class CSM extends Object3D {
 			frustum.setVertices(vertices);
 			this.frustums.push(frustum);
 		}
+
+		this.updateShadowBounds();
 	}
 
 	private updateBreaks(): void {
@@ -110,6 +112,29 @@ export default class CSM extends Object3D {
 
 			this.fadeOffsets.push(breaks[i] * FadeOffsetFactor);
 			this.breaks.push([prevBreak, breaks[i] + this.fadeOffsets[i] / (this.far - this.near)])
+		}
+	}
+
+	private updateShadowBounds(): void {
+		for (let i = 0; i < this.frustums.length; i++) {
+			const frustum = this.frustums[i];
+
+			const nearVerts = frustum.vertices.near;
+			const farVerts = frustum.vertices.far;
+
+			const maxSize = Math.max(
+				Vec3.distance(farVerts[0], farVerts[2]),
+				Vec3.distance(farVerts[0], nearVerts[2]),
+			);
+
+			const cascadeCamera = this.cascadeCameras[i];
+
+			cascadeCamera.left = -maxSize / 2;
+			cascadeCamera.right = maxSize / 2;
+			cascadeCamera.top = maxSize / 2;
+			cascadeCamera.bottom = -maxSize / 2;
+
+			cascadeCamera.updateProjectionMatrix();
 		}
 	}
 
@@ -142,7 +167,6 @@ export default class CSM extends Object3D {
 
 			const lightSpaceFrustum = worldSpaceFrustum.toSpace(lightOrientationMatrixInverse);
 			const bbox = AABB3D.fromFrustum(lightSpaceFrustum);
-			const bboxSideSize = Math.max(bbox.max.x - bbox.min.x, bbox.max.y - bbox.min.y) + texelSize * 2;
 
 			let bboxCenter = bbox.getCenter();
 
@@ -151,13 +175,6 @@ export default class CSM extends Object3D {
 			bboxCenter.y = Math.floor(bboxCenter.y / texelSize) * texelSize;
 
 			bboxCenter = Vec3.applyMatrix4(bboxCenter, lightOrientationMatrix);
-
-			cascadeCamera.left = -bboxSideSize / 2;
-			cascadeCamera.right = bboxSideSize / 2;
-			cascadeCamera.top = bboxSideSize / 2;
-			cascadeCamera.bottom = -bboxSideSize / 2;
-
-			cascadeCamera.updateProjectionMatrix();
 
 			cascadeCamera.position.set(bboxCenter.x, bboxCenter.y, bboxCenter.z);
 
