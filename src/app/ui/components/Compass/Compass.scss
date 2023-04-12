@@ -20,13 +20,8 @@ $southColor: #d7d7d7;
 	border-radius: 50%;
 	cursor: pointer;
 
-	&:hover &__container {
-		filter: drop-shadow(0 0 4px #fff);
-	}
-
 	&__container {
-		filter: none;
-		transition: filter 200ms;
+		//filter: none;
 
 		&__arrowUp {
 			@extend %arrow;
@@ -38,6 +33,18 @@ $southColor: #d7d7d7;
 			@extend %arrow;
 			border-width: 30px 10px 0 10px;
 			border-color: $southColor transparent transparent transparent;
+		}
+	}
+}
+
+@include themify($themes) {
+	.compass {
+		&:hover .compass__container {
+			filter:
+				drop-shadow( 1px  0px 0px themed('compass-outline-color'))
+				drop-shadow(-1px  0px 0px themed('compass-outline-color'))
+				drop-shadow( 0px  1px 0px themed('compass-outline-color'))
+				drop-shadow( 0px -1px 0px themed('compass-outline-color'));
 		}
 	}
 }

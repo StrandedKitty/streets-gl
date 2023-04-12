@@ -7,6 +7,7 @@ import Skeleton, {SkeletonTheme} from "react-loading-skeleton";
 import 'react-loading-skeleton/dist/skeleton.css';
 import buildingTypes from "~/app/ui/components/SelectionPanel/buildingTypes";
 import ModalButton from "~/app/ui/components/ModalButton";
+import PanelCloseButton from "~/app/ui/components/PanelCloseButton";
 
 enum FeatureType {
 	Way,
@@ -116,13 +117,13 @@ const SelectionPanel: React.FC = () => {
 	return (
 		<Panel className={styles.selectionInfoPanel}>
 			<div className={innerClassNames} onTransitionEnd={closeCallback}>
-				<button
-					className={styles.selectionInfo__close}
-					onClick={(): void => {
-						setActiveFeature(null);
-					}}
-				>×
-				</button>
+				<div className={styles.selectionInfo__close}>
+					<PanelCloseButton
+						onClick={(): void => {
+							setActiveFeature(null);
+						}}
+					/>
+				</div>
 				<SkeletonTheme
 					baseColor="#fff"
 					highlightColor="#ddd"

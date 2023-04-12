@@ -22,7 +22,13 @@ $themes: (
 		modal-button-bg-hover: #eee,
 		modal-button-text-color: #222,
 		modal-button-border-color: #e6e6e6,
-		modal-button-shadow-color: rgba(16, 24, 40, 0.1)
+		modal-button-shadow-color: rgba(16, 24, 40, 0.1),
+
+		panel-close-button-bg: #fff,
+		panel-close-button-bg-hover: #ddd,
+		panel-close-button-text-color: #868686,
+
+		compass-outline-color: #666,
 	),
 	dark: (
 		panel-border-color: #222,
@@ -45,7 +51,13 @@ $themes: (
 		modal-button-bg-hover: #414141,
 		modal-button-text-color: #eee,
 		modal-button-border-color: #6c6c6c,
-		modal-button-shadow-color: rgba(161, 161, 161, 0.1)
+		modal-button-shadow-color: rgba(161, 161, 161, 0.1),
+
+		panel-close-button-bg: #171717,
+		panel-close-button-bg-hover: #2a2a2a,
+		panel-close-button-text-color: #eee,
+
+		compass-outline-color: #eee,
 	),
 );
 

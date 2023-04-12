@@ -86,6 +86,13 @@ export default class AABB3D extends AABB<Vec3> {
 		);
 	}
 
+	public scale(factor: number): AABB3D {
+		return new AABB3D(
+			Vec3.multiplyScalar(this.min, factor),
+			Vec3.multiplyScalar(this.max, factor),
+		);
+	}
+
 	public toSpace(matrix: Mat4): AABB3D {
 		const min = Vec3.applyMatrix4(this.min, matrix);
 		const max = Vec3.applyMatrix4(this.max, matrix);

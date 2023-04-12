@@ -1,0 +1,26 @@
+@import "./../../styles/common.scss";
+
+.button {
+	display: block;
+	border-radius: 100px;
+	width: 32px;
+	height: 32px;
+	text-align: center;
+	cursor: pointer;
+	font-size: 20px;
+	border: none;
+	line-height: 0;
+	padding: 0 0 2px 0;
+	transition: background-color 200ms;
+}
+
+@include themify($themes) {
+	.button {
+		color: themed('panel-close-button-text-color');
+		background: themed('panel-close-button-bg');
+
+		&:hover {
+			background: themed('panel-close-button-bg-hover');
+		}
+	}
+}

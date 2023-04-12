@@ -9,7 +9,7 @@ export default class InstancedGenericObject extends RenderableObject3D {
 	private static readonly FloatsPerInstance: number = 5;
 	public mesh: AbstractMesh = null;
 	private interleavedAttributeBuffer: AbstractAttributeBuffer = null;
-	private instanceBuffers: ModelSourceBuffers;
+	public instanceBuffers: ModelSourceBuffers;
 	private interleavedBuffer: Float32Array = new Float32Array(1);
 	private instanceCount: number = 0;
 

@@ -133,7 +133,7 @@ export default class Tile extends Object3D {
 		for (const [key, buffers] of this.instanceBuffers) {
 			const config = Tile3DInstanceLODConfig[key];
 			const schema = InstanceStructureSchemas[config.structure];
-			const instanceBoundingBox = instancedObjects.get(key).boundingBox;
+			const instanceBoundingBox = instancedObjects.get(key).instanceBuffers.boundingBox;
 
 			buffers.boundingBoxLOD0 = this.getCombinedInstancesBoundingBox(
 				buffers.rawLOD0, schema.componentsPerInstance, instanceBoundingBox
@@ -153,7 +153,7 @@ export default class Tile extends Object3D {
 
 		for (let i = 0; i < buffer.length; i += componentsPerInstance) {
 			const offset = new Vec3(buffer[i], buffer[i + 1], buffer[i + 2]);
-			const moved = instanceBoundingBox.move(offset);
+			const moved = instanceBoundingBox.scale(buffer[i + 3]).move(offset);
 
 			boundingBox.includeAABB(moved);
 		}
