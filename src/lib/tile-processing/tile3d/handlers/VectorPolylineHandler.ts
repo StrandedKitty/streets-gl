@@ -2,7 +2,6 @@ import Handler, {RequestedHeightParams} from "~/lib/tile-processing/tile3d/handl
 import Tile3DFeature from "~/lib/tile-processing/tile3d/features/Tile3DFeature";
 import VectorPolyline from "~/lib/tile-processing/vector/features/VectorPolyline";
 import OSMReference from "~/lib/tile-processing/vector/features/OSMReference";
-import {VectorAreaDescriptor, VectorPolylineDescriptor} from "~/lib/tile-processing/vector/descriptors";
 import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DProjectedGeometry";
 import Vec2 from "~/lib/math/Vec2";
 import Tile3DProjectedGeometryBuilder from "~/lib/tile-processing/tile3d/builders/Tile3DProjectedGeometryBuilder";
@@ -13,6 +12,7 @@ import {getRoadUV} from "~/lib/tile-processing/tile3d/utils";
 import RoadGraph from "~/lib/road-graph/RoadGraph";
 import Road from "~/lib/road-graph/Road";
 import Intersection, {IntersectionDirection} from "~/lib/road-graph/Intersection";
+import {VectorAreaDescriptor, VectorPolylineDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
 
 export default class VectorPolylineHandler implements Handler {
 	private readonly osmReference: OSMReference;

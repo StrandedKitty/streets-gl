@@ -12,7 +12,12 @@ import Tile3DBuffers, {
 import TileHuggingMesh from "~/app/objects/TileHuggingMesh";
 import AABB3D from "~/lib/math/AABB3D";
 import Vec3 from "~/lib/math/Vec3";
-import {Tile3DInstanceType} from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
+import {
+	InstanceStructureSchemas,
+	LODConfig,
+	Tile3DInstanceLODConfig,
+	Tile3DInstanceType
+} from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
 
 // position.xyz, scale, rotation
 export type InstanceBufferInterleaved = Float32Array;
@@ -117,8 +122,10 @@ export default class Tile extends Object3D {
 		}
 
 		const raw = buffers[`raw${lodKey}`];
+		const config = Tile3DInstanceLODConfig[instanceName];
+		const structure = InstanceStructureSchemas[config.structure];
 
-		for (let i = 0; i < raw.length; i += 5) {
+		for (let i = 0; i < raw.length; i += structure.componentsPerInstance) {
 			transformed[i] = raw[i] - origin.x + this.position.x;
 			transformed[i + 2] = raw[i + 2] - origin.y + this.position.z;
 		}

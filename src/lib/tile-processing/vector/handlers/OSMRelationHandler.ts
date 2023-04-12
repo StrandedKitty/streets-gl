@@ -4,8 +4,10 @@ import OSMHandler from "~/lib/tile-processing/vector/handlers/OSMHandler";
 import VectorArea, {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
 import {cleanupTags} from "~/lib/tile-processing/vector/utils";
-import {ContainerType, VectorDescriptorFactory} from "~/lib/tile-processing/vector/handlers/VectorDescriptorFactory";
 import Ring from "~/lib/tile-processing/vector/handlers/Ring";
+import AreaQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/AreaQualifierFactory";
+import {VectorFeature} from "~/lib/tile-processing/vector/features/VectorFeature";
+import {QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
 
 export default class OSMRelationHandler implements OSMHandler {
 	private readonly osmElement: RelationElement;
@@ -17,7 +19,7 @@ export default class OSMRelationHandler implements OSMHandler {
 	private disableFeatureOutput: boolean = false;
 	private isBuildingPartInRelation: boolean = false;
 
-	private cachedFeatures: VectorArea[] = null;
+	private cachedFeatures: VectorFeature[] = null;
 
 	public constructor(osmElement: RelationElement) {
 		this.osmElement = osmElement;
@@ -71,9 +73,13 @@ export default class OSMRelationHandler implements OSMHandler {
 
 	private getFeaturesFromAreaTags(): VectorArea[] {
 		const features: VectorArea[] = [];
-		const parsed = VectorDescriptorFactory.parseAreaTags(this.tags);
+		const qualifiers = new AreaQualifierFactory().fromTags(this.tags);
 
-		if (parsed) {
+		if (!qualifiers) {
+			return [];
+		}
+
+		for (const qualifier of qualifiers) {
 			const rings = this.getVectorAreaRings();
 
 			if (!rings.some(r => r.type === VectorAreaRingType.Outer)) {
@@ -81,19 +87,19 @@ export default class OSMRelationHandler implements OSMHandler {
 				return [];
 			}
 
-			switch (parsed.type) {
-				case ContainerType.Descriptor: {
+			switch (qualifier.type) {
+				case QualifierType.Descriptor: {
 					features.push({
 						type: 'area',
 						osmReference: this.getOSMReference(),
-						descriptor: parsed.data,
+						descriptor: qualifier.data,
 						rings: rings,
 						isBuildingPartInRelation: this.isBuildingPartInRelation
 					});
 					break;
 				}
-				case ContainerType.Modifier: {
-					console.error(`Unexpected modifier ${parsed.data.type}`);
+				case QualifierType.Modifier: {
+					console.error(`Unexpected modifier ${qualifier.data.type}`);
 					break;
 				}
 			}
@@ -106,7 +112,7 @@ export default class OSMRelationHandler implements OSMHandler {
 		return this.getClosedMultipolygonRings().map(ring => ring.getVectorAreaRing());
 	}
 
-	public getFeatures(): VectorArea[] {
+	public getFeatures(): VectorFeature[] {
 		if (this.disableFeatureOutput) {
 			return [];
 		}

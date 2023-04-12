@@ -2,7 +2,7 @@ import RenderableObject3D from "./RenderableObject3D";
 import AbstractMesh from "~/lib/renderer/abstract-renderer/AbstractMesh";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
-import {InstanceBuffers} from "./InstancedObject";
+import {InstanceBuffers} from "./InstancedGenericObject";
 
 export default class InstancedAircraft extends RenderableObject3D {
 	public mesh: AbstractMesh = null;

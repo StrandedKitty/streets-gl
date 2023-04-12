@@ -1,4 +1,4 @@
-import {InstanceBuffers} from "../InstancedObject";
+import {InstanceBuffers} from "../InstancedGenericObject";
 import ResourceManager from "../../world/ResourceManager";
 
 export default class ModelManager {

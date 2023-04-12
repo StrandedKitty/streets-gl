@@ -1,6 +1,7 @@
 export interface VectorNodeDescriptor {
 	type?: 'tree' | 'rock' | 'hydrant' | 'transmissionTower' | 'utilityPole' | 'artwork' | 'adColumn' | 'windTurbine' |
 	'bench' | 'picnicTable' | 'busStop' | 'memorial' | 'statue';
+	treeType?: 'genericBroadleaved' | 'genericNeedleleaved' | 'beech' | 'fir' | 'linden' | 'oak';
 	direction?: number;
 	height?: number;
 }
@@ -21,7 +22,7 @@ export interface VectorAreaDescriptor {
 	label?: string;
 	type: 'building' | 'buildingPart' | 'asphalt' | 'roadwayIntersection' | 'pavement' | 'water' | 'farmland' |
 		'grass' | 'sand' | 'rock' | 'pitch' | 'manicuredGrass' | 'helipad' | 'forest' | 'garden' | 'construction' |
-		'buildingConstruction';
+		'buildingConstruction' | 'shrubbery';
 	intersectionMaterial?: 'asphalt' | 'concrete' | 'cobblestone';
 	pitchType?: 'football' | 'basketball' | 'tennis';
 	buildingLevels?: number;
@@ -40,3 +41,5 @@ export interface VectorAreaDescriptor {
 	buildingRoofColor?: number;
 	buildingWindows?: boolean;
 }
+
+export type VectorDescriptor = VectorNodeDescriptor | VectorAreaDescriptor | VectorPolylineDescriptor;

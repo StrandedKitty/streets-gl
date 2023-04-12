@@ -1,11 +1,11 @@
 import Handler, {RequestedHeightParams} from "~/lib/tile-processing/tile3d/handlers/Handler";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import OSMReference from "~/lib/tile-processing/vector/features/OSMReference";
-import {VectorNodeDescriptor} from "~/lib/tile-processing/vector/descriptors";
 import Tile3DInstance, {Tile3DInstanceType} from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
 import SeededRandom from "~/lib/math/SeededRandom";
 import RoadGraph from "~/lib/road-graph/RoadGraph";
 import Vec2 from "~/lib/math/Vec2";
+import {VectorNodeDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
 
 const TileSize = 611.4962158203125;
 
@@ -39,9 +39,7 @@ export default class VectorNodeHandler implements Handler {
 		}
 
 		if (this.descriptor.type === 'tree') {
-			return [this.getGenericInstanceFeature({
-				type: 'tree',
-				rotateToNearestPath: false,
+			return [this.getTreeInstanceFeature({
 				height: this.descriptor.height
 			})];
 		}
@@ -154,6 +152,41 @@ export default class VectorNodeHandler implements Handler {
 			z: this.y,
 			scale: height * this.mercatorScale,
 			rotation: rotationAngle
+		};
+	}
+
+	private getTreeInstanceFeature(
+		{
+			height = 1,
+		}: {
+			height?: number;
+		}
+	): Tile3DInstance {
+		const rnd = new SeededRandom(Math.floor(this.x + this.y));
+		const rotationAngle = rnd.generate() * Math.PI * 2;
+
+		const textureIdMap: Record<VectorNodeDescriptor['treeType'], number[]> = {
+			beech: [0],
+			fir: [1],
+			linden: [2, 3],
+			oak: [4],
+			genericBroadleaved: [0, 2, 3, 4],
+			genericNeedleleaved: [1]
+		};
+
+		const textureIdList = textureIdMap[this.descriptor.treeType] ?? textureIdMap.genericBroadleaved;
+		const textureId = textureIdList[Math.floor(rnd.generate() * textureIdList.length)];
+
+		return {
+			type: 'instance',
+			instanceType: 'tree',
+			x: this.x,
+			y: this.terrainHeight,
+			z: this.y,
+			scale: height * this.mercatorScale,
+			rotation: rotationAngle,
+			textureId: textureId,
+			seed: rnd.generate()
 		};
 	}
 

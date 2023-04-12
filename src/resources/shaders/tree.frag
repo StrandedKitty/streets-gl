@@ -6,6 +6,7 @@ in vec3 vNormal;
 in vec3 vPosition;
 in vec4 vClipPos;
 in vec4 vClipPosPrev;
+flat in int vTextureId;
 
 uniform MainBlock {
     mat4 projectionMatrix;
@@ -14,20 +15,20 @@ uniform MainBlock {
     mat4 modelViewMatrixPrev;
 };
 
-uniform sampler2DArray tColor;
-uniform sampler2DArray tNormal;
+uniform sampler2DArray tMap;
 uniform sampler2D tVolumeNormal;
 
 #include <packNormal>
 #include <getMotionVector>
 #include <getTBN>
+#include <RNM>
 
 vec4 readDiffuse(vec2 uv) {
-    return texture(tColor, vec3(uv, 1));
+    return texture(tMap, vec3(uv, vTextureId * 2));
 }
 
 vec4 readNormal(vec2 uv) {
-    return texture(tNormal, vec3(uv, 1));
+    return texture(tMap, vec3(uv, vTextureId * 2 + 1));
 }
 
 vec4 readVolumeNormal(vec2 uv) {
@@ -50,10 +51,13 @@ vec3 getNormal() {
     mat3 tbn = mat3(t, b, ng);*/
     mat3 tbn = getTBN(vNormal, vPosition, vUv);
 
-    vec3 map1 = readNormal(vUv).rgb * 2. - 1.;
+    /*vec3 map1 = readNormal(vUv).rgb * 2. - 1.;
     vec3 map2 = readVolumeNormal(vUv).rgb * 2. - 1.;
 
-    vec3 normal = normalize(tbn * mix(map1, map2, 0.5));
+    vec3 normal = normalize(tbn * mix(map1, map2, 0.5));*/
+
+    vec3 mixed = normalBlendRNM(readVolumeNormal(vUv).rgb, readNormal(vUv).rgb);
+    vec3 normal = normalize(tbn * mixed);
 
     normal *= float(gl_FrontFacing) * 2.0 - 1.0;
 

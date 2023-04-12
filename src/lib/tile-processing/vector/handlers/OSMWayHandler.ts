@@ -1,14 +1,17 @@
 import OSMNodeHandler from "~/lib/tile-processing/vector/handlers/OSMNodeHandler";
 import {WayElement} from "~/lib/tile-processing/vector/providers/OverpassDataObject";
-import VectorArea, {VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
+import {VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
 import VectorPolyline from "~/lib/tile-processing/vector/features/VectorPolyline";
 import OSMHandler from "~/lib/tile-processing/vector/handlers/OSMHandler";
-import {ContainerType, VectorDescriptorFactory,} from "~/lib/tile-processing/vector/handlers/VectorDescriptorFactory";
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
-import {ModifierType} from "~/lib/tile-processing/vector/modifiers";
-import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import {cleanupTags} from "~/lib/tile-processing/vector/utils";
 import Ring from "~/lib/tile-processing/vector/handlers/Ring";
+import PolylineQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/PolylineQualifierFactory";
+import {QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
+import {ModifierType} from "~/lib/tile-processing/vector/qualifiers/modifiers";
+import {VectorPolylineDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
+import {VectorFeature} from "~/lib/tile-processing/vector/features/VectorFeature";
+import AreaQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/AreaQualifierFactory";
 
 export default class OSMWayHandler implements OSMHandler {
 	private readonly osmElement: WayElement;
@@ -17,7 +20,7 @@ export default class OSMWayHandler implements OSMHandler {
 	private disableFeatureOutput: boolean = false;
 	private isBuildingPartInRelation: boolean = false;
 
-	private cachedFeatures: (VectorArea | VectorPolyline | VectorNode)[] = null;
+	private cachedFeatures: VectorFeature[] = null;
 	private cachedStructuralFeature: VectorPolyline = null;
 
 	public constructor(osmElement: WayElement, nodes: OSMNodeHandler[]) {
@@ -38,74 +41,41 @@ export default class OSMWayHandler implements OSMHandler {
 		this.isBuildingPartInRelation = true;
 	}
 
-	private getFeaturesFromPolylineTags(): (VectorArea | VectorPolyline | VectorNode)[] {
-		const features: (VectorArea | VectorPolyline | VectorNode)[] = [];
-		const parsedList = VectorDescriptorFactory.parsePolylineTags(this.tags);
+	private getFeaturesFromPolylineTags(): VectorFeature[] {
+		const features: VectorFeature[] = [];
+		const qualifiers = new PolylineQualifierFactory().fromTags(this.tags);
 
-		if (parsedList) {
-			for (const parsed of parsedList) {
-				switch (parsed.type) {
-					case ContainerType.Descriptor: {
-						features.push({
-							type: 'polyline',
-							osmReference: this.getOSMReference(),
-							descriptor: parsed.data,
-							nodes: this.nodes.map(n => n.getStructuralFeature())
-						});
-						break;
-					}
-					case ContainerType.Modifier: {
-						const modifier = parsed.data;
-
-						if (modifier.type === ModifierType.NodeRow) {
-							const ring = new Ring(
-								this.nodes.map(n => n.getStructuralFeature()),
-								VectorAreaRingType.Outer
-							);
-
-							const nodes = ring.distributeNodes(modifier.spacing, modifier.randomness, modifier.descriptor);
-
-							features.push(...nodes);
-						} else {
-							console.error(`Unexpected modifier ${modifier.type}`);
-						}
-						break;
-					}
-				}
-			}
+		if (!qualifiers) {
+			return features;
 		}
 
-		return features;
-	}
+		for (const qualifier of qualifiers) {
+			switch (qualifier.type) {
+				case QualifierType.Descriptor: {
+					features.push({
+						type: 'polyline',
+						osmReference: this.getOSMReference(),
+						descriptor: qualifier.data as VectorPolylineDescriptor,
+						nodes: this.nodes.map(n => n.getStructuralFeature())
+					});
+					break;
+				}
+				case QualifierType.Modifier: {
+					const modifier = qualifier.data;
 
-	private getFeaturesFromAreaTags(): (VectorArea | VectorPolyline | VectorNode)[] {
-		const features: (VectorArea | VectorPolyline | VectorNode)[] = [];
-
-		if (this.isClosed()) {
-			const parsed = VectorDescriptorFactory.parseAreaTags(this.tags);
-
-			if (parsed) {
-				switch (parsed.type) {
-					case ContainerType.Descriptor: {
+					if (modifier.type === ModifierType.NodeRow) {
 						const ring = new Ring(
 							this.nodes.map(n => n.getStructuralFeature()),
 							VectorAreaRingType.Outer
 						);
-						ring.fixDirection();
 
-						features.push({
-							type: 'area',
-							osmReference: this.getOSMReference(),
-							descriptor: parsed.data,
-							rings: [ring.getVectorAreaRing()],
-							isBuildingPartInRelation: this.isBuildingPartInRelation
-						});
-						break;
+						const nodes = ring.distributeNodes(modifier.spacing, modifier.randomness, modifier.descriptor);
+
+						features.push(...nodes);
+					} else {
+						console.error(`Unexpected modifier ${modifier.type}`);
 					}
-					case ContainerType.Modifier: {
-						console.error(`Unexpected modifier ${parsed.data.type}`);
-						break;
-					}
+					break;
 				}
 			}
 		}
@@ -113,7 +83,48 @@ export default class OSMWayHandler implements OSMHandler {
 		return features;
 	}
 
-	public getFeatures(): (VectorArea | VectorPolyline | VectorNode)[] {
+	private getFeaturesFromAreaTags(): VectorFeature[] {
+		const features: VectorFeature[] = [];
+
+		if (!this.isClosed()) {
+			return features;
+		}
+
+		const qualifiers = new AreaQualifierFactory().fromTags(this.tags);
+
+		if (!qualifiers) {
+			return features;
+		}
+
+		for (const qualifier of qualifiers) {
+			switch (qualifier.type) {
+				case QualifierType.Descriptor: {
+					const ring = new Ring(
+						this.nodes.map(n => n.getStructuralFeature()),
+						VectorAreaRingType.Outer
+					);
+					ring.fixDirection();
+
+					features.push({
+						type: 'area',
+						osmReference: this.getOSMReference(),
+						descriptor: qualifier.data,
+						rings: [ring.getVectorAreaRing()],
+						isBuildingPartInRelation: this.isBuildingPartInRelation
+					});
+					break;
+				}
+				case QualifierType.Modifier: {
+					console.error(`Unexpected modifier ${qualifier.data.type}`);
+					break;
+				}
+			}
+		}
+
+		return features;
+	}
+
+	public getFeatures(): VectorFeature[] {
 		if (this.disableFeatureOutput) {
 			return [];
 		}

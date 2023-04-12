@@ -21,25 +21,6 @@ export default class AircraftDepthMaterialContainer extends MaterialContainer {
 					block: 'MainBlock',
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array(16)
-				}, {
-					name: 'tColor',
-					block: null,
-					type: RendererTypes.UniformType.Texture2DArray,
-					value: this.renderer.createTexture2DArray({
-						width: 256,
-						height: 256,
-						depth: 2,
-						anisotropy: 16,
-						data: [
-							ResourceManager.get('tree1Diffuse'),
-							ResourceManager.get('tree2Diffuse')
-						],
-						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
-						magFilter: RendererTypes.MagFilter.Linear,
-						wrap: RendererTypes.TextureWrap.Repeat,
-						format: RendererTypes.TextureFormat.RGBA8Unorm,
-						mipmaps: true
-					})
 				}
 			],
 			primitive: {

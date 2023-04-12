@@ -6,12 +6,14 @@ in vec2 uv;
 in vec3 instancePosition;
 in float instanceScale;
 in float instanceRotation;
-out vec4 vClipPos;
-out vec4 vClipPosPrev;
+in float instanceSeed;
 
 out vec2 vUv;
 out vec3 vNormal;
 out vec3 vPosition;
+out vec4 vClipPos;
+out vec4 vClipPosPrev;
+flat out int vTextureId;
 
 uniform MainBlock {
 	mat4 projectionMatrix;
@@ -29,6 +31,7 @@ mat2 rotate2d(float angle){
 
 void main() {
 	vUv = uv;
+	vTextureId = int(instanceSeed);
 
 	mat2 rotationMatrix = rotate2d(instanceRotation);
 

@@ -39,7 +39,7 @@ export default class ProjectedMeshMaterialContainer extends MaterialContainer {
 					value: this.renderer.createTexture2DArray({
 						width: 512,
 						height: 512,
-						depth: 23 * 3,
+						depth: 24 * 3,
 						anisotropy: 16,
 						data: [
 							ResourceManager.get('pavementDiffuse'),
@@ -133,6 +133,10 @@ export default class ProjectedMeshMaterialContainer extends MaterialContainer {
 							ResourceManager.get('grassDiffuse'),
 							ResourceManager.get('grassNormal'),
 							ResourceManager.get('grassMask'),
+
+							ResourceManager.get('forestFloorDiffuse'),
+							ResourceManager.get('forestFloorNormal'),
+							ResourceManager.get('forestFloorMask'),
 						],
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,

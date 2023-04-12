@@ -1,7 +1,7 @@
-import VectorFeature from "~/lib/tile-processing/vector/features/VectorFeature";
-import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/descriptors";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import OSMReference from "~/lib/tile-processing/vector/features/OSMReference";
+import VectorFeatureBase from "~/lib/tile-processing/vector/features/VectorFeatureBase";
+import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
 
 export enum VectorAreaRingType {
 	Inner,
@@ -13,7 +13,7 @@ export interface VectorAreaRing {
 	type: VectorAreaRingType;
 }
 
-export default interface VectorArea extends VectorFeature {
+export default interface VectorArea extends VectorFeatureBase {
 	type: 'area';
 	osmReference: OSMReference;
 	descriptor: VectorAreaDescriptor;

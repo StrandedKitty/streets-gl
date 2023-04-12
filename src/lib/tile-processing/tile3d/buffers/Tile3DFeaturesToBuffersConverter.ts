@@ -15,6 +15,7 @@ import Tile3DHuggingGeometry from "~/lib/tile-processing/tile3d/features/Tile3DH
 import Tile3DLabel from "~/lib/tile-processing/tile3d/features/Tile3DLabel";
 import Vec3 from "~/lib/math/Vec3";
 import Tile3DInstance, {
+	InstanceStructureSchemas,
 	LODConfig,
 	Tile3DInstanceLODConfig,
 	Tile3DInstanceType
@@ -217,8 +218,8 @@ export class Tile3DFeaturesToBuffersConverter {
 			this.clearInstancesWithHeatMap(instances, 12, config.LOD1Fraction) : [];
 
 		return [
-			this.createInstanceInterleavedBuffer(instances),
-			this.createInstanceInterleavedBuffer(halfInstances)
+			this.createInstanceInterleavedBuffer(instances, config),
+			this.createInstanceInterleavedBuffer(halfInstances, config)
 		];
 	}
 
@@ -252,16 +253,17 @@ export class Tile3DFeaturesToBuffersConverter {
 		return cleared;
 	}
 
-	private static createInstanceInterleavedBuffer(instances: Tile3DInstance[]): Float32Array {
-		const buffer = new Float32Array(instances.length * 5);
+	private static createInstanceInterleavedBuffer(instances: Tile3DInstance[], config: LODConfig): Float32Array {
+		const schema = InstanceStructureSchemas[config.structure];
+		const buffer = new Float32Array(instances.length * schema.componentsPerInstance);
 
 		for (let i = 0; i < instances.length; i++) {
 			const feature = instances[i];
-			buffer[i * 5] = feature.x;
-			buffer[i * 5 + 1] = feature.y;
-			buffer[i * 5 + 2] = feature.z;
-			buffer[i * 5 + 3] = feature.scale;
-			buffer[i * 5 + 4] = feature.rotation;
+			const components = schema.getComponents(feature);
+
+			for (let j = 0; j < schema.componentsPerInstance; j++) {
+				buffer[i * schema.componentsPerInstance + j] = components[j];
+			}
 		}
 
 		return buffer;

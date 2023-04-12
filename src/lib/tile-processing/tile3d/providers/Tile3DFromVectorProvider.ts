@@ -14,13 +14,13 @@ import {applyMercatorFactorToExtrudedFeatures} from "~/lib/tile-processing/tile3
 import Tile3DHuggingGeometry from "~/lib/tile-processing/tile3d/features/Tile3DHuggingGeometry";
 import RoadGraph from "~/lib/road-graph/RoadGraph";
 import {VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
-import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/descriptors";
 import Intersection from "~/lib/road-graph/Intersection";
 import {FeatureProvider} from "~/lib/tile-processing/types";
 import Utils from "~/app/Utils";
 import Tile3DLabel from "~/lib/tile-processing/tile3d/features/Tile3DLabel";
 import MathUtils from "~/lib/math/MathUtils";
 import Road from "~/lib/road-graph/Road";
+import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
 
 export interface Tile3DProviderParams {
 	overpassEndpoint: string;

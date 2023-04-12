@@ -43,7 +43,7 @@ export default class InstanceMaterialContainer extends MaterialContainer {
 					value: this.renderer.createTexture2DArray({
 						width: 512,
 						height: 512,
-						depth: 11 * 2,
+						depth: 12 * 2,
 						anisotropy: 16,
 						data: [
 							ResourceManager.get('adColumnDiffuse'),
@@ -78,6 +78,9 @@ export default class InstanceMaterialContainer extends MaterialContainer {
 
 							ResourceManager.get('statue0Diffuse'),
 							ResourceManager.get('statue0Normal'),
+
+							ResourceManager.get('shrubberyDiffuse'),
+							ResourceManager.get('shrubberyNormal'),
 						],
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,

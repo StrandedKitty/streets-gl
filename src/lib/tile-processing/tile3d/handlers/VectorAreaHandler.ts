@@ -2,7 +2,6 @@ import Handler, {RequestedHeightParams} from "~/lib/tile-processing/tile3d/handl
 import Tile3DFeature from "~/lib/tile-processing/tile3d/features/Tile3DFeature";
 import VectorArea, {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
 import OSMReference from "~/lib/tile-processing/vector/features/OSMReference";
-import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/descriptors";
 import Tile3DExtrudedGeometryBuilder, {
 	RoofType
 } from "~/lib/tile-processing/tile3d/builders/Tile3DExtrudedGeometryBuilder";
@@ -13,10 +12,14 @@ import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3
 import Tile3DLabel from "~/lib/tile-processing/tile3d/features/Tile3DLabel";
 import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 import Config from "~/app/Config";
-import Tile3DInstance, {Tile3DInstanceType} from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
+import Tile3DInstance, {
+	InstanceStructureSchemas,
+	Tile3DInstanceType
+} from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
 import Vec3 from "~/lib/math/Vec3";
 import SeededRandom from "~/lib/math/SeededRandom";
 import RoadGraph from "~/lib/road-graph/RoadGraph";
+import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
 
 const TileSize = 611.4962158203125;
 
@@ -102,6 +105,37 @@ export default class VectorAreaHandler implements Handler {
 						const z = points3D[i].z;
 
 						this.instances.push(this.createTree(x, y, z));
+					}
+				}
+			};
+		}
+
+		if (this.descriptor.type === 'shrubbery') {
+			const points2D = this.getMultipolygon().populateWithPoints(
+				Math.floor(80 / this.mercatorScale),
+				Config.TileSize
+			);
+			const points3D: Vec3[] = [];
+			const positions: number[] = [];
+
+			for (const point of points2D) {
+				if (point.x < 0 || point.y < 0 || point.x > TileSize || point.y > TileSize) {
+					continue;
+				}
+
+				positions.push(point.x, point.y);
+				points3D.push(new Vec3(point.x, 0, point.y));
+			}
+
+			return {
+				positions: new Float64Array(positions),
+				callback: (heights: Float64Array): void => {
+					for (let i = 0; i < points3D.length; i++) {
+						const x = points3D[i].x;
+						const y = heights[i];
+						const z = points3D[i].z;
+
+						this.instances.push(this.createShrub(x, y, z));
 					}
 				}
 			};
@@ -261,6 +295,17 @@ export default class VectorAreaHandler implements Handler {
 			case 'forest': {
 				return this.instances;
 			}
+			case 'shrubbery': {
+				return [
+					...this.instances,
+					this.handleGenericSurface({
+						textureId: 24,
+						isOriented: false,
+						zIndex: 1,
+						uvScale: 15,
+					})
+				];
+			}
 		}
 
 		return [];
@@ -379,9 +424,33 @@ export default class VectorAreaHandler implements Handler {
 		const height = 14 + rnd.generate() * 8;
 		const rotation = rnd.generate() * Math.PI * 2;
 
+		const textureIds = [0, 2, 3, 4];
+		const textureId = textureIds[Math.floor(rnd.generate() * textureIds.length)];
+
 		return {
 			type: 'instance',
 			instanceType: 'tree',
+			x: x,
+			y: y * this.mercatorScale,
+			z: z,
+			scale: height * this.mercatorScale,
+			rotation: rotation,
+			seed: rnd.generate(),
+			textureId: textureId
+		};
+	}
+
+
+	private createShrub(x: number, y: number, z: number): Tile3DInstance {
+		const seed = Math.floor(x) + Math.floor(z);
+		const rnd = new SeededRandom(seed);
+
+		const height = 0.9 + rnd.generate() * 0.25;
+		const rotation = rnd.generate() * Math.PI * 2;
+
+		return {
+			type: 'instance',
+			instanceType: 'shrubbery',
 			x: x,
 			y: y * this.mercatorScale,
 			z: z,

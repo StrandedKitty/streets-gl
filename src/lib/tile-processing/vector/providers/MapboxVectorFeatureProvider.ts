@@ -5,7 +5,7 @@ import MapboxAreaHandler from "~/lib/tile-processing/vector/handlers/MapboxAreaH
 import Pbf from 'pbf';
 import {FeatureProvider} from "~/lib/tile-processing/types";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
-import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/descriptors";
+import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
 
 const proto = require('./pbf/vector_tile.js').Tile;
 
@@ -60,7 +60,8 @@ export default class MapboxVectorFeatureProvider implements FeatureProvider<Vect
 		const size = 40075016.68 / (1 << zoom);
 		const polygons: Record<string, PBFPolygon[]> = {
 			water: [],
-			forest: []
+			forest: [],
+			shrubbery: []
 		};
 		const url = this.buildRequestURL(x, y, zoom);
 		const response = await fetch(url, {
@@ -84,7 +85,7 @@ export default class MapboxVectorFeatureProvider implements FeatureProvider<Vect
 				for (const feature of layer.features) {
 					const polygon = PBFPolygonParser.convertCommandsToPolygons(feature.geometry, size);
 
-					polygons['water'].push(polygon);
+					polygons.water.push(polygon);
 				}
 			}
 
@@ -101,7 +102,12 @@ export default class MapboxVectorFeatureProvider implements FeatureProvider<Vect
 
 					if (tagsMap.type === 'wood' || tagsMap.type === 'forest') {
 						const polygon = PBFPolygonParser.convertCommandsToPolygons(geometry, size);
-						polygons['forest'].push(polygon);
+						polygons.forest.push(polygon);
+					}
+
+					if (tagsMap.type === 'scrub') {
+						const polygon = PBFPolygonParser.convertCommandsToPolygons(geometry, size);
+						polygons.shrubbery.push(polygon);
 					}
 				}
 			}

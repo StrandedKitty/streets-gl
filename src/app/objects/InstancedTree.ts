@@ -10,7 +10,8 @@ export interface InstanceBuffers {
 	indices: Uint32Array;
 }
 
-export default class InstancedObject extends RenderableObject3D {
+export default class InstancedTree extends RenderableObject3D {
+	private static readonly FloatsPerInstance: number = 6;
 	public mesh: AbstractMesh = null;
 	private instanceBuffers: InstanceBuffers;
 	private interleavedBuffer: Float32Array = new Float32Array(1);
@@ -22,14 +23,15 @@ export default class InstancedObject extends RenderableObject3D {
 		this.instanceBuffers = instanceBuffers;
 	}
 
-	public setInstancesInterleavedBuffer(interleavedBuffer: Float32Array, instanceCount: number): void {
+	public setInstancesInterleavedBuffer(interleavedBuffer: Float32Array): void {
 		this.interleavedBuffer = interleavedBuffer;
-		this.instanceCount = instanceCount;
+		this.instanceCount = interleavedBuffer.length / InstancedTree.FloatsPerInstance;
 
 		if (this.mesh) {
 			this.mesh.getAttribute('instancePosition').setData(this.interleavedBuffer);
 			this.mesh.getAttribute('instanceScale').setData(this.interleavedBuffer);
 			this.mesh.getAttribute('instanceRotation').setData(this.interleavedBuffer);
+			this.mesh.getAttribute('instanceSeed').setData(this.interleavedBuffer);
 			this.mesh.instanceCount = this.instanceCount;
 		}
 	}
@@ -77,7 +79,7 @@ export default class InstancedObject extends RenderableObject3D {
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
 						instanced: true,
-						stride: 5 * 4,
+						stride: 6 * 4,
 						offset: 0,
 						data: this.interleavedBuffer
 					}),
@@ -88,7 +90,7 @@ export default class InstancedObject extends RenderableObject3D {
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
 						instanced: true,
-						stride: 5 * 4,
+						stride: 6 * 4,
 						offset: 3 * 4,
 						data: this.interleavedBuffer
 					}),
@@ -99,8 +101,19 @@ export default class InstancedObject extends RenderableObject3D {
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
 						instanced: true,
-						stride: 5 * 4,
+						stride: 6 * 4,
 						offset: 4 * 4,
+						data: this.interleavedBuffer
+					}),
+					renderer.createAttribute({
+						name: 'instanceSeed',
+						size: 1,
+						type: RendererTypes.AttributeType.Float32,
+						format: RendererTypes.AttributeFormat.Float,
+						normalized: false,
+						instanced: true,
+						stride: 6 * 4,
+						offset: 5 * 4,
 						data: this.interleavedBuffer
 					})
 				]

@@ -392,7 +392,8 @@ export default class GBufferPass extends Pass<{
 			busStop: 7,
 			windTurbine: 8,
 			memorial: 9,
-			statue: 10
+			statue: 10,
+			shrubbery: 11
 		};
 
 		for (const [name, instancedObject] of this.manager.sceneSystem.objects.instancedObjects.entries()) {
@@ -423,7 +424,7 @@ export default class GBufferPass extends Pass<{
 			instancedObject.updateMatrix();
 			instancedObject.updateMatrixWorld();
 			const mergedTrees = Utils.mergeTypedArrays(Float32Array, buffers);
-			instancedObject.setInstancesInterleavedBuffer(mergedTrees, mergedTrees.length / 5);
+			instancedObject.setInstancesInterleavedBuffer(mergedTrees);
 
 			if (buffers.length === 0) {
 				continue;

@@ -1,7 +1,7 @@
-import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/descriptors";
 import VectorArea, {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
+import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
 
 type RingInput = [number, number][];
 
