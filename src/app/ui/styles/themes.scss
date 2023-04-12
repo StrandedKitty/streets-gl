@@ -3,7 +3,7 @@ $theme-map: null;
 $themes: (
 	light: (
 		panel-border-color: #ffffff,
-		panel-bg: rgb(255, 255, 255, 0.85),
+		panel-bg: rgb(255, 255, 255, 0.92),
 		text-color: #222,
 		text-color-opposite: #fff,
 		text-color-subtle: #6b6b6b,
@@ -26,7 +26,7 @@ $themes: (
 	),
 	dark: (
 		panel-border-color: #222,
-		panel-bg: rgb(30, 30, 30, 0.9),
+		panel-bg: rgb(30, 30, 30, 0.92),
 		text-color: #eee,
 		text-color-opposite: #111,
 		text-color-subtle: #6b6b6b,

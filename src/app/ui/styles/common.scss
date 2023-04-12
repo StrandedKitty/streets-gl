@@ -1,7 +1,7 @@
 @import "./themes.scss";
 
 %panel-bg {
-	backdrop-filter: blur(12px);
+	//backdrop-filter: blur(12px);
 }
 @include themify($themes) {
 	%panel-bg {
