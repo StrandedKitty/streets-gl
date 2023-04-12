@@ -26,9 +26,11 @@ export default class TileSystem extends System {
 		const tile = new Tile(x, y);
 		this.tiles.set(`${x},${y}`, tile);
 
-		this.claimHeightDataForTile(x, y, tile).then(() => {
+		this.claimHeightDataForTile(x, y, tile).then(async () => {
 			const tilePromise = this.systemManager.getSystem(TileLoadingSystem).getTileObjects(tile);
-			tile.load(tilePromise);
+			const instancedObjects = this.systemManager.getSystem(SceneSystem).objects.instancedObjects;
+			await tile.load(tilePromise);
+			tile.updateInstancesBoundingBoxes(instancedObjects);
 		});
 	}
 

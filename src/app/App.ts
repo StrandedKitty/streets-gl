@@ -10,7 +10,7 @@ import MapWorkerSystem from "./systems/MapWorkerSystem";
 import MapTimeSystem from "./systems/MapTimeSystem";
 import UISystem from "./systems/UISystem";
 import SceneSystem from './systems/SceneSystem';
-import ResourceManager, {ResourceJSON} from './world/ResourceManager';
+import ResourceLoader, {ResourceJSON} from './world/ResourceLoader';
 import resourcesList from '../resources/resources.json';
 import VehicleSystem from "./systems/VehicleSystem";
 import TerrainSystem from "./systems/TerrainSystem";
@@ -31,8 +31,8 @@ class App {
 		this.systemManager.addSystems(SettingsSystem);
 		this.systemManager.addSystems(UISystem);
 
-		ResourceManager.addFromJSON(resourcesList as ResourceJSON);
-		ResourceManager.load({
+		ResourceLoader.addFromJSON(resourcesList as ResourceJSON);
+		ResourceLoader.load({
 			onFileLoad: (loaded: number, total: number) => {
 				this.systemManager.getSystem(UISystem).setResourcesLoadingProgress(loaded / total);
 			},

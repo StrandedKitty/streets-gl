@@ -2,7 +2,7 @@ import Shaders from "../shaders/Shaders";
 import MaterialContainer from "./MaterialContainer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
-import ResourceManager from "../../world/ResourceManager";
+import ResourceLoader from "../../world/ResourceLoader";
 
 export default class TreeDepthMaterialContainer extends MaterialContainer {
 	public constructor(renderer: AbstractRenderer) {
@@ -31,20 +31,20 @@ export default class TreeDepthMaterialContainer extends MaterialContainer {
 						depth: 5 * 2,
 						anisotropy: 16,
 						data: [
-							ResourceManager.get('treeBeechDiffuse'),
-							ResourceManager.get('treeBeechNormal'),
+							ResourceLoader.get('treeBeechDiffuse'),
+							ResourceLoader.get('treeBeechNormal'),
 
-							ResourceManager.get('treeFirDiffuse'),
-							ResourceManager.get('treeFirNormal'),
+							ResourceLoader.get('treeFirDiffuse'),
+							ResourceLoader.get('treeFirNormal'),
 
-							ResourceManager.get('treeLinden0Diffuse'),
-							ResourceManager.get('treeLinden0Normal'),
+							ResourceLoader.get('treeLinden0Diffuse'),
+							ResourceLoader.get('treeLinden0Normal'),
 
-							ResourceManager.get('treeLinden1Diffuse'),
-							ResourceManager.get('treeLinden1Normal'),
+							ResourceLoader.get('treeLinden1Diffuse'),
+							ResourceLoader.get('treeLinden1Normal'),
 
-							ResourceManager.get('treeOakDiffuse'),
-							ResourceManager.get('treeOakNormal'),
+							ResourceLoader.get('treeOakDiffuse'),
+							ResourceLoader.get('treeOakNormal'),
 						],
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,
@@ -56,7 +56,7 @@ export default class TreeDepthMaterialContainer extends MaterialContainer {
 			],
 			primitive: {
 				frontFace: RendererTypes.FrontFace.CCW,
-				cullMode: RendererTypes.CullMode.None
+				cullMode: RendererTypes.CullMode.Back
 			},
 			depth: {
 				depthWrite: true,

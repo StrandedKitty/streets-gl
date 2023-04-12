@@ -1,7 +1,7 @@
 import Shaders from "../shaders/Shaders";
 import MaterialContainer from "./MaterialContainer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
-import ResourceManager from "../../world/ResourceManager";
+import ResourceLoader from "../../world/ResourceLoader";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 import Config from "../../Config";
 
@@ -32,61 +32,61 @@ export default class ProjectedMeshDepthMaterialContainer extends MaterialContain
 						depth: 14 * 3,
 						anisotropy: 16,
 						data: [
-							ResourceManager.get('pavementDiffuse'),
-							ResourceManager.get('commonNormal'),
-							ResourceManager.get('commonMask'),
+							ResourceLoader.get('pavementDiffuse'),
+							ResourceLoader.get('commonNormal'),
+							ResourceLoader.get('commonMask'),
 
-							ResourceManager.get('asphaltDiffuse'),
-							ResourceManager.get('commonNormal'),
-							ResourceManager.get('commonMask'),
+							ResourceLoader.get('asphaltDiffuse'),
+							ResourceLoader.get('commonNormal'),
+							ResourceLoader.get('commonMask'),
 
-							ResourceManager.get('cobblestoneDiffuse'),
-							ResourceManager.get('cobblestoneNormal'),
-							ResourceManager.get('commonMask'),
+							ResourceLoader.get('cobblestoneDiffuse'),
+							ResourceLoader.get('cobblestoneNormal'),
+							ResourceLoader.get('commonMask'),
 
-							ResourceManager.get('footballPitchDiffuse'),
-							ResourceManager.get('commonNormal'),
-							ResourceManager.get('commonMask'),
+							ResourceLoader.get('footballPitchDiffuse'),
+							ResourceLoader.get('commonNormal'),
+							ResourceLoader.get('commonMask'),
 
-							ResourceManager.get('basketballPitchDiffuse'),
-							ResourceManager.get('commonNormal'),
-							ResourceManager.get('commonMask'),
+							ResourceLoader.get('basketballPitchDiffuse'),
+							ResourceLoader.get('commonNormal'),
+							ResourceLoader.get('commonMask'),
 
-							ResourceManager.get('tennisPitchDiffuse'),
-							ResourceManager.get('tennisPitchNormal'),
-							ResourceManager.get('commonMask'),
+							ResourceLoader.get('tennisPitchDiffuse'),
+							ResourceLoader.get('tennisPitchNormal'),
+							ResourceLoader.get('commonMask'),
 
-							ResourceManager.get('manicuredGrassDiffuse'),
-							ResourceManager.get('commonNormal'),
-							ResourceManager.get('commonMask'),
+							ResourceLoader.get('manicuredGrassDiffuse'),
+							ResourceLoader.get('commonNormal'),
+							ResourceLoader.get('commonMask'),
 
-							ResourceManager.get('cyclewayDiffuse'),
-							ResourceManager.get('commonNormal'),
-							ResourceManager.get('commonMask'),
+							ResourceLoader.get('cyclewayDiffuse'),
+							ResourceLoader.get('commonNormal'),
+							ResourceLoader.get('commonMask'),
 
-							ResourceManager.get('railwayDiffuse'),
-							ResourceManager.get('railwayNormal'),
-							ResourceManager.get('commonMask'),
+							ResourceLoader.get('railwayDiffuse'),
+							ResourceLoader.get('railwayNormal'),
+							ResourceLoader.get('commonMask'),
 
-							ResourceManager.get('rockDiffuse'),
-							ResourceManager.get('rockNormal'),
-							ResourceManager.get('rockMask'),
+							ResourceLoader.get('rockDiffuse'),
+							ResourceLoader.get('rockNormal'),
+							ResourceLoader.get('rockMask'),
 
-							ResourceManager.get('sandDiffuse'),
-							ResourceManager.get('sandNormal'),
-							ResourceManager.get('sandMask'),
+							ResourceLoader.get('sandDiffuse'),
+							ResourceLoader.get('sandNormal'),
+							ResourceLoader.get('sandMask'),
 
-							ResourceManager.get('hedgeDiffuse'),
-							ResourceManager.get('hedgeNormal'),
-							ResourceManager.get('hedgeMask'),
+							ResourceLoader.get('hedgeDiffuse'),
+							ResourceLoader.get('hedgeNormal'),
+							ResourceLoader.get('hedgeMask'),
 
-							ResourceManager.get('woodFenceDiffuse'),
-							ResourceManager.get('woodFenceNormal'),
-							ResourceManager.get('woodFenceMask'),
+							ResourceLoader.get('woodFenceDiffuse'),
+							ResourceLoader.get('woodFenceNormal'),
+							ResourceLoader.get('woodFenceMask'),
 
-							ResourceManager.get('concreteFenceDiffuse'),
-							ResourceManager.get('concreteFenceNormal'),
-							ResourceManager.get('concreteFenceMask'),
+							ResourceLoader.get('concreteFenceDiffuse'),
+							ResourceLoader.get('concreteFenceNormal'),
+							ResourceLoader.get('concreteFenceMask'),
 						],
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,

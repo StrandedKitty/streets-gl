@@ -20,6 +20,11 @@ import Vec3 from "~/lib/math/Vec3";
 import SeededRandom from "~/lib/math/SeededRandom";
 import RoadGraph from "~/lib/road-graph/RoadGraph";
 import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
+import {
+	getTreeHeightRangeFromTextureId,
+	getTreeTextureIdFromType,
+	getTreeTextureScaling
+} from "~/lib/tile-processing/tile3d/utils";
 
 const TileSize = 611.4962158203125;
 
@@ -421,11 +426,14 @@ export default class VectorAreaHandler implements Handler {
 		const seed = Math.floor(x) + Math.floor(z);
 		const rnd = new SeededRandom(seed);
 
-		const height = 14 + rnd.generate() * 8;
 		const rotation = rnd.generate() * Math.PI * 2;
 
-		const textureIds = [0, 2, 3, 4];
-		const textureId = textureIds[Math.floor(rnd.generate() * textureIds.length)];
+		const textureIdList = getTreeTextureIdFromType('genericBroadleaved');
+		const textureId = textureIdList[Math.floor(rnd.generate() * textureIdList.length)];
+		const textureScale = getTreeTextureScaling(textureId);
+
+		const heightRange = getTreeHeightRangeFromTextureId(textureId);
+		const height = heightRange[0] + rnd.generate() * (heightRange[1] - heightRange[0]);
 
 		return {
 			type: 'instance',
@@ -433,7 +441,7 @@ export default class VectorAreaHandler implements Handler {
 			x: x,
 			y: y * this.mercatorScale,
 			z: z,
-			scale: height * this.mercatorScale,
+			scale: height * textureScale * this.mercatorScale,
 			rotation: rotation,
 			seed: rnd.generate(),
 			textureId: textureId

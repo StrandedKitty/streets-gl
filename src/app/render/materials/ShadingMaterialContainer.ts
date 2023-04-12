@@ -2,7 +2,7 @@ import Shaders from "../shaders/Shaders";
 import MaterialContainer from "./MaterialContainer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
-import ResourceManager from "../../world/ResourceManager";
+import ResourceLoader from "../../world/ResourceLoader";
 import Config from "../../Config";
 
 export default class ShadingMaterialContainer extends MaterialContainer {

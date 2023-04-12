@@ -91,7 +91,7 @@ export default class PolylineQualifierFactory extends AbstractQualifierFactory<V
 
 			if (descriptor.pathType === 'roadway') {
 				const cyclewayWidth = 2;
-				const sidewalkWidth = 3;
+				const sidewalkWidth = 2;
 
 				const sidewalkSide = getSidewalkSideFromTags(tags);
 				const cyclewaySide = getCyclewaySideFromTags(tags);
@@ -237,7 +237,7 @@ export default class PolylineQualifierFactory extends AbstractQualifierFactory<V
 					randomness: 1,
 					descriptor: {
 						type: 'tree',
-						height: parseHeight(tags.height, 15),
+						height: parseHeight(tags.height, undefined),
 						treeType: getTreeTypeFromTags(tags)
 					}
 				}

@@ -2,17 +2,17 @@ import RenderableObject3D from "./RenderableObject3D";
 import AbstractMesh from "~/lib/renderer/abstract-renderer/AbstractMesh";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
-import {InstanceBuffers} from "./InstancedGenericObject";
 import AbstractAttributeBuffer from "~/lib/renderer/abstract-renderer/AbstractAttributeBuffer";
+import {ModelSourceBuffers} from "~/app/objects/models/ModelManager";
 
 export default class InstancedAircraft extends RenderableObject3D {
 	public mesh: AbstractMesh = null;
 	private interleavedAttributeBuffer: AbstractAttributeBuffer = null;
-	private instanceBuffers: InstanceBuffers;
+	private instanceBuffers: ModelSourceBuffers;
 	private interleavedBuffer: Float32Array = new Float32Array(1);
 	private instanceCount: number = 0;
 
-	public constructor(instanceBuffers: InstanceBuffers) {
+	public constructor(instanceBuffers: ModelSourceBuffers) {
 		super();
 
 		this.instanceBuffers = instanceBuffers;

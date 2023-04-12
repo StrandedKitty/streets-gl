@@ -2,7 +2,7 @@ import Shaders from "../shaders/Shaders";
 import MaterialContainer from "./MaterialContainer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
-import ResourceManager from "../../world/ResourceManager";
+import ResourceLoader from "../../world/ResourceLoader";
 
 export default class SkyboxMaterialContainer extends MaterialContainer {
 	public constructor(renderer: AbstractRenderer) {
@@ -45,12 +45,12 @@ export default class SkyboxMaterialContainer extends MaterialContainer {
 						height: 1024,
 						anisotropy: 16,
 						data: [
-							ResourceManager.get('starmap0'),
-							ResourceManager.get('starmap1'),
-							ResourceManager.get('starmap2'),
-							ResourceManager.get('starmap3'),
-							ResourceManager.get('starmap4'),
-							ResourceManager.get('starmap5'),
+							ResourceLoader.get('starmap0'),
+							ResourceLoader.get('starmap1'),
+							ResourceLoader.get('starmap2'),
+							ResourceLoader.get('starmap3'),
+							ResourceLoader.get('starmap4'),
+							ResourceLoader.get('starmap5'),
 						],
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,

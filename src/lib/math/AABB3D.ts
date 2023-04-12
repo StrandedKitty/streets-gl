@@ -79,6 +79,13 @@ export default class AABB3D extends AABB<Vec3> {
 		return new AABB3D(Vec3.clone(this.min), Vec3.clone(this.max));
 	}
 
+	public move(offset: Vec3): AABB3D {
+		return new AABB3D(
+			Vec3.add(this.min, offset),
+			Vec3.add(this.max, offset),
+		);
+	}
+
 	public toSpace(matrix: Mat4): AABB3D {
 		const min = Vec3.applyMatrix4(this.min, matrix);
 		const max = Vec3.applyMatrix4(this.max, matrix);

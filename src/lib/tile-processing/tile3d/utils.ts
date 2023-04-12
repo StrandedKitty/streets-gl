@@ -1,6 +1,7 @@
 import MathUtils from "~/lib/math/MathUtils";
 import Tile3DExtrudedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DExtrudedGeometry";
 import Tile3DBuffers from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
+import {VectorNodeDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
 
 export function applyMercatorFactorToExtrudedFeatures(extruded: Tile3DExtrudedGeometry[], x: number, y: number, zoom: number): void {
 	const scale = MathUtils.getMercatorScaleFactorForTile(x, y, zoom);
@@ -63,4 +64,41 @@ export function getTile3DBuffersTransferables(buffers: Tile3DBuffers): Transfera
 	}
 
 	return transferables;
+}
+
+export function getTreeTextureIdFromType(type: VectorNodeDescriptor['treeType']): number[] {
+	const lookup: Record<VectorNodeDescriptor['treeType'], number[]> = {
+		beech: [0],
+		fir: [1],
+		linden: [2, 3],
+		oak: [4],
+		genericBroadleaved: [0, 2, 3, 4],
+		genericNeedleleaved: [1]
+	};
+
+	return lookup[type] ?? lookup.genericBroadleaved;
+}
+
+export function getTreeHeightRangeFromTextureId(textureId: number): [number, number] {
+	const lookup: Record<number, [number, number]> = {
+		0: [14, 18],
+		1: [25, 35],
+		2: [14, 18],
+		3: [14, 18],
+		4: [12, 15]
+	};
+
+	return lookup[textureId];
+}
+
+export function getTreeTextureScaling(textureId: number): number {
+	const lookup: Record<number, number> = {
+		0: 1.35,
+		1: 1.06,
+		2: 1.19,
+		3: 1.02,
+		4: 1.43
+	};
+
+	return lookup[textureId];
 }

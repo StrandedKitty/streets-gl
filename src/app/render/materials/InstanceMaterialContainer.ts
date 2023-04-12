@@ -2,7 +2,7 @@ import Shaders from "../shaders/Shaders";
 import MaterialContainer from "./MaterialContainer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
-import ResourceManager from "../../world/ResourceManager";
+import ResourceLoader from "../../world/ResourceLoader";
 
 export default class InstanceMaterialContainer extends MaterialContainer {
 	public constructor(renderer: AbstractRenderer) {
@@ -46,41 +46,41 @@ export default class InstanceMaterialContainer extends MaterialContainer {
 						depth: 12 * 2,
 						anisotropy: 16,
 						data: [
-							ResourceManager.get('adColumnDiffuse'),
-							ResourceManager.get('adColumnNormal'),
+							ResourceLoader.get('adColumnDiffuse'),
+							ResourceLoader.get('adColumnNormal'),
 
-							ResourceManager.get('transmissionTowerDiffuse'),
-							ResourceManager.get('transmissionTowerNormal'),
+							ResourceLoader.get('transmissionTowerDiffuse'),
+							ResourceLoader.get('transmissionTowerNormal'),
 
-							ResourceManager.get('hydrantDiffuse'),
-							ResourceManager.get('hydrantNormal'),
+							ResourceLoader.get('hydrantDiffuse'),
+							ResourceLoader.get('hydrantNormal'),
 
-							ResourceManager.get('trackedCraneDiffuse'),
-							ResourceManager.get('trackedCraneNormal'),
+							ResourceLoader.get('trackedCraneDiffuse'),
+							ResourceLoader.get('trackedCraneNormal'),
 
-							ResourceManager.get('towerCraneDiffuse'),
-							ResourceManager.get('towerCraneNormal'),
+							ResourceLoader.get('towerCraneDiffuse'),
+							ResourceLoader.get('towerCraneNormal'),
 
-							ResourceManager.get('benchDiffuse'),
-							ResourceManager.get('benchNormal'),
+							ResourceLoader.get('benchDiffuse'),
+							ResourceLoader.get('benchNormal'),
 
-							ResourceManager.get('picnicTableDiffuse'),
-							ResourceManager.get('picnicTableNormal'),
+							ResourceLoader.get('picnicTableDiffuse'),
+							ResourceLoader.get('picnicTableNormal'),
 
-							ResourceManager.get('busStopDiffuse'),
-							ResourceManager.get('busStopNormal'),
+							ResourceLoader.get('busStopDiffuse'),
+							ResourceLoader.get('busStopNormal'),
 
-							ResourceManager.get('windTurbineDiffuse'),
-							ResourceManager.get('windTurbineNormal'),
+							ResourceLoader.get('windTurbineDiffuse'),
+							ResourceLoader.get('windTurbineNormal'),
 
-							ResourceManager.get('memorialDiffuse'),
-							ResourceManager.get('memorialNormal'),
+							ResourceLoader.get('memorialDiffuse'),
+							ResourceLoader.get('memorialNormal'),
 
-							ResourceManager.get('statue0Diffuse'),
-							ResourceManager.get('statue0Normal'),
+							ResourceLoader.get('statue0Diffuse'),
+							ResourceLoader.get('statue0Normal'),
 
-							ResourceManager.get('shrubberyDiffuse'),
-							ResourceManager.get('shrubberyNormal'),
+							ResourceLoader.get('shrubberyDiffuse'),
+							ResourceLoader.get('shrubberyNormal'),
 						],
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,

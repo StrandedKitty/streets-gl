@@ -3,23 +3,17 @@ import AbstractMesh from "~/lib/renderer/abstract-renderer/AbstractMesh";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import AbstractAttributeBuffer from "~/lib/renderer/abstract-renderer/AbstractAttributeBuffer";
-
-export interface InstanceBuffers {
-	position: Float32Array;
-	normal: Float32Array;
-	uv: Float32Array;
-	indices: Uint32Array;
-}
+import {ModelSourceBuffers} from "~/app/objects/models/ModelManager";
 
 export default class InstancedGenericObject extends RenderableObject3D {
 	private static readonly FloatsPerInstance: number = 5;
 	public mesh: AbstractMesh = null;
 	private interleavedAttributeBuffer: AbstractAttributeBuffer = null;
-	private instanceBuffers: InstanceBuffers;
+	private instanceBuffers: ModelSourceBuffers;
 	private interleavedBuffer: Float32Array = new Float32Array(1);
 	private instanceCount: number = 0;
 
-	public constructor(instanceBuffers: InstanceBuffers) {
+	public constructor(instanceBuffers: ModelSourceBuffers) {
 		super();
 
 		this.instanceBuffers = instanceBuffers;

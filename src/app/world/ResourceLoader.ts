@@ -14,7 +14,7 @@ export interface ResourceRequest {
 	type: ResourceType;
 }
 
-export default new class ResourceManager {
+export default new class ResourceLoader {
 	private resources: Map<string, any> = new Map();
 	private requests: Map<string, ResourceRequest> = new Map();
 
@@ -24,7 +24,7 @@ export default new class ResourceManager {
 
 	public addFromJSON(resources: ResourceJSON): void {
 		for (const [name, record] of Object.entries(resources)) {
-			const type = ResourceManager.getResourceTypeFromString(record.type);
+			const type = ResourceLoader.getResourceTypeFromString(record.type);
 
 			this.add(name, record.url, type);
 		}

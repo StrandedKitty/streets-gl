@@ -2,7 +2,7 @@ import Shaders from "../shaders/Shaders";
 import MaterialContainer from "./MaterialContainer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
-import ResourceManager from "../../world/ResourceManager";
+import ResourceLoader from "../../world/ResourceLoader";
 
 export default class TextLabelMaterialContainer extends MaterialContainer {
 	public constructor(renderer: AbstractRenderer) {
@@ -37,7 +37,7 @@ export default class TextLabelMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Texture2D,
 					value: this.renderer.createTexture2D({
 						anisotropy: 16,
-						data: ResourceManager.get('fontSDF'),
+						data: ResourceLoader.get('fontSDF'),
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,
 						wrap: RendererTypes.TextureWrap.ClampToEdge,

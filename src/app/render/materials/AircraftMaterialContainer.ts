@@ -2,7 +2,7 @@ import Shaders from "../shaders/Shaders";
 import MaterialContainer from "./MaterialContainer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
-import ResourceManager from "../../world/ResourceManager";
+import ResourceLoader from "../../world/ResourceLoader";
 
 export default class AircraftMaterialContainer extends MaterialContainer {
 	public constructor(renderer: AbstractRenderer) {
@@ -46,10 +46,10 @@ export default class AircraftMaterialContainer extends MaterialContainer {
 						depth: 4,
 						anisotropy: 16,
 						data: [
-							ResourceManager.get('aircraftB777Diffuse'),
-							ResourceManager.get('aircraftA321Diffuse'),
-							ResourceManager.get('aircraftCessna208Diffuse'),
-							ResourceManager.get('aircraftERJ135Diffuse')
+							ResourceLoader.get('aircraftB777Diffuse'),
+							ResourceLoader.get('aircraftA321Diffuse'),
+							ResourceLoader.get('aircraftCessna208Diffuse'),
+							ResourceLoader.get('aircraftERJ135Diffuse')
 						],
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,
@@ -67,10 +67,10 @@ export default class AircraftMaterialContainer extends MaterialContainer {
 						depth: 4,
 						anisotropy: 16,
 						data: [
-							ResourceManager.get('aircraftB777Normal'),
-							ResourceManager.get('aircraftA321Normal'),
-							ResourceManager.get('aircraftCessna208Normal'),
-							ResourceManager.get('aircraftERJ135Normal')
+							ResourceLoader.get('aircraftB777Normal'),
+							ResourceLoader.get('aircraftA321Normal'),
+							ResourceLoader.get('aircraftCessna208Normal'),
+							ResourceLoader.get('aircraftERJ135Normal')
 						],
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,

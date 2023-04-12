@@ -18,6 +18,8 @@ import {
 	Tile3DInstanceLODConfig,
 	Tile3DInstanceType
 } from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
+import InstancedTree from "~/app/objects/InstancedTree";
+import InstancedGenericObject from "./InstancedGenericObject";
 
 // position.xyz, scale, rotation
 export type InstanceBufferInterleaved = Float32Array;
@@ -29,6 +31,8 @@ export type TileInstanceBuffers = Map<Tile3DInstanceType, {
 	transformedLOD1: InstanceBufferInterleaved;
 	transformOriginLOD0: Vec2;
 	transformOriginLOD1: Vec2;
+	boundingBoxLOD0: AABB3D;
+	boundingBoxLOD1: AABB3D;
 }>;
 
 export default class Tile extends Object3D {
@@ -79,7 +83,9 @@ export default class Tile extends Object3D {
 		this.updateMatrix();
 	}
 
-	public async load(buffersPromise: Promise<Tile3DBuffers>): Promise<void> {
+	public async load(
+		buffersPromise: Promise<Tile3DBuffers>
+	): Promise<void> {
 		return buffersPromise.then((buffers: Tile3DBuffers) => {
 			this.updateExtrudedGeometryOffsets(buffers.extruded);
 
@@ -94,16 +100,77 @@ export default class Tile extends Object3D {
 				const LOD0 = instanceBuffers.interleavedBufferLOD0;
 				const LOD1 = instanceBuffers.interleavedBufferLOD1;
 
+				const config = Tile3DInstanceLODConfig[key as Tile3DInstanceType];
+				const schema = InstanceStructureSchemas[config.structure];
+
+				const boundingBoxLOD0 = new AABB3D();
+				for (let i = 0; i < LOD0.length; i += schema.componentsPerInstance) {
+					boundingBoxLOD0.includePoint(new Vec3(LOD0[i], LOD0[i + 1], LOD0[i + 2]));
+				}
+
+				const boundingBoxLOD1 = new AABB3D();
+				for (let i = 0; i < LOD1.length; i += schema.componentsPerInstance) {
+					boundingBoxLOD1.includePoint(new Vec3(LOD1[i], LOD1[i + 1], LOD1[i + 2]));
+				}
+
+				const object =
+
 				this.instanceBuffers.set(key as Tile3DInstanceType, {
 					rawLOD0: LOD0,
 					rawLOD1: LOD1,
 					transformedLOD0: new Float32Array(LOD0),
 					transformedLOD1: new Float32Array(LOD1),
 					transformOriginLOD0: new Vec2(NaN, NaN),
-					transformOriginLOD1: new Vec2(NaN, NaN)
+					transformOriginLOD1: new Vec2(NaN, NaN),
+					boundingBoxLOD0: boundingBoxLOD0,
+					boundingBoxLOD1: boundingBoxLOD1
 				});
 			}
 		});
+	}
+
+	public updateInstancesBoundingBoxes(instancedObjects: Map<string, InstancedGenericObject | InstancedTree>): void {
+		for (const [key, buffers] of this.instanceBuffers) {
+			const config = Tile3DInstanceLODConfig[key];
+			const schema = InstanceStructureSchemas[config.structure];
+			const instanceBoundingBox = instancedObjects.get(key).boundingBox;
+
+			buffers.boundingBoxLOD0 = this.getCombinedInstancesBoundingBox(
+				buffers.rawLOD0, schema.componentsPerInstance, instanceBoundingBox
+			);
+			buffers.boundingBoxLOD1 = this.getCombinedInstancesBoundingBox(
+				buffers.rawLOD1, schema.componentsPerInstance, instanceBoundingBox
+			);
+		}
+	}
+
+	private getCombinedInstancesBoundingBox(
+		buffer: Float32Array,
+		componentsPerInstance: number,
+		instanceBoundingBox: AABB3D
+	): AABB3D {
+		const boundingBox = new AABB3D();
+
+		for (let i = 0; i < buffer.length; i += componentsPerInstance) {
+			const offset = new Vec3(buffer[i], buffer[i + 1], buffer[i + 2]);
+			const moved = instanceBoundingBox.move(offset);
+
+			boundingBox.includeAABB(moved);
+		}
+
+		return boundingBox;
+	}
+
+	public getInstancesBoundingBox(instanceName: Tile3DInstanceType, lod: number): AABB3D {
+		const buffers = this.instanceBuffers.get(instanceName);
+
+		if (!buffers) {
+			return null;
+		}
+
+		const lodKey = lod === 0 ? 'LOD0' : 'LOD1';
+
+		return buffers[`boundingBox${lodKey}`];
 	}
 
 	public getInstanceBufferWithTransform(instanceName: Tile3DInstanceType, lod: number, origin: Vec2): InstanceBufferInterleaved {

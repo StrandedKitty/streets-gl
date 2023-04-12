@@ -401,7 +401,16 @@ export default class GBufferPass extends Pass<{
 			const config = Tile3DInstanceLODConfig[name as Tile3DInstanceType];
 
 			for (const tile of tiles) {
-				if (tile.distanceToCamera < config.LOD0MaxDistance) {
+				const bbox0 = tile.getInstancesBoundingBox(name as Tile3DInstanceType, 0);
+
+				if (!bbox0) {
+					continue;
+				}
+
+				if (
+					camera.isFrustumIntersectsBoundingBox(bbox0.toSpace(tile.matrixWorld)) &&
+					tile.distanceToCamera < config.LOD0MaxDistance
+				) {
 					const tileBuffer = tile.getInstanceBufferWithTransform(name as Tile3DInstanceType, 0, instancesOrigin);
 
 					if (tileBuffer) {
@@ -411,7 +420,12 @@ export default class GBufferPass extends Pass<{
 					continue;
 				}
 
-				if (tile.distanceToCamera < config.LOD1MaxDistance) {
+				const bbox1 = tile.getInstancesBoundingBox(name as Tile3DInstanceType, 1);
+
+				if (
+					camera.isFrustumIntersectsBoundingBox(bbox1.toSpace(tile.matrixWorld)) &&
+					tile.distanceToCamera < config.LOD1MaxDistance
+				) {
 					const tileBuffer = tile.getInstanceBufferWithTransform(name as Tile3DInstanceType, 1, instancesOrigin);
 
 					if (tileBuffer) {

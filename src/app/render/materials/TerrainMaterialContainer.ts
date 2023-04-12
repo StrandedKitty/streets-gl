@@ -2,7 +2,7 @@ import Shaders from "../shaders/Shaders";
 import MaterialContainer from "./MaterialContainer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
-import ResourceManager from "../../world/ResourceManager";
+import ResourceLoader from "../../world/ResourceLoader";
 import Config from "../../Config";
 
 export default class TerrainMaterialContainer extends MaterialContainer {
@@ -113,7 +113,7 @@ export default class TerrainMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Texture2D,
 					value: this.renderer.createTexture2D({
 						anisotropy: 16,
-						data: ResourceManager.get('genericTerrainColor'),
+						data: ResourceLoader.get('genericTerrainColor'),
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,
 						wrap: RendererTypes.TextureWrap.Repeat,
@@ -126,7 +126,7 @@ export default class TerrainMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Texture2D,
 					value: this.renderer.createTexture2D({
 						anisotropy: 16,
-						data: ResourceManager.get('genericTerrainNormal'),
+						data: ResourceLoader.get('genericTerrainNormal'),
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,
 						wrap: RendererTypes.TextureWrap.Repeat,
@@ -139,7 +139,7 @@ export default class TerrainMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Texture2D,
 					value: this.renderer.createTexture2D({
 						anisotropy: 16,
-						data: ResourceManager.get('grassNoise'),
+						data: ResourceLoader.get('grassNoise'),
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,
 						wrap: RendererTypes.TextureWrap.Repeat,
@@ -152,7 +152,7 @@ export default class TerrainMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Texture2D,
 					value: this.renderer.createTexture2D({
 						anisotropy: 16,
-						data: ResourceManager.get('waterNormal'),
+						data: ResourceLoader.get('waterNormal'),
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,
 						wrap: RendererTypes.TextureWrap.Repeat,
@@ -165,7 +165,7 @@ export default class TerrainMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Texture2D,
 					value: this.renderer.createTexture2D({
 						anisotropy: 16,
-						data: ResourceManager.get('biomeMap'),
+						data: ResourceLoader.get('biomeMap'),
 						minFilter: RendererTypes.MinFilter.Linear,
 						magFilter: RendererTypes.MagFilter.Linear,
 						wrap: RendererTypes.TextureWrap.Repeat,

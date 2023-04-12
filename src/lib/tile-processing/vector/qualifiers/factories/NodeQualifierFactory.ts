@@ -17,7 +17,7 @@ export default class NodeQualifierFactory extends AbstractQualifierFactory<Vecto
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'tree',
-					height: parseHeight(tags.height, 15),
+					height: parseHeight(tags.height, undefined),
 					treeType: getTreeTypeFromTags(tags)
 				}
 			}];

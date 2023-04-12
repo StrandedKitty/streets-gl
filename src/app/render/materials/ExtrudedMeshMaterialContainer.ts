@@ -1,7 +1,7 @@
 import Shaders from "../shaders/Shaders";
 import MaterialContainer from "./MaterialContainer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
-import ResourceManager from "../../world/ResourceManager";
+import ResourceLoader from "../../world/ResourceLoader";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 
 export default class ExtrudedMeshMaterialContainer extends MaterialContainer {
@@ -41,57 +41,57 @@ export default class ExtrudedMeshMaterialContainer extends MaterialContainer {
 						depth: 13 * 3,
 						anisotropy: 16,
 						data: [
-							ResourceManager.get('roofGeneric1Diffuse'),
-							ResourceManager.get('roofGeneric1Normal'),
-							ResourceManager.get('roofCommonMask'),
+							ResourceLoader.get('roofGeneric1Diffuse'),
+							ResourceLoader.get('roofGeneric1Normal'),
+							ResourceLoader.get('roofCommonMask'),
 
-							ResourceManager.get('roofGeneric2Diffuse'),
-							ResourceManager.get('roofGeneric2Normal'),
-							ResourceManager.get('roofCommonMask'),
+							ResourceLoader.get('roofGeneric2Diffuse'),
+							ResourceLoader.get('roofGeneric2Normal'),
+							ResourceLoader.get('roofCommonMask'),
 
-							ResourceManager.get('roofGeneric3Diffuse'),
-							ResourceManager.get('roofGeneric3Normal'),
-							ResourceManager.get('roofCommonMask'),
+							ResourceLoader.get('roofGeneric3Diffuse'),
+							ResourceLoader.get('roofGeneric3Normal'),
+							ResourceLoader.get('roofCommonMask'),
 
-							ResourceManager.get('roofGeneric4Diffuse'),
-							ResourceManager.get('roofGeneric4Normal'),
-							ResourceManager.get('roofCommonMask'),
+							ResourceLoader.get('roofGeneric4Diffuse'),
+							ResourceLoader.get('roofGeneric4Normal'),
+							ResourceLoader.get('roofCommonMask'),
 
-							ResourceManager.get('roofTilesDiffuse'),
-							ResourceManager.get('roofTilesNormal'),
-							ResourceManager.get('roofTilesMask'),
+							ResourceLoader.get('roofTilesDiffuse'),
+							ResourceLoader.get('roofTilesNormal'),
+							ResourceLoader.get('roofTilesMask'),
 
-							ResourceManager.get('roofMetalDiffuse'),
-							ResourceManager.get('roofMetalNormal'),
-							ResourceManager.get('roofMetalMask'),
+							ResourceLoader.get('roofMetalDiffuse'),
+							ResourceLoader.get('roofMetalNormal'),
+							ResourceLoader.get('roofMetalMask'),
 
-							ResourceManager.get('roofConcreteDiffuse'),
-							ResourceManager.get('roofConcreteNormal'),
-							ResourceManager.get('roofConcreteMask'),
+							ResourceLoader.get('roofConcreteDiffuse'),
+							ResourceLoader.get('roofConcreteNormal'),
+							ResourceLoader.get('roofConcreteMask'),
 
-							ResourceManager.get('roofThatchDiffuse'),
-							ResourceManager.get('roofThatchNormal'),
-							ResourceManager.get('roofThatchMask'),
+							ResourceLoader.get('roofThatchDiffuse'),
+							ResourceLoader.get('roofThatchNormal'),
+							ResourceLoader.get('roofThatchMask'),
 
-							ResourceManager.get('roofEternitDiffuse'),
-							ResourceManager.get('roofEternitNormal'),
-							ResourceManager.get('roofEternitMask'),
+							ResourceLoader.get('roofEternitDiffuse'),
+							ResourceLoader.get('roofEternitNormal'),
+							ResourceLoader.get('roofEternitMask'),
 
-							ResourceManager.get('roofGrassDiffuse'),
-							ResourceManager.get('roofGrassNormal'),
-							ResourceManager.get('roofGrassMask'),
+							ResourceLoader.get('roofGrassDiffuse'),
+							ResourceLoader.get('roofGrassNormal'),
+							ResourceLoader.get('roofGrassMask'),
 
-							ResourceManager.get('roofGlassDiffuse'),
-							ResourceManager.get('roofGlassNormal'),
-							ResourceManager.get('roofGlassMask'),
+							ResourceLoader.get('roofGlassDiffuse'),
+							ResourceLoader.get('roofGlassNormal'),
+							ResourceLoader.get('roofGlassMask'),
 
-							ResourceManager.get('roofTarDiffuse'),
-							ResourceManager.get('roofTarNormal'),
-							ResourceManager.get('roofTarMask'),
+							ResourceLoader.get('roofTarDiffuse'),
+							ResourceLoader.get('roofTarNormal'),
+							ResourceLoader.get('roofTarMask'),
 
-							ResourceManager.get('facadePlaceholderDiffuse'),
-							ResourceManager.get('facadePlaceholderNormal'),
-							ResourceManager.get('facadePlaceholderMask')
+							ResourceLoader.get('facadePlaceholderDiffuse'),
+							ResourceLoader.get('facadePlaceholderNormal'),
+							ResourceLoader.get('facadePlaceholderMask')
 						],
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,

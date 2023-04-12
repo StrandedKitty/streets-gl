@@ -6,6 +6,11 @@ import SeededRandom from "~/lib/math/SeededRandom";
 import RoadGraph from "~/lib/road-graph/RoadGraph";
 import Vec2 from "~/lib/math/Vec2";
 import {VectorNodeDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
+import {
+	getTreeHeightRangeFromTextureId,
+	getTreeTextureIdFromType,
+	getTreeTextureScaling
+} from "~/lib/tile-processing/tile3d/utils";
 
 const TileSize = 611.4962158203125;
 
@@ -157,7 +162,7 @@ export default class VectorNodeHandler implements Handler {
 
 	private getTreeInstanceFeature(
 		{
-			height = 1,
+			height,
 		}: {
 			height?: number;
 		}
@@ -165,17 +170,14 @@ export default class VectorNodeHandler implements Handler {
 		const rnd = new SeededRandom(Math.floor(this.x + this.y));
 		const rotationAngle = rnd.generate() * Math.PI * 2;
 
-		const textureIdMap: Record<VectorNodeDescriptor['treeType'], number[]> = {
-			beech: [0],
-			fir: [1],
-			linden: [2, 3],
-			oak: [4],
-			genericBroadleaved: [0, 2, 3, 4],
-			genericNeedleleaved: [1]
-		};
-
-		const textureIdList = textureIdMap[this.descriptor.treeType] ?? textureIdMap.genericBroadleaved;
+		const textureIdList = getTreeTextureIdFromType(this.descriptor.treeType);
 		const textureId = textureIdList[Math.floor(rnd.generate() * textureIdList.length)];
+		const textureScale = getTreeTextureScaling(textureId);
+
+		if (height === undefined) {
+			const range = getTreeHeightRangeFromTextureId(textureId);
+			height = range[0] + rnd.generate() * (range[1] - range[0]);
+		}
 
 		return {
 			type: 'instance',
@@ -183,7 +185,7 @@ export default class VectorNodeHandler implements Handler {
 			x: this.x,
 			y: this.terrainHeight,
 			z: this.y,
-			scale: height * this.mercatorScale,
+			scale: height * textureScale * this.mercatorScale,
 			rotation: rotationAngle,
 			textureId: textureId,
 			seed: rnd.generate()

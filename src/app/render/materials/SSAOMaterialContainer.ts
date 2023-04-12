@@ -2,7 +2,7 @@ import Shaders from "../shaders/Shaders";
 import MaterialContainer from "./MaterialContainer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
-import ResourceManager from "../../world/ResourceManager";
+import ResourceLoader from "../../world/ResourceLoader";
 
 export default class SSAOMaterialContainer extends MaterialContainer {
 	public constructor(renderer: AbstractRenderer) {
@@ -26,7 +26,7 @@ export default class SSAOMaterialContainer extends MaterialContainer {
 					block: null,
 					type: RendererTypes.UniformType.Texture2D,
 					value: this.renderer.createTexture2D({
-						data: ResourceManager.get('blue_noise_rgba'),
+						data: ResourceLoader.get('blue_noise_rgba'),
 						mipmaps: false,
 						minFilter: RendererTypes.MinFilter.Nearest,
 						magFilter: RendererTypes.MagFilter.Nearest,
