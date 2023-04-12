@@ -20,6 +20,8 @@ import WebGL2RenderPass from "~/lib/renderer/webgl2-renderer/WebGL2RenderPass";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import {AbstractTexture3DParams} from "~/lib/renderer/abstract-renderer/AbstractTexture3D";
 import WebGL2Texture3D from "~/lib/renderer/webgl2-renderer/WebGL2Texture3D";
+import {AbstractAttributeBufferParams} from "~/lib/renderer/abstract-renderer/AbstractAttributeBuffer";
+import WebGL2AttributeBuffer from "~/lib/renderer/webgl2-renderer/WebGL2AttributeBuffer";
 
 export default class WebGL2Renderer implements AbstractRenderer {
 	public gl: WebGL2RenderingContext;
@@ -106,6 +108,10 @@ export default class WebGL2Renderer implements AbstractRenderer {
 
 	public createAttribute(params: AbstractAttributeParams): WebGL2Attribute {
 		return new WebGL2Attribute(this, params);
+	}
+
+	public createAttributeBuffer(params: AbstractAttributeBufferParams = {}): WebGL2AttributeBuffer {
+		return new WebGL2AttributeBuffer(this, params);
 	}
 
 	public createMesh(params: AbstractMeshParams): WebGL2Mesh {

@@ -3,10 +3,12 @@ import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import WebGL2Renderer from "~/lib/renderer/webgl2-renderer/WebGL2Renderer";
 import WebGL2Constants from "~/lib/renderer/webgl2-renderer/WebGL2Constants";
 import WebGL2Program from "./WebGL2Program";
+import WebGL2AttributeBuffer from "~/lib/renderer/webgl2-renderer/WebGL2AttributeBuffer";
 
 export default class WebGL2Attribute implements AbstractAttribute {
-	private renderer: WebGL2Renderer;
-	private gl: WebGL2RenderingContext;
+	private readonly renderer: WebGL2Renderer;
+	private readonly gl: WebGL2RenderingContext;
+	public readonly buffer: WebGL2AttributeBuffer;
 	public divisor: number;
 	public instanced: boolean;
 	public name: string;
@@ -16,9 +18,6 @@ export default class WebGL2Attribute implements AbstractAttribute {
 	public offset: number;
 	public type: RendererTypes.AttributeType;
 	public format: RendererTypes.AttributeFormat;
-	public usage: RendererTypes.BufferUsage;
-	public data: TypedArray;
-	private buffer: WebGLBuffer;
 
 	public constructor(
 		renderer: WebGL2Renderer,
@@ -27,13 +26,12 @@ export default class WebGL2Attribute implements AbstractAttribute {
 			size,
 			type,
 			format,
-			usage = RendererTypes.BufferUsage.StaticDraw,
 			normalized,
 			instanced = false,
 			divisor = 1,
 			stride = 0,
 			offset = 0,
-			data = null
+			buffer
 		}: AbstractAttributeParams
 	) {
 		this.renderer = renderer;
@@ -42,28 +40,19 @@ export default class WebGL2Attribute implements AbstractAttribute {
 		this.size = size;
 		this.type = type;
 		this.format = format;
-		this.usage = usage;
 		this.normalized = normalized;
 		this.instanced = instanced;
 		this.divisor = divisor;
 		this.offset = offset;
 		this.stride = stride;
-		this.data = data;
-
-		this.createBuffer();
-	}
-
-	private createBuffer(): void {
-		this.buffer = this.gl.createBuffer();
-
-		this.setData(this.data);
+		this.buffer = buffer as WebGL2AttributeBuffer;
 	}
 
 	public locate(program: WebGL2Program): void {
 		const location = this.gl.getAttribLocation(program.WebGLProgram, this.name);
 
 		if (location !== -1) {
-			this.gl.bindBuffer(WebGL2Constants.ARRAY_BUFFER, this.buffer);
+			this.buffer.bind();
 
 			const typeConstant = WebGL2Attribute.convertTypeToWebGLConstant(this.type);
 			this.gl.enableVertexAttribArray(location);
@@ -83,45 +72,12 @@ export default class WebGL2Attribute implements AbstractAttribute {
 
 			this.gl.enableVertexAttribArray(location);
 
-			this.gl.bindBuffer(WebGL2Constants.ARRAY_BUFFER, null);
+			this.buffer.unbind();
 		}
-	}
-
-	public setData(data: TypedArray): void {
-		this.data = data;
-
-		const usage = WebGL2Attribute.convertUsageToWebGLConstant(this.usage);
-
-		this.renderer.gl.bindBuffer(WebGL2Constants.ARRAY_BUFFER, this.buffer);
-		this.renderer.gl.bufferData(WebGL2Constants.ARRAY_BUFFER, data, usage);
-		this.renderer.gl.bindBuffer(WebGL2Constants.ARRAY_BUFFER, null);
 	}
 
 	public delete(): void {
-		this.gl.deleteBuffer(this.buffer);
-	}
 
-	public static convertUsageToWebGLConstant(usage: RendererTypes.BufferUsage): number {
-		switch (usage) {
-			case RendererTypes.BufferUsage.StaticDraw:
-				return WebGL2Constants.STATIC_DRAW;
-			case RendererTypes.BufferUsage.DynamicDraw:
-				return WebGL2Constants.DYNAMIC_DRAW;
-			case RendererTypes.BufferUsage.StreamDraw:
-				return WebGL2Constants.STREAM_DRAW;
-			case RendererTypes.BufferUsage.StaticRead:
-				return WebGL2Constants.STATIC_READ;
-			case RendererTypes.BufferUsage.DynamicRead:
-				return WebGL2Constants.DYNAMIC_READ;
-			case RendererTypes.BufferUsage.StreamRead:
-				return WebGL2Constants.STREAM_READ;
-			case RendererTypes.BufferUsage.StaticCopy:
-				return WebGL2Constants.STATIC_COPY;
-			case RendererTypes.BufferUsage.DynamicCopy:
-				return WebGL2Constants.DYNAMIC_COPY;
-			case RendererTypes.BufferUsage.StreamCopy:
-				return WebGL2Constants.STREAM_COPY;
-		}
 	}
 
 	public static convertTypeToWebGLConstant(type: RendererTypes.AttributeType): number {

@@ -44,7 +44,9 @@ export default class TileExtrudedMesh extends RenderableObject3D {
 						type: RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
-						data: this.buffers.positionBuffer
+						buffer: renderer.createAttributeBuffer({
+							data: this.buffers.positionBuffer
+						})
 					}),
 					renderer.createAttribute({
 						name: 'normal',
@@ -52,7 +54,9 @@ export default class TileExtrudedMesh extends RenderableObject3D {
 						type: RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
-						data: this.buffers.normalBuffer
+						buffer: renderer.createAttributeBuffer({
+							data: this.buffers.normalBuffer
+						})
 					}),
 					renderer.createAttribute({
 						name: 'color',
@@ -60,7 +64,9 @@ export default class TileExtrudedMesh extends RenderableObject3D {
 						type: RendererTypes.AttributeType.UnsignedByte,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: true,
-						data: this.buffers.colorBuffer
+						buffer: renderer.createAttributeBuffer({
+							data: this.buffers.colorBuffer
+						})
 					}),
 					renderer.createAttribute({
 						name: 'uv',
@@ -68,7 +74,9 @@ export default class TileExtrudedMesh extends RenderableObject3D {
 						type: RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
-						data: this.buffers.uvBuffer
+						buffer: renderer.createAttributeBuffer({
+							data: this.buffers.uvBuffer
+						})
 					}),
 					renderer.createAttribute({
 						name: 'textureId',
@@ -76,7 +84,9 @@ export default class TileExtrudedMesh extends RenderableObject3D {
 						type: RendererTypes.AttributeType.UnsignedByte,
 						format: RendererTypes.AttributeFormat.Integer,
 						normalized: false,
-						data: this.buffers.textureIdBuffer
+						buffer: renderer.createAttributeBuffer({
+							data: this.buffers.textureIdBuffer
+						})
 					}),
 					renderer.createAttribute({
 						name: 'localId',
@@ -84,7 +94,9 @@ export default class TileExtrudedMesh extends RenderableObject3D {
 						type: RendererTypes.AttributeType.UnsignedInt,
 						format: RendererTypes.AttributeFormat.Integer,
 						normalized: false,
-						data: this.buffers.localIdBuffer
+						buffer: renderer.createAttributeBuffer({
+							data: this.buffers.localIdBuffer
+						})
 					}),
 					renderer.createAttribute({
 						name: 'display',
@@ -92,21 +104,23 @@ export default class TileExtrudedMesh extends RenderableObject3D {
 						type: RendererTypes.AttributeType.UnsignedByte,
 						format: RendererTypes.AttributeFormat.Integer,
 						normalized: false,
-						data: new Uint8Array(this.buffers.localIdBuffer.length)
+						buffer: renderer.createAttributeBuffer({
+							data: new Uint8Array(this.buffers.localIdBuffer.length)
+						})
 					})
 				]
 			});
 		}
 
 		for (const {start, size, value} of this.meshDisplayBufferPatches) {
-			const attribute = this.mesh.getAttribute('display');
-			const buffer = attribute.data;
+			const buffer = this.mesh.getAttribute('display').buffer;
+			const data = buffer.data;
 
 			for (let i = start; i < start + size; i++) {
-				buffer[i] = value;
+				data[i] = value;
 			}
 
-			this.mesh.getAttribute('display').setData(buffer);
+			buffer.setData(data);
 		}
 
 		this.meshDisplayBufferPatches.length = 0;
@@ -114,6 +128,14 @@ export default class TileExtrudedMesh extends RenderableObject3D {
 
 	public dispose(): void {
 		if (this.mesh) {
+			this.mesh.getAttribute('position').buffer.delete();
+			this.mesh.getAttribute('normal').buffer.delete();
+			this.mesh.getAttribute('color').buffer.delete();
+			this.mesh.getAttribute('uv').buffer.delete();
+			this.mesh.getAttribute('textureId').buffer.delete();
+			this.mesh.getAttribute('localId').buffer.delete();
+			this.mesh.getAttribute('display').buffer.delete();
+
 			this.mesh.delete();
 		}
 	}

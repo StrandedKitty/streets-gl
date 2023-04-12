@@ -64,7 +64,9 @@ export default class Skybox extends RenderableObject3D {
 					format: RendererTypes.AttributeFormat.Float,
 					size: 3,
 					normalized: false,
-					data: new Float32Array(vertices)
+					buffer: renderer.createAttributeBuffer({
+						data: new Float32Array(vertices)
+					})
 				})
 			]
 		});

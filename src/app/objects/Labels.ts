@@ -49,7 +49,7 @@ export default class Labels extends RenderableObject3D {
 						type: RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
-						data: new Float32Array()
+						buffer: renderer.createAttributeBuffer()
 					}),
 					renderer.createAttribute({
 						name: 'offset',
@@ -57,7 +57,7 @@ export default class Labels extends RenderableObject3D {
 						type: RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
-						data: new Float32Array()
+						buffer: renderer.createAttributeBuffer()
 					}),
 					renderer.createAttribute({
 						name: 'uv',
@@ -65,7 +65,7 @@ export default class Labels extends RenderableObject3D {
 						type:  RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
-						data: new Float32Array()
+						buffer: renderer.createAttributeBuffer()
 					})
 				],
 				indexed: true,
@@ -74,9 +74,9 @@ export default class Labels extends RenderableObject3D {
 		}
 
 		if (this.attributeBuffersDirty) {
-			this.mesh.getAttribute('position').setData(this.attributeBuffers.position);
-			this.mesh.getAttribute('offset').setData(this.attributeBuffers.offset);
-			this.mesh.getAttribute('uv').setData(this.attributeBuffers.uv);
+			this.mesh.getAttribute('position').buffer.setData(this.attributeBuffers.position);
+			this.mesh.getAttribute('offset').buffer.setData(this.attributeBuffers.offset);
+			this.mesh.getAttribute('uv').buffer.setData(this.attributeBuffers.uv);
 			this.mesh.setIndices(this.attributeBuffers.index);
 
 			this.attributeBuffersDirty = false;

@@ -9,7 +9,7 @@ import {Tile as proto} from "~/lib/tile-processing/vector/providers/pbf/vector_t
 const Pbf = require('pbf');
 
 export default class WaterTileSource extends TileSource<Float32Array> {
-	private mesh: AbstractMesh = null;
+	private mask: WaterMask = null;
 
 	public constructor(x: number, y: number, zoom: number) {
 		super(x, y, zoom);
@@ -96,13 +96,12 @@ export default class WaterTileSource extends TileSource<Float32Array> {
 			throw new Error();
 		}
 
-		if (!this.mesh) {
-			const waterMask = new WaterMask(this.data);
-			waterMask.updateMesh(renderer);
-			this.mesh = waterMask.mesh;
+		if (!this.mask) {
+			this.mask = new WaterMask(this.data);
+			this.mask.updateMesh(renderer);
 		}
 
-		return this.mesh;
+		return this.mask.mesh;
 	}
 
 	private static isRingClockwise(ring: PBFRing): boolean {
@@ -120,8 +119,8 @@ export default class WaterTileSource extends TileSource<Float32Array> {
 	public delete(): void {
 		this.deleted = true;
 
-		if (this.mesh) {
-			this.mesh.delete();
+		if (this.mask) {
+			this.mask.delete();
 		}
 	}
 

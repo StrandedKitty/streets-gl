@@ -105,7 +105,7 @@ export default class WebGL2Mesh implements AbstractMesh {
 			this.gl.bindBuffer(WebGL2Constants.ELEMENT_ARRAY_BUFFER, null);
 		} else {
 			const positionAttribute = this.attributes.get('position');
-			const vertexCount = positionAttribute.data.length / positionAttribute.size;
+			const vertexCount = positionAttribute.buffer.data.length / positionAttribute.size;
 
 			if (this.instanced) {
 				this.gl.drawArraysInstanced(WebGL2Constants.TRIANGLES, 0, vertexCount, this.instanceCount);

@@ -26,10 +26,22 @@ export default class WaterMask extends RenderableObject3D {
 						format: RendererTypes.AttributeFormat.Float,
 						size: 2,
 						normalized: false,
-						data: this.verticesBuffer
+						buffer: renderer.createAttributeBuffer({
+							data: this.verticesBuffer,
+							usage: RendererTypes.BufferUsage.StreamDraw
+						})
 					})
 				]
 			});
+		}
+	}
+
+	public delete(): void {
+		if (this.mesh) {
+			this.mesh.getAttribute('position').buffer.delete();
+			this.mesh.delete();
+
+			this.mesh = null;
 		}
 	}
 }

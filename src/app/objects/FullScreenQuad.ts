@@ -24,14 +24,16 @@ export default class FullScreenQuad extends Object3D {
 					type: RendererTypes.AttributeType.Float32,
 					format: RendererTypes.AttributeFormat.Float,
 					normalized: false,
-					data: new Float32Array([
-						0, 1, 0,
-						0, 0, 0,
-						1, 1, 0,
-						0, 0, 0,
-						1, 0, 0,
-						1, 1, 0
-					])
+					buffer: this.renderer.createAttributeBuffer({
+						data: new Float32Array([
+							0, 1, 0,
+							0, 0, 0,
+							1, 1, 0,
+							0, 0, 0,
+							1, 0, 0,
+							1, 1, 0
+						])
+					})
 				}),
 				this.renderer.createAttribute({
 					name: 'uv',
@@ -39,14 +41,16 @@ export default class FullScreenQuad extends Object3D {
 					type: RendererTypes.AttributeType.Float32,
 					format: RendererTypes.AttributeFormat.Float,
 					normalized: true,
-					data: new Float32Array([
-						0, 1,
-						0, 0,
-						1, 1,
-						0, 0,
-						1, 0,
-						1, 1
-					])
+					buffer: this.renderer.createAttributeBuffer({
+						data: new Float32Array([
+							0, 1,
+							0, 0,
+							1, 1,
+							0, 0,
+							1, 0,
+							1, 1
+						])
+					})
 				})
 			]
 		});

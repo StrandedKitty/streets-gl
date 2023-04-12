@@ -3,9 +3,11 @@ import AbstractMesh from "~/lib/renderer/abstract-renderer/AbstractMesh";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import {InstanceBuffers} from "./InstancedGenericObject";
+import AbstractAttributeBuffer from "~/lib/renderer/abstract-renderer/AbstractAttributeBuffer";
 
 export default class InstancedAircraft extends RenderableObject3D {
 	public mesh: AbstractMesh = null;
+	private interleavedAttributeBuffer: AbstractAttributeBuffer = null;
 	private instanceBuffers: InstanceBuffers;
 	private interleavedBuffer: Float32Array = new Float32Array(1);
 	private instanceCount: number = 0;
@@ -20,9 +22,8 @@ export default class InstancedAircraft extends RenderableObject3D {
 		this.interleavedBuffer = interleavedBuffer;
 		this.instanceCount = instanceCount;
 
-		if (this.mesh) {
-			this.mesh.getAttribute('instancePosition').setData(this.interleavedBuffer);
-			this.mesh.getAttribute('instanceRotation').setData(this.interleavedBuffer);
+		if (this.mesh && this.interleavedAttributeBuffer) {
+			this.interleavedAttributeBuffer.setData(this.interleavedBuffer);
 			this.mesh.instanceCount = this.instanceCount;
 		}
 	}
@@ -33,6 +34,11 @@ export default class InstancedAircraft extends RenderableObject3D {
 
 	public updateMesh(renderer: AbstractRenderer): void {
 		if (!this.mesh) {
+			this.interleavedAttributeBuffer = renderer.createAttributeBuffer({
+				data: this.interleavedBuffer,
+				usage: RendererTypes.BufferUsage.DynamicDraw
+			});
+
 			this.mesh = renderer.createMesh({
 				indexed: true,
 				indices: this.instanceBuffers.indices,
@@ -45,7 +51,9 @@ export default class InstancedAircraft extends RenderableObject3D {
 						type: RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
-						data: this.instanceBuffers.position
+						buffer: renderer.createAttributeBuffer({
+							data: this.instanceBuffers.position
+						})
 					}),
 					renderer.createAttribute({
 						name: 'normal',
@@ -53,7 +61,9 @@ export default class InstancedAircraft extends RenderableObject3D {
 						type:  RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
-						data: this.instanceBuffers.normal
+						buffer: renderer.createAttributeBuffer({
+							data: this.instanceBuffers.normal
+						})
 					}),
 					renderer.createAttribute({
 						name: 'uv',
@@ -61,7 +71,9 @@ export default class InstancedAircraft extends RenderableObject3D {
 						type:  RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
-						data: this.instanceBuffers.uv
+						buffer: renderer.createAttributeBuffer({
+							data: this.instanceBuffers.uv
+						})
 					}),
 					renderer.createAttribute({
 						name: 'instancePosition',
@@ -72,7 +84,7 @@ export default class InstancedAircraft extends RenderableObject3D {
 						instanced: true,
 						stride: 4 * 4,
 						offset: 0,
-						data: this.interleavedBuffer
+						buffer: this.interleavedAttributeBuffer
 					}),
 					renderer.createAttribute({
 						name: 'instanceRotation',
@@ -83,7 +95,7 @@ export default class InstancedAircraft extends RenderableObject3D {
 						instanced: true,
 						stride: 4 * 4,
 						offset: 3 * 4,
-						data: this.interleavedBuffer
+						buffer: this.interleavedAttributeBuffer
 					})
 				]
 			});

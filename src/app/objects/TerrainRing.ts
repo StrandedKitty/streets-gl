@@ -40,7 +40,9 @@ export default class TerrainRing extends RenderableObject3D {
 						type: RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
-						data: buffers.position
+						buffer: renderer.createAttributeBuffer({
+							data: buffers.position
+						})
 					}),
 					renderer.createAttribute({
 						name: 'uv',
@@ -48,7 +50,9 @@ export default class TerrainRing extends RenderableObject3D {
 						type: RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
-						data: buffers.uv
+						buffer: renderer.createAttributeBuffer({
+							data: buffers.uv
+						})
 					})
 				]
 			});

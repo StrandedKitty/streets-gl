@@ -6,6 +6,9 @@ import AbstractMaterial, {AbstractMaterialParams} from "~/lib/renderer/abstract-
 import AbstractAttribute, {AbstractAttributeParams} from "~/lib/renderer/abstract-renderer/AbstractAttribute";
 import AbstractMesh, {AbstractMeshParams} from "./AbstractMesh";
 import AbstractTexture3D, {AbstractTexture3DParams} from "~/lib/renderer/abstract-renderer/AbstractTexture3D";
+import AbstractAttributeBuffer, {
+	AbstractAttributeBufferParams
+} from "~/lib/renderer/abstract-renderer/AbstractAttributeBuffer";
 
 export default interface AbstractRenderer {
 	setSize(width: number, height: number): void;
@@ -16,6 +19,7 @@ export default interface AbstractRenderer {
 	createRenderPass(params: AbstractRenderPassParams): AbstractRenderPass;
 	createMaterial(params: AbstractMaterialParams): AbstractMaterial;
 	createAttribute(params: AbstractAttributeParams): AbstractAttribute;
+	createAttributeBuffer(params?: AbstractAttributeBufferParams): AbstractAttributeBuffer;
 	createMesh(params: AbstractMeshParams): AbstractMesh;
 	beginRenderPass(renderPass: AbstractRenderPass): void;
 	useMaterial(material: AbstractMaterial): void;

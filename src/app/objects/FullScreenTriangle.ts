@@ -24,11 +24,13 @@ export default class FullScreenTriangle extends Object3D {
 					type: RendererTypes.AttributeType.Float32,
 					format: RendererTypes.AttributeFormat.Float,
 					normalized: false,
-					data: new Float32Array([
-						-1, 3, 0,
-						-1, -1, 0,
-						3, -1, 0,
-					])
+					buffer: this.renderer.createAttributeBuffer({
+						data: new Float32Array([
+							-1, 3, 0,
+							-1, -1, 0,
+							3, -1, 0,
+						])
+					})
 				}),
 				this.renderer.createAttribute({
 					name: 'uv',
@@ -36,11 +38,13 @@ export default class FullScreenTriangle extends Object3D {
 					type: RendererTypes.AttributeType.Float32,
 					format: RendererTypes.AttributeFormat.Float,
 					normalized: true,
-					data: new Float32Array([
-						0, 2,
-						0, 0,
-						2, 0
-					])
+					buffer: this.renderer.createAttributeBuffer({
+						data: new Float32Array([
+							0, 2,
+							0, 0,
+							2, 0
+						])
+					})
 				})
 			]
 		});

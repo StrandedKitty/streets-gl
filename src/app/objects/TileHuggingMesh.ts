@@ -33,7 +33,9 @@ export default class TileHuggingMesh extends RenderableObject3D {
 						type: RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
-						data: this.buffers.positionBuffer
+						buffer: renderer.createAttributeBuffer({
+							data: this.buffers.positionBuffer
+						})
 					}),
 					renderer.createAttribute({
 						name: 'normal',
@@ -41,7 +43,9 @@ export default class TileHuggingMesh extends RenderableObject3D {
 						type:  RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
-						data: this.buffers.normalBuffer
+						buffer: renderer.createAttributeBuffer({
+							data: this.buffers.normalBuffer
+						})
 					}),
 					renderer.createAttribute({
 						name: 'uv',
@@ -49,7 +53,9 @@ export default class TileHuggingMesh extends RenderableObject3D {
 						type:  RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
-						data: this.buffers.uvBuffer
+						buffer: renderer.createAttributeBuffer({
+							data: this.buffers.uvBuffer
+						})
 					}),
 					renderer.createAttribute({
 						name: 'textureId',
@@ -57,7 +63,9 @@ export default class TileHuggingMesh extends RenderableObject3D {
 						type: RendererTypes.AttributeType.UnsignedByte,
 						format: RendererTypes.AttributeFormat.Integer,
 						normalized: false,
-						data: this.buffers.textureIdBuffer
+						buffer: renderer.createAttributeBuffer({
+							data: this.buffers.textureIdBuffer
+						})
 					})
 				]
 			});
@@ -66,6 +74,11 @@ export default class TileHuggingMesh extends RenderableObject3D {
 
 	public dispose(): void {
 		if (this.mesh) {
+			this.mesh.getAttribute('position').buffer.delete();
+			this.mesh.getAttribute('normal').buffer.delete();
+			this.mesh.getAttribute('uv').buffer.delete();
+			this.mesh.getAttribute('textureId').buffer.delete();
+
 			this.mesh.delete();
 		}
 	}

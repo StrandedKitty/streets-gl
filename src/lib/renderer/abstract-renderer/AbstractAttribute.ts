@@ -1,17 +1,17 @@
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
+import AbstractAttributeBuffer from "~/lib/renderer/abstract-renderer/AbstractAttributeBuffer";
 
 export interface AbstractAttributeParams {
 	name: string;
 	size: number;
 	type: RendererTypes.AttributeType;
 	format: RendererTypes.AttributeFormat;
-	usage?: RendererTypes.BufferUsage;
 	normalized: boolean;
 	instanced?: boolean;
 	divisor?: number;
 	stride?: number;
 	offset?: number;
-	data?: TypedArray;
+	buffer: AbstractAttributeBuffer;
 }
 
 export default interface AbstractAttribute {
@@ -19,12 +19,10 @@ export default interface AbstractAttribute {
 	size: number;
 	type: RendererTypes.AttributeType;
 	format: RendererTypes.AttributeFormat;
-	usage: RendererTypes.BufferUsage;
 	normalized: boolean;
 	instanced: boolean;
 	divisor: number;
 	stride: number;
 	offset: number;
-	data: TypedArray;
-	setData(data: TypedArray): void;
+	buffer: AbstractAttributeBuffer;
 }
