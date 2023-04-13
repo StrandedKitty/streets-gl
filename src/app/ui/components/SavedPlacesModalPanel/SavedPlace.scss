@@ -1,0 +1,124 @@
+@import "./../../styles/common.scss";
+
+.container {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	padding: 8px;
+	border-radius: 8px;
+	box-shadow: 0 1px 2px 0 rgba(16, 24, 40, 0.1);
+	margin: 0 0 12px 0;
+
+	&:last-child {
+		margin: 0;
+	}
+
+	&__info {
+		height: 32px;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		flex-grow: 1;
+
+		&__title {
+			max-width: 340px;
+		}
+
+		&__address {
+			max-width: 350px;
+		}
+	}
+
+	&__controls {
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-end;
+		align-items: center;
+
+		&__button {
+			margin: 0 0 0 8px;
+			height: 32px;
+			width: 36px;
+			display: flex;
+			flex-direction: row;
+			justify-content: center;
+			align-items: center;
+			border-radius: 5px;
+			font-size: 12px;
+			font-weight: 600;
+			transition: background-color 0.2s ease-in-out;
+		}
+	}
+}
+
+@include themify($themes) {
+	.container {
+		background: themed('modal-category-item-bg');
+
+		&__controls {
+			&__button {
+				border: 1px solid themed('modal-button-border-color');
+				color: themed('modal-button-text-color');
+				background-color: themed('modal-button-bg');
+				box-shadow: 0 1px 2px 0 themed('modal-button-shadow-color');
+
+				&:hover {
+					background-color: themed('modal-button-bg-hover');
+				}
+			}
+		}
+	}
+}
+
+.title {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+
+	&__text {
+		font-size: 14px;
+		font-weight: 600;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		overflow: hidden;
+		height: 17px;
+
+		&--editing {
+			text-overflow: clip;
+		}
+
+		&:focus {
+			outline: none;
+		}
+	}
+
+	&__icon {
+		margin: 0 0 0 4px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		cursor: pointer;
+	}
+}
+
+.address {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	margin: 2px 0 0 0;
+
+	&__name {
+		font-size: 12px;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		overflow: hidden;
+		margin: 0 6px 0 0;
+	}
+
+	&__position {
+		font-size: 10px;
+		opacity: 0.8;
+		display: flex;
+		align-items: center;
+	}
+}

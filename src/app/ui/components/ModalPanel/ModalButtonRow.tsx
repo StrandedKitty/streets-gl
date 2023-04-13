@@ -7,7 +7,8 @@ const ModalButtonRow: React.FC<{
 	labels: string[];
 	onClicks: (() => void)[];
 	icons: React.ReactNode[];
-}> = ({labels, onClicks, icons}) => {
+	loadingFlags?: boolean[];
+}> = ({labels, onClicks, icons, loadingFlags}) => {
 	return (
 		<div className={styles.container}>
 			{
@@ -17,6 +18,7 @@ const ModalButtonRow: React.FC<{
 							text={label}
 							onClick={onClicks[i]}
 							icon={icons[i]}
+							isLoading={loadingFlags ? loadingFlags[i] : false}
 						/>
 					</div>
 				})

@@ -171,6 +171,10 @@ export default class ControlsSystem extends System {
 		}
 	}
 
+	public getCurrentStateHash(): string {
+		return this.urlHandler.serializeControlsState(this.state);
+	}
+
 	public update(deltaTime: number): void {
 		if (!this.camera) {
 			this.initCameraAndNavigators();

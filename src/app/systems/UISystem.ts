@@ -54,6 +54,7 @@ export interface UIActions {
 	resetSettings: () => void;
 	setOverpassEndpoints: (endpoints: OverpassEndpoint[]) => void;
 	resetOverpassEndpoints: () => void;
+	getControlsStateHash: () => string;
 }
 
 const FPSUpdateInterval = 0.4;
@@ -67,7 +68,7 @@ export default class UISystem extends System {
 		frameTime: 0,
 		frameTimeSmooth: 0,
 		mapTime: Date.now(),
-		mapTimeMode: +localStorage.getItem('mapTimeMode') ?? 0,
+		mapTimeMode: this.getMapTimeModeFromLocalStorage(),
 		mapTimeMultiplier: 1,
 		renderGraph: null,
 		resourcesLoadingProgress: 0,
@@ -140,6 +141,9 @@ export default class UISystem extends System {
 			},
 			resetOverpassEndpoints: () => {
 				this.systemManager.getSystem(TileLoadingSystem).resetOverpassEndpoints();
+			},
+			getControlsStateHash: (): string => {
+				return this.systemManager.getSystem(ControlsSystem).getCurrentStateHash();
 			}
 		}
 
@@ -222,6 +226,16 @@ export default class UISystem extends System {
 
 	public updateRenderGraph(): void {
 		this.ui.setStateFieldValue('renderGraph', this.getRenderGraph());
+	}
+
+	private getMapTimeModeFromLocalStorage(): number {
+		const saved = localStorage.getItem('mapTimeMode');
+
+		if (saved !== null) {
+			return parseInt(saved);
+		}
+
+		return 2;
 	}
 
 	public update(deltaTime: number): void {

@@ -1,5 +1,14 @@
 @import "./../../styles/common.scss";
 
+@keyframes iconSpin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(359deg);
+	}
+}
+
 .button {
 	border-radius: 999px;
 	padding: 6px 10px;
@@ -7,16 +16,46 @@
 	display: flex;
 	align-items: center;
 	transition: background-color 0.2s ease-in-out;
+	position: relative;
+
+	&--disabled {
+		cursor: auto;
+	}
 
 	&__text {
 		font-size: 12px;
 		font-weight: 600;
+
+		&--hidden {
+			visibility: hidden;
+		}
 	}
 
 	&__icon {
 		display: flex;
 		align-items: center;
 		margin: 0 4px 0 0;
+
+		&--hidden {
+			visibility: hidden;
+		}
+	}
+
+	&__loaderContainer {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: calc(100% - 20px);
+		height: 100%;
+		position: absolute;
+
+		&__loader {
+			animation: iconSpin 2s infinite linear;
+
+			& > svg {
+				display: block;
+			}
+		}
 	}
 }
 

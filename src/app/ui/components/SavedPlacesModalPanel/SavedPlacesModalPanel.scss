@@ -1,9 +1,9 @@
-@import "../../styles/common.scss";
+@import "./../../styles/common.scss";
 
-.panelBodyContainer {
-	max-height: calc(100vh - 400px);
-	overflow: hidden;
+.savedPlacesList {
 	overflow-y: auto;
+	margin: 0 0 12px 0;
+	max-height: 348px;
 
 	&::-webkit-scrollbar {
 		width: 5px;
@@ -22,4 +22,15 @@
 	&::-webkit-scrollbar-thumb:hover {
 		background-color: #909090;
 	}
+}
+
+.savedPlacesPlaceholder {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	font-size: 14px;
+	height: 60px;
+	color: #aeaeae;
 }

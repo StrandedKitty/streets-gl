@@ -21,7 +21,11 @@ export default abstract class ControlsNavigator {
 	}
 
 	protected get isInFocus(): boolean {
-		return !(document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement);
+		return !(
+			document.activeElement instanceof HTMLInputElement
+			|| document.activeElement instanceof HTMLTextAreaElement
+			|| document.activeElement.attributes.getNamedItem('contenteditable') !== null
+		);
 	}
 
 	protected abstract syncWithCamera(): void;
