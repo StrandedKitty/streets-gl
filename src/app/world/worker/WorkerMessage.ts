@@ -10,6 +10,7 @@ export namespace WorkerMessage {
 		overpassEndpoint?: string;
 		mapboxEndpointTemplate?: string;
 		mapboxAccessToken?: string;
+		useCachedTiles?: boolean;
 		height?: Float64Array;
 	}
 

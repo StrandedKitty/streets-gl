@@ -62,6 +62,13 @@ const Config = {
 			statusDefault: 'on',
 			category: 'general'
 		},
+		cachedTiles: {
+			label: 'Use cached tiles if available',
+			status: ['off', 'on'],
+			statusLabels: ['Disabled', 'Enabled'],
+			statusDefault: 'on',
+			category: 'general'
+		},
 		shadows: {
 			label: 'Shadows',
 			status: ['off', 'low', 'medium', 'high'],

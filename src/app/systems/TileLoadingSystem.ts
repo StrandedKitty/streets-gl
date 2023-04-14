@@ -4,6 +4,7 @@ import MapWorkerSystem from "./MapWorkerSystem";
 import Tile3DBuffers from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
 import Config from "~/app/Config";
 import MapWorker from "~/app/world/worker/MapWorker";
+import SettingsSystem from "~/app/systems/SettingsSystem";
 
 interface QueueItem {
 	tile: Tile;
@@ -87,7 +88,8 @@ export default class TileLoadingSystem extends System {
 		worker.requestTile(tile.x, tile.y, {
 			overpassEndpoint: overpassEndpoint,
 			mapboxEndpointTemplate: Config.MapboxStreetsEndpointTemplate,
-			mapboxAccessToken: Config.MapboxAccessToken
+			mapboxAccessToken: Config.MapboxAccessToken,
+			useCachedTiles: this.useCachedTiles
 		}).then(result => {
 			onLoad(result);
 		}, error => {
@@ -108,5 +110,10 @@ export default class TileLoadingSystem extends System {
 		});
 
 		return this.queue.pop();
+	}
+
+	private get useCachedTiles(): boolean {
+		const settingsSystem = this.systemManager.getSystem(SettingsSystem);
+		return settingsSystem.settings.get('cachedTiles').statusValue === 'on';
 	}
 }

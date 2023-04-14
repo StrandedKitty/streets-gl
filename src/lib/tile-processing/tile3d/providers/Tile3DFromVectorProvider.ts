@@ -26,6 +26,7 @@ export interface Tile3DProviderParams {
 	overpassEndpoint: string;
 	mapboxEndpointTemplate: string;
 	mapboxAccessToken: string;
+	useCached: boolean;
 	heightPromise: (positions: Float64Array) => Promise<Float64Array>;
 }
 

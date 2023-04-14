@@ -12,7 +12,8 @@ export default class CombinedVectorFeatureProvider extends VectorFeatureProvider
 		super();
 
 		this.overpassProvider = new OverpassVectorFeatureProvider(
-			params.overpassEndpoint
+			params.overpassEndpoint,
+			params.useCached
 		);
 		this.mapboxProvider = new MapboxVectorFeatureProvider(
 			params.mapboxEndpointTemplate,

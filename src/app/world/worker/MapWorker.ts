@@ -6,6 +6,7 @@ export interface TileRequestParams {
 	overpassEndpoint: string;
 	mapboxEndpointTemplate: string;
 	mapboxAccessToken: string;
+	useCachedTiles: boolean;
 }
 
 export default class MapWorker {

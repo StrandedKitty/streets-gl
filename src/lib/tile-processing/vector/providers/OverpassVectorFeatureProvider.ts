@@ -12,6 +12,7 @@ import VectorPolyline from "~/lib/tile-processing/vector/features/VectorPolyline
 import VectorBuildingOutlinesCleaner from "~/lib/tile-processing/vector/VectorBuildingOutlinesCleaner";
 
 const TileRequestMargin = 0.05;
+const TileServerEndpoint = 'https://tiles.streets.gl';
 
 const getRequestBody = (x: number, y: number, zoom: number): string => {
 	const position = [
@@ -49,7 +50,8 @@ const getRelationRequestURL = (relation: number): string => {
 
 export default class OverpassVectorFeatureProvider extends VectorFeatureProvider {
 	public constructor(
-		private readonly overpassURL: string
+		private readonly overpassURL: string,
+		private readonly useCached: boolean
 	) {
 		super();
 	}
@@ -66,7 +68,7 @@ export default class OverpassVectorFeatureProvider extends VectorFeatureProvider
 		}
 	): Promise<VectorFeatureCollection> {
 		const tileOrigin = MathUtils.tile2meters(x, y + 1, zoom);
-		const overpassData = await OverpassVectorFeatureProvider.fetchOverpassTile(x, y, zoom, this.overpassURL);
+		const overpassData = await OverpassVectorFeatureProvider.fetchOverpassTile(x, y, zoom, this.overpassURL, this.useCached)
 		const repairedOverpassData = await OverpassVectorFeatureProvider.repairOverpassRelations(overpassData, this.overpassURL);
 
 		const nodeHandlersMap: Map<number, OSMNodeHandler> = new Map();
@@ -182,7 +184,29 @@ export default class OverpassVectorFeatureProvider extends VectorFeatureProvider
 		return collection;
 	}
 
-	private static async fetchOverpassTile(x: number, y: number, zoom: number, overpassURL: string): Promise<OverpassDataObject> {
+	private static async fetchOverpassTile(
+		x: number,
+		y: number,
+		zoom: number,
+		overpassURL: string,
+		useCached: boolean
+	): Promise<OverpassDataObject> {
+		if (useCached) {
+			const isTileExistQuery = await fetch(`${TileServerEndpoint}/tileExists/${x}/${y}`, {
+				method: 'GET'
+			});
+
+			const exists = await isTileExistQuery.text();
+
+			if (exists === '1') {
+				const tileData = await fetch(`${TileServerEndpoint}/tile/${x}/${y}`, {
+					method: 'GET'
+				});
+
+				return await tileData.json();
+			}
+		}
+
 		const response = await fetch(overpassURL, {
 			method: 'POST',
 			body: getRequestBody(x, y, zoom)
