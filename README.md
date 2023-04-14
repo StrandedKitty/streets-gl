@@ -4,9 +4,11 @@
 </div>
 <br>
 
+[Visit streets.gl](https://streets.gl/)
+
 **Streets GL** is a real-time 3D map renderer built for visualizing [OpenStreetMap](https://www.openstreetmap.org/) data with a heavy focus on eye-candy features.
 
-The whole project is written in Typescript. For rendering it uses a custom low-level library that wraps WebGL2 API, and for managing the rendering pipeline it uses a simple render graph (or frame graph) implementation. Geometry generation is done on the fly; supported map features include but are not limited to complex building shapes (according to the de-facto standard [Simple 3D Buildings](https://wiki.openstreetmap.org/wiki/Simple_3D_Buildings) proposal), roads and paths, trees, etc.
+The whole project is written in Typescript. For rendering it uses a custom low-level library that wraps WebGL2 API, and for managing the rendering pipeline it uses a simple render graph (or frame graph) implementation. Geometry generation is done on the fly; supported map features include but are not limited to complex building shapes (according to the de-facto standard [Simple 3D Buildings](https://wiki.openstreetmap.org/wiki/Simple_3D_Buildings) schema), roads and paths, trees, etc.
 
 The goals of this project include providing a way to explore the feature-rich OSM database in 3D, promoting open data, and offering a way for the mapping community to easily validate the map by visual means.
 
@@ -40,9 +42,9 @@ Currently, Streets GL uses three sources of data to render the map:
 - Mapbox API elevation tiles to visualize terrain height.
 - Mapbox API vector tiles to access pre-sliced polygons for big features that can't be reliably queried using Overpass API (such as water bodies).
 
-Some small areas of the map are occasionally fetched and cached by the server for a faster and more reliable access. These areas include several major cities.
+Some small areas of the map are occasionally fetched and cached by the server for a faster and more reliable access. These areas include several major cities. This feature can be turned off in the settings in case you want to see the most recent OSM data directly from Overpass API instances.
 
-This can be turned off in the settings in case you want to see the most recent OSM data directly from Overpass API instances.
+Read more about issues regarding the data on [this wikipage](https://github.com/StrandedKitty/streets-gl/wiki/Data-sources).
 
 ## 📦 Modules
 
