@@ -39,7 +39,7 @@ export default class ProjectedMeshMaterialContainer extends MaterialContainer {
 					value: this.renderer.createTexture2DArray({
 						width: 512,
 						height: 512,
-						depth: 24 * 3,
+						depth: 26 * 3,
 						anisotropy: 16,
 						data: [
 							ResourceLoader.get('pavementDiffuse'),
@@ -137,6 +137,14 @@ export default class ProjectedMeshMaterialContainer extends MaterialContainer {
 							ResourceLoader.get('forestFloorDiffuse'),
 							ResourceLoader.get('forestFloorNormal'),
 							ResourceLoader.get('forestFloorMask'),
+
+							ResourceLoader.get('chainLinkFenceDiffuse'),
+							ResourceLoader.get('chainLinkFenceNormal'),
+							ResourceLoader.get('chainLinkFenceMask'),
+
+							ResourceLoader.get('metalFenceDiffuse'),
+							ResourceLoader.get('metalFenceNormal'),
+							ResourceLoader.get('metalFenceMask'),
 						],
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,

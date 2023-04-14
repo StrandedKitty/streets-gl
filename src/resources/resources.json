@@ -88,6 +88,12 @@
 	"forestFloorDiffuse": {"url": "/textures/surfaces/forest_floor_diffuse.png", "type": "image"},
 	"forestFloorNormal": {"url": "/textures/surfaces/forest_floor_normal.png", "type": "image"},
 	"forestFloorMask": {"url": "/textures/surfaces/forest_floor_mask.png", "type": "image"},
+	"chainLinkFenceDiffuse": {"url": "/textures/surfaces/chainlink_fence_diffuse.png", "type": "image"},
+	"chainLinkFenceNormal": {"url": "/textures/surfaces/chainlink_fence_normal.png", "type": "image"},
+	"chainLinkFenceMask": {"url": "/textures/surfaces/chainlink_fence_mask.png", "type": "image"},
+	"metalFenceDiffuse": {"url": "/textures/surfaces/metal_fence_diffuse.png", "type": "image"},
+	"metalFenceNormal": {"url": "/textures/surfaces/metal_fence_normal.png", "type": "image"},
+	"metalFenceMask": {"url": "/textures/surfaces/metal_fence_mask.png", "type": "image"},
 
 	"biomeMap": {
 		"url": "/textures/biomes_blurred.png",

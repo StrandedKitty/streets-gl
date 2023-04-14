@@ -191,10 +191,16 @@ export default class VectorPolylineHandler implements Handler {
 		const builder = new Tile3DProjectedGeometryBuilder();
 		builder.addRing(Tile3DRingType.Outer, this.vertices);
 
+		const {width, textureId} = VectorPolylineHandler.getFenceTextureIdAndWidth(
+			this.descriptor.fenceMaterial,
+			this.descriptor.height
+		);
+
 		builder.addFence({
 			minHeight: this.descriptor.minHeight,
 			height: this.descriptor.height,
-			textureId: 14
+			width: width,
+			textureId: textureId
 		});
 
 		const result = builder.getGeometry();
@@ -359,5 +365,30 @@ export default class VectorPolylineHandler implements Handler {
 		}
 
 		return RoadSide.Both;
+	}
+
+	private static getFenceTextureIdAndWidth(
+		fenceType: VectorPolylineDescriptor['fenceMaterial'],
+		height: number
+	): {
+		textureId: number;
+		width: number;
+	} {
+		const textureTable: Record<VectorPolylineDescriptor['fenceMaterial'], {
+			textureId: number;
+			widthRatio: number;
+		}> = {
+			wood: {textureId: 13, widthRatio: 1},
+			concrete: {textureId: 13,widthRatio: 2},
+			chainLink: {textureId: 25, widthRatio: 1},
+			metal: {textureId: 26, widthRatio: 1.64}
+		};
+
+		const entry = textureTable[fenceType];
+
+		return {
+			textureId: entry.textureId,
+			width: height * entry.widthRatio
+		};
 	}
 }

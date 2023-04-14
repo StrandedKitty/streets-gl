@@ -13,6 +13,8 @@ import getSidewalkSideFromTags from "~/lib/tile-processing/vector/qualifiers/fac
 import getCyclewaySideFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getCyclwaySideFromTags";
 import {ModifierType} from "~/lib/tile-processing/vector/qualifiers/modifiers";
 import getTreeTypeFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getTreeTypeFromTags";
+import getFenceMaterialFromOSMType
+	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getFenceMaterialFromOSMType";
 
 export default class PolylineQualifierFactory extends AbstractQualifierFactory<VectorPolylineDescriptor> {
 	public fromTags(tags: Record<string, string>): Qualifier<VectorPolylineDescriptor>[] {
@@ -202,8 +204,9 @@ export default class PolylineQualifierFactory extends AbstractQualifierFactory<V
 		}
 
 		if (tags.barrier === 'fence' || tags.barrier === 'wall') {
+			const fenceParams = getFenceMaterialFromOSMType(tags.fence_type);
 			const minHeight = parseHeight(tags.min_height, 0);
-			const height = parseHeight(tags.height, 2) - minHeight;
+			const height = parseHeight(tags.height, fenceParams.defaultHeight) - minHeight;
 
 			if (height <= 0) {
 				return [];
@@ -213,6 +216,7 @@ export default class PolylineQualifierFactory extends AbstractQualifierFactory<V
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'fence',
+					fenceMaterial: fenceParams.material,
 					height,
 					minHeight
 				}

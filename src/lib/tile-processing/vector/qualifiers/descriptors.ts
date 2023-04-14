@@ -10,6 +10,7 @@ export interface VectorPolylineDescriptor {
 	type: 'path' | 'fence' | 'hedge' | 'powerLine';
 	pathType?: 'roadway' | 'footway' | 'cycleway' | 'railway' | 'tramway' | 'runway';
 	pathMaterial?: 'asphalt' | 'concrete' | 'dirt' | 'sand' | 'gravel' | 'cobblestone' | 'wood';
+	fenceMaterial?: 'wood' | 'chainLink' | 'metal' | 'concrete';
 	width?: number;
 	height?: number;
 	minHeight?: number;

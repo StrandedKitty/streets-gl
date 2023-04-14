@@ -116,10 +116,12 @@ export default class Tile3DProjectedGeometryBuilder {
 		{
 			minHeight,
 			height,
+			width,
 			textureId
 		}: {
 			minHeight: number;
 			height: number;
+			width: number;
 			textureId: number;
 		}
 	): void {
@@ -131,7 +133,7 @@ export default class Tile3DProjectedGeometryBuilder {
 				vertices: polyline.vertices,
 				minHeight: minHeight,
 				height: height,
-				textureWidth: height * 2,
+				textureWidth: width,
 				uvHorizontalOffset: polyline.startProgress
 			});
 

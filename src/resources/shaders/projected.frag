@@ -59,6 +59,20 @@ float edgeFactor() {
 	return min(min(a3.x, a3.y), a3.z);
 }
 
+const mat4 thresholdMatrix = mat4(
+	1.0 / 17.0,  9.0 / 17.0,  3.0 / 17.0, 11.0 / 17.0,
+	13.0 / 17.0,  5.0 / 17.0, 15.0 / 17.0,  7.0 / 17.0,
+	4.0 / 17.0, 12.0 / 17.0,  2.0 / 17.0, 10.0 / 17.0,
+	16.0 / 17.0,  8.0 / 17.0, 14.0 / 17.0,  6.0 / 17.0
+);
+
+float getScreenDoorFactor() {
+	int x = int(gl_FragCoord.x);
+	int y = int(gl_FragCoord.y);
+
+	return thresholdMatrix[x % 4][y % 4];
+}
+
 void main() {
 	if (edgeFactor() > 0.9) {
 		//discard;
@@ -84,7 +98,7 @@ void main() {
 	vec3 normalMapUnpacked = texture(tMap, vec3(vUv, layer + 1)).xyz * 2. - 1.;
 	vec3 mask = texture(tMap, vec3(vUv, layer + 2)).rgb;
 
-	if (color.a < 0.5) {
+	if (color.a - getScreenDoorFactor() < 0.) {
 		discard;
 	}
 
