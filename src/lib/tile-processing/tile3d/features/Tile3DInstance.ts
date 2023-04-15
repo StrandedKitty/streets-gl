@@ -1,7 +1,8 @@
 import Tile3DFeature from "~/lib/tile-processing/tile3d/features/Tile3DFeature";
 
-export type Tile3DInstanceType = 'tree' | 'adColumn' | 'transmissionTower' | 'hydrant' | 'trackedCrane' | 'towerCrane' |
-	'bench' | 'picnicTable' | 'busStop' | 'windTurbine' | 'memorial' | 'statue' | 'shrubbery';
+export type Tile3DInstanceType = 'tree' | 'adColumn' | 'transmissionTower' | 'utilityPole' | 'wire' | 'hydrant'
+	| 'trackedCrane' | 'towerCrane' | 'bench' | 'picnicTable' | 'busStop' | 'windTurbine' | 'memorial' | 'statue'
+	| 'shrubbery';
 
 export enum InstanceStructure {
 	Generic,
@@ -67,6 +68,18 @@ export const Tile3DInstanceLODConfig: Record<Tile3DInstanceType, LODConfig> = {
 	},
 	transmissionTower: {
 		structure: InstanceStructure.Generic,
+		LOD0MaxDistance: 3000,
+		LOD1MaxDistance: 0,
+		LOD1Fraction: 0,
+	},
+	utilityPole: {
+		structure: InstanceStructure.Generic,
+		LOD0MaxDistance: 3000,
+		LOD1MaxDistance: 0,
+		LOD1Fraction: 0,
+	},
+	wire: {
+		structure: InstanceStructure.Advanced,
 		LOD0MaxDistance: 3000,
 		LOD1MaxDistance: 0,
 		LOD1Fraction: 0,

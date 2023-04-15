@@ -4,15 +4,25 @@ import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 import ResourceLoader from "../../world/ResourceLoader";
 
-export default class TreeDepthMaterialContainer extends MaterialContainer {
+export default class GenericInstanceMaterialContainer extends MaterialContainer {
 	public constructor(renderer: AbstractRenderer) {
 		super(renderer);
 
 		this.material = this.renderer.createMaterial({
-			name: 'Tree depth material',
+			name: 'Generic instance material',
 			uniforms: [
 				{
-					name: 'modelViewMatrix',
+					name: 'modelMatrix',
+					block: 'MainBlock',
+					type: RendererTypes.UniformType.Matrix4,
+					value: new Float32Array(16)
+				}, {
+					name: 'viewMatrix',
+					block: 'MainBlock',
+					type: RendererTypes.UniformType.Matrix4,
+					value: new Float32Array(16)
+				}, {
+					name: 'modelViewMatrixPrev',
 					block: 'MainBlock',
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array(16)
@@ -21,6 +31,11 @@ export default class TreeDepthMaterialContainer extends MaterialContainer {
 					block: 'MainBlock',
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array(16)
+				}, {
+					name: 'textureId',
+					block: 'PerInstanceType',
+					type: RendererTypes.UniformType.Float1,
+					value: new Float32Array(1)
 				}, {
 					name: 'tMap',
 					block: null,
@@ -48,8 +63,8 @@ export default class TreeDepthMaterialContainer extends MaterialContainer {
 					dstFactor: RendererTypes.BlendFactor.Zero
 				}
 			},
-			vertexShaderSource: Shaders.treeDepth.vertex,
-			fragmentShaderSource: Shaders.treeDepth.fragment
+			vertexShaderSource: Shaders.instanceGeneric.vertex,
+			fragmentShaderSource: Shaders.instanceGeneric.fragment
 		});
 	}
 }

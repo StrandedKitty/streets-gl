@@ -21,6 +21,7 @@ import Tile3DLabel from "~/lib/tile-processing/tile3d/features/Tile3DLabel";
 import MathUtils from "~/lib/math/MathUtils";
 import Road from "~/lib/road-graph/Road";
 import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
+import PowerlineHandler from "~/lib/tile-processing/tile3d/handlers/PowerlineHandler";
 
 export interface Tile3DProviderParams {
 	overpassEndpoint: string;
@@ -65,9 +66,8 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 		return collection;
 	}
 
-	private static createHandlersFromVectorFeatureCollection(collection: VectorFeatureCollection):
-		(VectorNodeHandler | VectorPolylineHandler | VectorAreaHandler)[] {
-		const handlers: (VectorNodeHandler | VectorPolylineHandler | VectorAreaHandler)[] = [];
+	private static createHandlersFromVectorFeatureCollection(collection: VectorFeatureCollection): Handler[] {
+		const handlers: Handler[] = [];
 
 		for (const feature of collection.nodes) {
 			handlers.push(new VectorNodeHandler(feature));
@@ -83,6 +83,8 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 			}
 			handlers.push(new VectorAreaHandler(feature));
 		}
+
+		handlers.push(new PowerlineHandler(collection));
 
 		return handlers;
 	}
@@ -182,9 +184,7 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 		return <VectorNode[]>Simplify(nodes, 0.5, false);
 	}
 
-	private static getFeaturesFromHandlers(
-		handlers: (VectorNodeHandler | VectorPolylineHandler | VectorAreaHandler)[]
-	): Tile3DFeatureCollection {
+	private static getFeaturesFromHandlers(handlers: Handler[]): Tile3DFeatureCollection {
 		const collection: Tile3DFeatureCollection = {
 			extruded: [],
 			projected: [],

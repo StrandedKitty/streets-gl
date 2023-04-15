@@ -2,14 +2,13 @@ import Shaders from "../shaders/Shaders";
 import MaterialContainer from "./MaterialContainer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
-import ResourceLoader from "../../world/ResourceLoader";
 
-export default class InstanceDepthMaterialContainer extends MaterialContainer {
+export default class GenericInstanceDepthMaterialContainer extends MaterialContainer {
 	public constructor(renderer: AbstractRenderer) {
 		super(renderer);
 
 		this.material = this.renderer.createMaterial({
-			name: 'Instance depth material',
+			name: 'Generic instance depth material',
 			uniforms: [
 				{
 					name: 'modelViewMatrix',
@@ -21,6 +20,16 @@ export default class InstanceDepthMaterialContainer extends MaterialContainer {
 					block: 'MainBlock',
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array(16)
+				}, {
+					name: 'textureId',
+					block: 'PerInstanceType',
+					type: RendererTypes.UniformType.Float1,
+					value: new Float32Array(1)
+				}, {
+					name: 'tMap',
+					block: null,
+					type: RendererTypes.UniformType.Texture2DArray,
+					value: null
 				}
 			],
 			primitive: {
@@ -43,8 +52,8 @@ export default class InstanceDepthMaterialContainer extends MaterialContainer {
 					dstFactor: RendererTypes.BlendFactor.Zero
 				}
 			},
-			vertexShaderSource: Shaders.instanceDepth.vertex,
-			fragmentShaderSource: Shaders.instanceDepth.fragment
+			vertexShaderSource: Shaders.instanceGenericDepth.vertex,
+			fragmentShaderSource: Shaders.instanceGenericDepth.fragment
 		});
 	}
 }

@@ -1,4 +1,0 @@
-#include <versionPrecision>
-
-void main() {
-}

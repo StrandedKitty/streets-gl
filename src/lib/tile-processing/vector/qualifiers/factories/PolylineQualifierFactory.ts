@@ -232,6 +232,15 @@ export default class PolylineQualifierFactory extends AbstractQualifierFactory<V
 			}];
 		}
 
+		if (tags.power === 'line' || tags.power === 'minor_line') {
+			return [{
+				type: QualifierType.Descriptor,
+				data: {
+					type: 'powerLine'
+				}
+			}];
+		}
+
 		if (tags.natural === 'tree_row') {
 			return [{
 				type: QualifierType.Modifier,

@@ -4,7 +4,8 @@ import {
 	UniformFloat3,
 	UniformFloat4,
 	UniformInt1,
-	UniformMatrix4
+	UniformMatrix4,
+	UniformTexture2DArray
 } from "~/lib/renderer/abstract-renderer/Uniform";
 import Tile from "../../objects/Tile";
 import Mat4 from "~/lib/math/Mat4";
@@ -30,8 +31,14 @@ import TerrainSystem from "../../systems/TerrainSystem";
 import AbstractTexture2DArray from "~/lib/renderer/abstract-renderer/AbstractTexture2DArray";
 import Camera from "~/lib/core/Camera";
 import Utils from "~/app/Utils";
-import InstanceMaterialContainer from "~/app/render/materials/InstanceMaterialContainer";
-import {Tile3DInstanceLODConfig, Tile3DInstanceType} from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
+import GenericInstanceMaterialContainer from "~/app/render/materials/GenericInstanceMaterialContainer";
+import {
+	InstanceStructure,
+	Tile3DInstanceLODConfig,
+	Tile3DInstanceType
+} from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
+import AdvancedInstanceMaterialContainer from "~/app/render/materials/AdvancedInstanceMaterialContainer";
+import {InstanceTextureIdList} from "~/app/render/textures/createInstanceTexture";
 
 export default class GBufferPass extends Pass<{
 	GBufferRenderPass: {
@@ -69,7 +76,8 @@ export default class GBufferPass extends Pass<{
 	private skyboxMaterial: AbstractMaterial;
 	private terrainMaterial: AbstractMaterial;
 	private treeMaterial: AbstractMaterial;
-	private instanceMaterial: AbstractMaterial;
+	private genericInstanceMaterial: AbstractMaterial;
+	private advancedInstanceMaterial: AbstractMaterial;
 	private aircraftMaterial: AbstractMaterial;
 	private cameraMatrixWorldInversePrev: Mat4 = null;
 	public objectIdBuffer: Uint32Array = new Uint32Array(1);
@@ -111,9 +119,19 @@ export default class GBufferPass extends Pass<{
 		this.huggingMeshMaterial = new ProjectedMeshMaterialContainer(this.renderer, true).material;
 		this.skyboxMaterial = new SkyboxMaterialContainer(this.renderer).material;
 		this.terrainMaterial = new TerrainMaterialContainer(this.renderer).material;
-		this.treeMaterial = new TreeMaterialContainer(this.renderer).material;
 		this.aircraftMaterial = new AircraftMaterialContainer(this.renderer).material;
-		this.instanceMaterial = new InstanceMaterialContainer(this.renderer).material;
+
+		this.genericInstanceMaterial = new GenericInstanceMaterialContainer(this.renderer).material;
+		this.genericInstanceMaterial.getUniform<UniformTexture2DArray>('tMap').value =
+			<AbstractTexture2DArray>this.manager.texturePool.get('instance');
+
+		this.advancedInstanceMaterial = new AdvancedInstanceMaterialContainer(this.renderer).material;
+		this.advancedInstanceMaterial.getUniform<UniformTexture2DArray>('tMap').value =
+			<AbstractTexture2DArray>this.manager.texturePool.get('instance');
+
+		this.treeMaterial = new TreeMaterialContainer(this.renderer).material;
+		this.treeMaterial.getUniform<UniformTexture2DArray>('tMap').value =
+			<AbstractTexture2DArray>this.manager.texturePool.get('tree');
 	}
 
 	private getTileNormalTexturesTransforms(tile: Tile): [Float32Array, Float32Array] {
@@ -380,22 +398,6 @@ export default class GBufferPass extends Pass<{
 		const camera = this.manager.sceneSystem.objects.camera;
 		const tiles = this.manager.sceneSystem.objects.tiles;
 
-		const textureIds: Record<Tile3DInstanceType, number> = {
-			tree: -1,
-			adColumn: 0,
-			transmissionTower: 1,
-			hydrant: 2,
-			trackedCrane: 3,
-			towerCrane: 4,
-			bench: 5,
-			picnicTable: 6,
-			busStop: 7,
-			windTurbine: 8,
-			memorial: 9,
-			statue: 10,
-			shrubbery: 11
-		};
-
 		for (const [name, instancedObject] of this.manager.sceneSystem.objects.instancedObjects.entries()) {
 			const buffers: Float32Array[] = [];
 			const config = Tile3DInstanceLODConfig[name as Tile3DInstanceType];
@@ -408,7 +410,7 @@ export default class GBufferPass extends Pass<{
 				}
 
 				if (
-					camera.isFrustumIntersectsBoundingBox(bbox0.toSpace(tile.matrixWorld)) &&
+					//camera.isFrustumIntersectsBoundingBox(bbox0.toSpace(tile.matrixWorld)) &&
 					tile.distanceToCamera < config.LOD0MaxDistance
 				) {
 					const tileBuffer = tile.getInstanceBufferWithTransform(name as Tile3DInstanceType, 0, instancesOrigin);
@@ -423,7 +425,7 @@ export default class GBufferPass extends Pass<{
 				const bbox1 = tile.getInstancesBoundingBox(name as Tile3DInstanceType, 1);
 
 				if (
-					camera.isFrustumIntersectsBoundingBox(bbox1.toSpace(tile.matrixWorld)) &&
+					//camera.isFrustumIntersectsBoundingBox(bbox1.toSpace(tile.matrixWorld)) &&
 					tile.distanceToCamera < config.LOD1MaxDistance
 				) {
 					const tileBuffer = tile.getInstanceBufferWithTransform(name as Tile3DInstanceType, 1, instancesOrigin);
@@ -444,7 +446,13 @@ export default class GBufferPass extends Pass<{
 				continue;
 			}
 
-			const material = name === 'tree' ? this.treeMaterial : this.instanceMaterial;
+			const materials: Record<InstanceStructure, AbstractMaterial> = {
+				[InstanceStructure.Tree]: this.treeMaterial,
+				[InstanceStructure.Generic]: this.genericInstanceMaterial,
+				[InstanceStructure.Advanced]: this.advancedInstanceMaterial
+			};
+
+			const material = materials[config.structure];
 			const mvMatrixPrev = Mat4.multiply(this.cameraMatrixWorldInversePrev, instancedObject.matrixWorld);
 
 			this.renderer.useMaterial(material);
@@ -455,8 +463,10 @@ export default class GBufferPass extends Pass<{
 			material.getUniform('modelViewMatrixPrev', 'MainBlock').value = new Float32Array(mvMatrixPrev.values);
 			material.updateUniformBlock('MainBlock');
 
-			if (name !== 'tree') {
-				material.getUniform('textureId', 'PerInstanceType').value = new Float32Array([textureIds[name as Tile3DInstanceType]]);
+			const textureIdUniform = material.getUniform('textureId', 'PerInstanceType');
+
+			if (textureIdUniform) {
+				textureIdUniform.value = new Float32Array([InstanceTextureIdList[name as Tile3DInstanceType]]);
 				material.updateUniformBlock('PerInstanceType');
 			}
 

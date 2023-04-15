@@ -27,6 +27,10 @@ const getRequestBody = (x: number, y: number, zoom: number): string => {
 			way(${bbox});
 			rel["type"~"^(multipolygon|building)"](${bbox});
 			//rel(br); // this is SLOW
+			
+			// Make sure that each powerline node knows about all the powerline segments it is connected to
+			//way[power=line](${bbox})->.powerline;
+			//way(around.powerline:0)[power=line];
 		);
 		
 		out body qt;

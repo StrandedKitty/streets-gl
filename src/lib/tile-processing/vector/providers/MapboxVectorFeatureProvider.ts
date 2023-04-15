@@ -69,8 +69,11 @@ export default class MapboxVectorFeatureProvider implements FeatureProvider<Vect
 		});
 
 		if (response.status !== 200) {
-			const error = await response.text();
-			throw new Error(error);
+			const error = await response.json();
+
+			if (error?.message === 'Tile not found') {
+				return polygons;
+			}
 		}
 
 		const pbf = new Pbf(await response.arrayBuffer());

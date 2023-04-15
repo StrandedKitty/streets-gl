@@ -3,7 +3,7 @@ import {InternalResourceType} from "~/lib/render-graph";
 import RenderPassResource from "../render-graph/resources/RenderPassResource";
 import PassManager from "../PassManager";
 import AbstractMaterial from "~/lib/renderer/abstract-renderer/AbstractMaterial";
-import {UniformFloat1, UniformMatrix4} from "~/lib/renderer/abstract-renderer/Uniform";
+import {UniformFloat1, UniformMatrix4, UniformTexture2DArray} from "~/lib/renderer/abstract-renderer/Uniform";
 import Mat4 from "~/lib/math/Mat4";
 import TreeDepthMaterialContainer from "../materials/TreeDepthMaterialContainer";
 import AircraftDepthMaterialContainer from "../materials/AircraftDepthMaterialContainer";
@@ -11,7 +11,13 @@ import BuildingDepthMaterialContainer from "../materials/BuildingDepthMaterialCo
 import ProjectedMeshDepthMaterialContainer from "~/app/render/materials/ProjectedMeshDepthMaterialContainer";
 import AbstractTexture2DArray from "~/lib/renderer/abstract-renderer/AbstractTexture2DArray";
 import CSMCascadeCamera from "~/app/render/CSMCascadeCamera";
-import InstanceDepthMaterialContainer from "~/app/render/materials/InstanceDepthMaterialContainer";
+import GenericInstanceDepthMaterialContainer from "~/app/render/materials/GenericInstanceDepthMaterialContainer";
+import {
+	InstanceStructure,
+	Tile3DInstanceLODConfig,
+	Tile3DInstanceType
+} from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
+import {InstanceTextureIdList} from "~/app/render/textures/createInstanceTexture";
 
 export default class ShadowMappingPass extends Pass<{
 	ShadowMaps: {
@@ -26,7 +32,7 @@ export default class ShadowMappingPass extends Pass<{
 	private readonly buildingDepthMaterial: AbstractMaterial;
 	private readonly huggingMeshMaterial: AbstractMaterial;
 	private readonly treeMaterial: AbstractMaterial;
-	private readonly instanceMaterial: AbstractMaterial;
+	private readonly genericInstanceMaterial: AbstractMaterial;
 	private readonly aircraftMaterial: AbstractMaterial;
 
 	public constructor(manager: PassManager) {
@@ -40,9 +46,15 @@ export default class ShadowMappingPass extends Pass<{
 
 		this.buildingDepthMaterial = new BuildingDepthMaterialContainer(this.renderer).material;
 		this.huggingMeshMaterial = new ProjectedMeshDepthMaterialContainer(this.renderer).material;
-		this.treeMaterial = new TreeDepthMaterialContainer(this.renderer).material;
-		this.instanceMaterial = new InstanceDepthMaterialContainer(this.renderer).material;
 		this.aircraftMaterial = new AircraftDepthMaterialContainer(this.renderer).material;
+
+		this.genericInstanceMaterial = new GenericInstanceDepthMaterialContainer(this.renderer).material;
+		this.genericInstanceMaterial.getUniform<UniformTexture2DArray>('tMap').value =
+			<AbstractTexture2DArray>this.manager.texturePool.get('instance');
+
+		this.treeMaterial = new TreeDepthMaterialContainer(this.renderer).material;
+		this.treeMaterial.getUniform<UniformTexture2DArray>('tMap').value =
+			<AbstractTexture2DArray>this.manager.texturePool.get('tree');
 
 		this.listenToSettings();
 	}
@@ -133,14 +145,34 @@ export default class ShadowMappingPass extends Pass<{
 
 	private renderInstances(shadowCamera: CSMCascadeCamera): void {
 		for (const [name, instancedObject] of this.manager.sceneSystem.objects.instancedObjects.entries()) {
+			const config = Tile3DInstanceLODConfig[name as Tile3DInstanceType];
+
+			const materials: Record<InstanceStructure, AbstractMaterial> = {
+				[InstanceStructure.Tree]: this.treeMaterial,
+				[InstanceStructure.Generic]: this.genericInstanceMaterial,
+				[InstanceStructure.Advanced]: null
+			};
+
+			const material = materials[config.structure];
+
+			if (!material) {
+				continue;
+			}
+
 			const mvMatrix = Mat4.multiply(shadowCamera.matrixWorldInverse, instancedObject.matrixWorld);
-			const material = name === 'tree' ? this.treeMaterial : this.instanceMaterial;
 
 			this.renderer.useMaterial(material);
 
 			material.getUniform('projectionMatrix', 'MainBlock').value = new Float32Array(shadowCamera.projectionMatrix.values);
 			material.getUniform('modelViewMatrix', 'MainBlock').value = new Float32Array(mvMatrix.values);
 			material.updateUniformBlock('MainBlock');
+
+			const textureIdUniform = material.getUniform('textureId', 'PerInstanceType');
+
+			if (textureIdUniform) {
+				textureIdUniform.value = new Float32Array([InstanceTextureIdList[name as Tile3DInstanceType]]);
+				material.updateUniformBlock('PerInstanceType');
+			}
 
 			instancedObject.mesh.draw();
 		}

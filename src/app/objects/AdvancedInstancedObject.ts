@@ -5,8 +5,8 @@ import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import AbstractAttributeBuffer from "~/lib/renderer/abstract-renderer/AbstractAttributeBuffer";
 import {ModelSourceBuffers} from "~/app/objects/models/ModelManager";
 
-export default class InstancedGenericObject extends RenderableObject3D {
-	private static readonly FloatsPerInstance: number = 5;
+export default class AdvancedInstancedObject extends RenderableObject3D {
+	private static readonly FloatsPerInstance: number = 9;
 	public mesh: AbstractMesh = null;
 	private interleavedAttributeBuffer: AbstractAttributeBuffer = null;
 	public instanceBuffers: ModelSourceBuffers;
@@ -21,7 +21,7 @@ export default class InstancedGenericObject extends RenderableObject3D {
 
 	public setInstancesInterleavedBuffer(interleavedBuffer: Float32Array): void {
 		this.interleavedBuffer = interleavedBuffer;
-		this.instanceCount = interleavedBuffer.length / InstancedGenericObject.FloatsPerInstance;
+		this.instanceCount = interleavedBuffer.length / AdvancedInstancedObject.FloatsPerInstance;
 
 		if (this.mesh && this.interleavedAttributeBuffer) {
 			this.interleavedAttributeBuffer.setData(this.interleavedBuffer);
@@ -83,30 +83,30 @@ export default class InstancedGenericObject extends RenderableObject3D {
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
 						instanced: true,
-						stride: 5 * 4,
+						stride: 9 * 4,
 						offset: 0,
 						buffer: this.interleavedAttributeBuffer
 					}),
 					renderer.createAttribute({
 						name: 'instanceScale',
-						size: 1,
+						size: 3,
 						type: RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
 						instanced: true,
-						stride: 5 * 4,
+						stride: 9 * 4,
 						offset: 3 * 4,
 						buffer: this.interleavedAttributeBuffer
 					}),
 					renderer.createAttribute({
 						name: 'instanceRotation',
-						size: 1,
+						size: 3,
 						type: RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
 						instanced: true,
-						stride: 5 * 4,
-						offset: 4 * 4,
+						stride: 9 * 4,
+						offset: 6 * 4,
 						buffer: this.interleavedAttributeBuffer
 					})
 				]

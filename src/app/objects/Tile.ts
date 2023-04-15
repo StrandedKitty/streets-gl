@@ -19,7 +19,8 @@ import {
 	Tile3DInstanceType
 } from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
 import InstancedTree from "~/app/objects/InstancedTree";
-import InstancedGenericObject from "./InstancedGenericObject";
+import GenericInstancedObject from "./GenericInstancedObject";
+import InstancedObject from "~/app/objects/InstancedObject";
 
 // position.xyz, scale, rotation
 export type InstanceBufferInterleaved = Float32Array;
@@ -129,7 +130,7 @@ export default class Tile extends Object3D {
 		});
 	}
 
-	public updateInstancesBoundingBoxes(instancedObjects: Map<string, InstancedGenericObject | InstancedTree>): void {
+	public updateInstancesBoundingBoxes(instancedObjects: Map<string, InstancedObject>): void {
 		for (const [key, buffers] of this.instanceBuffers) {
 			const config = Tile3DInstanceLODConfig[key];
 			const schema = InstanceStructureSchemas[config.structure];

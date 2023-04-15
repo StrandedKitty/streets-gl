@@ -17,6 +17,7 @@ import Config from "../Config";
 import TextureResource from "./render-graph/resources/TextureResource";
 import SettingsContainer from "~/app/settings/SettingsContainer";
 import SettingsSystem from "~/app/systems/SettingsSystem";
+import TexturePool from "~/app/render/TexturePool";
 
 interface SharedResources {
 	BackbufferRenderPass: RenderPassResource;
@@ -70,6 +71,7 @@ export default class PassManager {
 	public readonly renderGraph: RG.RenderGraph;
 	public readonly settings: SettingsContainer;
 	public readonly passes: Set<Pass> = new Set();
+	public readonly texturePool: TexturePool;
 	private readonly passMap: Map<string, Pass> = new Map();
 	private readonly sharedResources: SharedResourcesMap = new Map();
 
@@ -85,6 +87,7 @@ export default class PassManager {
 		this.resourceFactory = resourceFactory;
 		this.renderGraph = renderGraph;
 		this.settings = settings;
+		this.texturePool = new TexturePool(renderer);
 
 		this.initSharedResources();
 		this.resize();

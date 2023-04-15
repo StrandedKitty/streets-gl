@@ -7,6 +7,8 @@ in vec3 instancePosition;
 in float instanceScale;
 in float instanceRotation;
 
+out vec2 vUv;
+
 uniform MainBlock {
 	mat4 projectionMatrix;
 	mat4 modelViewMatrix;
@@ -22,6 +24,8 @@ mat2 rotate2d(float angle){
 }
 
 void main() {
+	vUv = uv;
+
 	mat2 rotationMatrix = rotate2d(instanceRotation);
 
 	vec3 transformedPosition = position;

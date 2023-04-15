@@ -45,11 +45,7 @@ vec3 getNormal() {
 void main() {
     vec4 color = readDiffuse(vUv);
 
-    if (color.a < 0.5) {
-        discard;
-    }
-
-    outColor = vec4(color.rgb * 1.5, 1);
+    outColor = vec4(color.rgb, 1);
     outNormal = packNormal(getNormal());
     outRoughnessMetalnessF0 = vec3(0.8, 0, 0.03);
     outMotion = getMotionVector(vClipPos, vClipPosPrev);

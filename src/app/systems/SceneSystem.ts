@@ -10,13 +10,15 @@ import Config from "../Config";
 import MapTimeSystem from "./MapTimeSystem";
 import Vec3 from "~/lib/math/Vec3";
 import Labels from "../objects/Labels";
-import InstancedGenericObject from "../objects/InstancedGenericObject";
+import GenericInstancedObject from "../objects/GenericInstancedObject";
 import ModelManager from "../objects/models/ModelManager";
 import InstancedAircraft from "../objects/InstancedAircraft";
 import Terrain from "../objects/Terrain";
 import Tile from "~/app/objects/Tile";
 import SettingsSystem from "~/app/systems/SettingsSystem";
 import InstancedTree from "~/app/objects/InstancedTree";
+import AdvancedInstancedObject from "~/app/objects/AdvancedInstancedObject";
+import InstancedObject from "~/app/objects/InstancedObject";
 
 interface SceneObjects {
 	wrapper: Object3D;
@@ -26,7 +28,7 @@ interface SceneObjects {
 	csm: CSM;
 	labels: Labels;
 	terrain: Terrain;
-	instancedObjects: Map<string, InstancedGenericObject | InstancedTree>;
+	instancedObjects: Map<string, InstancedObject>;
 	instancedAircraft: InstancedAircraft[];
 }
 
@@ -84,19 +86,21 @@ export default class SceneSystem extends System {
 			instancedAircraft
 		};
 
-		this.objects.instancedObjects.set('tree', new InstancedTree(ModelManager.getGLTFModel('treeModel')));
-		this.objects.instancedObjects.set('adColumn', new InstancedGenericObject(ModelManager.getGLTFModel('adColumn')));
-		this.objects.instancedObjects.set('transmissionTower', new InstancedGenericObject(ModelManager.getGLTFModel('transmissionTower')));
-		this.objects.instancedObjects.set('hydrant', new InstancedGenericObject(ModelManager.getGLTFModel('hydrant')));
-		this.objects.instancedObjects.set('trackedCrane', new InstancedGenericObject(ModelManager.getGLTFModel('trackedCrane')));
-		this.objects.instancedObjects.set('towerCrane', new InstancedGenericObject(ModelManager.getGLTFModel('towerCrane')));
-		this.objects.instancedObjects.set('bench', new InstancedGenericObject(ModelManager.getGLTFModel('bench')));
-		this.objects.instancedObjects.set('picnicTable', new InstancedGenericObject(ModelManager.getGLTFModel('picnicTable')));
-		this.objects.instancedObjects.set('busStop', new InstancedGenericObject(ModelManager.getGLTFModel('busStop')));
-		this.objects.instancedObjects.set('windTurbine', new InstancedGenericObject(ModelManager.getGLTFModel('windTurbine')));
-		this.objects.instancedObjects.set('memorial', new InstancedGenericObject(ModelManager.getGLTFModel('memorial')));
-		this.objects.instancedObjects.set('statue', new InstancedGenericObject(ModelManager.getGLTFModel('statue0')));
-		this.objects.instancedObjects.set('shrubbery', new InstancedGenericObject(ModelManager.getGLTFModel('shrubbery')));
+		this.objects.instancedObjects.set('tree', new InstancedTree(ModelManager.getGLTFModel('tree')));
+		this.objects.instancedObjects.set('adColumn', new GenericInstancedObject(ModelManager.getGLTFModel('adColumn')));
+		this.objects.instancedObjects.set('transmissionTower', new GenericInstancedObject(ModelManager.getGLTFModel('transmissionTower')));
+		this.objects.instancedObjects.set('hydrant', new GenericInstancedObject(ModelManager.getGLTFModel('hydrant')));
+		this.objects.instancedObjects.set('trackedCrane', new GenericInstancedObject(ModelManager.getGLTFModel('trackedCrane')));
+		this.objects.instancedObjects.set('towerCrane', new GenericInstancedObject(ModelManager.getGLTFModel('towerCrane')));
+		this.objects.instancedObjects.set('bench', new GenericInstancedObject(ModelManager.getGLTFModel('bench')));
+		this.objects.instancedObjects.set('picnicTable', new GenericInstancedObject(ModelManager.getGLTFModel('picnicTable')));
+		this.objects.instancedObjects.set('busStop', new GenericInstancedObject(ModelManager.getGLTFModel('busStop')));
+		this.objects.instancedObjects.set('windTurbine', new GenericInstancedObject(ModelManager.getGLTFModel('windTurbine')));
+		this.objects.instancedObjects.set('memorial', new GenericInstancedObject(ModelManager.getGLTFModel('memorial')));
+		this.objects.instancedObjects.set('statue', new GenericInstancedObject(ModelManager.getGLTFModel('statue0')));
+		this.objects.instancedObjects.set('shrubbery', new GenericInstancedObject(ModelManager.getGLTFModel('shrubbery')));
+		this.objects.instancedObjects.set('utilityPole', new GenericInstancedObject(ModelManager.getGLTFModel('utilityPole')));
+		this.objects.instancedObjects.set('wire', new AdvancedInstancedObject(ModelManager.getGLTFModel('wire')));
 
 		this.scene.add(wrapper);
 		wrapper.add(

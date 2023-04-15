@@ -162,200 +162,60 @@
 	"treeLinden1Normal": {"url": "/models/tree/linden1_normal.png", "type": "image"},
 	"treeOakDiffuse": {"url": "/models/tree/oak_diffuse.png", "type": "image"},
 	"treeOakNormal": {"url": "/models/tree/oak_normal.png", "type": "image"},
-	"treeModel": {
-		"url": "/models/tree/tree.glb",
-		"type": "gltf"
-	},
-	"aircraftB777": {
-		"url": "/models/b777/b777.glb",
-		"type": "gltf"
-	},
-	"aircraftB777Diffuse": {
-		"url": "/models/b777/diffuse.png",
-		"type": "image"
-	},
-	"aircraftB777Normal": {
-		"url": "/models/b777/normal.png",
-		"type": "image"
-	},
-	"aircraftA321": {
-		"url": "/models/a321/a321.glb",
-		"type": "gltf"
-	},
-	"aircraftA321Diffuse": {
-		"url": "/models/a321/diffuse.png",
-		"type": "image"
-	},
-	"aircraftA321Normal": {
-		"url": "/models/a321/normal.png",
-		"type": "image"
-	},
-	"aircraftCessna208": {
-		"url": "/models/cessna208/cessna208.glb",
-		"type": "gltf"
-	},
-	"aircraftCessna208Diffuse": {
-		"url": "/models/cessna208/diffuse.png",
-		"type": "image"
-	},
-	"aircraftCessna208Normal": {
-		"url": "/models/cessna208/normal.png",
-		"type": "image"
-	},
-	"aircraftERJ135": {
-		"url": "/models/erj135/erj135.glb",
-		"type": "gltf"
-	},
-	"aircraftERJ135Diffuse": {
-		"url": "/models/erj135/diffuse.png",
-		"type": "image"
-	},
-	"aircraftERJ135Normal": {
-		"url": "/models/erj135/normal.png",
-		"type": "image"
-	},
-	"adColumn": {
-		"url": "/models/ad_column/ad_column.glb",
-		"type": "gltf"
-	},
-	"adColumnDiffuse": {
-		"url": "/models/ad_column/diffuse.png",
-		"type": "image"
-	},
-	"adColumnNormal": {
-		"url": "/models/ad_column/normal.png",
-		"type": "image"
-	},
-	"transmissionTower": {
-		"url": "/models/transmission_tower/transmission_tower.glb",
-		"type": "gltf"
-	},
-	"transmissionTowerDiffuse": {
-		"url": "/models/transmission_tower/diffuse.png",
-		"type": "image"
-	},
-	"transmissionTowerNormal": {
-		"url": "/models/transmission_tower/normal.png",
-		"type": "image"
-	},
-	"hydrant": {
-		"url": "/models/hydrant/hydrant.glb",
-		"type": "gltf"
-	},
-	"hydrantDiffuse": {
-		"url": "/models/hydrant/diffuse.png",
-		"type": "image"
-	},
-	"hydrantNormal": {
-		"url": "/models/hydrant/normal.png",
-		"type": "image"
-	},
-	"trackedCrane": {
-		"url": "/models/tracked_crane/tracked_crane.glb",
-		"type": "gltf"
-	},
-	"trackedCraneDiffuse": {
-		"url": "/models/tracked_crane/diffuse.png",
-		"type": "image"
-	},
-	"trackedCraneNormal": {
-		"url": "/models/tracked_crane/normal.png",
-		"type": "image"
-	},
-	"towerCrane": {
-		"url": "/models/tower_crane/tower_crane.glb",
-		"type": "gltf"
-	},
-	"towerCraneDiffuse": {
-		"url": "/models/tower_crane/diffuse.png",
-		"type": "image"
-	},
-	"towerCraneNormal": {
-		"url": "/models/tower_crane/normal.png",
-		"type": "image"
-	},
-	"bench": {
-		"url": "/models/bench/bench.glb",
-		"type": "gltf"
-	},
-	"benchDiffuse": {
-		"url": "/models/bench/diffuse.png",
-		"type": "image"
-	},
-	"benchNormal": {
-		"url": "/models/bench/normal.png",
-		"type": "image"
-	},
-	"picnicTable": {
-		"url": "/models/picnic_table/picnic_table.glb",
-		"type": "gltf"
-	},
-	"picnicTableDiffuse": {
-		"url": "/models/picnic_table/diffuse.png",
-		"type": "image"
-	},
-	"picnicTableNormal": {
-		"url": "/models/picnic_table/normal.png",
-		"type": "image"
-	},
-	"busStop": {
-		"url": "/models/bus_stop/bus_stop.glb",
-		"type": "gltf"
-	},
-	"busStopDiffuse": {
-		"url": "/models/bus_stop/diffuse.png",
-		"type": "image"
-	},
-	"busStopNormal": {
-		"url": "/models/bus_stop/normal.png",
-		"type": "image"
-	},
-	"windTurbine": {
-		"url": "/models/wind_turbine/wind_turbine.glb",
-		"type": "gltf"
-	},
-	"windTurbineDiffuse": {
-		"url": "/models/wind_turbine/diffuse.png",
-		"type": "image"
-	},
-	"windTurbineNormal": {
-		"url": "/models/wind_turbine/normal.png",
-		"type": "image"
-	},
-	"memorial": {
-		"url": "/models/memorial/memorial.glb",
-		"type": "gltf"
-	},
-	"memorialDiffuse": {
-		"url": "/models/memorial/diffuse.png",
-		"type": "image"
-	},
-	"memorialNormal": {
-		"url": "/models/memorial/normal.png",
-		"type": "image"
-	},
-	"statue0": {
-		"url": "/models/statue_0/the_thinker.glb",
-		"type": "gltf"
-	},
-	"statue0Diffuse": {
-		"url": "/models/statue_0/diffuse.png",
-		"type": "image"
-	},
-	"statue0Normal": {
-		"url": "/models/statue_0/normal.png",
-		"type": "image"
-	},
-	"shrubbery": {
-		"url": "/models/shrubbery/shrubbery.glb",
-		"type": "gltf"
-	},
-	"shrubberyDiffuse": {
-		"url": "/models/shrubbery/diffuse.png",
-		"type": "image"
-	},
-	"shrubberyNormal": {
-		"url": "/models/shrubbery/normal.png",
-		"type": "image"
-	}
+
+	"tree": {"url": "/models/tree/tree.glb", "type": "gltf"},
+	"aircraftB777": {"url": "/models/b777/b777.glb", "type": "gltf"},
+	"aircraftB777Diffuse": {"url": "/models/b777/diffuse.png", "type": "image"},
+	"aircraftB777Normal": {"url": "/models/b777/normal.png", "type": "image"},
+	"aircraftA321": {"url": "/models/a321/a321.glb", "type": "gltf"},
+	"aircraftA321Diffuse": {"url": "/models/a321/diffuse.png", "type": "image"},
+	"aircraftA321Normal": {"url": "/models/a321/normal.png", "type": "image"},
+	"aircraftCessna208": {"url": "/models/cessna208/cessna208.glb", "type": "gltf"},
+	"aircraftCessna208Diffuse": {"url": "/models/cessna208/diffuse.png", "type": "image"},
+	"aircraftCessna208Normal": {"url": "/models/cessna208/normal.png", "type": "image"},
+	"aircraftERJ135": {"url": "/models/erj135/erj135.glb", "type": "gltf"},
+	"aircraftERJ135Diffuse": {"url": "/models/erj135/diffuse.png", "type": "image"},
+	"aircraftERJ135Normal": {"url": "/models/erj135/normal.png", "type": "image"},
+	"adColumn": {"url": "/models/ad_column/ad_column.glb", "type": "gltf"},
+	"adColumnDiffuse": {"url": "/models/ad_column/diffuse.png", "type": "image"},
+	"adColumnNormal": {"url": "/models/ad_column/normal.png", "type": "image"},
+	"transmissionTower": {"url": "/models/transmission_tower/transmission_tower.glb", "type": "gltf"},
+	"transmissionTowerDiffuse": {"url": "/models/transmission_tower/diffuse.png", "type": "image"},
+	"transmissionTowerNormal": {"url": "/models/transmission_tower/normal.png", "type": "image"},
+	"hydrant": {"url": "/models/hydrant/hydrant.glb", "type": "gltf"},
+	"hydrantDiffuse": {"url": "/models/hydrant/diffuse.png", "type": "image"},
+	"hydrantNormal": {"url": "/models/hydrant/normal.png", "type": "image"},
+	"trackedCrane": {"url": "/models/tracked_crane/tracked_crane.glb", "type": "gltf"},
+	"trackedCraneDiffuse": {"url": "/models/tracked_crane/diffuse.png", "type": "image"},
+	"trackedCraneNormal": {"url": "/models/tracked_crane/normal.png", "type": "image"},
+	"towerCrane": {"url": "/models/tower_crane/tower_crane.glb", "type": "gltf"},
+	"towerCraneDiffuse": {"url": "/models/tower_crane/diffuse.png", "type": "image"},
+	"towerCraneNormal": {"url": "/models/tower_crane/normal.png", "type": "image"},
+	"bench": {"url": "/models/bench/bench.glb", "type": "gltf"},
+	"benchDiffuse": {"url": "/models/bench/diffuse.png", "type": "image"},
+	"benchNormal": {"url": "/models/bench/normal.png", "type": "image"},
+	"picnicTable": {"url": "/models/picnic_table/picnic_table.glb", "type": "gltf"},
+	"picnicTableDiffuse": {"url": "/models/picnic_table/diffuse.png", "type": "image"},
+	"picnicTableNormal": {"url": "/models/picnic_table/normal.png", "type": "image"},
+	"busStop": {"url": "/models/bus_stop/bus_stop.glb", "type": "gltf"},
+	"busStopDiffuse": {"url": "/models/bus_stop/diffuse.png", "type": "image"},
+	"busStopNormal": {"url": "/models/bus_stop/normal.png", "type": "image"},
+	"windTurbine": {"url": "/models/wind_turbine/wind_turbine.glb", "type": "gltf"},
+	"windTurbineDiffuse": {"url": "/models/wind_turbine/diffuse.png", "type": "image"},
+	"windTurbineNormal": {"url": "/models/wind_turbine/normal.png", "type": "image"},
+	"memorial": {"url": "/models/memorial/memorial.glb", "type": "gltf"},
+	"memorialDiffuse": {"url": "/models/memorial/diffuse.png", "type": "image"},
+	"memorialNormal": {"url": "/models/memorial/normal.png", "type": "image"},
+	"statue0": {"url": "/models/statue_0/the_thinker.glb", "type": "gltf"},
+	"statue0Diffuse": {"url": "/models/statue_0/diffuse.png", "type": "image"},
+	"statue0Normal": {"url": "/models/statue_0/normal.png", "type": "image"},
+	"shrubbery": {"url": "/models/shrubbery/shrubbery.glb", "type": "gltf"},
+	"shrubberyDiffuse": {"url": "/models/shrubbery/diffuse.png", "type": "image"},
+	"shrubberyNormal": {"url": "/models/shrubbery/normal.png", "type": "image"},
+	"utilityPole": {"url": "/models/utility_pole/utility_pole.glb", "type": "gltf"},
+	"utilityPoleDiffuse": {"url": "/models/utility_pole/diffuse.png", "type": "image"},
+	"utilityPoleNormal": {"url": "/models/utility_pole/normal.png", "type": "image"},
+	"wire": {"url": "/models/wire/wire.glb", "type": "gltf"},
+	"wireDiffuse": {"url": "/models/wire/diffuse.png", "type": "image"},
+	"wireNormal": {"url": "/models/wire/normal.png", "type": "image"}
 }

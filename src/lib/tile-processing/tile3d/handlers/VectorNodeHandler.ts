@@ -56,12 +56,12 @@ export default class VectorNodeHandler implements Handler {
 			})];
 		}
 
-		if (this.descriptor.type === 'transmissionTower') {
+		/*if (this.descriptor.type === 'transmissionTower') {
 			return [this.getGenericInstanceFeature({
 				type: 'transmissionTower',
 				rotateToNearestPath: false
 			})];
-		}
+		}*/
 
 		if (this.descriptor.type === 'hydrant') {
 			return [this.getGenericInstanceFeature({
