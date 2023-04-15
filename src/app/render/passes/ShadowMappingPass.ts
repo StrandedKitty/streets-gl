@@ -18,6 +18,8 @@ import {
 	Tile3DInstanceType
 } from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
 import {InstanceTextureIdList} from "~/app/render/textures/createInstanceTexture";
+import Camera from "~/lib/core/Camera";
+import Vec2 from "~/lib/math/Vec2";
 
 export default class ShadowMappingPass extends Pass<{
 	ShadowMaps: {
@@ -144,15 +146,21 @@ export default class ShadowMappingPass extends Pass<{
 	}
 
 	private renderInstances(shadowCamera: CSMCascadeCamera): void {
-		for (const [name, instancedObject] of this.manager.sceneSystem.objects.instancedObjects.entries()) {
-			const config = Tile3DInstanceLODConfig[name as Tile3DInstanceType];
+		const tiles = this.manager.sceneSystem.objects.tiles;
 
+		this.manager.sceneSystem.updateInstancedObjectsBuffers(tiles, shadowCamera, this.getInstancesOrigin(shadowCamera));
+
+		for (const [name, instancedObject] of this.manager.sceneSystem.objects.instancedObjects.entries()) {
+			if (instancedObject.instanceCount === 0) {
+				continue;
+			}
+
+			const config = Tile3DInstanceLODConfig[name as Tile3DInstanceType];
 			const materials: Record<InstanceStructure, AbstractMaterial> = {
 				[InstanceStructure.Tree]: this.treeMaterial,
 				[InstanceStructure.Generic]: this.genericInstanceMaterial,
 				[InstanceStructure.Advanced]: null
 			};
-
 			const material = materials[config.structure];
 
 			if (!material) {
@@ -176,6 +184,13 @@ export default class ShadowMappingPass extends Pass<{
 
 			instancedObject.mesh.draw();
 		}
+	}
+
+	private getInstancesOrigin(camera: Camera): Vec2 {
+		return new Vec2(
+			Math.floor(camera.position.x / 10000) * 10000,
+			Math.floor(camera.position.z / 10000) * 10000
+		);
 	}
 
 	private renderAircraft(shadowCamera: CSMCascadeCamera): void {

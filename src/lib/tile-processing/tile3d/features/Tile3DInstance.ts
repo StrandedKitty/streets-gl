@@ -1,4 +1,6 @@
 import Tile3DFeature from "~/lib/tile-processing/tile3d/features/Tile3DFeature";
+import AABB3D from "~/lib/math/AABB3D";
+import Vec3 from "~/lib/math/Vec3";
 
 export type Tile3DInstanceType = 'tree' | 'adColumn' | 'transmissionTower' | 'utilityPole' | 'wire' | 'hydrant'
 	| 'trackedCrane' | 'towerCrane' | 'bench' | 'picnicTable' | 'busStop' | 'windTurbine' | 'memorial' | 'statue'
@@ -13,6 +15,7 @@ export enum InstanceStructure {
 export interface InstanceStructureSchema {
 	componentsPerInstance: number;
 	getComponents(instance: Tile3DInstance): number[];
+	transformBoundingBox(boundingBox: AABB3D, components: number[]): AABB3D;
 }
 
 export const InstanceStructureSchemas: Record<InstanceStructure, InstanceStructureSchema> = {
@@ -20,12 +23,26 @@ export const InstanceStructureSchemas: Record<InstanceStructure, InstanceStructu
 		componentsPerInstance: 5,
 		getComponents(instance: Tile3DInstance): number[] {
 			return [instance.x, instance.y, instance.z, instance.scale, instance.rotation];
+		},
+		transformBoundingBox(boundingBox: AABB3D, components: number[]): AABB3D {
+			const [x, y, z, scale, rotation] = components;
+			return boundingBox
+				.scaleScalar(scale)
+				.rotate2D(rotation)
+				.move(x, y, z);
 		}
 	},
 	[InstanceStructure.Tree]: {
 		componentsPerInstance: 6,
 		getComponents(instance: Tile3DInstance): number[] {
 			return [instance.x, instance.y, instance.z, instance.scale, instance.rotation, instance.textureId];
+		},
+		transformBoundingBox(boundingBox: AABB3D, components: number[]): AABB3D {
+			const [x, y, z, scale, rotation] = components;
+			return boundingBox
+				.scaleScalar(scale)
+				.rotate2D(rotation)
+				.move(x, y, z);
 		}
 	},
 	[InstanceStructure.Advanced]: {
@@ -36,6 +53,18 @@ export const InstanceStructureSchemas: Record<InstanceStructure, InstanceStructu
 				instance.scaleX, instance.scaleY, instance.scaleZ,
 				instance.rotationX, instance.rotationY, instance.rotationZ
 			];
+		},
+		transformBoundingBox(boundingBox: AABB3D, components: number[]): AABB3D {
+			const [
+				x, y, z,
+				scaleX, scaleY, scaleZ,
+				rotationX, rotationY, rotationZ
+			] = components;
+
+			return boundingBox
+				.scale(scaleX, scaleY, scaleZ)
+				.rotateEuler(rotationX, rotationY, rotationZ)
+				.move(x, y, z);
 		}
 	}
 };

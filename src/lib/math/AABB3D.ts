@@ -79,17 +79,68 @@ export default class AABB3D extends AABB<Vec3> {
 		return new AABB3D(Vec3.clone(this.min), Vec3.clone(this.max));
 	}
 
-	public move(offset: Vec3): AABB3D {
+	public move(x: number, y: number, z: number): AABB3D {
+		const vector = new Vec3(x, y, z);
+
 		return new AABB3D(
-			Vec3.add(this.min, offset),
-			Vec3.add(this.max, offset),
+			Vec3.add(this.min, vector),
+			Vec3.add(this.max, vector),
 		);
 	}
 
-	public scale(factor: number): AABB3D {
+	public scaleScalar(factor: number): AABB3D {
 		return new AABB3D(
 			Vec3.multiplyScalar(this.min, factor),
 			Vec3.multiplyScalar(this.max, factor),
+		);
+	}
+
+	public getCornerPoints(): Vec3[] {
+		return [
+			this.min,
+			new Vec3(this.max.x, this.min.y, this.min.z),
+			new Vec3(this.min.x, this.max.y, this.min.z),
+			new Vec3(this.min.x, this.min.y, this.max.z),
+			new Vec3(this.max.x, this.max.y, this.min.z),
+			new Vec3(this.min.x, this.max.y, this.max.z),
+			new Vec3(this.max.x, this.min.y, this.max.z),
+			this.max,
+		];
+	}
+
+	public rotate2D(angle: number): AABB3D {
+		const corners = this.getCornerPoints();
+		const rotatedAABB = new AABB3D();
+
+		for (const corner of corners) {
+			const point = Vec3.rotateAroundAxis(corner, new Vec3(0, 1, 0), angle);
+			rotatedAABB.includePoint(point);
+		}
+
+		return rotatedAABB;
+	}
+
+	public rotateEuler(x: number, y: number, z: number): AABB3D {
+		const corners = this.getCornerPoints();
+		const rotatedAABB = new AABB3D();
+
+		for (const corner of corners) {
+			let point = Vec3.rotateAroundAxis(corner, new Vec3(1, 0, 0), x);
+			point = Vec3.rotateAroundAxis(point, new Vec3(0, 1, 0), y);
+			point = Vec3.rotateAroundAxis(point, new Vec3(0, 0, 1), z);
+
+			rotatedAABB.includePoint(point);
+		}
+
+		return rotatedAABB;
+	}
+
+	public scale(x: number, y: number, z: number): AABB3D {
+		const vector = new Vec3(x, y, z);
+
+		return new AABB3D(
+			Vec3.multiplyPerComponent(this.min, vector),
+			Vec3.multiplyPerComponent(this.max, vector),
 		);
 	}
 

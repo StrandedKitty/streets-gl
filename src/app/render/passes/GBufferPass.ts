@@ -214,43 +214,6 @@ export default class GBufferPass extends Pass<{
 		}
 	}
 
-	private renderAircraft(instancesOrigin: Vec2): void {
-		const camera = this.manager.sceneSystem.objects.camera;
-		const aircraftList = this.manager.sceneSystem.objects.instancedAircraft;
-		const vehicleSystem = this.manager.systemManager.getSystem(VehicleSystem);
-
-		for (let i = 0; i < aircraftList.length; i++) {
-			const aircraft = aircraftList[i];
-
-			if (!aircraft.mesh) {
-				continue;
-			}
-
-			const buffer = vehicleSystem.getAircraftBuffer(instancesOrigin, i);
-			const instanceCount = buffer.length / 4;
-
-			aircraft.position.set(instancesOrigin.x, 0, instancesOrigin.y);
-			aircraft.updateMatrix();
-			aircraft.updateMatrixWorld();
-			aircraft.setInstancesInterleavedBuffer(buffer, buffer.length / 4);
-
-			if (instanceCount > 0) {
-				const mvMatrixPrev = Mat4.multiply(this.cameraMatrixWorldInversePrev, aircraft.matrixWorld);
-
-				this.renderer.useMaterial(this.aircraftMaterial);
-
-				this.aircraftMaterial.getUniform('projectionMatrix', 'MainBlock').value = new Float32Array(camera.jitteredProjectionMatrix.values);
-				this.aircraftMaterial.getUniform('modelMatrix', 'MainBlock').value = new Float32Array(aircraft.matrixWorld.values);
-				this.aircraftMaterial.getUniform('viewMatrix', 'MainBlock').value = new Float32Array(camera.matrixWorldInverse.values);
-				this.aircraftMaterial.getUniform('modelViewMatrixPrev', 'MainBlock').value = new Float32Array(mvMatrixPrev.values);
-				this.aircraftMaterial.getUniform('textureId', 'MainBlock').value = new Float32Array([i]);
-				this.aircraftMaterial.updateUniformBlock('MainBlock');
-
-				aircraft.mesh.draw();
-			}
-		}
-	}
-
 	private renderTerrain(): void {
 		const camera = this.manager.sceneSystem.objects.camera;
 		const terrain = this.manager.sceneSystem.objects.terrain;
@@ -398,51 +361,10 @@ export default class GBufferPass extends Pass<{
 		const camera = this.manager.sceneSystem.objects.camera;
 		const tiles = this.manager.sceneSystem.objects.tiles;
 
+		this.manager.sceneSystem.updateInstancedObjectsBuffers(tiles, camera, instancesOrigin);
+
 		for (const [name, instancedObject] of this.manager.sceneSystem.objects.instancedObjects.entries()) {
-			const buffers: Float32Array[] = [];
-			const config = Tile3DInstanceLODConfig[name as Tile3DInstanceType];
-
-			for (const tile of tiles) {
-				const bbox0 = tile.getInstancesBoundingBox(name as Tile3DInstanceType, 0);
-
-				if (!bbox0) {
-					continue;
-				}
-
-				if (
-					//camera.isFrustumIntersectsBoundingBox(bbox0.toSpace(tile.matrixWorld)) &&
-					tile.distanceToCamera < config.LOD0MaxDistance
-				) {
-					const tileBuffer = tile.getInstanceBufferWithTransform(name as Tile3DInstanceType, 0, instancesOrigin);
-
-					if (tileBuffer) {
-						buffers.push(tileBuffer);
-					}
-
-					continue;
-				}
-
-				const bbox1 = tile.getInstancesBoundingBox(name as Tile3DInstanceType, 1);
-
-				if (
-					//camera.isFrustumIntersectsBoundingBox(bbox1.toSpace(tile.matrixWorld)) &&
-					tile.distanceToCamera < config.LOD1MaxDistance
-				) {
-					const tileBuffer = tile.getInstanceBufferWithTransform(name as Tile3DInstanceType, 1, instancesOrigin);
-
-					if (tileBuffer) {
-						buffers.push(tileBuffer);
-					}
-				}
-			}
-
-			instancedObject.position.set(instancesOrigin.x, 0, instancesOrigin.y);
-			instancedObject.updateMatrix();
-			instancedObject.updateMatrixWorld();
-			const mergedTrees = Utils.mergeTypedArrays(Float32Array, buffers);
-			instancedObject.setInstancesInterleavedBuffer(mergedTrees);
-
-			if (buffers.length === 0) {
+			if (instancedObject.instanceCount === 0) {
 				continue;
 			}
 
@@ -452,6 +374,7 @@ export default class GBufferPass extends Pass<{
 				[InstanceStructure.Advanced]: this.advancedInstanceMaterial
 			};
 
+			const config = Tile3DInstanceLODConfig[name as Tile3DInstanceType];
 			const material = materials[config.structure];
 			const mvMatrixPrev = Mat4.multiply(this.cameraMatrixWorldInversePrev, instancedObject.matrixWorld);
 
@@ -471,6 +394,43 @@ export default class GBufferPass extends Pass<{
 			}
 
 			instancedObject.mesh.draw();
+		}
+	}
+
+	private renderAircraft(instancesOrigin: Vec2): void {
+		const camera = this.manager.sceneSystem.objects.camera;
+		const aircraftList = this.manager.sceneSystem.objects.instancedAircraft;
+		const vehicleSystem = this.manager.systemManager.getSystem(VehicleSystem);
+
+		for (let i = 0; i < aircraftList.length; i++) {
+			const aircraft = aircraftList[i];
+
+			if (!aircraft.mesh) {
+				continue;
+			}
+
+			const buffer = vehicleSystem.getAircraftBuffer(instancesOrigin, i);
+			const instanceCount = buffer.length / 4;
+
+			aircraft.position.set(instancesOrigin.x, 0, instancesOrigin.y);
+			aircraft.updateMatrix();
+			aircraft.updateMatrixWorld();
+			aircraft.setInstancesInterleavedBuffer(buffer, buffer.length / 4);
+
+			if (instanceCount > 0) {
+				const mvMatrixPrev = Mat4.multiply(this.cameraMatrixWorldInversePrev, aircraft.matrixWorld);
+
+				this.renderer.useMaterial(this.aircraftMaterial);
+
+				this.aircraftMaterial.getUniform('projectionMatrix', 'MainBlock').value = new Float32Array(camera.jitteredProjectionMatrix.values);
+				this.aircraftMaterial.getUniform('modelMatrix', 'MainBlock').value = new Float32Array(aircraft.matrixWorld.values);
+				this.aircraftMaterial.getUniform('viewMatrix', 'MainBlock').value = new Float32Array(camera.matrixWorldInverse.values);
+				this.aircraftMaterial.getUniform('modelViewMatrixPrev', 'MainBlock').value = new Float32Array(mvMatrixPrev.values);
+				this.aircraftMaterial.getUniform('textureId', 'MainBlock').value = new Float32Array([i]);
+				this.aircraftMaterial.updateUniformBlock('MainBlock');
+
+				aircraft.mesh.draw();
+			}
 		}
 	}
 

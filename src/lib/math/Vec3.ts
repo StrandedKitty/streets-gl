@@ -61,6 +61,10 @@ export default class Vec3 {
 		return new Vec3(v.x * s, v.y * s, v.z * s);
 	}
 
+	public static multiplyPerComponent(v1: Vec3, v2: Vec3): Vec3 {
+		return new Vec3(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z);
+	}
+
 	public static applyMatrix4(v: Vec3, mat: Mat4): Vec3 {
 		const dst = new Vec3();
 

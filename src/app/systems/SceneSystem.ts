@@ -19,6 +19,9 @@ import SettingsSystem from "~/app/systems/SettingsSystem";
 import InstancedTree from "~/app/objects/InstancedTree";
 import AdvancedInstancedObject from "~/app/objects/AdvancedInstancedObject";
 import InstancedObject from "~/app/objects/InstancedObject";
+import {Tile3DInstanceLODConfig, Tile3DInstanceType} from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
+import Camera from "~/lib/core/Camera";
+import Utils from "~/app/Utils";
 
 interface SceneObjects {
 	wrapper: Object3D;
@@ -171,6 +174,61 @@ export default class SceneSystem extends System {
 				this.objects.tiles.splice(i, 1);
 				--i;
 			}
+		}
+	}
+
+	public updateInstancedObjectsBuffers(
+		tiles: Tile[],
+		camera: Camera,
+		origin: Vec2
+	): void {
+		for (const [name, instancedObject] of this.objects.instancedObjects.entries()) {
+			const buffers: Float32Array[] = [];
+			const config = Tile3DInstanceLODConfig[name as Tile3DInstanceType];
+			let count = 0;
+
+			for (const tile of tiles) {
+				const bbox0 = tile.getInstancesBoundingBox(name as Tile3DInstanceType, 0);
+
+				if (!bbox0) {
+					continue;
+				}
+
+				if (
+					camera.isFrustumIntersectsBoundingBox(bbox0.toSpace(tile.matrixWorld)) &&
+					tile.distanceToCamera < config.LOD0MaxDistance
+				) {
+					const tileBuffer = tile.getInstanceBufferWithTransform(name as Tile3DInstanceType, 0, origin);
+
+					if (tileBuffer) {
+						buffers.push(tileBuffer);
+						count++;
+					}
+
+					continue;
+				}
+
+				const bbox1 = tile.getInstancesBoundingBox(name as Tile3DInstanceType, 1);
+
+				if (
+					camera.isFrustumIntersectsBoundingBox(bbox1.toSpace(tile.matrixWorld)) &&
+					tile.distanceToCamera < config.LOD1MaxDistance
+				) {
+					const tileBuffer = tile.getInstanceBufferWithTransform(name as Tile3DInstanceType, 1, origin);
+
+					if (tileBuffer) {
+						buffers.push(tileBuffer);
+						count++;
+					}
+				}
+			}
+
+			instancedObject.position.set(origin.x, 0, origin.y);
+			instancedObject.updateMatrix();
+			instancedObject.updateMatrixWorld();
+
+			const mergedBuffer = Utils.mergeTypedArrays(Float32Array, buffers);
+			instancedObject.setInstancesInterleavedBuffer(mergedBuffer);
 		}
 	}
 

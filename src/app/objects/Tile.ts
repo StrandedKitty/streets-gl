@@ -114,8 +114,6 @@ export default class Tile extends Object3D {
 					boundingBoxLOD1.includePoint(new Vec3(LOD1[i], LOD1[i + 1], LOD1[i + 2]));
 				}
 
-				const object =
-
 				this.instanceBuffers.set(key as Tile3DInstanceType, {
 					rawLOD0: LOD0,
 					rawLOD1: LOD1,
@@ -132,34 +130,9 @@ export default class Tile extends Object3D {
 
 	public updateInstancesBoundingBoxes(instancedObjects: Map<string, InstancedObject>): void {
 		for (const [key, buffers] of this.instanceBuffers) {
-			const config = Tile3DInstanceLODConfig[key];
-			const schema = InstanceStructureSchemas[config.structure];
-			const instanceBoundingBox = instancedObjects.get(key).instanceBuffers.boundingBox;
-
-			buffers.boundingBoxLOD0 = this.getCombinedInstancesBoundingBox(
-				buffers.rawLOD0, schema.componentsPerInstance, instanceBoundingBox
-			);
-			buffers.boundingBoxLOD1 = this.getCombinedInstancesBoundingBox(
-				buffers.rawLOD1, schema.componentsPerInstance, instanceBoundingBox
-			);
+			buffers.boundingBoxLOD0 = instancedObjects.get(key).getInstancesAABB(buffers.rawLOD0);
+			buffers.boundingBoxLOD1 = instancedObjects.get(key).getInstancesAABB(buffers.rawLOD1);
 		}
-	}
-
-	private getCombinedInstancesBoundingBox(
-		buffer: Float32Array,
-		componentsPerInstance: number,
-		instanceBoundingBox: AABB3D
-	): AABB3D {
-		const boundingBox = new AABB3D();
-
-		for (let i = 0; i < buffer.length; i += componentsPerInstance) {
-			const offset = new Vec3(buffer[i], buffer[i + 1], buffer[i + 2]);
-			const moved = instanceBoundingBox.scale(buffer[i + 3]).move(offset);
-
-			boundingBox.includeAABB(moved);
-		}
-
-		return boundingBox;
 	}
 
 	public getInstancesBoundingBox(instanceName: Tile3DInstanceType, lod: number): AABB3D {
