@@ -9,13 +9,15 @@ export default class FenceBuilder {
 			vertices,
 			minHeight,
 			height,
-			textureWidth,
+			uvWidth,
+			uvHeight,
 			uvHorizontalOffset = 0
 		}: {
 			vertices: Vec2[];
 			minHeight: number;
 			height: number;
-			textureWidth: number;
+			uvWidth: number;
+			uvHeight: number;
 			uvHorizontalOffset?: number;
 		}
 	): {
@@ -46,13 +48,13 @@ export default class FenceBuilder {
 			);
 
 			uv.push(
-				uvProgress / textureWidth, 0,
-				(uvProgress + segmentLength) / textureWidth, 0,
-				uvProgress / textureWidth, 1,
+				uvProgress / uvWidth, 0,
+				(uvProgress + segmentLength) / uvWidth, 0,
+				uvProgress / uvWidth, uvHeight,
 
-				(uvProgress + segmentLength) / textureWidth, 0,
-				(uvProgress + segmentLength) / textureWidth, 1,
-				uvProgress / textureWidth, 1,
+				(uvProgress + segmentLength) / uvWidth, 0,
+				(uvProgress + segmentLength) / uvWidth, uvHeight,
+				uvProgress / uvWidth, uvHeight,
 			);
 
 			const segmentNormal = MathUtils.calculateNormal(

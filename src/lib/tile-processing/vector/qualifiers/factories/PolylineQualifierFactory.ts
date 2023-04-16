@@ -15,6 +15,7 @@ import {ModifierType} from "~/lib/tile-processing/vector/qualifiers/modifiers";
 import getTreeTypeFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getTreeTypeFromTags";
 import getFenceMaterialFromOSMType
 	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getFenceMaterialFromOSMType";
+import getWallTypeAndHeight from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getWallTypeAndHeight";
 
 export default class PolylineQualifierFactory extends AbstractQualifierFactory<VectorPolylineDescriptor> {
 	public fromTags(tags: Record<string, string>): Qualifier<VectorPolylineDescriptor>[] {
@@ -203,7 +204,7 @@ export default class PolylineQualifierFactory extends AbstractQualifierFactory<V
 			}];
 		}
 
-		if (tags.barrier === 'fence' || tags.barrier === 'wall') {
+		if (tags.barrier === 'fence') {
 			const fenceParams = getFenceMaterialFromOSMType(tags.fence_type);
 			const minHeight = parseHeight(tags.min_height, 0);
 			const height = parseHeight(tags.height, fenceParams.defaultHeight) - minHeight;
@@ -227,7 +228,22 @@ export default class PolylineQualifierFactory extends AbstractQualifierFactory<V
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
-					type: 'hedge'
+					type: 'wall',
+					wallType: 'hedge',
+					height: parseHeight(tags.height, 1.5),
+				}
+			}];
+		}
+
+		if (tags.barrier === 'wall') {
+			const {material, height} = getWallTypeAndHeight(tags);
+
+			return [{
+				type: QualifierType.Descriptor,
+				data: {
+					type: 'wall',
+					wallType: material,
+					height: height
 				}
 			}];
 		}

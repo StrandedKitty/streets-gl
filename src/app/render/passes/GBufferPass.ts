@@ -114,9 +114,6 @@ export default class GBufferPass extends Pass<{
 	}
 
 	private createMaterials(): void {
-		this.extrudedMeshMaterial = new ExtrudedMeshMaterialContainer(this.renderer).material;
-		this.projectedMeshMaterial = new ProjectedMeshMaterialContainer(this.renderer, false).material;
-		this.huggingMeshMaterial = new ProjectedMeshMaterialContainer(this.renderer, true).material;
 		this.skyboxMaterial = new SkyboxMaterialContainer(this.renderer).material;
 		this.terrainMaterial = new TerrainMaterialContainer(this.renderer).material;
 		this.aircraftMaterial = new AircraftMaterialContainer(this.renderer).material;
@@ -132,6 +129,18 @@ export default class GBufferPass extends Pass<{
 		this.treeMaterial = new TreeMaterialContainer(this.renderer).material;
 		this.treeMaterial.getUniform<UniformTexture2DArray>('tMap').value =
 			<AbstractTexture2DArray>this.manager.texturePool.get('tree');
+
+		this.projectedMeshMaterial = new ProjectedMeshMaterialContainer(this.renderer, false).material;
+		this.projectedMeshMaterial.getUniform<UniformTexture2DArray>('tMap').value =
+			<AbstractTexture2DArray>this.manager.texturePool.get('projectedMesh');
+
+		this.huggingMeshMaterial = new ProjectedMeshMaterialContainer(this.renderer, true).material;
+		this.huggingMeshMaterial.getUniform<UniformTexture2DArray>('tMap').value =
+			<AbstractTexture2DArray>this.manager.texturePool.get('projectedMesh');
+
+		this.extrudedMeshMaterial = new ExtrudedMeshMaterialContainer(this.renderer).material;
+		this.extrudedMeshMaterial.getUniform<UniformTexture2DArray>('tMap').value =
+			<AbstractTexture2DArray>this.manager.texturePool.get('extrudedMesh');
 	}
 
 	private getTileNormalTexturesTransforms(tile: Tile): [Float32Array, Float32Array] {

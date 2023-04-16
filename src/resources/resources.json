@@ -36,6 +36,9 @@
 	"facadePlaceholderDiffuse": {"url": "/textures/buildings/facades/placeholder_diffuse.png", "type": "image"},
 	"facadePlaceholderNormal": {"url": "/textures/buildings/facades/common_normal.png", "type": "image"},
 	"facadePlaceholderMask": {"url": "/textures/buildings/facades/common_mask.png", "type": "image"},
+	"facadeGlassDiffuse": {"url": "/textures/buildings/facades/glass_diffuse.png", "type": "image"},
+	"facadeGlassNormal": {"url": "/textures/buildings/facades/glass_normal.png", "type": "image"},
+	"facadeGlassMask": {"url": "/textures/buildings/facades/glass_mask.png", "type": "image"},
 
 	"pavementDiffuse": {"url": "/textures/surfaces/pavement_diffuse.png", "type": "image"},
 	"asphaltDiffuse": {"url": "/textures/surfaces/asphalt_diffuse.png", "type": "image"},
@@ -94,6 +97,12 @@
 	"metalFenceDiffuse": {"url": "/textures/surfaces/metal_fence_diffuse.png", "type": "image"},
 	"metalFenceNormal": {"url": "/textures/surfaces/metal_fence_normal.png", "type": "image"},
 	"metalFenceMask": {"url": "/textures/surfaces/metal_fence_mask.png", "type": "image"},
+	"stoneWallDiffuse": {"url": "/textures/surfaces/stone_wall_diffuse.png", "type": "image"},
+	"stoneWallNormal": {"url": "/textures/surfaces/stone_wall_normal.png", "type": "image"},
+	"stoneWallMask": {"url": "/textures/surfaces/stone_wall_mask.png", "type": "image"},
+	"concreteWallDiffuse": {"url": "/textures/surfaces/concrete_wall_diffuse.png", "type": "image"},
+	"concreteWallNormal": {"url": "/textures/surfaces/concrete_wall_normal.png", "type": "image"},
+	"concreteWallMask": {"url": "/textures/surfaces/concrete_wall_mask.png", "type": "image"},
 
 	"biomeMap": {
 		"url": "/textures/biomes_blurred.png",
@@ -119,30 +128,14 @@
 		"url": "/textures/blue_noise_rgba.png",
 		"type": "image"
 	},
-	"starmap0": {
-		"url": "/textures/starmap/px.png",
-		"type": "image"
-	},
-	"starmap1": {
-		"url": "/textures/starmap/nx.png",
-		"type": "image"
-	},
-	"starmap2": {
-		"url": "/textures/starmap/py.png",
-		"type": "image"
-	},
-	"starmap3": {
-		"url": "/textures/starmap/ny.png",
-		"type": "image"
-	},
-	"starmap4": {
-		"url": "/textures/starmap/pz.png",
-		"type": "image"
-	},
-	"starmap5": {
-		"url": "/textures/starmap/nz.png",
-		"type": "image"
-	},
+
+	"starmap0": {"url": "/textures/starmap/px.png", "type": "image"},
+	"starmap1": {"url": "/textures/starmap/nx.png", "type": "image"},
+	"starmap2": {"url": "/textures/starmap/py.png", "type": "image"},
+	"starmap3": {"url": "/textures/starmap/ny.png", "type": "image"},
+	"starmap4": {"url": "/textures/starmap/pz.png", "type": "image"},
+	"starmap5": {"url": "/textures/starmap/nz.png", "type": "image"},
+
 	"fontSDF": {
 		"url": "/textures/Inter-Regular.png",
 		"type": "image"

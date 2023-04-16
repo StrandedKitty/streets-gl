@@ -16,23 +16,23 @@ uniform PerMesh {
     uint tileId;
 };
 
-uniform sampler2DArray tRoof;
+uniform sampler2DArray tMap;
 
 #include <packNormal>
 #include <getMotionVector>
 #include <getTBN>
 
 vec4 getRoofColor(int textureId, vec3 tintColor) {
-    return texture(tRoof, vec3(vUv, textureId * 3)) * vec4(tintColor, 1);
+    return texture(tMap, vec3(vUv, textureId * 3)) * vec4(tintColor, 1);
 }
 
 vec3 getRoofMask(int textureId) {
-    return texture(tRoof, vec3(vUv, textureId * 3 + 2)).xyz;
+    return texture(tMap, vec3(vUv, textureId * 3 + 2)).xyz;
 }
 
 vec3 getRoofNormal(int textureId) {
     mat3 tbn = getTBN(vNormal, vPosition, vec2(vUv.x, 1. - vUv.y));
-    vec3 mapValue = texture(tRoof, vec3(vUv, textureId * 3 + 1)).xyz * 2. - 1.;
+    vec3 mapValue = texture(tMap, vec3(vUv, textureId * 3 + 1)).xyz * 2. - 1.;
     vec3 normal = normalize(tbn * mapValue);
 
     normal *= float(gl_FrontFacing) * 2. - 1.;

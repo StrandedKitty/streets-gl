@@ -133,7 +133,8 @@ export default class Tile3DProjectedGeometryBuilder {
 				vertices: polyline.vertices,
 				minHeight: minHeight,
 				height: height,
-				textureWidth: width,
+				uvWidth: width,
+				uvHeight: 1,
 				uvHorizontalOffset: polyline.startProgress
 			});
 
@@ -155,18 +156,24 @@ export default class Tile3DProjectedGeometryBuilder {
 		{
 			width,
 			height,
-			textureId
+			textureId,
+			textureScaleX,
+			textureScaleY
 		}: {
 			width: number;
 			height: number;
 			textureId: number;
+			textureScaleX: number;
+			textureScaleY: number;
 		}
 	): void {
 		const road = RoadBuilder.build({
 			vertices: this.multipolygon.rings[0].nodes,
 			width: width,
 			uvFollowRoad: true,
-			uvScaleY: width * 2
+			uvScaleY: textureScaleY,
+			uvMinX: 0,
+			uvMaxX: width / textureScaleX
 		});
 
 		this.projectAndAddGeometry({
@@ -183,7 +190,8 @@ export default class Tile3DProjectedGeometryBuilder {
 				vertices: polyline.vertices,
 				minHeight: 0,
 				height: height,
-				textureWidth: 5,
+				uvWidth: textureScaleX,
+				uvHeight: height / textureScaleY,
 				uvHorizontalOffset: polyline.startProgress
 			});
 

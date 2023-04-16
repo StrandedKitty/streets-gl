@@ -45,8 +45,8 @@ export default class VectorPolylineHandler implements Handler {
 			case 'fence': {
 				return [this.handleFence()];
 			}
-			case 'hedge': {
-				return [this.handleHedge()];
+			case 'wall': {
+				return [this.handleWall()];
 			}
 		}
 
@@ -207,14 +207,19 @@ export default class VectorPolylineHandler implements Handler {
 		return {...result, type: 'hugging'};
 	}
 
-	private handleHedge(): Tile3DHuggingGeometry {
+	private handleWall(): Tile3DHuggingGeometry {
 		const builder = new Tile3DProjectedGeometryBuilder();
 		builder.addRing(Tile3DRingType.Outer, this.vertices);
 
+		const width = 1;
+		const params = VectorPolylineHandler.getWallParams(this.descriptor.wallType);
+
 		builder.addExtrudedPath({
-			width: 1,
-			height: 1.5,
-			textureId: 12
+			width: width,
+			height: this.descriptor.height,
+			textureId: params.textureId,
+			textureScaleX: params.uvScaleX,
+			textureScaleY: params.uvScaleY
 		});
 
 		const result = builder.getGeometry();
@@ -389,6 +394,32 @@ export default class VectorPolylineHandler implements Handler {
 		return {
 			textureId: entry.textureId,
 			width: height * entry.widthRatio
+		};
+	}
+
+	private static getWallParams(
+		type: VectorPolylineDescriptor['wallType']
+	): {
+		textureId: number;
+		uvScaleX: number;
+		uvScaleY: number;
+	} {
+		const textureTable: Record<VectorPolylineDescriptor['wallType'], {
+			textureId: number;
+			scaleX: number;
+			scaleY: number;
+		}> = {
+			stone: {textureId: 27, scaleX: 4, scaleY: 4},
+			concrete: {textureId: 28, scaleX: 4.5, scaleY: 3},
+			hedge: {textureId: 12, scaleX: 3, scaleY: 3},
+		};
+
+		const entry = textureTable[type];
+
+		return {
+			textureId: entry.textureId,
+			uvScaleX: entry.scaleX,
+			uvScaleY: entry.scaleY
 		};
 	}
 }

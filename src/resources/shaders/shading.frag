@@ -179,7 +179,12 @@ vec3 getIBLContribution(MaterialInfo materialInfo, vec3 n, vec3 v, vec4 reflecti
 	vec2 brdf = integrateSpecularBRDF(NdotV, materialInfo.perceptualRoughness);
 
 	//vec4 diffuseSample = textureLod(tSky, n, 0.);
-	vec4 specularSample = textureLod(tAtmosphere, reflection, lod);
+	float scale = 1.;
+	if (reflection.y < 0.) {
+		scale = pow(1. + reflection.y, 0.5);
+		reflection.y *= -1.;
+	}
+	vec4 specularSample = textureLod(tAtmosphere, reflection, lod) * scale;
 	specularSample.rgb = mix(specularSample.rgb, reflectionColor.rgb, reflectionColor.a);
 
 	//vec3 diffuseLight = SRGBtoLINEAR(diffuseSample).rgb;
