@@ -170,7 +170,8 @@ export default class ShadingPass extends Pass<{
 		this.shadingMaterial.getUniform('tSelectionMask').value = selectionMaskTexture;
 		this.shadingMaterial.getUniform('tSelectionBlurred').value = selectionBlurredTexture;
 		this.shadingMaterial.getUniform('viewMatrix', 'MainBlock').value = new Float32Array(camera.matrixWorld.values);
-		this.shadingMaterial.getUniform('projectionMatrixInverse', 'MainBlock').value = new Float32Array(camera.jitteredProjectionMatrixInverse.values);
+		this.shadingMaterial.getUniform('projectionMatrixInverse', 'MainBlock').value = new Float32Array(camera.projectionMatrixInverse.values);
+		this.shadingMaterial.getUniform('projectionMatrixInverseJittered', 'MainBlock').value = new Float32Array(camera.jitteredProjectionMatrixInverse.values);
 		this.shadingMaterial.getUniform('sunDirection', 'MainBlock').value = sunDirection;
 		this.shadingMaterial.getUniform('tAerialPerspectiveLUT').value = aerialPerspectiveLUT;
 		this.shadingMaterial.getUniform('tTransmittanceLUT').value = transmittanceLUT;

@@ -2,7 +2,6 @@ import Shaders from "../shaders/Shaders";
 import MaterialContainer from "./MaterialContainer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
-import ResourceLoader from "../../world/ResourceLoader";
 import Config from "../../Config";
 
 export default class ShadingMaterialContainer extends MaterialContainer {
@@ -97,6 +96,11 @@ export default class ShadingMaterialContainer extends MaterialContainer {
 					value: new Float32Array()
 				}, {
 					name: 'projectionMatrixInverse',
+					block: 'MainBlock',
+					type: RendererTypes.UniformType.Matrix4,
+					value: new Float32Array()
+				}, {
+					name: 'projectionMatrixInverseJittered',
 					block: 'MainBlock',
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array()

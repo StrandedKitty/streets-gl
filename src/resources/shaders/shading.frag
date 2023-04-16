@@ -28,6 +28,7 @@ uniform samplerCube tAtmosphere;
 uniform MainBlock {
 	mat4 viewMatrix;
 	mat4 projectionMatrixInverse;
+	mat4 projectionMatrixInverseJittered;
 	vec3 sunDirection;
 	mat4 skyRotationMatrix;
 };
@@ -181,7 +182,7 @@ vec3 getIBLContribution(MaterialInfo materialInfo, vec3 n, vec3 v, vec4 reflecti
 	//vec4 diffuseSample = textureLod(tSky, n, 0.);
 	float scale = 1.;
 	if (reflection.y < 0.) {
-		scale = pow(1. + reflection.y, 0.5);
+		scale = pow(1. + reflection.y, 0.25);
 		reflection.y *= -1.;
 	}
 	vec4 specularSample = textureLod(tAtmosphere, reflection, lod) * scale;
@@ -291,10 +292,23 @@ vec3 applySelectionOverlay(vec3 color) {
 	return mix(color.rgb, SELECTION_COLOR, smoothstep(0., 1., selectionMask * 2.));
 }
 
+vec3 getSun(vec3 rayDir, vec3 sunDir) {
+	const float sunSolidAngle = 0.53 * PI / 180.0;
+	const float minSunCosTheta = cos(sunSolidAngle);
+
+	float cosTheta = dot(rayDir, sunDir);
+	if (cosTheta >= minSunCosTheta) return vec3(1.0);
+
+	float offset = minSunCosTheta - cosTheta;
+	float gaussianBloom = exp(-offset * 100000.0);
+
+	return vec3(gaussianBloom);
+}
+
 void main() {
 	vec4 baseColor = SRGBtoLINEAR(texture(tColor, vUv));
 	vec3 normal = unpackNormal(texture(tNormal, vUv).xyz);
-	vec3 position = reconstructPositionFromDepth(vUv, texture(tDepth, vUv).r, projectionMatrixInverse);
+	vec3 position = reconstructPositionFromDepth(vUv, texture(tDepth, vUv).r, projectionMatrixInverseJittered);
 	vec3 roughnessMetalness = texture(tRoughnessMetalness, vUv).rgb;
 
 	vec3 worldPosition = vec3(viewMatrix * vec4(position, 1));
@@ -305,7 +319,17 @@ void main() {
 	vec3 sunColor = getValFromTLUT(tTransmittanceLUT, vec3(0, groundRadiusMM + worldPosition.y * 0.000001, 0), -sunDirection);
 
 	if (baseColor.a == 0.) {
-		FragColor.rgb = applySelectionOverlay(baseColor.rgb);
+		vec3 positionNoJitter = reconstructPositionFromDepth(vUv, texture(tDepth, vUv).r, projectionMatrixInverse);
+		vec3 viewNoJitter = normalize(-positionNoJitter);
+		vec3 worldViewNoJitter = normalize((viewMatrix * vec4(viewNoJitter, 0)).xyz);
+
+		vec4 skyColor = textureLod(tAtmosphere, -worldViewNoJitter, 0.);
+		vec3 sunLum = getSun(worldViewNoJitter, sunDirection) * 200. * sunColor;
+
+		float starsIntensity = 0.1 / (length(sunColor) * 5. + 1.);
+		vec3 color = skyColor.rgb + sunLum + baseColor.rgb * starsIntensity * skyColor.a;
+
+		FragColor.rgb = applySelectionOverlay(color);
 		return;
 	}
 

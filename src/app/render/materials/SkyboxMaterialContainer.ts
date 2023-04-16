@@ -12,17 +12,12 @@ export default class SkyboxMaterialContainer extends MaterialContainer {
 			name: 'Skybox material',
 			uniforms: [
 				{
-					name: 'modelViewMatrix',
-					block: 'Uniforms',
-					type: RendererTypes.UniformType.Matrix4,
-					value: new Float32Array(16)
-				}, {
-					name: 'modelViewMatrixPrev',
-					block: 'Uniforms',
-					type: RendererTypes.UniformType.Matrix4,
-					value: new Float32Array(16)
-				}, {
 					name: 'projectionMatrix',
+					block: 'Uniforms',
+					type: RendererTypes.UniformType.Matrix4,
+					value: new Float32Array(16)
+				}, {
+					name: 'modelViewMatrix',
 					block: 'Uniforms',
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array(16)
@@ -32,10 +27,10 @@ export default class SkyboxMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array(16)
 				}, {
-					name: 'sunDirection',
+					name: 'skyRotationMatrix',
 					block: 'Uniforms',
-					type: RendererTypes.UniformType.Float3,
-					value: new Float32Array(3)
+					type: RendererTypes.UniformType.Matrix4,
+					value: new Float32Array()
 				}, {
 					name: 'tSky',
 					block: null,
@@ -58,21 +53,6 @@ export default class SkyboxMaterialContainer extends MaterialContainer {
 						format: RendererTypes.TextureFormat.RGBA8Unorm,
 						mipmaps: true
 					})
-				}, {
-					name: 'tAtmosphere',
-					block: null,
-					type: RendererTypes.UniformType.TextureCube,
-					value: null
-				}, {
-					name: 'tTransmittanceLUT',
-					block: null,
-					type: RendererTypes.UniformType.Texture2D,
-					value: null
-				}, {
-					name: 'skyRotationMatrix',
-					block: 'Uniforms',
-					type: RendererTypes.UniformType.Matrix4,
-					value: new Float32Array()
 				}
 			],
 			primitive: {

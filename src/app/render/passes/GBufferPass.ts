@@ -45,14 +45,6 @@ export default class GBufferPass extends Pass<{
 		type: InternalResourceType.Output;
 		resource: RenderPassResource;
 	};
-	AtmosphereSkybox: {
-		type: InternalResourceType.Input;
-		resource: RenderPassResource;
-	};
-	Transmittance: {
-		type: InternalResourceType.Input;
-		resource: RenderPassResource;
-	};
 	TerrainNormal: {
 		type: InternalResourceType.Input;
 		resource: RenderPassResource;
@@ -90,14 +82,6 @@ export default class GBufferPass extends Pass<{
 			GBufferRenderPass: {
 				type: InternalResourceType.Output,
 				resource: manager.getSharedResource('GBufferRenderPass')
-			},
-			AtmosphereSkybox: {
-				type: InternalResourceType.Input,
-				resource: manager.getSharedResource('AtmosphereSkybox')
-			},
-			Transmittance: {
-				type: InternalResourceType.Input,
-				resource: manager.getSharedResource('AtmosphereTransmittanceLUT')
 			},
 			TerrainNormal: {type: InternalResourceType.Input, resource: manager.getSharedResource('TerrainNormal')},
 			TerrainWater: {type: InternalResourceType.Input, resource: manager.getSharedResource('TerrainWater')},
@@ -174,22 +158,14 @@ export default class GBufferPass extends Pass<{
 	private renderSkybox(): void {
 		const camera = this.manager.sceneSystem.objects.camera;
 		const skybox = this.manager.sceneSystem.objects.skybox;
-		const sunDirection = new Float32Array([...Vec3.toArray(this.manager.mapTimeSystem.sunDirection)]);
 		const skyRotationMatrix = new Float32Array(this.manager.mapTimeSystem.skyDirectionMatrix.values);
-		const atmosphereSkyboxTexture = <AbstractTextureCube>this.getPhysicalResource('AtmosphereSkybox').colorAttachments[0].texture;
-		const transmittanceLUT = <AbstractTexture2D>this.getPhysicalResource('Transmittance').colorAttachments[0].texture;
 
 		this.skyboxMaterial.getUniform('projectionMatrix', 'Uniforms').value =
 			new Float32Array(camera.projectionMatrix.values);
 		this.skyboxMaterial.getUniform('modelViewMatrix', 'Uniforms').value =
 			new Float32Array(Mat4.multiply(camera.matrixWorldInverse, skybox.matrixWorld).values);
 		this.skyboxMaterial.getUniform('viewMatrix', 'Uniforms').value = new Float32Array(camera.matrixWorld.values);
-		this.skyboxMaterial.getUniform('modelViewMatrixPrev', 'Uniforms').value =
-			new Float32Array(Mat4.multiply(this.cameraMatrixWorldInversePrev, skybox.matrixWorld).values);
-		this.skyboxMaterial.getUniform('sunDirection', 'Uniforms').value = sunDirection;
 		this.skyboxMaterial.getUniform('skyRotationMatrix', 'Uniforms').value = skyRotationMatrix;
-		this.skyboxMaterial.getUniform('tAtmosphere').value = atmosphereSkyboxTexture;
-		this.skyboxMaterial.getUniform('tTransmittanceLUT').value = transmittanceLUT;
 		this.skyboxMaterial.updateUniformBlock('Uniforms');
 
 		this.renderer.useMaterial(this.skyboxMaterial);
