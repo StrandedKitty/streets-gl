@@ -81,18 +81,21 @@ export default class GabledRoofBuilder extends HippedRoofBuilder {
 							const edgeVec: [Vec2, Vec2] = [new Vec2(prevEdge.Begin.X, prevEdge.Begin.Y), new Vec2(prevEdge.End.X, prevEdge.End.Y)];
 							const centerHeight = this.getVertexHeightFromEdge(centerVec, edgeVec, maxSkeletonHeight, height);
 
-							skirt.push([
-								{
-									position: new Vec2(edge.Edge.End.X, edge.Edge.End.Y),
-									height: minHeight
-								}, {
-									position: centerVec,
-									height: minHeight + centerHeight
-								}, {
-									position: new Vec2(edge.Edge.Begin.X, edge.Edge.Begin.Y),
-									height: minHeight
-								}
-							]);
+							skirt.push({
+								points: [
+									{
+										position: new Vec2(edge.Edge.End.X, edge.Edge.End.Y),
+										height: minHeight
+									}, {
+										position: centerVec,
+										height: minHeight + centerHeight
+									}, {
+										position: new Vec2(edge.Edge.Begin.X, edge.Edge.Begin.Y),
+										height: minHeight
+									}
+								],
+								hasWindows: false
+							});
 
 							prevPolygonExtrudedPoint.X = nextPolygonExtrudedPoint.X = centerVec.x;
 							prevPolygonExtrudedPoint.Y = nextPolygonExtrudedPoint.Y = centerVec.y;

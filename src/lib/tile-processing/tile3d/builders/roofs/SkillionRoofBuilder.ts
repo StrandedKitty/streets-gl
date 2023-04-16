@@ -59,14 +59,17 @@ export default class SkillionRoofBuilder implements RoofBuilder {
 		}
 
 		for (const ring of multipolygon.rings) {
-			const skirtPolyline: RoofSkirtPolyline = [];
+			const skirtPolyline: RoofSkirtPolyline = {
+				points: [],
+				hasWindows: true
+			};
 			skirt.push(skirtPolyline);
 
 			for (const node of ring.nodes) {
 				const vec = Vec2.rotate(node, rotation);
 				const y = (vec.y - bbox.min.y) / (bbox.max.y - bbox.min.y);
 
-				skirtPolyline.push({
+				skirtPolyline.points.push({
 					position: node,
 					height: minHeight + y * height
 				});

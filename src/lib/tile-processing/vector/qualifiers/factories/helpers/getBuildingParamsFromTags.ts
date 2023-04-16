@@ -10,8 +10,8 @@ import {
 } from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
 import getDefaultLevelsFromRoofType
 	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getDefaultLevelsFromRoofType";
-import getFacadeMaterialFromOSMMaterial
-	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getFacadeMaterialFromOSMMaterial";
+import getFacadeParamsFromTags
+	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getFacadeParamsFromTags";
 import isBuildingHasWindows from "~/lib/tile-processing/vector/qualifiers/factories/helpers/isBuildingHasWindows";
 import getRoofParamsFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getRoofParamsFromTags";
 
@@ -36,7 +36,6 @@ export default function getBuildingParamsFromTags(
 } {
 	const fallbackLevels = 1;
 	const levelHeight = 4;
-	const fallbackFacadeColor = 0xffffff;
 
 	const roofParams = getRoofParamsFromTags(tags);
 	const roofOrientation = getRoofOrientationFromOSMOrientation(tags['roof:orientation']);
@@ -72,10 +71,13 @@ export default function getBuildingParamsFromTags(
 		minHeight = Math.min(minLevel * levelHeight, height);
 	}
 
-	const color = parseColor(tags['building:colour'], fallbackFacadeColor);
-	const material = getFacadeMaterialFromOSMMaterial(tags['building:material'], 'plaster');
-	const windows = isBuildingHasWindows(tags);
+	const facadeParams = getFacadeParamsFromTags(tags);
 	const label = tags.name ?? null;
+
+	let windows = isBuildingHasWindows(tags);
+	if (height - minHeight < 2) {
+		windows = false;
+	}
 
 	return {
 		label: label,
@@ -87,8 +89,8 @@ export default function getBuildingParamsFromTags(
 		buildingRoofOrientation: roofOrientation,
 		buildingRoofDirection: roofDirection,
 		buildingRoofAngle: roofAngle,
-		buildingFacadeMaterial: material,
-		buildingFacadeColor: color,
+		buildingFacadeMaterial: facadeParams.material,
+		buildingFacadeColor: facadeParams.color,
 		buildingRoofMaterial: roofParams.material,
 		buildingRoofColor: roofParams.color,
 		buildingWindows: windows

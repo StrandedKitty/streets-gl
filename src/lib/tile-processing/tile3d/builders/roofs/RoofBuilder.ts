@@ -5,7 +5,10 @@ export interface RoofSkirtPoint {
 	position: Vec2;
 	height: number;
 }
-export type RoofSkirtPolyline = RoofSkirtPoint[];
+export type RoofSkirtPolyline = {
+	points: RoofSkirtPoint[];
+	hasWindows: boolean;
+};
 export type RoofSkirt = RoofSkirtPolyline[];
 
 export interface RoofGeometry {

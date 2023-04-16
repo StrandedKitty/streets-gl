@@ -175,7 +175,13 @@ export default class VectorPolylineHandler implements Handler {
 				const prevVertexIndex = type === 'first' ? 1 : vertices.length - 2;
 
 				if (dir.trimmedEnd.equals(vertices[prevVertexIndex])) {
-					vertices.shift();
+					if (type === 'first') {
+						adjacentVertex = vertices[0];
+						vertices.shift();
+					} else {
+						adjacentVertex = vertices[vertices.length - 1];
+						vertices.pop();
+					}
 				} else {
 					const vertexIndex = type === 'first' ? 0 : vertices.length - 1;
 

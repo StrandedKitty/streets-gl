@@ -2,8 +2,6 @@ import Tile3DExtrudedGeometry from "~/lib/tile-processing/tile3d/features/Tile3D
 import AABB3D from "~/lib/math/AABB3D";
 import MathUtils from "~/lib/math/MathUtils";
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
-import Vec2 from "~/lib/math/Vec2";
-import Tile3DRing, {Tile3DRingType} from "~/lib/tile-processing/tile3d/builders/Tile3DRing";
 import {colorToComponents} from "~/lib/tile-processing/tile3d/builders/utils";
 import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 import FlatRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/FlatRoofBuilder";
@@ -87,9 +85,9 @@ export default class Tile3DExtrudedGeometryBuilder {
 		const noWalls = minHeight >= height;
 
 		if (skirt) {
-			for (const polyline of skirt) {
-				const vertices = polyline.map(point => point.position);
-				const heights = polyline.map(point => point.height);
+			for (const {points, hasWindows} of skirt) {
+				const vertices = points.map(point => point.position);
+				const heights = points.map(point => point.height);
 				const levels = Math.max(1, Math.round((Math.max(...heights) - height) / 4));
 
 				const walls = WallsBuilder.build({
@@ -99,7 +97,7 @@ export default class Tile3DExtrudedGeometryBuilder {
 					levels: levels,
 					windowWidth,
 					textureIdWall,
-					textureIdWindow
+					textureIdWindow: hasWindows ? textureIdWindow : textureIdWall
 				});
 
 				this.addAndPaintGeometry({

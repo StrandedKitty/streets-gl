@@ -168,7 +168,10 @@ export default class OrientedGabledRoofBuilder implements RoofBuilder {
 		const skirt: RoofSkirt = [];
 
 		for (const ring of multipolygon.rings) {
-			const skirtPolyline: RoofSkirtPolyline = [];
+			const skirtPolyline: RoofSkirtPolyline = {
+				points: [],
+				hasWindows: false
+			};
 			skirt.push(skirtPolyline);
 
 			for (let i = 0; i < ring.nodes.length; i++) {
@@ -176,7 +179,7 @@ export default class OrientedGabledRoofBuilder implements RoofBuilder {
 				const nextNode = ring.nodes[i + 1];
 				const nodeDst = signedDstToLine(node, split);
 
-				skirtPolyline.push({
+				skirtPolyline.points.push({
 					position: node,
 					height: minHeight + (1 - Math.abs(nodeDst) / faceDepth) * height
 				});
@@ -192,7 +195,7 @@ export default class OrientedGabledRoofBuilder implements RoofBuilder {
 					if (intersection) {
 						const nodeDst = signedDstToLine(new Vec2(intersection[0], intersection[1]), split);
 
-						skirtPolyline.push({
+						skirtPolyline.points.push({
 							position: new Vec2(intersection[0], intersection[1]),
 							height: minHeight + (1 - Math.abs(nodeDst) / faceDepth) * height
 						});

@@ -339,7 +339,6 @@ export default class VectorAreaHandler implements Handler {
 	private handleBuilding(): Tile3DFeature[] {
 		const builder = new Tile3DExtrudedGeometryBuilder(this.osmReference, this.getMultipolygon());
 
-		const facadeParams = this.getFacadeParams();
 		const roofParams = this.getRoofParams();
 
 		const {skirt, facadeHeightOverride} = builder.addRoof({
@@ -358,6 +357,8 @@ export default class VectorAreaHandler implements Handler {
 			isStretched: roofParams.isStretched,
 			flip: false
 		});
+
+		const facadeParams = this.getFacadeParams();
 
 		builder.addWalls({
 			terrainHeight: this.terrainHeight,
@@ -578,27 +579,36 @@ export default class VectorAreaHandler implements Handler {
 		textureIdWall: number;
 	} {
 		const material = this.descriptor.buildingFacadeMaterial;
-		const color = this.descriptor.buildingFacadeColor;
+		let color = this.descriptor.buildingFacadeColor;
 		const hasWindows = this.descriptor.buildingWindows;
 
 		const materialToTextureId: Partial<Record<VectorAreaDescriptor['buildingFacadeMaterial'], {
-			window: number;
 			wall: number;
+			window: number;
 			width: number;
 		}>> = {
 			plaster: {
-				window: 14,
-				wall: 14,
+				wall: 16,
+				window: 17,
 				width: 4
 			},
 			glass: {
-				window: 13,
 				wall: 13,
+				window: 13,
+				width: 4
+			},
+			brick: {
+				wall: 14,
+				window: 15,
 				width: 4
 			},
 		};
 
 		const params = materialToTextureId[material] ?? materialToTextureId.plaster;
+
+		if (material === 'brick') {
+			color = 0xffffff;
+		}
 
 		return {
 			windowWidth: params.width * this.mercatorScale,
