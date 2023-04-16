@@ -1,10 +1,10 @@
 <div align="center">
     <h1>Streets GL</h1>
     <img src="https://img.shields.io/github/commit-activity/m/strandedkitty/streets-gl" alt="GitHub commit activity">
+    <br>
+    <h3><b><a href="https://streets.gl/">streets.gl</a></b></h3>
 </div>
 <br>
-
-[Visit streets.gl](https://streets.gl/)
 
 **Streets GL** is a real-time 3D map renderer built for visualizing [OpenStreetMap](https://www.openstreetmap.org/) data with a heavy focus on eye-candy features.
 
