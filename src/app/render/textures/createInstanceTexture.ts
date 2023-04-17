@@ -16,17 +16,19 @@ export const InstanceTextureIdList: Record<Tile3DInstanceType, number> = {
 	busStop: 7,
 	windTurbine: 8,
 	memorial: 9,
-	statue: 10,
+	statueSmall: 10,
 	shrubbery: 11,
 	utilityPole: 12,
-	wire: 13
+	wire: 13,
+	statueBig: 14,
+	sculpture: 15
 };
 
 export default function createInstanceTexture(renderer: AbstractRenderer): AbstractTexture2DArray {
 	return renderer.createTexture2DArray({
 		width: 512,
 		height: 512,
-		depth: 14 * 2,
+		depth: 15 * 3,
 		anisotropy: 16,
 		data: [
 			ResourceLoader.get('adColumnDiffuse'),
@@ -70,6 +72,12 @@ export default function createInstanceTexture(renderer: AbstractRenderer): Abstr
 
 			ResourceLoader.get('wireDiffuse'),
 			ResourceLoader.get('wireNormal'),
+
+			ResourceLoader.get('statue1Diffuse'),
+			ResourceLoader.get('statue1Normal'),
+
+			ResourceLoader.get('sculptureDiffuse'),
+			ResourceLoader.get('sculptureNormal'),
 		],
 		minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 		magFilter: RendererTypes.MagFilter.Linear,

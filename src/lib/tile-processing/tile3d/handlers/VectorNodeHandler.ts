@@ -56,13 +56,6 @@ export default class VectorNodeHandler implements Handler {
 			})];
 		}
 
-		/*if (this.descriptor.type === 'transmissionTower') {
-			return [this.getGenericInstanceFeature({
-				type: 'transmissionTower',
-				rotateToNearestPath: false
-			})];
-		}*/
-
 		if (this.descriptor.type === 'hydrant') {
 			return [this.getGenericInstanceFeature({
 				type: 'hydrant',
@@ -109,8 +102,16 @@ export default class VectorNodeHandler implements Handler {
 		}
 
 		if (this.descriptor.type === 'statue') {
+			const rnd = new SeededRandom(Math.floor(this.x + this.y));
 			return [this.getGenericInstanceFeature({
-				type: 'statue',
+				type: rnd.generate() > 0.5 ? 'statueSmall' : 'statueBig',
+				rotateToNearestPath: true
+			})];
+		}
+
+		if (this.descriptor.type === 'sculpture') {
+			return [this.getGenericInstanceFeature({
+				type: 'sculpture',
 				rotateToNearestPath: true
 			})];
 		}

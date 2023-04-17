@@ -7,7 +7,7 @@ export default function createExtrudedMeshTexture(renderer: AbstractRenderer): A
 	return renderer.createTexture2DArray({
 		width: 512,
 		height: 512,
-		depth: 18 * 3,
+		depth: 22 * 3,
 		anisotropy: 16,
 		data: [
 			ResourceLoader.get('roofGeneric1Diffuse'),
@@ -78,9 +78,22 @@ export default function createExtrudedMeshTexture(renderer: AbstractRenderer): A
 			ResourceLoader.get('facadePlasterWindowNormal'),
 			ResourceLoader.get('facadePlasterWindowMask'),
 
-			ResourceLoader.get('facadePlaceholderDiffuse'),
-			ResourceLoader.get('facadePlaceholderNormal'),
-			ResourceLoader.get('facadePlaceholderMask')
+			ResourceLoader.get('facadeWoodWallDiffuse'),
+			ResourceLoader.get('facadeWoodWallNormal'),
+			ResourceLoader.get('facadeWoodWallMask'),
+
+			ResourceLoader.get('facadeWoodWindowDiffuse'),
+			ResourceLoader.get('facadeWoodWindowNormal'),
+			ResourceLoader.get('facadeWoodWindowMask'),
+
+			ResourceLoader.get('facadeBlockWallDiffuse'),
+			ResourceLoader.get('facadeBlockWallNormal'),
+			ResourceLoader.get('facadeBlockWallMask'),
+
+			ResourceLoader.get('facadeBlockWindowDiffuse'),
+			ResourceLoader.get('facadeBlockWindowNormal'),
+			ResourceLoader.get('facadeBlockWindowMask'),
+
 		],
 		minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 		magFilter: RendererTypes.MagFilter.Linear,

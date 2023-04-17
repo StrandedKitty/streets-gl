@@ -1,6 +1,6 @@
 export interface VectorNodeDescriptor {
 	type?: 'tree' | 'rock' | 'hydrant' | 'transmissionTower' | 'utilityPole' | 'artwork' | 'adColumn' | 'windTurbine' |
-	'bench' | 'picnicTable' | 'busStop' | 'memorial' | 'statue';
+	'bench' | 'picnicTable' | 'busStop' | 'memorial' | 'statue' | 'sculpture';
 	treeType?: 'genericBroadleaved' | 'genericNeedleleaved' | 'beech' | 'fir' | 'linden' | 'oak';
 	direction?: number;
 	height?: number;
@@ -36,7 +36,7 @@ export interface VectorAreaDescriptor {
 	buildingRoofOrientation?: 'along' | 'across';
 	buildingRoofDirection?: number;
 	buildingRoofAngle?: number;
-	buildingFacadeMaterial?: 'plaster' | 'brick' | 'wood' | 'glass' | 'mirror' | 'cementBlock';
+	buildingFacadeMaterial?: 'plaster' | 'brick' | 'wood' | 'glass' | 'cementBlock';
 	buildingFacadeColor?: number;
 	buildingRoofMaterial?: 'default' | 'tiles' | 'metal' | 'concrete' | 'thatch' | 'eternit' | 'grass' | 'glass' |
 		'tar';

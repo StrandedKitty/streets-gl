@@ -1,10 +1,9 @@
 import Tile3DFeature from "~/lib/tile-processing/tile3d/features/Tile3DFeature";
 import AABB3D from "~/lib/math/AABB3D";
-import Vec3 from "~/lib/math/Vec3";
 
 export type Tile3DInstanceType = 'tree' | 'adColumn' | 'transmissionTower' | 'utilityPole' | 'wire' | 'hydrant'
-	| 'trackedCrane' | 'towerCrane' | 'bench' | 'picnicTable' | 'busStop' | 'windTurbine' | 'memorial' | 'statue'
-	| 'shrubbery';
+	| 'trackedCrane' | 'towerCrane' | 'bench' | 'picnicTable' | 'busStop' | 'windTurbine' | 'shrubbery'
+	| 'memorial' | 'statueSmall' | 'statueBig' | 'sculpture';
 
 export enum InstanceStructure {
 	Generic,
@@ -161,12 +160,24 @@ export const Tile3DInstanceLODConfig: Record<Tile3DInstanceType, LODConfig> = {
 		LOD1MaxDistance: 0,
 		LOD1Fraction: 0,
 	},
-	statue: {
+	statueSmall: {
 		structure: InstanceStructure.Generic,
 		LOD0MaxDistance: 1000,
 		LOD1MaxDistance: 0,
 		LOD1Fraction: 0,
-	}
+	},
+	statueBig: {
+		structure: InstanceStructure.Generic,
+		LOD0MaxDistance: 1000,
+		LOD1MaxDistance: 0,
+		LOD1Fraction: 0,
+	},
+	sculpture: {
+		structure: InstanceStructure.Generic,
+		LOD0MaxDistance: 1000,
+		LOD1MaxDistance: 0,
+		LOD1Fraction: 0,
+	},
 	// power lines, etc.
 };
 

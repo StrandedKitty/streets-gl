@@ -6,9 +6,15 @@ export function isTagIncludesString(
 	key: string,
 	value: string
 ): boolean {
-	const parts = value.split(';').map((part) => part.trim().toLowerCase());
+	const tagValue = tags[key];
 
-	return parts.some((part) => tags[key] === part);
+	if (tagValue === undefined) {
+		return false;
+	}
+
+	const parts = tagValue.split(';').map((part) => part.trim().toLowerCase());
+
+	return parts.some(part => part === value);
 }
 
 export function readTagAsFloat(tags: Record<string, string>, key: string): number {

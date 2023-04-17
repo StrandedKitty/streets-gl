@@ -582,11 +582,11 @@ export default class VectorAreaHandler implements Handler {
 		let color = this.descriptor.buildingFacadeColor;
 		const hasWindows = this.descriptor.buildingWindows;
 
-		const materialToTextureId: Partial<Record<VectorAreaDescriptor['buildingFacadeMaterial'], {
+		const materialToTextureId: Record<VectorAreaDescriptor['buildingFacadeMaterial'], {
 			wall: number;
 			window: number;
 			width: number;
-		}>> = {
+		}> = {
 			plaster: {
 				wall: 16,
 				window: 17,
@@ -602,6 +602,16 @@ export default class VectorAreaHandler implements Handler {
 				window: 15,
 				width: 4
 			},
+			wood: {
+				wall: 18,
+				window: 19,
+				width: 4
+			},
+			cementBlock: {
+				wall: 20,
+				window: 21,
+				width: 4
+			}
 		};
 
 		const params = materialToTextureId[material] ?? materialToTextureId.plaster;

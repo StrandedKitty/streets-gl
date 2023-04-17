@@ -1,5 +1,5 @@
 export default function isBuildingHasWindows(tags: Record<string, string>): boolean {
-	if (tags['bridge:support'] || tags.man_made === 'storage_tank' || tags.man_made === 'chimney') {
+	if (tags['bridge:support'] || tags.man_made === 'storage_tank' || tags.man_made === 'chimney' || tags.man_made === 'stele') {
 		return false;
 	}
 

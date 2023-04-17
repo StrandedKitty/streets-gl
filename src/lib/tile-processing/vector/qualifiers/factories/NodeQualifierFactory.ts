@@ -3,7 +3,7 @@ import {VectorNodeDescriptor} from "~/lib/tile-processing/vector/qualifiers/desc
 import {Qualifier, QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
 import isUnderground from "~/lib/tile-processing/vector/qualifiers/factories/helpers/isUnderground";
 import {ModifierType} from "~/lib/tile-processing/vector/qualifiers/modifiers";
-import {parseHeight} from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
+import {isTagIncludesString, parseHeight} from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
 import getTreeTypeFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getTreeTypeFromTags";
 
 export default class NodeQualifierFactory extends AbstractQualifierFactory<VectorNodeDescriptor> {
@@ -110,13 +110,22 @@ export default class NodeQualifierFactory extends AbstractQualifierFactory<Vecto
 		}
 
 		if (
-			tags.historic === 'memorial' && tags.memorial === 'statue' ||
-			tags.tourism === 'artwork' && tags.artwork_type === 'statue'
+			tags.historic === 'memorial' && isTagIncludesString(tags, 'memorial', 'statue') ||
+			tags.tourism === 'artwork' && isTagIncludesString(tags, 'artwork_type', 'statue')
 		) {
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'statue'
+				}
+			}];
+		}
+
+		if (tags.tourism === 'artwork' && isTagIncludesString(tags, 'artwork_type', 'sculpture')) {
+			return [{
+				type: QualifierType.Descriptor,
+				data: {
+					type: 'sculpture'
 				}
 			}];
 		}
