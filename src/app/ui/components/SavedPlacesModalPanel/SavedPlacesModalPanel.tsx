@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useLayoutEffect, useState} from "react";
+import React, {useContext, useEffect, useLayoutEffect, useRef, useState} from "react";
 import ModalPanel from "~/app/ui/components/ModalPanel";
 import ModalCategoryContainer from "~/app/ui/components/ModalPanel/ModalCategoryContainer";
 import ModalCategory from "~/app/ui/components/ModalPanel/ModalCategory";
@@ -14,6 +14,7 @@ const SavedPlacesModalPanel: React.FC<{
 	const actions = useContext(ActionsContext);
 	const [savedPlaces, setSavedPlaces] = useState<SavedPlaceParams[]>([]);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
+	const scrollableListRef = useRef<HTMLDivElement>(null);
 
 	const updateLocalStorage = (data: SavedPlaceParams[]): void => {
 		localStorage.setItem('savedPlaces', JSON.stringify(data));
@@ -98,6 +99,10 @@ const SavedPlacesModalPanel: React.FC<{
 			updateLocalStorage(newPlaces);
 
 			setIsLoading(false);
+
+			if (scrollableListRef.current) {
+				scrollableListRef.current.scrollTop = scrollableListRef.current.scrollHeight;
+			}
 		})
 	}
 
@@ -122,7 +127,7 @@ const SavedPlacesModalPanel: React.FC<{
 			<ModalCategory>
 				{
 					savedPlaces.length > 0 ? (
-						<div className={styles.savedPlacesList}>
+						<div className={styles.savedPlacesList} ref={scrollableListRef}>
 							{
 								savedPlaces.map((place, i) => {
 									return <SavedPlace

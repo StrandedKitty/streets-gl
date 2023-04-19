@@ -25,9 +25,10 @@ import PowerlineHandler from "~/lib/tile-processing/tile3d/handlers/PowerlineHan
 
 export interface Tile3DProviderParams {
 	overpassEndpoint: string;
+	tileServerEndpoint: string;
 	mapboxEndpointTemplate: string;
 	mapboxAccessToken: string;
-	useCached: boolean;
+	useCachedTiles: boolean;
 	heightPromise: (positions: Float64Array) => Promise<Float64Array>;
 }
 

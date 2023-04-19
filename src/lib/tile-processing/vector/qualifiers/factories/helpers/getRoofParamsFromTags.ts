@@ -13,6 +13,11 @@ export default function getRoofParamsFromTags(tags: Record<string, string>): {
 	const type = getRoofTypeFromOSMRoofShape(tags['roof:shape'], 'flat');
 	const noDefault = tags.building === 'stadium'
 		|| tags.building === 'houseboat'
+		|| tags.building === 'castle'
+		|| tags.building === 'storage_tank'
+		|| tags.building === 'silo'
+		|| tags.building === 'stadium'
+		|| tags.building === 'ship'
 		|| type !== 'flat'
 		|| !!tags['bridge:support']
 		|| !!tags['ship:type']

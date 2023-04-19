@@ -4,6 +4,7 @@ import MathUtils from "~/lib/math/MathUtils";
 import SettingsSystem from "~/app/systems/SettingsSystem";
 import TerrainSystem from "~/app/systems/TerrainSystem";
 import SceneSystem from "~/app/systems/SceneSystem";
+import Config from "~/app/Config";
 
 interface QueryAircraft {
 	id: string;
@@ -108,7 +109,7 @@ export default class VehicleSystem extends System {
 		const camera = this.systemManager.getSystem(SceneSystem).objects.camera;
 		const normalizedPosition = MathUtils.meters2tile(camera.position.x, camera.position.z, 0);
 
-		fetch(`https://tiles.streets.gl/vehicles?x=${normalizedPosition.x}&y=${normalizedPosition.y}`, {
+		fetch(`${Config.TileServerEndpoint}/vehicles/${normalizedPosition.x}/${normalizedPosition.y}`, {
 			method: 'GET'
 		}).then(async r => {
 			const response: VehiclesQueryResponse = await r.json();

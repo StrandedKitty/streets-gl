@@ -3,7 +3,7 @@ export default function isBuildingHasWindows(tags: Record<string, string>): bool
 		return false;
 	}
 
-	const list = ['garage', 'garages', 'greenhouse', 'storage_tank', 'bunker', 'silo', 'stadium', 'ship'];
+	const list = ['garage', 'garages', 'greenhouse', 'storage_tank', 'bunker', 'silo', 'stadium', 'ship', 'castle'];
 
 	return !list.includes(tags.building);
 }

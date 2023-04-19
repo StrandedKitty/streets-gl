@@ -8,6 +8,7 @@ export namespace WorkerMessage {
 		type: ToWorkerType;
 		tile: [number, number];
 		overpassEndpoint?: string;
+		tileServerEndpoint?: string;
 		mapboxEndpointTemplate?: string;
 		mapboxAccessToken?: string;
 		useCachedTiles?: boolean;

@@ -12,7 +12,6 @@ import VectorPolyline from "~/lib/tile-processing/vector/features/VectorPolyline
 import VectorBuildingOutlinesCleaner from "~/lib/tile-processing/vector/VectorBuildingOutlinesCleaner";
 
 const TileRequestMargin = 0.05;
-const TileServerEndpoint = 'https://tiles.streets.gl';
 
 const getRequestBody = (x: number, y: number, zoom: number): string => {
 	const position = [
@@ -55,7 +54,8 @@ const getRelationRequestURL = (relation: number): string => {
 export default class OverpassVectorFeatureProvider extends VectorFeatureProvider {
 	public constructor(
 		private readonly overpassURL: string,
-		private readonly useCached: boolean
+		private readonly tileServerEndpoint: string,
+		private readonly useCachedTiles: boolean
 	) {
 		super();
 	}
@@ -72,14 +72,16 @@ export default class OverpassVectorFeatureProvider extends VectorFeatureProvider
 		}
 	): Promise<VectorFeatureCollection> {
 		const tileOrigin = MathUtils.tile2meters(x, y + 1, zoom);
-		const overpassData = await OverpassVectorFeatureProvider.fetchOverpassTile(x, y, zoom, this.overpassURL, this.useCached)
-		const repairedOverpassData = await OverpassVectorFeatureProvider.repairOverpassRelations(overpassData, this.overpassURL);
+		const overpassData = await OverpassVectorFeatureProvider.fetchOverpassTile(
+			x, y, zoom,
+			this.overpassURL, this.tileServerEndpoint, this.useCachedTiles
+		);
 
 		const nodeHandlersMap: Map<number, OSMNodeHandler> = new Map();
 		const wayHandlersMap: Map<number, OSMWayHandler> = new Map();
 		const relationHandlersMap: Map<number, OSMRelationHandler> = new Map();
 
-		const elements = OverpassVectorFeatureProvider.classifyElements(repairedOverpassData.elements);
+		const elements = OverpassVectorFeatureProvider.classifyElements(overpassData.elements);
 
 		for (const element of elements.nodes) {
 			const position = Vec2.sub(MathUtils.degrees2meters(element.lat, element.lon), tileOrigin);
@@ -193,21 +195,22 @@ export default class OverpassVectorFeatureProvider extends VectorFeatureProvider
 		y: number,
 		zoom: number,
 		overpassURL: string,
+		tileServerEndpoint: string,
 		useCached: boolean
 	): Promise<OverpassDataObject> {
 		if (useCached) {
-			const isTileExistQuery = await fetch(`${TileServerEndpoint}/tileExists/${x}/${y}`, {
+			const tileData = await fetch(`${tileServerEndpoint}/tile/${x}/${y}`, {
 				method: 'GET'
 			});
 
-			const exists = await isTileExistQuery.text();
+			try {
+				const data = await tileData.json();
 
-			if (exists === '1') {
-				const tileData = await fetch(`${TileServerEndpoint}/tile/${x}/${y}`, {
-					method: 'GET'
-				});
-
-				return await tileData.json();
+				if (!data.error) {
+					return data;
+				}
+			} catch (e) {
+				console.error(e);
 			}
 		}
 
@@ -215,8 +218,9 @@ export default class OverpassVectorFeatureProvider extends VectorFeatureProvider
 			method: 'POST',
 			body: getRequestBody(x, y, zoom)
 		});
+		const overpassData = await response.json() as OverpassDataObject;
 
-		return await response.json() as OverpassDataObject;
+		return await OverpassVectorFeatureProvider.repairOverpassRelations(overpassData, overpassURL);
 	}
 
 	// A hacky (but fast) way to get relations that include relations from OverpassDataObject as members.

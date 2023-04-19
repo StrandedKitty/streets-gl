@@ -87,6 +87,7 @@ export default class TileLoadingSystem extends System {
 
 		worker.requestTile(tile.x, tile.y, {
 			overpassEndpoint: overpassEndpoint,
+			tileServerEndpoint: Config.TileServerEndpoint,
 			mapboxEndpointTemplate: Config.MapboxStreetsEndpointTemplate,
 			mapboxAccessToken: Config.MapboxAccessToken,
 			useCachedTiles: this.useCachedTiles

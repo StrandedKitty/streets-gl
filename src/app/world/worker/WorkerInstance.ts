@@ -25,9 +25,10 @@ class WorkerInstance {
 					x,
 					y,
 					data.overpassEndpoint,
+					data.tileServerEndpoint,
 					data.mapboxEndpointTemplate,
 					data.mapboxAccessToken,
-					data.useCachedTiles
+					data.useCachedTiles,
 				);
 			}
 		});
@@ -37,15 +38,17 @@ class WorkerInstance {
 		x: number,
 		y: number,
 		overpassEndpoint: string,
+		tileServerEndpoint: string,
 		mapboxEndpointTemplate: string,
 		mapboxAccessToken: string,
 		useCachedTiles: boolean
 	): void {
 		const provider = new Tile3DFromVectorProvider({
-			overpassEndpoint: overpassEndpoint,
-			mapboxEndpointTemplate: mapboxEndpointTemplate,
-			mapboxAccessToken: mapboxAccessToken,
-			useCached: useCachedTiles,
+			overpassEndpoint,
+			tileServerEndpoint,
+			mapboxEndpointTemplate,
+			mapboxAccessToken,
+			useCachedTiles,
 			heightPromise: (positions: Float64Array): Promise<Float64Array> => this.getTerrainHeight(x, y, positions)
 		});
 		const collectionPromise = provider.getCollection({x, y, zoom: WorkerInstance.TileZoom});

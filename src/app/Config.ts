@@ -4,7 +4,7 @@ const Config = {
 	TileSize: /*40075016.68 / (1 << 16)*/ 611.4962158203125,
 	GroundSegments: 16,
 	MaxConcurrentTiles: 100,
-	MaxTilesPerWorker: 2,
+	MaxTilesPerWorker: 1,
 	WebWorkersNumber: Math.min(6, navigator.hardwareConcurrency),
 	ShadowCascades: 3,
 	StartPosition: [40.76050, -73.98088],
@@ -135,6 +135,7 @@ const Config = {
 		{url: 'https://overpass.openstreetmap.ru/cgi/interpreter', isEnabled: false},
 		{url: 'https://overpass.kumi.systems/api/interpreter', isEnabled: false}
 	],
+	TileServerEndpoint: 'https://tiles.streets.gl',
 	MapboxStreetsEndpointTemplate: 'https://api.mapbox.com/v4/mapbox.mapbox-streets-v8/{z}/{x}/{y}.vector.pbf?access_token={access_token}',
 	MapboxAccessToken: 'pk.eyJ1Ijoidmhhd2siLCJhIjoiY2xmbWpqOXBoMGNmZDN2cjJwZXk0MXBzZiJ9.192VNPJG0VV9dGOCOX1gUw'
 };
