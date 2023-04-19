@@ -6,9 +6,7 @@ import Vec2 from "~/lib/math/Vec2";
 import * as OMBB from "~/lib/math/OMBB";
 import polylabel from "polylabel";
 import Vec3 from "~/lib/math/Vec3";
-import {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
 import MathUtils from "~/lib/math/MathUtils";
-import {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
 
 interface EarcutInput {
 	vertices: number[];
@@ -268,5 +266,15 @@ export default class Tile3DMultipolygon {
 		}
 
 		return tiles;
+	}
+
+	public getArea(): number {
+		let area: number = 0;
+
+		for (const ring of this.rings) {
+			area += ring.getArea();
+		}
+
+		return area;
 	}
 }

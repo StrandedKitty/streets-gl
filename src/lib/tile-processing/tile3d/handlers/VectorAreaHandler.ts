@@ -339,7 +339,8 @@ export default class VectorAreaHandler implements Handler {
 	private handleBuilding(): Tile3DFeature[] {
 		const builder = new Tile3DExtrudedGeometryBuilder(this.osmReference, this.getMultipolygon());
 
-		const roofParams = this.getRoofParams();
+		const noDefaultRoof = builder.getAreaToOMBBRatio() < 0.75;
+		const roofParams = this.getRoofParams(noDefaultRoof);
 
 		const {skirt, facadeHeightOverride} = builder.addRoof({
 			terrainHeight: this.terrainHeight,
@@ -514,7 +515,7 @@ export default class VectorAreaHandler implements Handler {
 		return RoofType.Flat;
 	}
 
-	private getRoofParams(): {
+	private getRoofParams(noDefaultRoof: boolean): {
 		type: RoofType;
 		textureId: number;
 		color: number;
@@ -524,7 +525,7 @@ export default class VectorAreaHandler implements Handler {
 	} {
 		const roofType = VectorAreaHandler.getRoofTypeFromString(this.descriptor.buildingRoofType);
 		const roofMaterial = this.descriptor.buildingRoofMaterial;
-		const roofColor = this.descriptor.buildingRoofColor;
+		let roofColor = this.descriptor.buildingRoofColor;
 
 		const materialToTextureId: Record<VectorAreaDescriptor['buildingRoofMaterial'], number> = {
 			default: 7,
@@ -548,7 +549,7 @@ export default class VectorAreaHandler implements Handler {
 			12: new Vec2(4, 4),
 		};
 
-		if (roofType === RoofType.Flat && roofMaterial === 'default' && roofColor === 0xffffff) {
+		if (roofType === RoofType.Flat && roofMaterial === 'default' && !noDefaultRoof) {
 			return {
 				type: roofType,
 				textureId: (this.osmReference.id || 0) % 4 + 1,
@@ -557,6 +558,10 @@ export default class VectorAreaHandler implements Handler {
 				scaleY: 1,
 				isStretched: true
 			};
+		}
+
+		if (noDefaultRoof && roofMaterial === 'default') {
+			roofColor = 0xBBBBBB;
 		}
 
 		const id = materialToTextureId[roofMaterial];

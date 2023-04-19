@@ -138,9 +138,9 @@ export default abstract class CurvedRoofBuilder implements RoofBuilder {
 	}
 
 	private getCenter(ringVertices: Vec2[]): Vec2 {
-		let center: Vec2 = MathUtils.getPolygonCentroidVec2(ringVertices);
+		let center: Vec2 = MathUtils.getPolygonCentroid(ringVertices);
 
-		if (MathUtils.isPointInsidePolygonVec2(center, ringVertices)) {
+		if (MathUtils.isPointInsidePolygon(center, ringVertices)) {
 			return center;
 		}
 

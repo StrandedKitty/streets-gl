@@ -14,6 +14,7 @@ export default class Tile3DRing {
 	private cachedFlattenVertices: number[] = null;
 	private cachedGeoJSONVertices: [number, number][] = null;
 	private cachedAABB: AABB2D = null;
+	private cachedArea: number = null;
 
 	public constructor(type: Tile3DRingType, nodes: Vec2[]) {
 		this.type = type;
@@ -77,6 +78,14 @@ export default class Tile3DRing {
 	}
 
 	public isContainsPoints(point: Vec2): boolean {
-		return MathUtils.isPointInsidePolygonVec2(point, this.nodes);
+		return MathUtils.isPointInsidePolygon(point, this.nodes);
+	}
+
+	public getArea(): number {
+		if (!this.cachedArea) {
+			this.cachedArea = -MathUtils.getPolygonAreaSigned(this.nodes);
+		}
+
+		return this.cachedArea;
 	}
 }

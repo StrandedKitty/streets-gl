@@ -59,6 +59,14 @@ export default class Tile3DExtrudedGeometryBuilder {
 		this.multipolygon = multipolygon;
 	}
 
+	public getAreaToOMBBRatio(): number {
+		const ombb = this.multipolygon.getOMBB();
+		const ombbArea = MathUtils.getPolygonAreaSigned(ombb);
+		const multipolygonArea = this.multipolygon.getArea();
+
+		return multipolygonArea / ombbArea;
+	}
+
 	public addWalls(
 		{
 			terrainHeight,
