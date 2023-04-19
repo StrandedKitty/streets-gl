@@ -24,6 +24,7 @@ uniform PerMesh {
 	int terrainLevelId;
 	float segmentCount;
 	vec2 cameraPosition;
+	vec2 detailTextureOffset;
 };
 
 uniform PerMaterial {
@@ -34,11 +35,13 @@ uniform PerMaterial {
 uniform sampler2DArray tMap;
 uniform sampler2DArray tNormal;
 uniform sampler2D tWaterNormal;
+uniform sampler2D tWaterNoise;
 
 #include <packNormal>
 #include <getMotionVector>
 #include <sampleCatmullRom>
 #include <getTBN>
+#include <textureNoTile>
 #include <sampleWaterNormal>
 #include <RNM>
 
@@ -79,12 +82,14 @@ void main() {
 	}
 
 	if (vTextureId == 0) {
-		vec2 normalizedUV = vUv / 611.4962158203125;
+		vec2 normalizedUV = fract((vUv + detailTextureOffset) / (611.4962158203125 * 256.));
 		normalizedUV = vec2(normalizedUV.y, 1. - normalizedUV.x);
-		vec3 waterNormal = sampleWaterNormal(normalizedUV, time, tWaterNormal);
+
+		vec3 waterNormal = sampleWaterNormal(tWaterNormal, tWaterNoise, normalizedUV, time);
 		vec3 mvWaterNormal = vec3(modelViewMatrix * vec4(normalBlendUnpackedRNM(vec3(0, 0, 1), waterNormal), 0));
 
 		outColor = vec4(0.15, 0.2, 0.25, 0.5);
+		//outColor = vec4((vUv + detailTextureOffset) / (611.4962158203125 * 256.), 0, 0.5);
 		outNormal = packNormal(mvWaterNormal);
 		outRoughnessMetalnessF0 = vec3(0.05, 0, 0.03);
 		outMotion = getMotionVector(vClipPos, vClipPosPrev);

@@ -1,18 +1,17 @@
-vec3 getWaterNormalMapValue(vec2 uv, sampler2D waterNormalTexture) {
-    vec3 col = texture(waterNormalTexture, uv).rgb;
+vec3 getWaterNormalMapValue(vec2 uv, float scale, sampler2D normalTexture, sampler2D noiseTexture) {
+    vec3 col = textureNoTile(noiseTexture, normalTexture, uv, 256. * scale, scale);
     return col * 2. - 1.;
 }
 
-vec3 sampleWaterNormal(vec2 uv, float time, sampler2D waterNormalTexture) {
-    float waveTime = time * 0.015;
+vec3 sampleWaterNormal(sampler2D normalTexture, sampler2D noiseTexture, vec2 uv, float time) {
+    float waveTime = time * 0.001 / 256.;
 
     vec3 normalValue = (
-        getWaterNormalMapValue(uv * 3. + waveTime, waterNormalTexture) * 0.45 +
-        getWaterNormalMapValue(uv * 12. - waveTime, waterNormalTexture) * 0.45 +
-        getWaterNormalMapValue(uv * 1. - waveTime * 0.5, waterNormalTexture) * 0.1
+        getWaterNormalMapValue(uv + waveTime, 16., normalTexture, noiseTexture) * 0.5 +
+        getWaterNormalMapValue(uv - waveTime, 8., normalTexture, noiseTexture) * 0.5
     );
 
-    normalValue = mix(normalValue, vec3(0, 0, 1), 0.8);
+    normalValue = mix(normalValue, vec3(0, 0, 1), 0.9);
 
     return normalize(normalValue.xzy);
 }

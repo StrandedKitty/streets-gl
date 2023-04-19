@@ -100,8 +100,10 @@ void main() {
         waterMask = 0.;
     }
 
-    vec3 detailNormal = getNormal(textureNoTile(tDetailNoise, tDetailNormal, vDetailUV, 0.01));
-    vec3 detailColor = textureNoTile(tDetailNoise, tDetailColor, vDetailUV, 0.01) * vBiomeColor;
+    vec2 normalizedTileUV = fract(vDetailUV / (611.4962158203125 * 256.));
+    float detailScale = 8.;
+    vec3 detailNormal = getNormal(textureNoTile(tDetailNoise, tDetailNormal, normalizedTileUV, 256. * detailScale, detailScale));
+    vec3 detailColor = textureNoTile(tDetailNoise, tDetailColor, normalizedTileUV, 256. * detailScale, detailScale) * vBiomeColor;
 
     vec3 waterUV = vec3(0);
     waterUV.xy = transformWater0.xy + vWaterUV * transformWater0.zw;
@@ -119,9 +121,10 @@ void main() {
     outRoughnessMetalnessF0 = vec3(0.8, 0, 0.005);
 
     if (waterFactor > 0.5) {
-        vec2 normalizedTileUV = fract(vDetailUV / 611.4962158203125);
+        vec2 normalizedTileUV = fract(vDetailUV / (611.4962158203125 * 256.));
         normalizedTileUV = vec2(normalizedTileUV.y, 1. - normalizedTileUV.x);
-        vec3 waterNormal = sampleWaterNormal(normalizedTileUV, time, tWaterNormal);
+
+        vec3 waterNormal = sampleWaterNormal(tWaterNormal, tDetailNoise, normalizedTileUV, time);
         vec3 mvWaterNormal = vec3(modelViewMatrix * vec4(waterNormal, 0));
 
         outColor = vec4(0.15, 0.2, 0.25, 0.5);

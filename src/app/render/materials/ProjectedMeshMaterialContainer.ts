@@ -51,6 +51,19 @@ export default class ProjectedMeshMaterialContainer extends MaterialContainer {
 						mipmaps: true
 					})
 				}, {
+					name: 'tWaterNoise',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: this.renderer.createTexture2D({
+						anisotropy: 16,
+						data: ResourceLoader.get('grassNoise'),
+						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
+						magFilter: RendererTypes.MagFilter.Linear,
+						wrap: RendererTypes.TextureWrap.Repeat,
+						format: RendererTypes.TextureFormat.RGBA8Unorm,
+						mipmaps: true
+					})
+				}, {
 					name: 'tRingHeight',
 					block: null,
 					type: RendererTypes.UniformType.Texture2DArray,
@@ -92,6 +105,11 @@ export default class ProjectedMeshMaterialContainer extends MaterialContainer {
 					value: new Float32Array(1)
 				}, {
 					name: 'cameraPosition',
+					block: 'PerMesh',
+					type: RendererTypes.UniformType.Float2,
+					value: new Float32Array(2)
+				}, {
+					name: 'detailTextureOffset',
 					block: 'PerMesh',
 					type: RendererTypes.UniformType.Float2,
 					value: new Float32Array(2)

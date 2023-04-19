@@ -27,6 +27,7 @@ uniform PerMesh {
 	int terrainLevelId;
 	float segmentCount;
 	vec2 cameraPosition;
+	vec2 detailTextureOffset;
 };
 
 uniform PerMaterial {

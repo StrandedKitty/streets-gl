@@ -222,8 +222,9 @@ export default class GBufferPass extends Pass<{
 
 		for (let i = 0; i < terrain.children.length; i++) {
 			const ring = terrain.children[i];
-			const detailOffsetX = ring.position.x % Config.TileSize - ring.size / 2;
-			const detailOffsetY = ring.position.z % Config.TileSize - ring.size / 2;
+			const offsetSize = Config.TileSize * 256;
+			const detailOffsetX = ring.position.x % offsetSize - ring.size / 2;
+			const detailOffsetY = ring.position.z % offsetSize - ring.size / 2;
 
 			this.terrainMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value =
 				new Float32Array(Mat4.multiply(camera.matrixWorldInverse, ring.matrixWorld).values);
@@ -271,6 +272,10 @@ export default class GBufferPass extends Pass<{
 				continue;
 			}
 
+			const offsetSize = Config.TileSize * 256;
+			const detailOffsetX = tile.position.x % offsetSize;
+			const detailOffsetY = tile.position.z % offsetSize;
+
 			const normalTextureTransforms = this.getTileNormalTexturesTransforms(tile);
 			const {ring0, levelId, ring0Offset, ring1Offset} = terrain.getTileParams(tile);
 
@@ -289,7 +294,9 @@ export default class GBufferPass extends Pass<{
 			this.projectedMeshMaterial.getUniform<UniformFloat1>('terrainLevelId', 'PerMesh').value[0] = levelId;
 			this.projectedMeshMaterial.getUniform<UniformFloat1>('segmentCount', 'PerMesh').value[0] = ring0.segmentCount * 2;
 			this.projectedMeshMaterial.getUniform('cameraPosition', 'PerMesh').value = new Float32Array(relativeCameraPosition);
+			this.projectedMeshMaterial.getUniform('detailTextureOffset', 'PerMesh').value = new Float32Array([detailOffsetX, detailOffsetY]);
 			this.projectedMeshMaterial.getUniform<UniformFloat1>('time', 'PerMaterial').value[0] = performance.now() * 0.001;
+
 			this.projectedMeshMaterial.updateUniformBlock('PerMesh');
 
 			tile.projectedMesh.draw();

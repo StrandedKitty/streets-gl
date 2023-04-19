@@ -1,6 +1,6 @@
-vec3 textureNoTile(sampler2D noiseSamp, sampler2D colorSamp, vec2 uv, float uvScale) {
+vec3 textureNoTile(sampler2D noiseSamp, sampler2D colorSamp, vec2 uv, float uvScale, float uvScaleNoise) {
     // sample variation pattern
-    float k = texture(noiseSamp, uv / uvScale).x;// cheap (cache friendly) lookup
+    float k = texture(noiseSamp, uv * uvScaleNoise).x;// cheap (cache friendly) lookup
 
     // compute index
     float index = k * 8.0;
