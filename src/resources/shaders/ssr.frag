@@ -16,11 +16,6 @@ uniform MainBlock {
 	vec2 noiseOffset;
 };
 
-const float rayStep = 300.;
-const int iterationCount = 4;
-const float distanceBias = 10.;
-const bool isAdaptiveStepEnabled = true;
-
 #include <unpackNormal>
 #include <reconstructPositionFromDepth>
 
@@ -38,13 +33,13 @@ vec4 SSR(vec3 position, vec3 reflection) {
 	vec2 noiseUv = gl_FragCoord.xy / vec2(textureSize(tNoise, 0)) + noiseOffset;
 	float noiseValue = texture(tNoise, noiseUv).r;
 
-	vec3 step = rayStep * reflection;
+	vec3 step = STEP_SIZE * reflection;
 	vec3 marchingPosition = position + step * noiseValue;
 	float delta;
 	float depthFromScreen;
 	vec2 screenPosition;
 
-	for (int i = 0; i < iterationCount; i++) {
+	for (int i = 0; i < STEPS; i++) {
 		vec3 projectedPosition = generateProjectedPosition(marchingPosition);
 
 		if (
@@ -59,15 +54,15 @@ vec4 SSR(vec3 position, vec3 reflection) {
 		depthFromScreen = -getPosition(screenPosition).z;
 		delta = -marchingPosition.z - depthFromScreen;
 
-		if (delta > distanceBias) {
+		if (delta > DISTANCE_BIAS) {
 			return texture(tColor, screenPosition);
 		}
 
-		if (isAdaptiveStepEnabled){
+		if (IS_ADAPTIVE){
 			float directionSign = sign(abs(marchingPosition.z) - depthFromScreen);
 			//this is sort of adapting step, should prevent lining reflection by doing sort of iterative converging
 			//some implementation doing it by binary search, but I found this idea more cheaty and way easier to implement
-			step = step * (1.0 - rayStep * max(directionSign, 0.0));
+			step = step * (1.0 - STEP_SIZE * max(directionSign, 0.0));
 			marchingPosition += step * (-directionSign);
 		}
 		else {

@@ -60,6 +60,12 @@ export default class SSRMaterialContainer extends MaterialContainer {
 					})
 				}
 			],
+			defines: {
+				STEP_SIZE: (300).toFixed(1),
+				STEPS: (4).toFixed(0),
+				DISTANCE_BIAS: (10).toFixed(1),
+				IS_ADAPTIVE: 'true'
+			},
 			primitive: {
 				frontFace: RendererTypes.FrontFace.CCW,
 				cullMode: RendererTypes.CullMode.None

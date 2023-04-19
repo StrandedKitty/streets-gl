@@ -39,6 +39,16 @@ export default class SSRPass extends Pass<{
 	private init(): void {
 		this.ssrMaterial = new SSRMaterialContainer(this.renderer).material;
 		this.fullScreenTriangle = new FullScreenTriangle(this.renderer);
+
+		this.manager.settings.onChange('ssr', ({statusValue}) => {
+			const stepSize = statusValue === 'low' ? 300 : 150;
+			const steps = statusValue === 'low' ? 5 : 12;
+
+			this.ssrMaterial.defines.STEP_SIZE = stepSize.toFixed(1);
+			this.ssrMaterial.defines.STEPS = steps.toFixed(0);
+
+			this.ssrMaterial.recompile();
+		}, true);
 	}
 
 	public render(): void {
