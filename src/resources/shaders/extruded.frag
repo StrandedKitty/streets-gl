@@ -22,15 +22,16 @@ uniform sampler2DArray tMap;
 #include <getMotionVector>
 #include <getTBN>
 
-vec4 getRoofColor(int textureId, vec3 tintColor) {
-    return texture(tMap, vec3(vUv, textureId * 3)) * vec4(tintColor, 1);
+vec4 getColorValue(int textureId, float mask, vec3 tintColor) {
+    vec3 color = mix(vec3(1), tintColor, mask);
+    return texture(tMap, vec3(vUv, textureId * 3)) * vec4(color, 1);
 }
 
-vec3 getRoofMask(int textureId) {
+vec3 getMaskValue(int textureId) {
     return texture(tMap, vec3(vUv, textureId * 3 + 2)).xyz;
 }
 
-vec3 getRoofNormal(int textureId) {
+vec3 getNormalValue(int textureId) {
     mat3 tbn = getTBN(vNormal, vPosition, vec2(vUv.x, 1. - vUv.y));
     vec3 mapValue = texture(tMap, vec3(vUv, textureId * 3 + 1)).xyz * 2. - 1.;
     vec3 normal = normalize(tbn * mapValue);
@@ -40,25 +41,17 @@ vec3 getRoofNormal(int textureId) {
     return normal;
 }
 
-/*vec3 getFacadeNormal() {
-    mat3 tbn = getTBN(vNormal, vPosition, vUv);
-    vec3 mapValue = texture(tFacadeNormal, vec3(vUv * 0.02, 0)).xyz * 2. - 1.;
-    vec3 normal = normalize(tbn * mapValue);
-
-    normal *= float(gl_FrontFacing) * 2. - 1.;
-
-    return normal;
-}*/
-
 void main() {
     if (vTextureId == 0) {
         outColor = vec4(fract(vUv), 0, 1);
         outNormal = packNormal(vNormal);
         outRoughnessMetalnessF0 = vec3(0.9, 0, 0.03);
     } else {
-        outColor = getRoofColor(vTextureId - 1, vColor);
-        outNormal = packNormal(getRoofNormal(vTextureId - 1));
-        outRoughnessMetalnessF0 = getRoofMask(vTextureId - 1) + vec3(0, 0, 0.03);
+        vec3 mask = getMaskValue(vTextureId - 1);
+
+        outColor = getColorValue(vTextureId - 1, mask.b, vColor);
+        outNormal = packNormal(getNormalValue(vTextureId - 1));
+        outRoughnessMetalnessF0 = vec3(mask.r, mask.g, 0.03);
     }
 
     outMotion = getMotionVector(vClipPos, vClipPosPrev);

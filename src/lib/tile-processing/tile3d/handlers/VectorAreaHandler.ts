@@ -621,10 +621,6 @@ export default class VectorAreaHandler implements Handler {
 
 		const params = materialToTextureId[material] ?? materialToTextureId.plaster;
 
-		if (material === 'brick') {
-			color = 0xffffff;
-		}
-
 		return {
 			windowWidth: params.width * this.mercatorScale,
 			color,

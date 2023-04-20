@@ -54,10 +54,6 @@ export default function getRoofParamsFromTags(tags: Record<string, string>): {
 		}
 	}
 
-	if (material === 'thatch' || material === 'eternit' || material === 'grass') {
-		color = 0xffffff;
-	}
-
 	return {
 		type: type,
 		material: material,

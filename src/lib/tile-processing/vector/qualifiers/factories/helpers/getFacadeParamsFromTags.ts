@@ -5,7 +5,7 @@ const lookup: Record<string, {
 	type: VectorAreaDescriptor['buildingFacadeMaterial'];
 	defaultColor: number;
 }> = {
-	brick: {type: 'brick', defaultColor: 0xffffff},
+	brick: {type: 'brick', defaultColor: 0x8c4834},
 	cement_block: {type: 'cementBlock', defaultColor: 0xffffff},
 	block: {type: 'cementBlock', defaultColor: 0xffffff},
 	wood: {type: 'wood', defaultColor: 0xffffff},
@@ -26,9 +26,10 @@ export default function getFacadeParamsFromTags(
 	const materialTagValue = tags['building:material'];
 	const colorTagValue = tags['building:colour'];
 	const config = lookup[materialTagValue] ?? lookup.plaster;
+	const color = parseColor(colorTagValue, config.defaultColor);
 
 	return {
 		material: config.type,
-		color: parseColor(colorTagValue, config.defaultColor),
-	}
+		color: color
+	};
 }
