@@ -61,7 +61,8 @@ export default class MapboxVectorFeatureProvider implements FeatureProvider<Vect
 		const polygons: Record<string, PBFPolygon[]> = {
 			water: [],
 			forest: [],
-			shrubbery: []
+			shrubbery: [],
+			farmland: [],
 		};
 		const url = this.buildRequestURL(x, y, zoom);
 		const response = await fetch(url, {
@@ -111,6 +112,11 @@ export default class MapboxVectorFeatureProvider implements FeatureProvider<Vect
 					if (tagsMap.type === 'scrub') {
 						const polygon = PBFPolygonParser.convertCommandsToPolygons(geometry, size);
 						polygons.shrubbery.push(polygon);
+					}
+
+					if (tagsMap.type === 'farmland') {
+						const polygon = PBFPolygonParser.convertCommandsToPolygons(geometry, size);
+						polygons.farmland.push(polygon);
 					}
 				}
 			}

@@ -7,7 +7,7 @@ export default function createProjectedMeshTexture(renderer: AbstractRenderer): 
 	return renderer.createTexture2DArray({
 		width: 512,
 		height: 512,
-		depth: 28 * 3,
+		depth: 29 * 3,
 		anisotropy: 16,
 		data: [
 			ResourceLoader.get('pavementDiffuse'),
@@ -88,11 +88,11 @@ export default function createProjectedMeshTexture(renderer: AbstractRenderer): 
 
 			ResourceLoader.get('helipadDiffuse'),
 			ResourceLoader.get('helipadNormal'),
-			ResourceLoader.get('helipadMask'),
+			ResourceLoader.get('commonMask'),
 
 			ResourceLoader.get('gardenDiffuse'),
 			ResourceLoader.get('gardenNormal'),
-			ResourceLoader.get('gardenMask'),
+			ResourceLoader.get('commonMask'),
 
 			ResourceLoader.get('soilDiffuse'),
 			ResourceLoader.get('soilNormal'),
@@ -100,7 +100,7 @@ export default function createProjectedMeshTexture(renderer: AbstractRenderer): 
 
 			ResourceLoader.get('grassDiffuse'),
 			ResourceLoader.get('grassNormal'),
-			ResourceLoader.get('grassMask'),
+			ResourceLoader.get('commonMask'),
 
 			ResourceLoader.get('forestFloorDiffuse'),
 			ResourceLoader.get('forestFloorNormal'),
@@ -121,6 +121,10 @@ export default function createProjectedMeshTexture(renderer: AbstractRenderer): 
 			ResourceLoader.get('concreteWallDiffuse'),
 			ResourceLoader.get('concreteWallNormal'),
 			ResourceLoader.get('concreteWallMask'),
+
+			ResourceLoader.get('farmlandDiffuse'),
+			ResourceLoader.get('farmlandNormal'),
+			ResourceLoader.get('farmlandMask'),
 		],
 		minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 		magFilter: RendererTypes.MagFilter.Linear,

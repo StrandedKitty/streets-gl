@@ -292,10 +292,18 @@ export default class VectorAreaHandler implements Handler {
 					this.handleGenericSurface({
 						textureId: 1,
 						isOriented: false,
-						zIndex: 1.5,
+						zIndex: 5,
 						uvScale: 10,
 					})
 				];
+			}
+			case 'farmland': {
+				return [this.handleGenericSurface({
+					textureId: 29,
+					isOriented: false,
+					zIndex: 1.5,
+					uvScale: 60,
+				})];
 			}
 			case 'forest': {
 				return this.instances;
