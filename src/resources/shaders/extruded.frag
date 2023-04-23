@@ -42,18 +42,11 @@ vec3 getNormalValue(int textureId) {
 }
 
 void main() {
-    if (vTextureId == 0) {
-        outColor = vec4(fract(vUv), 0, 1);
-        outNormal = packNormal(vNormal);
-        outRoughnessMetalnessF0 = vec3(0.9, 0, 0.03);
-    } else {
-        vec3 mask = getMaskValue(vTextureId - 1);
+    vec3 mask = getMaskValue(vTextureId);
 
-        outColor = getColorValue(vTextureId - 1, mask.b, vColor);
-        outNormal = packNormal(getNormalValue(vTextureId - 1));
-        outRoughnessMetalnessF0 = vec3(mask.r, mask.g, 0.03);
-    }
-
+    outColor = getColorValue(vTextureId, mask.b, vColor);
+    outNormal = packNormal(getNormalValue(vTextureId));
+    outRoughnessMetalnessF0 = vec3(mask.r, mask.g, 0.03);
     outMotion = getMotionVector(vClipPos, vClipPosPrev);
     outObjectId = vObjectId;
 }

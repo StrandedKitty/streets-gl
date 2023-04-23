@@ -8,7 +8,7 @@ import Tile3DExtrudedGeometryBuilder, {
 import Vec2 from "~/lib/math/Vec2";
 import Tile3DRing, {Tile3DRingType} from "~/lib/tile-processing/tile3d/builders/Tile3DRing";
 import Tile3DProjectedGeometryBuilder from "~/lib/tile-processing/tile3d/builders/Tile3DProjectedGeometryBuilder";
-import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DProjectedGeometry";
+import Tile3DProjectedGeometry, {ZIndexMap} from "~/lib/tile-processing/tile3d/features/Tile3DProjectedGeometry";
 import Tile3DLabel from "~/lib/tile-processing/tile3d/features/Tile3DLabel";
 import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 import Config from "~/app/Config";
@@ -25,6 +25,7 @@ import {
 	getTreeTextureIdFromType,
 	getTreeTextureScaling
 } from "~/lib/tile-processing/tile3d/utils";
+import {ExtrudedTextures, ProjectedTextures} from "~/lib/tile-processing/tile3d/textures";
 
 const TileSize = 611.4962158203125;
 
@@ -184,9 +185,9 @@ export default class VectorAreaHandler implements Handler {
 				return this.handleBuilding();
 			case 'water': {
 				return [this.handleGenericSurface({
-					textureId: 0,
+					textureId: ProjectedTextures.Water,
 					isOriented: false,
-					zIndex: 0
+					zIndex: ZIndexMap.Water
 				})];
 			}
 			case 'pitch': {
@@ -200,30 +201,30 @@ export default class VectorAreaHandler implements Handler {
 				return [this.handleGenericSurface({
 					textureId,
 					isOriented: true,
-					zIndex: 4
+					zIndex: ZIndexMap.Pitch
 				})];
 			}
 			case 'manicuredGrass': {
 				return [this.handleGenericSurface({
-					textureId: 7,
+					textureId: ProjectedTextures.ManicuredGrass,
 					isOriented: false,
-					zIndex: 1,
+					zIndex: ZIndexMap.ManicuredGrass,
 					uvScale: 20,
 				})];
 			}
 			case 'garden': {
 				return [this.handleGenericSurface({
-					textureId: 21,
+					textureId: ProjectedTextures.Garden,
 					isOriented: false,
-					zIndex: 1,
+					zIndex: ZIndexMap.Garden,
 					uvScale: 16,
 				})];
 			}
 			case 'construction': {
 				const features: Tile3DFeature[] = [this.handleGenericSurface({
-					textureId: 22,
+					textureId: ProjectedTextures.Soil,
 					isOriented: false,
-					zIndex: 1,
+					zIndex: ZIndexMap.Construction,
 					uvScale: 25,
 				})];
 
@@ -233,41 +234,49 @@ export default class VectorAreaHandler implements Handler {
 			}
 			case 'buildingConstruction': {
 				return [this.handleGenericSurface({
-					textureId: 22,
+					textureId: ProjectedTextures.Soil,
 					isOriented: false,
-					zIndex: 1,
+					zIndex: ZIndexMap.Construction,
 					uvScale: 25,
 				})];
 			}
 			case 'grass': {
 				return [this.handleGenericSurface({
-					textureId: 23,
+					textureId: ProjectedTextures.Grass,
 					isOriented: false,
-					zIndex: 1,
+					zIndex: ZIndexMap.Grass,
 					uvScale: 25,
 				})];
 			}
 			case 'rock': {
 				return [this.handleGenericSurface({
-					textureId: 10,
+					textureId: ProjectedTextures.Rock,
 					isOriented: false,
-					zIndex: 1,
+					zIndex: ZIndexMap.Rock,
 					uvScale: 32,
 				})];
 			}
 			case 'sand': {
 				return [this.handleGenericSurface({
-					textureId: 11,
+					textureId: ProjectedTextures.Sand,
 					isOriented: false,
-					zIndex: 1,
+					zIndex: ZIndexMap.Sand,
 					uvScale: 12,
+				})];
+			}
+			case 'farmland': {
+				return [this.handleGenericSurface({
+					textureId: ProjectedTextures.Farmland,
+					isOriented: false,
+					zIndex: ZIndexMap.Farmland,
+					uvScale: 60,
 				})];
 			}
 			case 'asphalt': {
 				return [this.handleGenericSurface({
-					textureId: 2,
+					textureId: ProjectedTextures.Asphalt,
 					isOriented: false,
-					zIndex: 4.5,
+					zIndex: ZIndexMap.AsphaltArea,
 					uvScale: 20
 				})];
 			}
@@ -276,34 +285,26 @@ export default class VectorAreaHandler implements Handler {
 			}
 			case 'pavement': {
 				return [this.handleGenericSurface({
-					textureId: 1,
+					textureId: ProjectedTextures.Pavement,
 					isOriented: false,
-					zIndex: 1.5,
+					zIndex: ZIndexMap.FootwayArea,
 					uvScale: 10,
 				})];
 			}
 			case 'helipad': {
 				return [
 					this.handleGenericSurface({
-						textureId: 20,
+						textureId: ProjectedTextures.Helipad,
 						isOriented: true,
-						zIndex: 10
+						zIndex: ZIndexMap.Helipad
 					}),
 					this.handleGenericSurface({
-						textureId: 1,
+						textureId: ProjectedTextures.Pavement,
 						isOriented: false,
-						zIndex: 5,
+						zIndex: ZIndexMap.FootwayArea,
 						uvScale: 10,
 					})
 				];
-			}
-			case 'farmland': {
-				return [this.handleGenericSurface({
-					textureId: 29,
-					isOriented: false,
-					zIndex: 1.5,
-					uvScale: 60,
-				})];
 			}
 			case 'forest': {
 				return this.instances;
@@ -312,9 +313,9 @@ export default class VectorAreaHandler implements Handler {
 				return [
 					...this.instances,
 					this.handleGenericSurface({
-						textureId: 24,
+						textureId: ProjectedTextures.ForestFloor,
 						isOriented: false,
-						zIndex: 1,
+						zIndex: ZIndexMap.ShrubberySoil,
 						uvScale: 15,
 					})
 				];
@@ -329,9 +330,9 @@ export default class VectorAreaHandler implements Handler {
 			VectorAreaDescriptor['intersectionMaterial'],
 			{textureId: number; scale: number}
 		> = {
-			asphalt: {textureId: 16, scale: 20},
-			concrete: {textureId: 18, scale: 20},
-			cobblestone: {textureId: 3, scale: 6},
+			asphalt: {textureId: ProjectedTextures.AsphaltIntersection, scale: 20},
+			concrete: {textureId: ProjectedTextures.ConcreteIntersection, scale: 20},
+			cobblestone: {textureId: ProjectedTextures.Cobblestone, scale: 6},
 		};
 
 		const {textureId, scale} = params[this.descriptor.intersectionMaterial] ?? params.asphalt;
@@ -339,7 +340,7 @@ export default class VectorAreaHandler implements Handler {
 		return this.handleGenericSurface({
 			textureId: textureId,
 			isOriented: false,
-			zIndex: 4.5,
+			zIndex: ZIndexMap.AsphaltArea,
 			uvScale: scale
 		});
 	}
@@ -536,15 +537,15 @@ export default class VectorAreaHandler implements Handler {
 		let roofColor = this.descriptor.buildingRoofColor;
 
 		const materialToTextureId: Record<VectorAreaDescriptor['buildingRoofMaterial'], number> = {
-			default: 7,
-			tiles: 5,
-			metal: 6,
-			concrete: 7,
-			thatch: 8,
-			eternit: 9,
-			grass: 10,
-			glass: 11,
-			tar: 12
+			default: ExtrudedTextures.RoofConcrete,
+			tiles: ExtrudedTextures.RoofTiles,
+			metal: ExtrudedTextures.RoofMetal,
+			concrete: ExtrudedTextures.RoofConcrete,
+			thatch: ExtrudedTextures.RoofThatch,
+			eternit: ExtrudedTextures.RoofEternit,
+			grass: ExtrudedTextures.RoofGrass,
+			glass: ExtrudedTextures.RoofGlass,
+			tar: ExtrudedTextures.RoofTar
 		};
 		const textureIdToScale: Record<number, Vec2> = {
 			5: new Vec2(3, 3),
@@ -558,9 +559,16 @@ export default class VectorAreaHandler implements Handler {
 		};
 
 		if (roofType === RoofType.Flat && roofMaterial === 'default' && !noDefaultRoof) {
+			const defaultTextures = [
+				ExtrudedTextures.RoofGeneric1,
+				ExtrudedTextures.RoofGeneric2,
+				ExtrudedTextures.RoofGeneric3,
+				ExtrudedTextures.RoofGeneric4
+			];
+
 			return {
 				type: roofType,
-				textureId: (this.osmReference.id || 0) % 4 + 1,
+				textureId: defaultTextures[(this.osmReference.id || 0) % defaultTextures.length],
 				color: roofColor,
 				scaleX: 1,
 				scaleY: 1,
@@ -601,28 +609,28 @@ export default class VectorAreaHandler implements Handler {
 			width: number;
 		}> = {
 			plaster: {
-				wall: 16,
-				window: 17,
+				wall: ExtrudedTextures.FacadePlasterWall,
+				window: ExtrudedTextures.FacadePlasterWindow,
 				width: 4
 			},
 			glass: {
-				wall: 13,
-				window: 13,
+				wall: ExtrudedTextures.FacadeGlass,
+				window: ExtrudedTextures.FacadeGlass,
 				width: 4
 			},
 			brick: {
-				wall: 14,
-				window: 15,
+				wall: ExtrudedTextures.FacadeBrickWall,
+				window: ExtrudedTextures.FacadePlasterWindow,
 				width: 4
 			},
 			wood: {
-				wall: 18,
-				window: 19,
+				wall: ExtrudedTextures.FacadeWoodWall,
+				window: ExtrudedTextures.FacadeWoodWindow,
 				width: 4
 			},
 			cementBlock: {
-				wall: 20,
-				window: 21,
+				wall: ExtrudedTextures.FacadeBlockWall,
+				window: ExtrudedTextures.FacadeBlockWindow,
 				width: 4
 			}
 		};

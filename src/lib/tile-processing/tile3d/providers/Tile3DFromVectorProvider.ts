@@ -122,6 +122,7 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 
 			if (material === null) {
 				// Skip intersection if it has no material
+				intersection.userData.skip = true;
 				continue;
 			}
 
@@ -163,13 +164,19 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 			concrete: 0,
 			cobblestone: 0
 		};
+		let total: number = 0;
 
 		for (const dir of intersection.directions) {
 			const material = materialsMap.get(dir.road);
 
 			if (material !== null) {
 				++frequencyTable[material];
+				++total;
 			}
+		}
+
+		if (total < 3) {
+			return null;
 		}
 
 		const sorted = Object.entries(frequencyTable).sort((a, b) => b[1] - a[1]);

@@ -7,7 +7,7 @@ export default function createExtrudedMeshTexture(renderer: AbstractRenderer): A
 	return renderer.createTexture2DArray({
 		width: 512,
 		height: 512,
-		depth: 22 * 3,
+		depth: 21 * 3,
 		anisotropy: 16,
 		data: [
 			ResourceLoader.get('roofGeneric1Diffuse'),

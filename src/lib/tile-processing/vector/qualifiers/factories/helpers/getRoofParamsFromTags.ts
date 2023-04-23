@@ -18,6 +18,7 @@ export default function getRoofParamsFromTags(tags: Record<string, string>): {
 		|| tags.building === 'silo'
 		|| tags.building === 'stadium'
 		|| tags.building === 'ship'
+		|| tags.building === 'bridge'
 		|| type !== 'flat'
 		|| !!tags['bridge:support']
 		|| !!tags['ship:type']

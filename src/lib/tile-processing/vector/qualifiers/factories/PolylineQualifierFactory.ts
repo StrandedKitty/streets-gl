@@ -7,8 +7,8 @@ import {
 	parseMeters,
 	readTagAsUnsignedInt
 } from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
-import getPathMaterialFromOSMMaterial
-	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getPathMaterialFromOSMMaterial";
+import getPathParamsFromTags
+	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getPathParamsFromTags";
 import getSidewalkSideFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getSidewalkSideFromTags";
 import getCyclewaySideFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getCyclwaySideFromTags";
 import {ModifierType} from "~/lib/tile-processing/vector/qualifiers/modifiers";
@@ -24,30 +24,25 @@ export default class PolylineQualifierFactory extends AbstractQualifierFactory<V
 		}
 
 		if (tags.highway) {
+			const params = getPathParamsFromTags(tags);
+
+			if (!params) {
+				return [];
+			}
+
 			const descriptor: VectorPolylineDescriptor = {
 				type: 'path',
-				pathMaterial: getPathMaterialFromOSMMaterial(tags.surface)
+				pathMaterial: params.material
 			};
 
-			switch (tags.highway) {
-				case 'residential':
-				case 'service':
-				case 'track':
-				case 'unclassified':
-				case 'tertiary':
-				case 'secondary':
-				case 'primary':
-				case 'living_street':
-				case 'trunk':
-				case 'motorway':
-				case 'motorway_link':
-				case 'busway': {
+			switch (params.type) {
+				case 'roadway': {
 					descriptor.pathType = 'roadway';
 
 					const isOneWay = tags.oneway === 'yes';
 					let lanesForward = readTagAsUnsignedInt(tags, 'lanes:forward');
 					let lanesBackward = readTagAsUnsignedInt(tags, 'lanes:backward');
-					const lanesTotal = readTagAsUnsignedInt(tags, 'lanes') ?? 2;
+					const lanesTotal = readTagAsUnsignedInt(tags, 'lanes') ?? params.defaultLanes;
 
 					if (isOneWay) {
 						lanesForward = lanesTotal;
@@ -68,10 +63,7 @@ export default class PolylineQualifierFactory extends AbstractQualifierFactory<V
 					descriptor.width = parseMeters(tags.width) ?? (lanesForward + lanesBackward) * 3;
 					break;
 				}
-				case 'footway':
-				case 'path':
-				case 'steps':
-				case 'pedestrian': {
+				case 'footway': {
 					descriptor.pathType = 'footway';
 					descriptor.width = parseMeters(tags.width) ?? 2;
 					break;
@@ -81,10 +73,6 @@ export default class PolylineQualifierFactory extends AbstractQualifierFactory<V
 					descriptor.width = parseMeters(tags.width) ?? 3;
 					break;
 				}
-			}
-
-			if (!descriptor.pathType) {
-				return [];
 			}
 
 			const qualifiers: Qualifier<VectorPolylineDescriptor>[] = [{
@@ -188,7 +176,7 @@ export default class PolylineQualifierFactory extends AbstractQualifierFactory<V
 				data: {
 					type: 'path',
 					pathType: 'railway',
-					width: 3
+					width: 1.5
 				}
 			}];
 		}
@@ -199,7 +187,7 @@ export default class PolylineQualifierFactory extends AbstractQualifierFactory<V
 				data: {
 					type: 'path',
 					pathType: 'tramway',
-					width: 3
+					width: 1.5
 				}
 			}];
 		}

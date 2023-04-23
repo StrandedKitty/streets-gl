@@ -12,6 +12,7 @@ export interface IntersectionDirection {
 export default class Intersection {
 	public center: Vec2;
 	public directions: IntersectionDirection[] = [];
+	public userData: Record<string, any> = {};
 
 	public constructor(center: Vec2) {
 		this.center = center;

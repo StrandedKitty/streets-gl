@@ -22,6 +22,7 @@ import OrientedGabledRoofBuilder from "~/lib/tile-processing/tile3d/builders/roo
 import Vec3 from "~/lib/math/Vec3";
 import OnionRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/OnionRoofBuilder";
 import DomeRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/DomeRoofBuilder";
+import {ExtrudedTextures} from "~/lib/tile-processing/tile3d/textures";
 
 export enum RoofType {
 	Flat,
@@ -162,7 +163,7 @@ export default class Tile3DExtrudedGeometryBuilder {
 				normal: roof.normal,
 				uv: roof.uv,
 				color,
-				textureId: 7,
+				textureId: ExtrudedTextures.RoofConcrete,
 				heightOffset: terrainHeight
 			});
 		}
