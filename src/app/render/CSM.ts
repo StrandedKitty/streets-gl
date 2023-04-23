@@ -18,6 +18,7 @@ export default class CSM extends Object3D {
 	public resolution: number;
 	private readonly shadowBias: number;
 	private readonly shadowNormalBias: number;
+	public biasScale: number = 1;
 	public direction: Vec3;
 	public intensity: number = 0;
 	public cascadeCameras: CSMCascadeCamera[];
@@ -214,7 +215,12 @@ export default class CSM extends Object3D {
 			arrays.CSMMatrixWorldInverse.push(...this.cascadeCameras[i].matrixWorldInverse.values);
 			arrays.CSMResolution.push(this.resolution, 0, 0, 0);
 			arrays.CSMSize.push(this.cascadeCameras[i].top, 0, 0, 0);
-			arrays.CSMBias.push(this.shadowBias * this.cascadeCameras[i].top, this.shadowNormalBias * this.cascadeCameras[i].top, 0, 0);
+			arrays.CSMBias.push(
+				this.shadowBias * this.cascadeCameras[i].top * this.biasScale,
+				this.shadowNormalBias * this.cascadeCameras[i].top * this.biasScale,
+				0,
+				0
+			);
 			arrays.CSMFadeOffset.push(this.fadeOffsets[i], 0, 0, 0);
 		}
 

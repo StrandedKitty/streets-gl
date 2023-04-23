@@ -7,7 +7,7 @@ import {UniformFloat1, UniformMatrix4, UniformTexture2DArray} from "~/lib/render
 import Mat4 from "~/lib/math/Mat4";
 import TreeDepthMaterialContainer from "../materials/TreeDepthMaterialContainer";
 import AircraftDepthMaterialContainer from "../materials/AircraftDepthMaterialContainer";
-import BuildingDepthMaterialContainer from "../materials/BuildingDepthMaterialContainer";
+import ExtrudedMeshDepthMaterialContainer from "../materials/ExtrudedMeshDepthMaterialContainer";
 import ProjectedMeshDepthMaterialContainer from "~/app/render/materials/ProjectedMeshDepthMaterialContainer";
 import AbstractTexture2DArray from "~/lib/renderer/abstract-renderer/AbstractTexture2DArray";
 import CSMCascadeCamera from "~/app/render/CSMCascadeCamera";
@@ -31,7 +31,7 @@ export default class ShadowMappingPass extends Pass<{
 		resource: RenderPassResource;
 	};
 }> {
-	private readonly buildingDepthMaterial: AbstractMaterial;
+	private readonly extrudedMeshMaterial: AbstractMaterial;
 	private readonly huggingMeshMaterial: AbstractMaterial;
 	private readonly treeMaterial: AbstractMaterial;
 	private readonly genericInstanceMaterial: AbstractMaterial;
@@ -46,7 +46,7 @@ export default class ShadowMappingPass extends Pass<{
 			}
 		});
 
-		this.buildingDepthMaterial = new BuildingDepthMaterialContainer(this.renderer).material;
+		this.extrudedMeshMaterial = new ExtrudedMeshDepthMaterialContainer(this.renderer).material;
 		this.huggingMeshMaterial = new ProjectedMeshDepthMaterialContainer(this.renderer).material;
 		this.aircraftMaterial = new AircraftDepthMaterialContainer(this.renderer).material;
 
@@ -69,14 +69,17 @@ export default class ShadowMappingPass extends Pass<{
 				csm.cascades = 1;
 				csm.resolution = 2048;
 				csm.far = 3000;
+				csm.biasScale = 1;
 			} else if (statusValue === 'medium') {
 				csm.cascades = 3;
 				csm.resolution = 2048;
 				csm.far = 4000;
+				csm.biasScale = 1;
 			} else {
 				csm.cascades = 3;
 				csm.resolution = 4096;
 				csm.far = 5000;
+				csm.biasScale = 0.5;
 			}
 
 			csm.updateCascades();
@@ -89,13 +92,13 @@ export default class ShadowMappingPass extends Pass<{
 		this.getResource('ShadowMaps').descriptor.setSize(csm.resolution, csm.resolution, csm.cascades);
 	}
 
-	private renderBuildings(shadowCamera: CSMCascadeCamera): void {
+	private renderExtrudedMeshes(shadowCamera: CSMCascadeCamera): void {
 		const tiles = this.manager.sceneSystem.objects.tiles;
 
-		this.renderer.useMaterial(this.buildingDepthMaterial);
+		this.renderer.useMaterial(this.extrudedMeshMaterial);
 
-		this.buildingDepthMaterial.getUniform('projectionMatrix', 'PerMaterial').value = new Float32Array(shadowCamera.projectionMatrix.values);
-		this.buildingDepthMaterial.updateUniformBlock('PerMaterial');
+		this.extrudedMeshMaterial.getUniform('projectionMatrix', 'PerMaterial').value = new Float32Array(shadowCamera.projectionMatrix.values);
+		this.extrudedMeshMaterial.updateUniformBlock('PerMaterial');
 
 		for (const tile of tiles) {
 			if (!tile.extrudedMesh || !tile.extrudedMesh.inCameraFrustum(shadowCamera)) {
@@ -104,8 +107,8 @@ export default class ShadowMappingPass extends Pass<{
 
 			const mvMatrix = Mat4.multiply(shadowCamera.matrixWorldInverse, tile.matrixWorld);
 
-			this.buildingDepthMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
-			this.buildingDepthMaterial.updateUniformBlock('PerMesh');
+			this.extrudedMeshMaterial.getUniform<UniformMatrix4>('modelViewMatrix', 'PerMesh').value = new Float32Array(mvMatrix.values);
+			this.extrudedMeshMaterial.updateUniformBlock('PerMesh');
 
 			tile.extrudedMesh.draw();
 		}
@@ -229,7 +232,7 @@ export default class ShadowMappingPass extends Pass<{
 				this.renderAircraft(camera);
 			}
 
-			this.renderBuildings(camera);
+			this.renderExtrudedMeshes(camera);
 			this.renderHuggingMeshes(camera);
 		}
 	}

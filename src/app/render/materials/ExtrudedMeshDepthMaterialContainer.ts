@@ -3,12 +3,12 @@ import MaterialContainer from "./MaterialContainer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 
-export default class BuildingDepthMaterialContainer extends MaterialContainer {
+export default class ExtrudedMeshDepthMaterialContainer extends MaterialContainer {
 	public constructor(renderer: AbstractRenderer) {
 		super(renderer);
 
 		this.material = this.renderer.createMaterial({
-			name: 'Building and buildings depth material',
+			name: 'Extruded mesh depth material',
 			uniforms: [
 				{
 					name: 'modelViewMatrix',

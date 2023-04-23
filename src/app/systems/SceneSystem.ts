@@ -125,10 +125,8 @@ export default class SceneSystem extends System {
 		const settings = this.systemManager.getSystem(SettingsSystem).settings;
 
 		settings.onChange('fov', ({numberValue}) => {
-			const {camera, csm} = this.objects;
-
-			camera.fov = numberValue;
-			camera.updateProjectionMatrix();
+			this.objects.camera.fov = numberValue;
+			this.objects.camera.updateProjectionMatrix();
 		});
 	}
 
