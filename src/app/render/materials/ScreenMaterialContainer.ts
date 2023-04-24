@@ -26,7 +26,12 @@ export default class ScreenMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Float2,
 					value: new Float32Array(2)
 				}, {
-					name: 'tDebug',
+					name: 'slippyMapFactor',
+					block: 'Uniforms',
+					type: RendererTypes.UniformType.Float1,
+					value: new Float32Array(1)
+				}, {
+					name: 'tSlippyMap',
 					block: null,
 					type: RendererTypes.UniformType.Texture2D,
 					value: null

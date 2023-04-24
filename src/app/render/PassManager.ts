@@ -56,6 +56,7 @@ interface SharedResources {
 	TerrainRingHeight: RenderPassResource;
 	BloomHighLuminosity: RenderPassResource;
 	Bloom: RenderPassResource;
+	SlippyMap: RenderPassResource;
 }
 
 interface SharedResourcesMap {
@@ -1086,6 +1087,31 @@ export default class PassManager {
 						}
 					]
 				})
+			}),
+			SlippyMap: this.resourceFactory.createRenderPassResource({
+				name: 'SlippyMap',
+				isTransient: true,
+				isUsedExternally: false,
+				descriptor: new RenderPassResourceDescriptor({
+					colorAttachments: [
+						{
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGBA8Unorm,
+								minFilter: RendererTypes.MinFilter.Nearest,
+								magFilter: RendererTypes.MagFilter.Nearest,
+								wrap: RendererTypes.TextureWrap.ClampToEdge,
+								mipmaps: false
+							}),
+							slice: 0,
+							clearValue: {r: 0.667, g: 0.827, b: 0.875, a: 1},
+							loadOp: RendererTypes.AttachmentLoadOp.Clear,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}
+					]
+				})
 			})
 		}
 
@@ -1124,5 +1150,6 @@ export default class PassManager {
 		this.sharedResources.get('DoF').descriptor.setSize(resolutionScene.x, resolutionScene.y);
 		this.sharedResources.get('BloomHighLuminosity').descriptor.setSize(resolutionScene.x, resolutionScene.y);
 		this.sharedResources.get('Bloom').descriptor.setSize(resolutionScene.x, resolutionScene.y);
+		this.sharedResources.get('SlippyMap').descriptor.setSize(resolutionUI.x, resolutionUI.y);
 	}
 }

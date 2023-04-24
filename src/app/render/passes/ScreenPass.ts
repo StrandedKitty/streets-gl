@@ -7,8 +7,9 @@ import AbstractMaterial from "~/lib/renderer/abstract-renderer/AbstractMaterial"
 import FullScreenTriangle from "../../objects/FullScreenTriangle";
 import AbstractTexture2D from "~/lib/renderer/abstract-renderer/AbstractTexture2D";
 import ScreenMaterialContainer from "../materials/ScreenMaterialContainer";
-import {UniformFloat2} from "~/lib/renderer/abstract-renderer/Uniform";
+import {UniformFloat1, UniformFloat2} from "~/lib/renderer/abstract-renderer/Uniform";
 import AbstractTexture2DArray from "~/lib/renderer/abstract-renderer/AbstractTexture2DArray";
+import ControlsSystem from "~/app/systems/ControlsSystem";
 
 export default class ScreenPass extends Pass<{
 	HDR: {
@@ -19,7 +20,7 @@ export default class ScreenPass extends Pass<{
 		type: InternalResourceType.Input;
 		resource: RenderPassResource;
 	};
-	TerrainHeight: {
+	SlippyMap: {
 		type: RG.InternalResourceType.Input;
 		resource: RenderPassResource;
 	};
@@ -35,7 +36,7 @@ export default class ScreenPass extends Pass<{
 		super('ScreenPass', manager, {
 			HDR: {type: InternalResourceType.Input, resource: manager.getSharedResource('Bloom')},
 			Labels: {type: InternalResourceType.Input, resource: manager.getSharedResource('Labels')},
-			TerrainHeight: {type: InternalResourceType.Input, resource: manager.getSharedResource('TerrainHeight')},
+			SlippyMap: {type: InternalResourceType.Input, resource: manager.getSharedResource('SlippyMap')},
 			Output: {type: InternalResourceType.Output, resource: manager.getSharedResource('BackbufferRenderPass')}
 		});
 
@@ -75,6 +76,8 @@ export default class ScreenPass extends Pass<{
 	public render(): void {
 		this.updateMaterialDefines();
 
+		const drawSlippyMap = this.manager.systemManager.getSystem(ControlsSystem).drawSlippyMap;
+
 		const sourceTexture = <AbstractTexture2D>this.getPhysicalResource('HDR').colorAttachments[0].texture;
 		const labelsTexture = this.getLabelsTexture();
 		const uiResolution = this.manager.renderSystem.resolutionUI;
@@ -83,9 +86,10 @@ export default class ScreenPass extends Pass<{
 
 		this.material.getUniform('tHDR').value = sourceTexture;
 		this.material.getUniform('tLabels').value = labelsTexture;
-		this.material.getUniform('tDebug').value = <AbstractTexture2D>this.getPhysicalResource('TerrainHeight').colorAttachments[0].texture;
+		this.material.getUniform('tSlippyMap').value = <AbstractTexture2D>this.getPhysicalResource('SlippyMap').colorAttachments[0].texture;
 		this.material.getUniform<UniformFloat2>('resolution', 'Uniforms').value[0] = uiResolution.x;
 		this.material.getUniform<UniformFloat2>('resolution', 'Uniforms').value[1] = uiResolution.y;
+		this.material.getUniform<UniformFloat1>('slippyMapFactor', 'Uniforms').value[0] = drawSlippyMap ? 1 : 0;
 		this.material.updateUniformBlock('Uniforms');
 
 		this.renderer.useMaterial(this.material);

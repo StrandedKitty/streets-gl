@@ -7,8 +7,10 @@ import CursorStyleSystem from "../systems/CursorStyleSystem";
 import {ControlsState} from "../systems/ControlsSystem";
 import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 import TerrainHeightProvider from "~/app/terrain/TerrainHeightProvider";
+import OrthographicCamera from "~/lib/core/OrthographicCamera";
 
 export default class GroundControlsNavigator extends ControlsNavigator {
+	private readonly camera: PerspectiveCamera;
 	private readonly cursorStyleSystem: CursorStyleSystem;
 	private readonly terrainHeightProvider: TerrainHeightProvider;
 	public target: Vec3 = new Vec3();
@@ -38,8 +40,9 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		cursorStyleSystem: CursorStyleSystem,
 		terrainHeightProvider: TerrainHeightProvider
 	) {
-		super(element, camera);
+		super(element);
 
+		this.camera = camera;
 		this.cursorStyleSystem = cursorStyleSystem;
 		this.terrainHeightProvider = terrainHeightProvider;
 
@@ -295,6 +298,16 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		this.updateTargetHeightFromHeightmap();
 	}
 
+	public enter(camera: OrthographicCamera): void {
+		const position = MathUtils.tile2meters(camera.position.x, 1 - camera.position.y, 0);
+
+		this.target.set(position.x, 0, position.y);
+		this.pitch = MathUtils.toRad(Config.MaxCameraPitch);
+		this.yaw = 0;
+
+		this.updateTargetHeightFromHeightmap();
+	}
+
 	public syncWithState(state: ControlsState): void {
 		this.target.x = state.x;
 		this.target.z = state.z;
@@ -363,6 +376,11 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		this.updateDistance();
 		this.clampPitchAndYaw();
 		this.updateTargetHeightFromHeightmap();
+
+		if (Math.log2(Config.MaxCameraDistance) - this.normalizedDistance < 0.01) {
+			this.yaw = 0;
+			this.pitch = MathUtils.toRad(Config.MaxCameraPitch);
+		}
 
 		this.direction = Vec3.normalize(MathUtils.polarToCartesian(this.yaw, -this.pitch));
 

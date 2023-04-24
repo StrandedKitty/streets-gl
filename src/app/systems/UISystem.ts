@@ -13,7 +13,6 @@ import PickingSystem from "~/app/systems/PickingSystem";
 import SettingsSystem from "~/app/systems/SettingsSystem";
 import SettingsStorageDecorator from "~/app/settings/SettingsStorageDecorator";
 import {SettingsSchema} from "~/app/settings/SettingsSchema";
-import {SettingsObject} from "~/app/settings/SettingsObject";
 import Utils from "~/app/Utils";
 import TileLoadingSystem, {OverpassEndpoint} from "~/app/systems/TileLoadingSystem";
 

@@ -11,6 +11,7 @@ import FreeControlsNavigator from "../controls/FreeControlsNavigator";
 import CursorStyleSystem from "./CursorStyleSystem";
 import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 import TerrainSystem from "~/app/systems/TerrainSystem";
+import SlippyControlsNavigator from "~/app/controls/SlippyControlsNavigator";
 
 const WheelZoomFactor = 6;
 
@@ -40,6 +41,7 @@ export default class ControlsSystem extends System {
 
 	private groundNavigator: GroundControlsNavigator;
 	private freeNavigator: FreeControlsNavigator;
+	private slippyNavigator: SlippyControlsNavigator;
 	private activeNavigator: ControlsNavigator = null;
 
 	public constructor() {
@@ -65,15 +67,17 @@ export default class ControlsSystem extends System {
 
 	private initCameraAndNavigators(): void {
 		this.camera = this.systemManager.getSystem(SceneSystem).objects.camera;
+		const orthoCamera = this.systemManager.getSystem(SceneSystem).objects.orthoCamera;
 
 		const cursorStyleSystem = this.systemManager.getSystem(CursorStyleSystem);
 		const terrainHeightProvider = this.systemManager.getSystem(TerrainSystem).terrainHeightProvider;
 
 		this.groundNavigator = new GroundControlsNavigator(this.element, this.camera, cursorStyleSystem, terrainHeightProvider);
 		this.freeNavigator = new FreeControlsNavigator(this.element, this.camera, terrainHeightProvider);
+		this.slippyNavigator = new SlippyControlsNavigator(this.element, orthoCamera, cursorStyleSystem);
 
-		this.activeNavigator = this.groundNavigator;
-		this.groundNavigator.enable();
+		this.activeNavigator = this.slippyNavigator;
+		this.slippyNavigator.enable();
 
 		this.initStateFromHash();
 	}
@@ -175,6 +179,10 @@ export default class ControlsSystem extends System {
 		return this.urlHandler.serializeControlsState(this.state);
 	}
 
+	public get drawSlippyMap(): boolean {
+		return this.slippyNavigator.isEnabled;
+	}
+
 	public update(deltaTime: number): void {
 		if (!this.camera) {
 			this.initCameraAndNavigators();
@@ -182,6 +190,14 @@ export default class ControlsSystem extends System {
 
 		if (this.activeNavigator) {
 			this.activeNavigator.update(deltaTime);
+		}
+
+		if (this.slippyNavigator.zoom === Config.SlippyMapMaxZoom && this.slippyNavigator.isEnabled) {
+			this.slippyNavigator.disable();
+			this.groundNavigator.enable();
+			this.groundNavigator.enter(this.slippyNavigator.camera);
+
+			this.activeNavigator = this.groundNavigator;
 		}
 
 		if (this.wheelZoomScaleTarget !== this.wheelZoomScale) {

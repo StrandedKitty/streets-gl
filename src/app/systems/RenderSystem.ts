@@ -23,6 +23,10 @@ import BloomPass from "../render/passes/BloomPass";
 import FullScreenTriangle from "../objects/FullScreenTriangle";
 import Node from "../../lib/render-graph/Node";
 import SettingsSystem from "~/app/systems/SettingsSystem";
+import SlippyMapPass from "~/app/render/passes/SlippyMapPass";
+import AbstractTexture2D from "~/lib/renderer/abstract-renderer/AbstractTexture2D";
+import ResourceLoader from "~/app/world/ResourceLoader";
+import {RendererTypes} from "~/lib/renderer/RendererTypes";
 
 export default class RenderSystem extends System {
 	private renderer: AbstractRenderer;
@@ -72,7 +76,8 @@ export default class RenderSystem extends System {
 			new SSRPass(this.passManager),
 			new DoFPass(this.passManager),
 			new BloomPass(this.passManager),
-			new TerrainTexturesPass(this.passManager)
+			new TerrainTexturesPass(this.passManager),
+			new SlippyMapPass(this.passManager)
 		);
 
 		this.passManager.listenToSettings();
@@ -135,6 +140,20 @@ export default class RenderSystem extends System {
 			indegree: this.renderGraph.indegreeSets,
 			outdegree: this.renderGraph.outdegreeSets
 		};
+	}
+
+	public createTileTexture(image: HTMLImageElement, width: number, height: number): AbstractTexture2D {
+		return this.renderer.createTexture2D({
+			width: width,
+			height: height,
+			data: image,
+			minFilter: RendererTypes.MinFilter.Linear,
+			magFilter: RendererTypes.MagFilter.Linear,
+			wrap: RendererTypes.TextureWrap.ClampToEdge,
+			format: RendererTypes.TextureFormat.RGBA8Unorm,
+			mipmaps: false,
+			flipY: true
+		});
 	}
 
 	private pickObjectId(): void {

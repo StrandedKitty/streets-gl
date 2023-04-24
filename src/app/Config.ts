@@ -40,6 +40,10 @@ const Config = {
 	TerrainRingSize: 40075016.68 / (1 << 13),
 	TerrainWaterMaskResolution: 32,
 	TerrainNormalMixRange: [10000, 14500],
+	SlippyMapMinZoom: 0,
+	SlippyMapMaxZoom: 16,
+	SlippyMapZoomFactor: 0.001,
+	SlippyMapFetchBatchSize: 4,
 	SettingsSchema: {
 		fov: {
 			label: 'Vertical field of view',

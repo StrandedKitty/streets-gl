@@ -1,7 +1,6 @@
 import Vec2 from "~/lib/math/Vec2";
 import Tile from "../objects/Tile";
 import System from "../System";
-import SystemManager from "../SystemManager";
 import CursorStyleSystem from "./CursorStyleSystem";
 import TileSystem from "./TileSystem";
 import UISystem from "./UISystem";

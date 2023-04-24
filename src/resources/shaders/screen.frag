@@ -6,10 +6,11 @@ in vec2 vUv;
 
 uniform sampler2D tHDR;
 uniform sampler2D tLabels;
-uniform sampler2D tDebug;
+uniform sampler2D tSlippyMap;
 
 uniform Uniforms {
 	vec2 resolution;
+	float slippyMapFactor;
 };
 
 #include <gamma>
@@ -21,19 +22,6 @@ float roundedBoxSDF(vec2 CenterPosition, vec2 Size, float Radius) {
 
 void main() {
 	vec2 uv = vUv;
-
-	/*vec2 debugUV = uv * 4.;
-	vec2 debugUV2 = uv * 4. - vec2(2, 0);
-
-	if (debugUV.x >= 0. && debugUV.x <= 1. && debugUV.y >= 0. && debugUV.y <= 1.) {
-		FragColor = vec4(fract(textureLod(tDebug, debugUV, 0.).rrr / 100.), 1);
-		return;
-	}
-
-	if (debugUV2.x >= 0. && debugUV2.x <= 1. && debugUV2.y >= 0. && debugUV2.y <= 1.) {
-		FragColor = vec4(fract(textureLod(tDebug, debugUV2, 1.).rrr / 100.), 1);
-		return;
-	}*/
 
 	vec4 labels = vec4(0);
 
@@ -48,4 +36,6 @@ void main() {
 	vec3 sceneWithLabelsColor = mix(sceneColor, labels.rgb, labels.a);
 
 	FragColor = vec4(sceneWithLabelsColor, 1);
+
+	FragColor = mix(FragColor, texture(tSlippyMap, uv), slippyMapFactor);
 }

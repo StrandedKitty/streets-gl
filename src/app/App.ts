@@ -15,6 +15,7 @@ import resourcesList from '../resources/resources.json';
 import VehicleSystem from "./systems/VehicleSystem";
 import TerrainSystem from "./systems/TerrainSystem";
 import SettingsSystem from "~/app/systems/SettingsSystem";
+import SlippyMapSystem from "~/app/systems/SlippyMapSystem";
 
 class App {
 	private loop = (deltaTime: number): void => this.update(deltaTime);
@@ -49,6 +50,7 @@ class App {
 				CursorStyleSystem,
 				PickingSystem,
 				TileObjectsSystem,
+				SlippyMapSystem,
 				RenderSystem,
 				MapWorkerSystem,
 				TileLoadingSystem,
