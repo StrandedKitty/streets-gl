@@ -370,7 +370,7 @@ export default class VectorPolylineHandler implements Handler {
 			}
 			case 'tramway': {
 				params[0].textureId = ProjectedTextures.Rail;
-				params[0].zIndex = ZIndexMap.Tramway;
+				params[0].zIndex = ZIndexMap.Rail;
 				params[0].widthScale = 2;
 				params[0].uvFollowRoad = true;
 				params[0].uvMinX = 0;
@@ -390,6 +390,16 @@ export default class VectorPolylineHandler implements Handler {
 				params.push({
 					textureId: ProjectedTextures.RailwayTop,
 					zIndex: ZIndexMap.RailwayOverlay,
+					widthScale: 2,
+					uvFollowRoad: true,
+					uvMinX: 0,
+					uvMaxX: 1,
+					uvScaleY: width * mercatorScale * 4,
+					uvScale: 1
+				});
+				params.push({
+					textureId: ProjectedTextures.Rail,
+					zIndex: ZIndexMap.Rail,
 					widthScale: 2,
 					uvFollowRoad: true,
 					uvMinX: 0,
