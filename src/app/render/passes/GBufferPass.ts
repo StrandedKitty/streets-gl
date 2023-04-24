@@ -22,15 +22,12 @@ import TreeMaterialContainer from "../materials/TreeMaterialContainer";
 import Vec2 from "~/lib/math/Vec2";
 import VehicleSystem from "../../systems/VehicleSystem";
 import AircraftMaterialContainer from "../materials/AircraftMaterialContainer";
-import Vec3 from "~/lib/math/Vec3";
-import AbstractTextureCube from "~/lib/renderer/abstract-renderer/AbstractTextureCube";
 import AbstractTexture2D from "~/lib/renderer/abstract-renderer/AbstractTexture2D";
 import MathUtils from "~/lib/math/MathUtils";
 import Config from "../../Config";
 import TerrainSystem from "../../systems/TerrainSystem";
 import AbstractTexture2DArray from "~/lib/renderer/abstract-renderer/AbstractTexture2DArray";
 import Camera from "~/lib/core/Camera";
-import Utils from "~/app/Utils";
 import GenericInstanceMaterialContainer from "~/app/render/materials/GenericInstanceMaterialContainer";
 import {
 	InstanceStructure,
@@ -39,6 +36,7 @@ import {
 } from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
 import AdvancedInstanceMaterialContainer from "~/app/render/materials/AdvancedInstanceMaterialContainer";
 import {InstanceTextureIdList} from "~/app/render/textures/createInstanceTexture";
+import MapTimeSystem from "~/app/systems/MapTimeSystem";
 
 export default class GBufferPass extends Pass<{
 	GBufferRenderPass: {
@@ -174,12 +172,14 @@ export default class GBufferPass extends Pass<{
 	}
 
 	private renderExtrudedMeshes(): void {
+		const windowLightThreshold = this.manager.systemManager.getSystem(MapTimeSystem).windowLightThreshold;
 		const camera = this.manager.sceneSystem.objects.camera;
 		const tiles = this.manager.sceneSystem.objects.tiles;
 
 		this.renderer.useMaterial(this.extrudedMeshMaterial);
 
 		this.extrudedMeshMaterial.getUniform('projectionMatrix', 'PerMaterial').value = new Float32Array(camera.jitteredProjectionMatrix.values);
+		this.extrudedMeshMaterial.getUniform<UniformFloat1>('windowLightThreshold', 'PerMaterial').value[0] = windowLightThreshold;
 		this.extrudedMeshMaterial.updateUniformBlock('PerMaterial');
 
 		for (const tile of tiles) {

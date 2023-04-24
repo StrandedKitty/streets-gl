@@ -12,10 +12,7 @@ import Tile3DProjectedGeometry, {ZIndexMap} from "~/lib/tile-processing/tile3d/f
 import Tile3DLabel from "~/lib/tile-processing/tile3d/features/Tile3DLabel";
 import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 import Config from "~/app/Config";
-import Tile3DInstance, {
-	InstanceStructureSchemas,
-	Tile3DInstanceType
-} from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
+import Tile3DInstance, {Tile3DInstanceType} from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
 import Vec3 from "~/lib/math/Vec3";
 import SeededRandom from "~/lib/math/SeededRandom";
 import RoadGraph from "~/lib/road-graph/RoadGraph";
@@ -380,6 +377,7 @@ export default class VectorAreaHandler implements Handler {
 			color: facadeParams.color,
 			textureIdWall: facadeParams.textureIdWall,
 			textureIdWindow: facadeParams.textureIdWindow,
+			windowSeed: this.osmReference.id
 		});
 
 		const features: Tile3DFeature[] = [builder.getGeometry()];
@@ -548,14 +546,14 @@ export default class VectorAreaHandler implements Handler {
 			tar: ExtrudedTextures.RoofTar
 		};
 		const textureIdToScale: Record<number, Vec2> = {
-			5: new Vec2(3, 3),
-			6: new Vec2(4, 4),
-			7: new Vec2(10, 10),
-			8: new Vec2(8, 8),
-			9: new Vec2(5, 5),
-			10: new Vec2(12, 12),
-			11: new Vec2(4, 4),
-			12: new Vec2(4, 4),
+			[ExtrudedTextures.RoofTiles]: new Vec2(3, 3),
+			[ExtrudedTextures.RoofMetal]: new Vec2(4, 4),
+			[ExtrudedTextures.RoofConcrete]: new Vec2(10, 10),
+			[ExtrudedTextures.RoofThatch]: new Vec2(8, 8),
+			[ExtrudedTextures.RoofEternit]: new Vec2(5, 5),
+			[ExtrudedTextures.RoofGrass]: new Vec2(12, 12),
+			[ExtrudedTextures.RoofGlass]: new Vec2(4, 4),
+			[ExtrudedTextures.RoofTar]: new Vec2(4, 4),
 		};
 
 		if (roofType === RoofType.Flat && roofMaterial === 'default' && !noDefaultRoof) {

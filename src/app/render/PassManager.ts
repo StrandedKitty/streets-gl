@@ -246,7 +246,7 @@ export default class PassManager {
 								type: TextureResourceType.Texture2D,
 								width: 1,
 								height: 1,
-								format: RendererTypes.TextureFormat.RGBA32Float,
+								format: RendererTypes.TextureFormat.RGBA16Float,
 								minFilter: RendererTypes.MinFilter.Linear,
 								magFilter: RendererTypes.MagFilter.Linear,
 								mipmaps: false
@@ -260,6 +260,19 @@ export default class PassManager {
 								width: 1,
 								height: 1,
 								format: RendererTypes.TextureFormat.R32Uint,
+								minFilter: RendererTypes.MinFilter.Nearest,
+								magFilter: RendererTypes.MagFilter.Nearest,
+								mipmaps: false
+							}),
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							storeOp: RendererTypes.AttachmentStoreOp.Store
+						}, {
+							texture: new TextureResourceDescriptor({
+								type: TextureResourceType.Texture2D,
+								width: 1,
+								height: 1,
+								format: RendererTypes.TextureFormat.RGB8Unorm,
 								minFilter: RendererTypes.MinFilter.Nearest,
 								magFilter: RendererTypes.MagFilter.Nearest,
 								mipmaps: false

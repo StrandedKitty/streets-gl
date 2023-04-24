@@ -12,7 +12,8 @@ export default class WallsBuilder {
 			levels,
 			windowWidth,
 			textureIdWindow,
-			textureIdWall
+			textureIdWall,
+			uvOffset = new Vec2(0, 0)
 		}: {
 			vertices: Vec2[];
 			minHeight: number;
@@ -21,6 +22,7 @@ export default class WallsBuilder {
 			windowWidth: number;
 			textureIdWindow: number;
 			textureIdWall: number;
+			uvOffset?: Vec2;
 		}
 	): {position: number[]; uv: number[]; normal: number[]; textureId: number[]} {
 		let isClosed = false;
@@ -61,7 +63,8 @@ export default class WallsBuilder {
 			levels,
 			textureIdWall,
 			textureIdWindow,
-			walls
+			walls,
+			uvOffset
 		});
 		const normals = this.getWallNormals(segmentNormals, edgeSmoothness, isClosed);
 
@@ -124,7 +127,12 @@ export default class WallsBuilder {
 		return edgeSmoothness;
 	}
 
-	private static getWalls(vertices: Vec2[], isClosed: boolean, edgeSmoothness: boolean[], windowWidth: number): [number, number, boolean][] {
+	private static getWalls(
+		vertices: Vec2[],
+		isClosed: boolean,
+		edgeSmoothness: boolean[],
+		windowWidth: number
+	): [number, number, boolean][] {
 		const uvProgress: [number, number][] = [];
 		const segmentCount = isClosed ? vertices.length : (vertices.length - 1);
 		let currentProgress = 0;
@@ -149,6 +157,7 @@ export default class WallsBuilder {
 
 		const processedWalls: [number, number, boolean][] = [];
 		let currentWall: [number, number, boolean][] = [];
+		let windowsProgress: number = 0;
 
 		for (let i = 0; i < uvProgress.length; i++) {
 			const segment = uvProgress[i];
@@ -175,8 +184,16 @@ export default class WallsBuilder {
 					}
 				}
 
+				for (const segment of currentWall) {
+					segment[0] += windowsProgress;
+					segment[1] += windowsProgress;
+				}
+
 				processedWalls.push(...currentWall);
 				currentWall = [];
+
+				windowsProgress += windowCount;
+				windowsProgress = Math.floor(windowsProgress);
 			}
 		}
 
@@ -304,7 +321,8 @@ export default class WallsBuilder {
 			levels,
 			textureIdWall,
 			textureIdWindow,
-			walls
+			walls,
+			uvOffset
 		}: {
 			vertices: Vec2[];
 			isClosed: boolean;
@@ -314,6 +332,7 @@ export default class WallsBuilder {
 			textureIdWall: number;
 			textureIdWindow: number;
 			walls: [number, number, boolean][];
+			uvOffset: Vec2;
 		}
 	): {
 		uvs: number[];
@@ -351,14 +370,14 @@ export default class WallsBuilder {
 			}
 
 			uvs.push(
-				uvXMax, 0,
-				uvXMin, uvMax0,
-				uvXMin, 0
+				uvOffset.x + uvXMax, uvOffset.y,
+				uvOffset.x + uvXMin, uvOffset.y + uvMax0,
+				uvOffset.x + uvXMin, uvOffset.y
 			);
 			uvs.push(
-				uvXMax, 0,
-				uvXMax, uvMax1,
-				uvXMin, uvMax0
+				uvOffset.x + uvXMax, uvOffset.y,
+				uvOffset.x + uvXMax, uvOffset.y + uvMax1,
+				uvOffset.x + uvXMin, uvOffset.y + uvMax0
 			);
 
 			const textureId = hasWindow ? textureIdWindow : textureIdWall;

@@ -25,6 +25,7 @@ void main() {
     vec3 stars = texture(tSky, starsDirection).rgb;
 
     outColor = vec4(stars.rgb, 0);
+    outGlow = vec3(0);
     outNormal = packNormal(vNormal);
     outRoughnessMetalnessF0 = vec3(0);
     outMotion = vec3(0);

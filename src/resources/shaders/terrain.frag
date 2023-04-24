@@ -117,6 +117,7 @@ void main() {
     float waterFactor = waterSample * waterMask;
 
     outColor = vec4(detailColor, 1);
+    outGlow = vec3(0);
     outNormal = packNormal(detailNormal);
     outRoughnessMetalnessF0 = vec3(0.8, 0, 0.005);
 
@@ -128,6 +129,7 @@ void main() {
         vec3 mvWaterNormal = vec3(modelViewMatrix * vec4(waterNormal, 0));
 
         outColor = vec4(0.15, 0.2, 0.25, 0.5);
+        outGlow = vec3(0);
         outNormal = packNormal(mvWaterNormal);
         outRoughnessMetalnessF0 = vec3(0.05, 0, 0.03);
     }

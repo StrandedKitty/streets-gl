@@ -147,6 +147,7 @@ export default class ShadingPass extends Pass<{
 		const normalTexture = <AbstractTexture2D>this.getPhysicalResource('GBuffer').colorAttachments[1].texture;
 		const depthTexture = <AbstractTexture2D>this.getPhysicalResource('GBuffer').depthAttachment.texture;
 		const roughnessMetalnessTexture = <AbstractTexture2D>this.getPhysicalResource('GBuffer').colorAttachments[2].texture;
+		const glowTexture = <AbstractTexture2D>this.getPhysicalResource('GBuffer').colorAttachments[5].texture;
 		const motionTexture = <AbstractTexture2D>this.getPhysicalResource('GBuffer').colorAttachments[3].texture;
 		const selectionMaskTexture = <AbstractTexture2D>this.getPhysicalResource('SelectionMask').colorAttachments[0].texture;
 		const selectionBlurredTexture = <AbstractTexture2D>this.getPhysicalResource('SelectionBlurred').colorAttachments[0].texture;
@@ -165,6 +166,7 @@ export default class ShadingPass extends Pass<{
 		this.shadingMaterial.getUniform('tNormal').value = normalTexture;
 		this.shadingMaterial.getUniform('tDepth').value = depthTexture;
 		this.shadingMaterial.getUniform('tRoughnessMetalness').value = roughnessMetalnessTexture;
+		this.shadingMaterial.getUniform('tGlow').value = glowTexture;
 		this.shadingMaterial.getUniform('tShadowMaps').value = shadowMapsTexture;
 		this.shadingMaterial.getUniform('tSSAO').value = ssaoTexture;
 		this.shadingMaterial.getUniform('tSelectionMask').value = selectionMaskTexture;

@@ -23,6 +23,8 @@ import Vec3 from "~/lib/math/Vec3";
 import OnionRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/OnionRoofBuilder";
 import DomeRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/DomeRoofBuilder";
 import {ExtrudedTextures} from "~/lib/tile-processing/tile3d/textures";
+import SeededRandom from "~/lib/math/SeededRandom";
+import Vec2 from "~/lib/math/Vec2";
 
 export enum RoofType {
 	Flat,
@@ -78,7 +80,8 @@ export default class Tile3DExtrudedGeometryBuilder {
 			windowWidth,
 			color,
 			textureIdWindow,
-			textureIdWall
+			textureIdWall,
+			windowSeed
 		}: {
 			terrainHeight: number;
 			minHeight: number;
@@ -89,6 +92,7 @@ export default class Tile3DExtrudedGeometryBuilder {
 			color: number;
 			textureIdWindow: number;
 			textureIdWall: number;
+			windowSeed: number;
 		}
 	): void {
 		const noWalls = minHeight >= height;
@@ -121,7 +125,13 @@ export default class Tile3DExtrudedGeometryBuilder {
 		}
 
 		if (!noWalls) {
+			const rng = new SeededRandom(windowSeed);
+
 			for (const ring of this.multipolygon.rings) {
+				const uvOffset = new Vec2(
+					Math.floor(rng.generate() * 256),
+					Math.floor(rng.generate() * 256)
+				);
 				const walls = WallsBuilder.build({
 					vertices: ring.nodes.slice(),
 					minHeight,
@@ -129,7 +139,8 @@ export default class Tile3DExtrudedGeometryBuilder {
 					levels,
 					windowWidth,
 					textureIdWall,
-					textureIdWindow
+					textureIdWindow,
+					uvOffset
 				});
 
 				this.addAndPaintGeometry({

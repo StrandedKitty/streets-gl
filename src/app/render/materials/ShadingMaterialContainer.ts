@@ -25,6 +25,11 @@ export default class ShadingMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Texture2D,
 					value: null
 				}, {
+					name: 'tGlow',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: null
+				}, {
 					name: 'tNormal',
 					block: null,
 					type: RendererTypes.UniformType.Texture2D,

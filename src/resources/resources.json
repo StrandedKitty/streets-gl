@@ -60,6 +60,10 @@
 	"facadeBlockWindowDiffuse": {"url": "/textures/buildings/facades/block_window_diffuse.png", "type": "image"},
 	"facadeBlockWindowNormal": {"url": "/textures/buildings/facades/block_window_normal.png", "type": "image"},
 	"facadeBlockWindowMask": {"url": "/textures/buildings/facades/block_window_mask.png", "type": "image"},
+	"window0Glow": {"url": "/textures/buildings/facades/window0_glow.png", "type": "image"},
+	"window1Glow": {"url": "/textures/buildings/facades/window1_glow.png", "type": "image"},
+	"glassGlow": {"url": "/textures/buildings/facades/glass_glow.png", "type": "image"},
+	"noGlow": {"url": "/textures/buildings/facades/no_glow.png", "type": "image"},
 
 	"pavementDiffuse": {"url": "/textures/surfaces/pavement_diffuse.png", "type": "image"},
 	"asphaltDiffuse": {"url": "/textures/surfaces/asphalt_diffuse.png", "type": "image"},
@@ -149,7 +153,7 @@
 		"url": "/textures/surfaces/generic_terrain_normal.png",
 		"type": "image"
 	},
-	"grassNoise": {
+	"noise": {
 		"url": "/textures/noise.png",
 		"type": "image"
 	},

@@ -12,6 +12,7 @@ out vec4 FragColor;
 in vec2 vUv;
 
 uniform sampler2D tColor;
+uniform sampler2D tGlow;
 uniform sampler2D tNormal;
 uniform sampler2D tDepth;
 uniform sampler2D tRoughnessMetalness;
@@ -396,6 +397,7 @@ void main() {
 
 	color += getIBLContribution(materialInfo, worldNormal, worldView, reflectionColor);
 	color += applyDirectionalLight(light, materialInfo, worldNormal, worldView) * shadowFactor;
+	color += texture(tGlow, vUv).rgb * 2.;
 
 	color = min(color, vec3(500.));
 

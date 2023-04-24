@@ -139,7 +139,7 @@ export default class TerrainMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Texture2D,
 					value: this.renderer.createTexture2D({
 						anisotropy: 16,
-						data: ResourceLoader.get('grassNoise'),
+						data: ResourceLoader.get('noise'),
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,
 						wrap: RendererTypes.TextureWrap.Repeat,

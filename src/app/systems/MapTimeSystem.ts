@@ -27,13 +27,12 @@ enum MapTimeState {
 
 export default class MapTimeSystem extends System {
 	private state: MapTimeState = MapTimeState.Dynamic;
-
 	private staticLights: [Vec3, Vec3] = StaticPresets[0];
 
 	private time: number = 0;
 	public lightDirection: Vec3 = new Vec3();
-	public lightIntensity = 0;
-	public ambientIntensity = 0;
+	public lightIntensity: number = 0;
+	public ambientIntensity: number = 0;
 
 	public sunDirection: Vec3 = null;
 	public moonDirection: Vec3 = null;
@@ -42,10 +41,12 @@ export default class MapTimeSystem extends System {
 	public skyDirectionTarget: [Vec3, Vec3, Vec3] = null;
 	public skyDirectionMatrix: Mat4 = Mat4.identity();
 
-	private transitionProgress = 1;
+	private transitionProgress: number = 1;
 	private sunTransitionStart: Vec3 = null;
 	private moonTransitionStart: Vec3 = null;
 	private skyTransitionStart: [Vec3, Vec3, Vec3] = null;
+
+	public windowLightThreshold: number = 0;
 
 	public postInit(): void {
 
@@ -216,13 +217,9 @@ export default class MapTimeSystem extends System {
 		} else {
 			this.ambientIntensity = 0.1;
 			this.lightDirection = this.moonDirection;
-
-			if (this.moonDirection.y < 0) {
-				this.lightIntensity = 0.05;
-
-			} else {
-				this.lightIntensity = 0;
-			}
+			this.lightIntensity = 0;
 		}
+
+		this.windowLightThreshold = MathUtils.clamp(this.sunDirection.y * 5. + 0.2, 0, 1);
 	}
 }

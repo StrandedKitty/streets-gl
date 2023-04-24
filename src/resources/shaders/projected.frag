@@ -89,7 +89,7 @@ void main() {
 		vec3 mvWaterNormal = vec3(modelViewMatrix * vec4(normalBlendUnpackedRNM(vec3(0, 0, 1), waterNormal), 0));
 
 		outColor = vec4(0.15, 0.2, 0.25, 0.5);
-		//outColor = vec4((vUv + detailTextureOffset) / (611.4962158203125 * 256.), 0, 0.5);
+		outGlow = vec3(0);
 		outNormal = packNormal(mvWaterNormal);
 		outRoughnessMetalnessF0 = vec3(0.05, 0, 0.03);
 		outMotion = getMotionVector(vClipPos, vClipPosPrev);
@@ -124,6 +124,7 @@ void main() {
 	#endif
 
 	outColor = color;
+	outGlow = vec3(0);
 	outNormal = packNormal(reorientedNormalView);
 	outRoughnessMetalnessF0 = vec3(mask.xy, 0.03);
 	outMotion = getMotionVector(vClipPos, vClipPosPrev);

@@ -2,6 +2,7 @@ import Shaders from "../shaders/Shaders";
 import MaterialContainer from "./MaterialContainer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
+import ResourceLoader from "~/app/world/ResourceLoader";
 
 export default class ExtrudedMeshMaterialContainer extends MaterialContainer {
 	public constructor(renderer: AbstractRenderer) {
@@ -31,10 +32,27 @@ export default class ExtrudedMeshMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Matrix4,
 					value: new Float32Array(16)
 				}, {
+					name: 'windowLightThreshold',
+					block: 'PerMaterial',
+					type: RendererTypes.UniformType.Float1,
+					value: new Float32Array(1)
+				}, {
 					name: 'tMap',
 					block: null,
 					type: RendererTypes.UniformType.Texture2DArray,
 					value: null
+				}, {
+					name: 'tNoise',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: this.renderer.createTexture2D({
+						data: ResourceLoader.get('noise'),
+						minFilter: RendererTypes.MinFilter.Nearest,
+						magFilter: RendererTypes.MagFilter.Nearest,
+						wrap: RendererTypes.TextureWrap.Repeat,
+						format: RendererTypes.TextureFormat.RGBA8Unorm,
+						mipmaps: false
+					})
 				}
 			],
 			primitive: {

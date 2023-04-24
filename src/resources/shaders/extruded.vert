@@ -25,6 +25,7 @@ uniform PerMesh {
 
 uniform PerMaterial {
     mat4 projectionMatrix;
+    float windowLightThreshold;
 };
 
 void main() {
