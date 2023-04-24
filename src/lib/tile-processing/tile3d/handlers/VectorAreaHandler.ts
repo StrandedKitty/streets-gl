@@ -620,7 +620,7 @@ export default class VectorAreaHandler implements Handler {
 			},
 			brick: {
 				wall: ExtrudedTextures.FacadeBrickWall,
-				window: ExtrudedTextures.FacadePlasterWindow,
+				window: ExtrudedTextures.FacadeBrickWindow,
 				width: 4
 			},
 			wood: {
