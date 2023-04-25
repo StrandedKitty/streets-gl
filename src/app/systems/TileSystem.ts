@@ -11,6 +11,7 @@ import SceneSystem from './SceneSystem';
 import Camera from "~/lib/core/Camera";
 import TerrainSystem from "~/app/systems/TerrainSystem";
 import {HeightLoaderTile} from "~/app/terrain/TerrainHeightLoader";
+import ControlsSystem, {NavigationMode} from "~/app/systems/ControlsSystem";
 import Tile3DBuffers from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
 
 interface QueueItem {
@@ -124,7 +125,12 @@ export default class TileSystem extends System {
 	}
 
 	public update(deltaTime: number): void {
-		this.updateTiles();
+		const slippyMode = this.systemManager.getSystem(ControlsSystem).mode === NavigationMode.Slippy;
+
+		if (!slippyMode) {
+			this.updateTiles();
+		}
+
 		this.removeCulledTiles();
 	}
 

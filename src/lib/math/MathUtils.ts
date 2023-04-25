@@ -89,6 +89,10 @@ export default class MathUtils {
 		return new Vec2(rx, rz);
 	}
 
+	public static getTileSizeInMeters(zoom: number): number {
+		return 40075016.68 / (1 << zoom);
+	}
+
 	public static getTilesIntersectingLine(a: Vec2, b: Vec2): Vec2[] {
 		let x = Math.floor(a.x);
 		let y = Math.floor(a.y);

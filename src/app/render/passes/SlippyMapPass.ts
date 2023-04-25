@@ -3,13 +3,14 @@ import * as RG from "~/lib/render-graph";
 import RenderPassResource from '../render-graph/resources/RenderPassResource';
 import PassManager from '../PassManager';
 import AbstractMaterial from '~/lib/renderer/abstract-renderer/AbstractMaterial';
-import {UniformFloat4, UniformMatrix4} from "~/lib/renderer/abstract-renderer/Uniform";
+import {UniformMatrix4} from "~/lib/renderer/abstract-renderer/Uniform";
 import SlippyMapSystem from "~/app/systems/SlippyMapSystem";
 import FullScreenQuad from "~/app/objects/FullScreenQuad";
 import SlippyTileMaterialContainer from "~/app/render/materials/SlippyTileMaterialContainer";
 import AbstractTexture2D from "~/lib/renderer/abstract-renderer/AbstractTexture2D";
 import Mat4 from "~/lib/math/Mat4";
 import Object3D from "~/lib/core/Object3D";
+import MathUtils from "~/lib/math/MathUtils";
 
 export default class SlippyMapPass extends Pass<{
 	SlippyMap: {
@@ -34,8 +35,8 @@ export default class SlippyMapPass extends Pass<{
 	}
 
 	public render(): void {
-		const camera = this.manager.sceneSystem.objects.orthoCamera;
-		const wrapper = this.manager.sceneSystem.objects.slippyMapWrapper;
+		const camera = this.manager.sceneSystem.objects.camera;
+		const wrapper = this.manager.sceneSystem.objects.wrapper;
 		const tiles = this.manager.systemManager.getSystem(SlippyMapSystem).getRenderedTiles();
 
 		this.renderer.beginRenderPass(this.getPhysicalResource('SlippyMap'));
@@ -53,14 +54,16 @@ export default class SlippyMapPass extends Pass<{
 		wrapper.add(dummy);
 
 		for (const tile of tiles) {
-			const tileSize = 1 / (2 ** tile.zoom);
+			const tileSize = MathUtils.getTileSizeInMeters(tile.zoom);
+			const tilePos = MathUtils.tile2meters(tile.x, tile.y, tile.zoom);
 
 			dummy.position.set(
-				tileSize * tile.x,
-				1 - tileSize * tile.y - tileSize,
-				0
+				tilePos.y,
+				0,
+				-tilePos.x
 			);
-			dummy.scale.set(tileSize, tileSize, 1);
+			dummy.scale.set(tileSize, tileSize, tileSize);
+			dummy.rotation.x = Math.PI / 2;
 
 			dummy.updateMatrix();
 			dummy.updateMatrixWorld();

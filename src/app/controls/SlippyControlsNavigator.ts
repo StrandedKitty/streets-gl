@@ -1,24 +1,21 @@
 import ControlsNavigator from "./ControlsNavigator";
 import Vec2 from "~/lib/math/Vec2";
-import Vec3 from "~/lib/math/Vec3";
-import Config from "../Config";
-import MathUtils from "~/lib/math/MathUtils";
 import CursorStyleSystem from "../systems/CursorStyleSystem";
 import {ControlsState} from "../systems/ControlsSystem";
 import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
-import TerrainHeightProvider from "~/app/terrain/TerrainHeightProvider";
-import OrthographicCamera from "~/lib/core/OrthographicCamera";
+import MathUtils from "~/lib/math/MathUtils";
+import Config from "~/app/Config";
 
 export default class SlippyControlsNavigator extends ControlsNavigator {
-	public readonly camera: OrthographicCamera;
+	public readonly camera: PerspectiveCamera;
 	private readonly cursorStyleSystem: CursorStyleSystem;
-	public zoom: number = Config.SlippyMapMinZoom;
-	private position: Vec2 = new Vec2(0.5, 0.5);
+	public height: number = 1;
+	private position: Vec2 = new Vec2(0, 0);
 	private isPointerDown: boolean = false;
 
 	public constructor(
 		element: HTMLElement,
-		camera: OrthographicCamera,
+		camera: PerspectiveCamera,
 		cursorStyleSystem: CursorStyleSystem
 	) {
 		super(element);
@@ -60,10 +57,10 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 			return;
 		}
 
-		const viewportWidth = 1 / (2 ** this.zoom) / window.innerHeight;
+		//const viewportWidth = 1 / (2 ** this.zoom) / window.innerHeight;
 
-		this.position.x -= e.movementX * viewportWidth;
-		this.position.y += e.movementY * viewportWidth;
+		this.position.x -= (e.movementX / window.innerHeight) * this.height;
+		this.position.y -= (e.movementY / window.innerHeight) * this.height;
 	}
 
 	private wheelEvent(e: WheelEvent): void {
@@ -73,7 +70,7 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 
 		e.preventDefault();
 
-		const oldZoom = this.zoom;
+		/*const oldZoom = this.zoom;
 		const newZoom = MathUtils.clamp(
 			this.zoom - e.deltaY * Config.SlippyMapZoomFactor,
 			Config.SlippyMapMinZoom,
@@ -95,9 +92,20 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 		const posNew = getWorldPos(pointerX, pointerY, newZoom);
 
 		this.position.x += posOld.x - posNew.x;
-		this.position.y += posOld.y - posNew.y;
+		this.position.y += posOld.y - posNew.y;*/
 
-		this.zoom = newZoom;
+		const logSpaceHeight = Math.log2(this.height);
+		const newLogSpaceHeight = logSpaceHeight + e.deltaY * 0.001;
+		this.height = 2 ** newLogSpaceHeight;
+
+		this.height = MathUtils.clamp(this.height, Config.MaxCameraDistance, this.getMaxHeight());
+	}
+
+	private getMaxHeight(): number {
+		const mapSize = 40075016.68;
+		const fov = MathUtils.toRad(this.camera.fov);
+
+		return mapSize / Math.tan(fov / 2) * 0.5;
 	}
 
 	private keyDownEvent(e: KeyboardEvent): void {
@@ -108,9 +116,12 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 
 	}
 
-
 	public syncWithCamera(): void {
-
+		this.position.set(this.camera.position.x, this.camera.position.z);
+		this.height = this.getMaxHeight();
+		this.camera.near = 1000;
+		this.camera.far = 40075016 * 10;
+		this.camera.updateProjectionMatrix();
 	}
 
 	public syncWithState(state: ControlsState): void {
@@ -127,21 +138,15 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 		};
 	}
 
-	public override disable(): void {
-		super.disable();
-
-	}
-
 	public update(deltaTime: number): void {
-		this.camera.position.set(this.position.x, this.position.y, 1);
+		this.camera.position.x = this.position.x;
+		this.camera.position.y = this.height;
+		this.camera.position.z = this.position.y;
 
-		const viewportHeight = 1 / (2 ** this.zoom);
-		const viewportWidth = viewportHeight * (window.innerWidth / window.innerHeight);
+		this.camera.rotation.x = -Math.PI / 2;
 
-		this.camera.left = -viewportWidth / 2;
-		this.camera.right = viewportWidth / 2;
-		this.camera.top = viewportHeight / 2;
-		this.camera.bottom = -viewportHeight / 2;
+		//const viewportHeight = 1 / (2 ** this.zoom);
+		//const viewportWidth = viewportHeight * (window.innerWidth / window.innerHeight);
 
 		this.camera.updateProjectionMatrix();
 		this.camera.updateMatrix();

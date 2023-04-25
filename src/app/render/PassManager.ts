@@ -1106,7 +1106,7 @@ export default class PassManager {
 								mipmaps: false
 							}),
 							slice: 0,
-							clearValue: {r: 0.667, g: 0.827, b: 0.875, a: 1},
+							clearValue: {r: 1, g: 0., b: 1, a: 1},
 							loadOp: RendererTypes.AttachmentLoadOp.Clear,
 							storeOp: RendererTypes.AttachmentStoreOp.Store
 						}

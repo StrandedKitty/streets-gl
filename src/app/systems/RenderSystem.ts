@@ -152,7 +152,7 @@ export default class RenderSystem extends System {
 			wrap: RendererTypes.TextureWrap.ClampToEdge,
 			format: RendererTypes.TextureFormat.RGBA8Unorm,
 			mipmaps: false,
-			flipY: true
+			flipY: false
 		});
 	}
 

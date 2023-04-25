@@ -1,21 +1,38 @@
-import OrthographicCamera from "~/lib/core/OrthographicCamera";
 import Vec2 from "~/lib/math/Vec2";
+import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
+import MathUtils from "~/lib/math/MathUtils";
 
 export default class CameraViewport {
 	public min: Vec2 = new Vec2();
 	public max: Vec2 = new Vec2();
 	public zoom: number = 0;
 
-	public setFromOrthographicCamera(camera: OrthographicCamera): void {
-		const minX = camera.position.x + camera.left;
-		const maxX = camera.position.x + camera.right;
-		const minY = (1 - camera.position.y) - camera.top;
-		const maxY = (1 - camera.position.y) - camera.bottom;
+	public setFromPerspectiveCamera(camera: PerspectiveCamera): void {
+		const projectionHeight = Math.tan(MathUtils.toRad(camera.fov / 2)) * camera.position.y * 2;
+		const projectionWidth = projectionHeight * camera.aspect;
+		const min = MathUtils.meters2tile(
+			-camera.position.z + projectionHeight / 2,
+			camera.position.x - projectionWidth / 2,
+			0
+		);
+		const max = MathUtils.meters2tile(
+			-camera.position.z - projectionHeight / 2,
+			camera.position.x + projectionWidth / 2,
+			0
+		);
 
-		this.zoom = Math.log2(1 / Math.abs(camera.top - camera.bottom)) + 2;
+		const projectionHeightNorm = projectionHeight / (20037508.34 * 2);
 
-		this.min.set(minX, minY);
-		this.max.set(maxX, maxY);
+		if (projectionHeightNorm === 0) {
+			this.zoom = 0;
+		} else {
+			this.zoom = Math.log2(1 / projectionHeightNorm) + 2;
+		}
+
+		this.zoom = MathUtils.clamp(this.zoom, 0, 16);
+
+		this.min.set(min.x, min.y);
+		this.max.set(max.x, max.y);
 	}
 
 	public getVisibleTiles(): Vec2[] {

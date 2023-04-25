@@ -7,7 +7,7 @@ import CursorStyleSystem from "../systems/CursorStyleSystem";
 import {ControlsState} from "../systems/ControlsSystem";
 import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 import TerrainHeightProvider from "~/app/terrain/TerrainHeightProvider";
-import OrthographicCamera from "~/lib/core/OrthographicCamera";
+import FreeControlsNavigator from "~/app/controls/FreeControlsNavigator";
 
 export default class GroundControlsNavigator extends ControlsNavigator {
 	private readonly camera: PerspectiveCamera;
@@ -15,8 +15,8 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 	private readonly terrainHeightProvider: TerrainHeightProvider;
 	public target: Vec3 = new Vec3();
 	private direction: Vec3 = new Vec3();
-	private normalizedDistance: number = 10;
-	private normalizedDistanceTarget: number = 10;
+	private logDistance: number = 10;
+	private logDistanceTarget: number = 10;
 	private distance: number = 0;
 	private pitch: number = MathUtils.toRad(45);
 	private yaw: number = MathUtils.toRad(0);
@@ -144,11 +144,11 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		e.preventDefault();
 
 		if (e.ctrlKey) {
-			this.normalizedDistanceTarget += e.deltaY / 200.;
+			this.logDistanceTarget += e.deltaY / 200.;
 			return;
 		}
 
-		this.normalizedDistanceTarget += e.deltaY / 2000.;
+		this.logDistanceTarget += e.deltaY / 2000.;
 	}
 
 	private keyDownEvent(e: KeyboardEvent): void {
@@ -258,15 +258,15 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		const min = Math.log2(Config.MinCameraDistance);
 		const max = Math.log2(Config.MaxCameraDistance);
 
-		this.normalizedDistanceTarget = MathUtils.clamp(this.normalizedDistanceTarget, min, max);
+		this.logDistanceTarget = MathUtils.clamp(this.logDistanceTarget, min, max);
 
-		this.normalizedDistance = MathUtils.lerp(
-			this.normalizedDistance,
-			this.normalizedDistanceTarget,
+		this.logDistance = MathUtils.lerp(
+			this.logDistance,
+			this.logDistanceTarget,
 			Config.CameraZoomSmoothing
 		);
 
-		this.distance = 2 ** this.normalizedDistance;
+		this.distance = 2 ** this.logDistance;
 	}
 
 	private clampPitchAndYaw(): void {
@@ -286,26 +286,27 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		}
 	}
 
-	public syncWithCamera(): void {
-		const mat = this.camera.matrixWorld.values;
-		const forwardDir = Vec3.normalize(new Vec3(mat[8], mat[9], mat[10]));
-		const [pitch, yaw] = MathUtils.cartesianToPolar(forwardDir);
+	public syncWithCamera(prevNavigator: ControlsNavigator): void {
+		if (prevNavigator instanceof FreeControlsNavigator) {
+			const mat = this.camera.matrixWorld.values;
+			const forwardDir = Vec3.normalize(new Vec3(mat[8], mat[9], mat[10]));
+			const [pitch, yaw] = MathUtils.cartesianToPolar(forwardDir);
 
-		this.pitch = pitch;
-		this.yaw = yaw;
-		this.normalizedDistance = this.normalizedDistanceTarget = 10;
-		this.target.set(this.camera.position.x, 0, this.camera.position.z);
-		this.updateTargetHeightFromHeightmap();
-	}
-
-	public enter(camera: OrthographicCamera): void {
-		const position = MathUtils.tile2meters(camera.position.x, 1 - camera.position.y, 0);
-
-		this.target.set(position.x, 0, position.y);
-		this.pitch = MathUtils.toRad(Config.MaxCameraPitch);
-		this.yaw = 0;
-
-		this.updateTargetHeightFromHeightmap();
+			this.pitch = pitch;
+			this.yaw = yaw;
+			this.logDistance = this.logDistanceTarget = 10;
+			this.target.set(this.camera.position.x, 0, this.camera.position.z);
+			this.updateTargetHeightFromHeightmap();
+		} else {
+			this.yaw = 0;
+			this.pitch = MathUtils.toRad(Config.MaxCameraPitch);
+			this.target.set(-this.camera.position.z, 0, this.camera.position.x);
+			this.distance = this.camera.position.y;
+			this.logDistance = this.logDistanceTarget = Math.log2(this.distance);
+			this.camera.near = 10;
+			this.camera.far = 100000;
+			this.camera.updateProjectionMatrix();
+		}
 	}
 
 	public syncWithState(state: ControlsState): void {
@@ -313,7 +314,7 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		this.target.z = state.z;
 		this.pitch = state.pitch;
 		this.yaw = state.yaw;
-		this.normalizedDistance = this.normalizedDistanceTarget = Math.log2(state.distance);
+		this.logDistance = this.logDistanceTarget = Math.log2(state.distance);
 	}
 
 	public getCurrentState(): ControlsState {
@@ -322,7 +323,7 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 			z: this.target.z,
 			pitch: this.pitch,
 			yaw: this.yaw,
-			distance: 2 ** this.normalizedDistance
+			distance: 2 ** this.logDistance
 		};
 	}
 
@@ -377,10 +378,10 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		this.clampPitchAndYaw();
 		this.updateTargetHeightFromHeightmap();
 
-		if (Math.log2(Config.MaxCameraDistance) - this.normalizedDistance < 0.01) {
+		/*if (Math.log2(Config.MaxCameraDistance) - this.normalizedDistance < 0.01) {
 			this.yaw = 0;
 			this.pitch = MathUtils.toRad(Config.MaxCameraPitch);
-		}
+		}*/
 
 		this.direction = Vec3.normalize(MathUtils.polarToCartesian(this.yaw, -this.pitch));
 

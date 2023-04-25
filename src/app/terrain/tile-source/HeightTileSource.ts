@@ -28,11 +28,9 @@ export default class HeightTileSource extends TileSource<ImageBitmap> {
 		const url = HeightTileSource.getURL(this.x, this.y, this.zoom);
 		const response = await fetch(url, {
 			method: 'GET'
-		}).catch(e => {
-			console.error(e);
 		});
 
-		if (!response) {
+		if (response.status !== 200) {
 			return;
 		}
 

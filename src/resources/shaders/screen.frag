@@ -37,5 +37,7 @@ void main() {
 
 	FragColor = vec4(sceneWithLabelsColor, 1);
 
-	FragColor = mix(FragColor, texture(tSlippyMap, uv), slippyMapFactor);
+	if (slippyMapFactor > 0.) {
+		FragColor = texture(tSlippyMap, uv);
+	}
 }

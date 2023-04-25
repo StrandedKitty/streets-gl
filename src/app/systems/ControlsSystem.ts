@@ -23,14 +23,15 @@ export interface ControlsState {
 	distance: number;
 }
 
-export enum ControlsMode {
+export enum NavigationMode {
 	Ground,
-	Free
+	Free,
+	Slippy
 }
 
 export default class ControlsSystem extends System {
 	private readonly element: HTMLElement;
-	private mode: ControlsMode = ControlsMode.Ground;
+	public mode: NavigationMode = NavigationMode.Ground;
 	private camera: PerspectiveCamera;
 	private tick: number = 0;
 	public target: Vec3 = new Vec3();
@@ -67,17 +68,18 @@ export default class ControlsSystem extends System {
 
 	private initCameraAndNavigators(): void {
 		this.camera = this.systemManager.getSystem(SceneSystem).objects.camera;
-		const orthoCamera = this.systemManager.getSystem(SceneSystem).objects.orthoCamera;
 
 		const cursorStyleSystem = this.systemManager.getSystem(CursorStyleSystem);
 		const terrainHeightProvider = this.systemManager.getSystem(TerrainSystem).terrainHeightProvider;
 
 		this.groundNavigator = new GroundControlsNavigator(this.element, this.camera, cursorStyleSystem, terrainHeightProvider);
 		this.freeNavigator = new FreeControlsNavigator(this.element, this.camera, terrainHeightProvider);
-		this.slippyNavigator = new SlippyControlsNavigator(this.element, orthoCamera, cursorStyleSystem);
+		this.slippyNavigator = new SlippyControlsNavigator(this.element, this.camera, cursorStyleSystem);
 
 		this.activeNavigator = this.slippyNavigator;
 		this.slippyNavigator.enable();
+		this.slippyNavigator.syncWithCamera();
+		this.mode = NavigationMode.Slippy;
 
 		this.initStateFromHash();
 	}
@@ -132,9 +134,9 @@ export default class ControlsSystem extends System {
 		if (e.code === 'Tab') {
 			e.preventDefault();
 
-			this.mode = this.mode === ControlsMode.Ground ? ControlsMode.Free : ControlsMode.Ground;
+			this.mode = this.mode === NavigationMode.Ground ? NavigationMode.Free : NavigationMode.Ground;
 
-			if (this.mode === ControlsMode.Ground) {
+			if (this.mode === NavigationMode.Ground) {
 				this.activeNavigator = this.groundNavigator;
 				this.groundNavigator.enable();
 				this.freeNavigator.disable();
@@ -192,12 +194,13 @@ export default class ControlsSystem extends System {
 			this.activeNavigator.update(deltaTime);
 		}
 
-		if (this.slippyNavigator.zoom === Config.SlippyMapMaxZoom && this.slippyNavigator.isEnabled) {
+		if (this.slippyNavigator.height === Config.MaxCameraDistance && this.slippyNavigator.isEnabled) {
 			this.slippyNavigator.disable();
 			this.groundNavigator.enable();
-			this.groundNavigator.enter(this.slippyNavigator.camera);
+			this.groundNavigator.syncWithCamera(this.slippyNavigator);
 
 			this.activeNavigator = this.groundNavigator;
+			this.mode = NavigationMode.Ground;
 		}
 
 		if (this.wheelZoomScaleTarget !== this.wheelZoomScale) {

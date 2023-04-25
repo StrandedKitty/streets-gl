@@ -27,8 +27,6 @@ import OrthographicCamera from "~/lib/core/OrthographicCamera";
 interface SceneObjects {
 	wrapper: Object3D;
 	camera: PerspectiveCamera;
-	orthoCamera: OrthographicCamera;
-	slippyMapWrapper: Object3D;
 	skybox: Skybox;
 	tiles: Tile[];
 	csm: CSM;
@@ -59,16 +57,6 @@ export default class SceneSystem extends System {
 			far: 100000,
 			aspect: window.innerWidth / window.innerHeight
 		});
-		const orthoCamera = new OrthographicCamera({
-			left: -1,
-			right: 1,
-			top: 1,
-			bottom: -1,
-			near: 0,
-			far: 1000
-		});
-		const slippyMapWrapper = new Object3D();
-		slippyMapWrapper.add(orthoCamera);
 		const skybox = new Skybox();
 		const tiles = new Object3D();
 		const csm = new CSM({
@@ -93,8 +81,6 @@ export default class SceneSystem extends System {
 		this.objects = {
 			wrapper,
 			camera,
-			orthoCamera,
-			slippyMapWrapper,
 			skybox,
 			tiles: [],
 			csm,

@@ -414,8 +414,7 @@ void main() {
 		vec3(aerialPerspectiveUV, aerialPerspectiveDepthToSlice(-position.z) / (aerialPerspectiveSliceCount - 1.))
 	);
 
-	color = color * clamp(aerialPerspective.a, 0., 1.) + aerialPerspective.rgb;
-	//color = worldNormal;
+	//color = color * clamp(aerialPerspective.a, 0., 1.) + aerialPerspective.rgb;
 
 	color = applySelectionOverlay(color);
 
