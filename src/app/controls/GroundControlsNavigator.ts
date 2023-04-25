@@ -298,6 +298,7 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 
 		this.target.x += oldPosition.x - newPosition.x;
 		this.target.z += oldPosition.y - newPosition.y;
+		this.distance = newDistance;
 	}
 
 	private clampPitchAndYaw(): void {
