@@ -78,7 +78,7 @@ export default class ControlsSystem extends System {
 
 		this.activeNavigator = this.slippyNavigator;
 		this.slippyNavigator.enable();
-		this.slippyNavigator.syncWithCamera();
+		this.slippyNavigator.syncWithCamera(null);
 		this.mode = NavigationMode.Slippy;
 
 		this.initStateFromHash();
@@ -138,12 +138,14 @@ export default class ControlsSystem extends System {
 
 			if (this.mode === NavigationMode.Ground) {
 				this.activeNavigator = this.groundNavigator;
-				this.groundNavigator.enable();
 				this.freeNavigator.disable();
+				this.groundNavigator.enable();
+				this.groundNavigator.syncWithCamera(this.freeNavigator);
 			} else {
 				this.activeNavigator = this.freeNavigator;
-				this.freeNavigator.enable();
 				this.groundNavigator.disable();
+				this.freeNavigator.enable();
+				this.freeNavigator.syncWithCamera(this.groundNavigator);
 			}
 		}
 	}
@@ -190,17 +192,26 @@ export default class ControlsSystem extends System {
 			this.initCameraAndNavigators();
 		}
 
-		if (this.activeNavigator) {
-			this.activeNavigator.update(deltaTime);
+		if (this.groundNavigator.distance === Config.MaxCameraDistance && this.groundNavigator.isEnabled) {
+			this.groundNavigator.disable();
+			this.slippyNavigator.enable();
+			this.slippyNavigator.syncWithCamera(this.groundNavigator);
+
+			this.activeNavigator = this.slippyNavigator;
+			this.mode = NavigationMode.Slippy;
 		}
 
-		if (this.slippyNavigator.height === Config.MaxCameraDistance && this.slippyNavigator.isEnabled) {
+		if (this.slippyNavigator.distance === Config.MaxCameraDistance && this.slippyNavigator.isEnabled) {
 			this.slippyNavigator.disable();
 			this.groundNavigator.enable();
 			this.groundNavigator.syncWithCamera(this.slippyNavigator);
 
 			this.activeNavigator = this.groundNavigator;
 			this.mode = NavigationMode.Ground;
+		}
+
+		if (this.activeNavigator) {
+			this.activeNavigator.update(deltaTime);
 		}
 
 		if (this.wheelZoomScaleTarget !== this.wheelZoomScale) {

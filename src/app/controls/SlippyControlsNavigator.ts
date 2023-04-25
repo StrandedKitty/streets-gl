@@ -5,13 +5,16 @@ import {ControlsState} from "../systems/ControlsSystem";
 import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 import MathUtils from "~/lib/math/MathUtils";
 import Config from "~/app/Config";
+import GroundControlsNavigator from "~/app/controls/GroundControlsNavigator";
 
 export default class SlippyControlsNavigator extends ControlsNavigator {
 	public readonly camera: PerspectiveCamera;
 	private readonly cursorStyleSystem: CursorStyleSystem;
-	public height: number = 1;
+	public distance: number = 1;
+	private distanceTarget: number = 1;
 	private position: Vec2 = new Vec2(0, 0);
 	private isPointerDown: boolean = false;
+	private pointerPosition: Vec2 = new Vec2(0, 0);
 
 	public constructor(
 		element: HTMLElement,
@@ -53,6 +56,11 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 	}
 
 	private mouseMoveEvent(e: MouseEvent): void {
+		const pointerX = e.clientX / window.innerWidth - 0.5;
+		const pointerY = 1 - e.clientY / window.innerHeight - 0.5;
+
+		this.pointerPosition.set(pointerX, pointerY);
+
 		if (!this.isPointerDown) {
 			return;
 		}
@@ -71,16 +79,25 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 
 		e.preventDefault();
 
-		const oldDistance = this.height;
+		const logSpaceDistance = Math.log2(this.distanceTarget);
+		const newLogSpaceDistance = logSpaceDistance + e.deltaY * 0.0005;
 
-		const logSpaceHeight = Math.log2(this.height);
-		const newLogSpaceHeight = logSpaceHeight + e.deltaY * 0.001;
-
-		const newDistance = MathUtils.clamp(
-			2 ** newLogSpaceHeight,
+		this.distanceTarget = MathUtils.clamp(
+			2 ** newLogSpaceDistance,
 			Config.MaxCameraDistance,
 			this.getMaxHeight()
 		);
+	}
+
+	private updateDistance(deltaTime: number): void {
+		const alpha = 1 - Math.pow(1 - 0.3, deltaTime / (1 / 60));
+
+		const oldDistance = this.distance;
+		let newDistance = MathUtils.lerp(oldDistance, this.distanceTarget, alpha);
+
+		if (Math.abs(newDistance - this.distanceTarget) < 0.1) {
+			newDistance = this.distanceTarget;
+		}
 
 		const getWorldPos = (x: number, y: number, distance: number): Vec2 => {
 			const projectionHeight = Math.tan(MathUtils.toRad(this.camera.fov / 2)) * distance * 2;
@@ -92,16 +109,14 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 			);
 		}
 
-		const pointerX = e.clientX / window.innerWidth - 0.5;
-		const pointerY = 1 - e.clientY / window.innerHeight - 0.5;
-
-		const posOld = getWorldPos(pointerX, pointerY, oldDistance);
-		const posNew = getWorldPos(pointerX, pointerY, newDistance);
+		const pointer = this.pointerPosition;
+		const posOld = getWorldPos(pointer.x, pointer.y, oldDistance);
+		const posNew = getWorldPos(pointer.x, pointer.y, newDistance);
 
 		this.position.x += posOld.x - posNew.x;
 		this.position.y += posOld.y - posNew.y;
 
-		this.height = newDistance;
+		this.distance = newDistance;
 	}
 
 	private getMaxHeight(): number {
@@ -119,16 +134,23 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 
 	}
 
-	public syncWithCamera(): void {
-		this.position.set(this.camera.position.x, this.camera.position.z);
-		this.height = this.getMaxHeight();
+	public syncWithCamera(prevNavigator: ControlsNavigator): void {
+		if (prevNavigator instanceof GroundControlsNavigator) {
+			this.position.set(this.camera.position.x, this.camera.position.z);
+			this.distance = this.distanceTarget = this.camera.position.y;
+		} else {
+			this.position.set(this.camera.position.x, this.camera.position.z);
+			this.distance = this.distanceTarget = this.getMaxHeight();
+		}
+
 		this.camera.near = 1000;
 		this.camera.far = 40075016 * 10;
 		this.camera.updateProjectionMatrix();
 	}
 
 	public syncWithState(state: ControlsState): void {
-
+		this.position.set(state.x, state.z);
+		this.distance = this.distanceTarget = state.distance;
 	}
 
 	public getCurrentState(): ControlsState {
@@ -137,20 +159,19 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 			z: this.position.y,
 			pitch: 0,
 			yaw: 0,
-			distance: this.height
+			distance: this.distance
 		};
 	}
 
 	public update(deltaTime: number): void {
+		this.updateDistance(deltaTime);
+
 		this.camera.position.x = this.position.x;
-		this.camera.position.y = this.height;
+		this.camera.position.y = this.distance;
 		this.camera.position.z = this.position.y;
 
 		this.camera.rotation.x = -Math.PI / 2;
 		this.camera.rotation.z = -Math.PI / 2;
-
-		//const viewportHeight = 1 / (2 ** this.zoom);
-		//const viewportWidth = viewportHeight * (window.innerWidth / window.innerHeight);
 
 		this.camera.updateProjectionMatrix();
 		this.camera.updateMatrix();

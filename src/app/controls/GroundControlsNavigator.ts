@@ -8,6 +8,7 @@ import {ControlsState} from "../systems/ControlsSystem";
 import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 import TerrainHeightProvider from "~/app/terrain/TerrainHeightProvider";
 import FreeControlsNavigator from "~/app/controls/FreeControlsNavigator";
+import Mat4 from "~/lib/math/Mat4";
 
 export default class GroundControlsNavigator extends ControlsNavigator {
 	private readonly camera: PerspectiveCamera;
@@ -15,9 +16,8 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 	private readonly terrainHeightProvider: TerrainHeightProvider;
 	public target: Vec3 = new Vec3();
 	private direction: Vec3 = new Vec3();
-	private logDistance: number = 10;
-	private logDistanceTarget: number = 10;
-	private distance: number = 0;
+	public distance: number = 0;
+	private distanceTarget: number = 0;
 	private pitch: number = MathUtils.toRad(45);
 	private yaw: number = MathUtils.toRad(0);
 	private isLMBDown: boolean = false;
@@ -33,6 +33,7 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 	private pitchPlusKeyPressed: boolean = false;
 	private yawMinusKeyPressed: boolean = false;
 	private yawPlusKeyPressed: boolean = false;
+	private pointerPosition: Vec2 = new Vec2(0, 0);
 
 	public constructor(
 		element: HTMLElement,
@@ -118,6 +119,11 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 	}
 
 	private mouseMoveEvent(e: MouseEvent): void {
+		this.pointerPosition.set(
+			e.clientX / window.innerWidth * 2 - 1,
+			-e.clientY / window.innerHeight * 2 + 1,
+		);
+
 		if (!this.isEnabled) {
 			return;
 		}
@@ -143,12 +149,14 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 
 		e.preventDefault();
 
-		if (e.ctrlKey) {
-			this.logDistanceTarget += e.deltaY / 200.;
-			return;
-		}
+		const logSpaceDistance = Math.log2(this.distanceTarget);
+		const newLogSpaceDistance = logSpaceDistance + e.deltaY * 0.0005;
 
-		this.logDistanceTarget += e.deltaY / 2000.;
+		this.distanceTarget = MathUtils.clamp(
+			2 ** newLogSpaceDistance,
+			Config.MinCameraDistance,
+			Config.MaxCameraDistance
+		);
 	}
 
 	private keyDownEvent(e: KeyboardEvent): void {
@@ -254,19 +262,42 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		return new Vec2(positionOnGround.x, positionOnGround.z);
 	}
 
-	private updateDistance(): void {
-		const min = Math.log2(Config.MinCameraDistance);
-		const max = Math.log2(Config.MaxCameraDistance);
+	private projectOnGroundPredict(x: number, y: number, distance: number): Vec2 {
+		const oldMatrix = Mat4.copy(this.camera.matrix);
 
-		this.logDistanceTarget = MathUtils.clamp(this.logDistanceTarget, min, max);
+		const cameraOffset = Vec3.multiplyScalar(this.direction, -distance);
+		const cameraPosition = Vec3.add(this.target, cameraOffset);
+		this.camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+		this.camera.lookAt(this.target, false);
 
-		this.logDistance = MathUtils.lerp(
-			this.logDistance,
-			this.logDistanceTarget,
-			Config.CameraZoomSmoothing
-		);
+		let vector = Vec3.unproject(new Vec3(x, y, 0.5), this.camera, false);
 
-		this.distance = 2 ** this.logDistance;
+		this.camera.matrix.values.set(oldMatrix.values);
+
+		vector = Vec3.sub(vector, this.camera.position);
+
+		const distanceToGround = (this.camera.position.y - this.target.y) / vector.y;
+		const vectorToGround = Vec3.multiplyScalar(vector, distanceToGround);
+		const positionOnGround = Vec3.sub(this.camera.position, vectorToGround);
+
+		return new Vec2(positionOnGround.x, positionOnGround.z);
+	}
+
+	private updateDistance(deltaTime: number): void {
+		const alpha = 1 - Math.pow(1 - 0.3, deltaTime / (1 / 60));
+
+		const oldDistance = this.distance;
+		let newDistance = MathUtils.lerp(this.distance, this.distanceTarget, alpha);
+
+		if (Math.abs(newDistance - this.distanceTarget) < 0.001) {
+			newDistance = this.distanceTarget;
+		}
+
+		const oldPosition = this.projectOnGroundPredict(this.pointerPosition.x, this.pointerPosition.y, oldDistance);
+		const newPosition = this.projectOnGroundPredict(this.pointerPosition.x, this.pointerPosition.y, newDistance);
+
+		this.target.x += oldPosition.x - newPosition.x;
+		this.target.z += oldPosition.y - newPosition.y;
 	}
 
 	private clampPitchAndYaw(): void {
@@ -294,15 +325,16 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 
 			this.pitch = pitch;
 			this.yaw = yaw;
-			this.logDistance = this.logDistanceTarget = 10;
+			this.distance = this.distanceTarget = Config.MaxCameraDistance * 0.5;
 			this.target.set(this.camera.position.x, 0, this.camera.position.z);
 			this.updateTargetHeightFromHeightmap();
 		} else {
 			this.yaw = 0;
 			this.pitch = MathUtils.toRad(Config.MaxCameraPitch);
 			this.target.set(this.camera.position.x, 0, this.camera.position.z);
+			this.updateTargetHeightFromHeightmap();
 			this.distance = this.camera.position.y;
-			this.logDistance = this.logDistanceTarget = Math.log2(this.distance);
+			this.distance = this.distanceTarget = this.camera.position.y - 1;
 			this.camera.near = 10;
 			this.camera.far = 100000;
 			this.camera.updateProjectionMatrix();
@@ -314,7 +346,7 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		this.target.z = state.z;
 		this.pitch = state.pitch;
 		this.yaw = state.yaw;
-		this.logDistance = this.logDistanceTarget = Math.log2(state.distance);
+		this.distance = this.distanceTarget = state.distance;
 	}
 
 	public getCurrentState(): ControlsState {
@@ -323,7 +355,7 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 			z: this.target.z,
 			pitch: this.pitch,
 			yaw: this.yaw,
-			distance: 2 ** this.logDistance
+			distance: this.distance
 		};
 	}
 
@@ -373,17 +405,12 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 	}
 
 	public update(deltaTime: number): void {
-		this.processMovementByKeys(deltaTime);
-		this.updateDistance();
 		this.clampPitchAndYaw();
-		this.updateTargetHeightFromHeightmap();
-
-		/*if (Math.log2(Config.MaxCameraDistance) - this.normalizedDistance < 0.01) {
-			this.yaw = 0;
-			this.pitch = MathUtils.toRad(Config.MaxCameraPitch);
-		}*/
-
 		this.direction = Vec3.normalize(MathUtils.polarToCartesian(this.yaw, -this.pitch));
+
+		this.processMovementByKeys(deltaTime);
+		this.updateDistance(deltaTime);
+		this.updateTargetHeightFromHeightmap();
 
 		const cameraOffset = Vec3.multiplyScalar(this.direction, -this.distance);
 		const cameraPosition = Vec3.add(this.target, cameraOffset);

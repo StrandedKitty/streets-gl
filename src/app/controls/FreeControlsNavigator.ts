@@ -156,7 +156,7 @@ export default class FreeControlsNavigator extends ControlsNavigator {
 		return 0;
 	}
 
-	public syncWithCamera(): void {
+	public syncWithCamera(prevNavigator: ControlsNavigator): void {
 		const mat = this.camera.matrixWorld.values;
 		const forwardDir = Vec3.normalize(new Vec3(mat[8], mat[9], mat[10]));
 		const [pitch, yaw] = MathUtils.cartesianToPolar(forwardDir);
