@@ -17,6 +17,19 @@ export function isTagIncludesString(
 	return parts.some(part => part === value);
 }
 
+export function getTagValues(
+	tags: Record<string, string>,
+	key: string
+): string[] {
+	const tagValue = tags[key];
+
+	if (tagValue === undefined) {
+		return [];
+	}
+
+	return tagValue.split(';').map((part) => part.trim().toLowerCase());
+}
+
 export function readTagAsFloat(tags: Record<string, string>, key: string): number {
 	const value = tags[key];
 	const parsed = parseFloat(value);

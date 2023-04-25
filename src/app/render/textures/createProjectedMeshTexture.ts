@@ -7,7 +7,7 @@ export default function createProjectedMeshTexture(renderer: AbstractRenderer): 
 	return renderer.createTexture2DArray({
 		width: 512,
 		height: 512,
-		depth: 34 * 3,
+		depth: 35 * 3,
 		anisotropy: 16,
 		data: [
 			ResourceLoader.get('pavementDiffuse'),
@@ -145,6 +145,10 @@ export default function createProjectedMeshTexture(renderer: AbstractRenderer): 
 			ResourceLoader.get('railDiffuse'),
 			ResourceLoader.get('railwayNormal'),
 			ResourceLoader.get('railwayMask'),
+
+			ResourceLoader.get('pitchGenericDiffuse'),
+			ResourceLoader.get('pitchGenericNormal'),
+			ResourceLoader.get('commonMask'),
 		],
 		minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 		magFilter: RendererTypes.MagFilter.Linear,

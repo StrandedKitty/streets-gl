@@ -24,6 +24,7 @@ const highwayTable: Record<string, {
 	type: VectorPolylineDescriptor['pathType'];
 	defaultMaterial: VectorPolylineDescriptor['pathMaterial'];
 	defaultLanes: number;
+	defaultWidth?: number;
 }> = {
 	residential: {type: 'roadway', defaultMaterial: 'asphalt', defaultLanes: 2},
 	service: {type: 'roadway', defaultMaterial: 'asphalt', defaultLanes: 2},
@@ -41,13 +42,15 @@ const highwayTable: Record<string, {
 	path: {type: 'footway', defaultMaterial: 'dirt', defaultLanes: 1},
 	steps: {type: 'footway', defaultMaterial: 'dirt', defaultLanes: 1},
 	pedestrian: {type: 'footway', defaultMaterial: 'dirt', defaultLanes: 1},
-	cycleway: {type: 'cycleway', defaultMaterial: 'dirt', defaultLanes: 1}
+	cycleway: {type: 'cycleway', defaultMaterial: 'dirt', defaultLanes: 1},
+	raceway: {type: 'roadway', defaultMaterial: 'asphalt', defaultLanes: 1, defaultWidth: 6}
 }
 
 export default function getPathParamsFromTags(tags: Record<string, string>): {
 	type: VectorPolylineDescriptor['pathType'];
 	material: VectorPolylineDescriptor['pathMaterial'];
 	defaultLanes: number;
+	defaultWidth?: number;
 } {
 	const highwayParams = highwayTable[tags.highway];
 
@@ -60,6 +63,7 @@ export default function getPathParamsFromTags(tags: Record<string, string>): {
 	return {
 		type: highwayParams.type,
 		material: material,
-		defaultLanes: highwayParams.defaultLanes
+		defaultLanes: highwayParams.defaultLanes,
+		defaultWidth: highwayParams.defaultWidth
 	};
 }

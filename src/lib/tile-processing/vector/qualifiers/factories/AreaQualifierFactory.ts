@@ -4,6 +4,7 @@ import {Qualifier, QualifierType} from "~/lib/tile-processing/vector/qualifiers/
 import isUnderground from "~/lib/tile-processing/vector/qualifiers/factories/helpers/isUnderground";
 import getBuildingParamsFromTags
 	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getBuildingParamsFromTags";
+import getPitchTypeFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getPitchTypeFromTags";
 
 export default class AreaQualifierFactory extends AbstractQualifierFactory<VectorAreaDescriptor> {
 	public fromTags(tags: Record<string, string>): Qualifier<VectorAreaDescriptor>[] {
@@ -50,19 +51,23 @@ export default class AreaQualifierFactory extends AbstractQualifierFactory<Vecto
 		}
 
 		if (tags.leisure === 'pitch') {
-			let type: VectorAreaDescriptor['pitchType'] = 'football';
-
-			if (tags.sport === 'basketball') {
-				type = 'basketball';
-			} else if (tags.sport === 'tennis') {
-				type = 'tennis';
-			}
+			const type = getPitchTypeFromTags(tags);
 
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'pitch',
 					pitchType: type
+				}
+			}];
+		}
+
+		if (tags.leisure === 'playground' || tags.leisure === 'dog_park') {
+			return [{
+				type: QualifierType.Descriptor,
+				data: {
+					type: 'pitch',
+					pitchType: 'generic'
 				}
 			}];
 		}

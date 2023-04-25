@@ -140,6 +140,8 @@
 	"sandRoadDiffuse": {"url": "/textures/surfaces/sand_road_diffuse.png", "type": "image"},
 	"sandRoadNormal": {"url": "/textures/surfaces/sand_road_normal.png", "type": "image"},
 	"sandRoadMask": {"url": "/textures/surfaces/sand_road_mask.png", "type": "image"},
+	"pitchGenericDiffuse": {"url": "/textures/surfaces/pitch_generic_diffuse.png", "type": "image"},
+	"pitchGenericNormal": {"url": "/textures/surfaces/pitch_generic_normal.png", "type": "image"},
 
 	"biomeMap": {
 		"url": "/textures/biomes_blurred.png",

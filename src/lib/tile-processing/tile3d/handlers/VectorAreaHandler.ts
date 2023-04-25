@@ -189,11 +189,21 @@ export default class VectorAreaHandler implements Handler {
 			}
 			case 'pitch': {
 				const textureIdMap = {
-					football: 4,
-					basketball: 5,
-					tennis: 6
+					football: ProjectedTextures.FootballPitch,
+					basketball: ProjectedTextures.BasketballPitch,
+					tennis: ProjectedTextures.TennisCourt,
+					generic: ProjectedTextures.GenericPitch
 				};
-				const textureId = textureIdMap[this.descriptor.pitchType] ?? textureIdMap.football;
+				const textureId = textureIdMap[this.descriptor.pitchType];
+
+				if (textureId === ProjectedTextures.GenericPitch) {
+					return [this.handleGenericSurface({
+						textureId,
+						isOriented: false,
+						uvScale: 20,
+						zIndex: ZIndexMap.Pitch
+					})];
+				}
 
 				return [this.handleGenericSurface({
 					textureId,

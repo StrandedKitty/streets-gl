@@ -60,7 +60,14 @@ export default class PolylineQualifierFactory extends AbstractQualifierFactory<V
 
 					descriptor.lanesForward = lanesForward;
 					descriptor.lanesBackward = lanesBackward;
-					descriptor.width = parseMeters(tags.width) ?? (lanesForward + lanesBackward) * 3;
+
+					const parsedWidth = parseMeters(tags.width);
+
+					if (parsedWidth === undefined && params.defaultWidth !== undefined) {
+						descriptor.width = params.defaultWidth;
+					} else {
+						descriptor.width = (lanesForward + lanesBackward) * 3;
+					}
 					break;
 				}
 				case 'footway': {

@@ -26,7 +26,7 @@ export interface VectorAreaDescriptor {
 		'grass' | 'sand' | 'rock' | 'pitch' | 'manicuredGrass' | 'helipad' | 'forest' | 'garden' | 'construction' |
 		'buildingConstruction' | 'shrubbery';
 	intersectionMaterial?: 'asphalt' | 'concrete' | 'cobblestone';
-	pitchType?: 'football' | 'basketball' | 'tennis';
+	pitchType?: 'generic' | 'football' | 'basketball' | 'tennis';
 	buildingLevels?: number;
 	buildingHeight?: number;
 	buildingMinHeight?: number;

@@ -130,7 +130,7 @@ export default class NodeQualifierFactory extends AbstractQualifierFactory<Vecto
 			}];
 		}
 
-		if (tags.historic === 'memorial') {
+		if (tags.historic === 'memorial' && tags.memorial !== 'plaque') {
 			return [{
 				type: QualifierType.Descriptor,
 				data: {

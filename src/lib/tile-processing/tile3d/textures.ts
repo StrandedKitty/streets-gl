@@ -34,6 +34,7 @@ export const ProjectedTextures = {
 	SandRoad: 32,
 	RailwayTop: 33,
 	Rail: 34,
+	GenericPitch: 35
 } satisfies Record<string, number>;
 
 export const ExtrudedTextures = {
