@@ -11,13 +11,13 @@ export default class CameraViewport {
 		const projectionHeight = Math.tan(MathUtils.toRad(camera.fov / 2)) * camera.position.y * 2;
 		const projectionWidth = projectionHeight * camera.aspect;
 		const min = MathUtils.meters2tile(
-			-camera.position.z + projectionHeight / 2,
-			camera.position.x - projectionWidth / 2,
+			camera.position.x + projectionHeight / 2,
+			camera.position.z - projectionWidth / 2,
 			0
 		);
 		const max = MathUtils.meters2tile(
-			-camera.position.z - projectionHeight / 2,
-			camera.position.x + projectionWidth / 2,
+			camera.position.x - projectionHeight / 2,
+			camera.position.z + projectionWidth / 2,
 			0
 		);
 

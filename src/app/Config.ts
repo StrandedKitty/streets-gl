@@ -8,7 +8,7 @@ const Config = {
 	WebWorkersNumber: Math.min(6, navigator.hardwareConcurrency),
 	StartPosition: [40.76050, -73.98088],
 	MinCameraDistance: 10,
-	MaxCameraDistance: 3000,
+	MaxCameraDistance: 4000,
 	MinFreeCameraHeight: 10,
 	CameraZoomSmoothing: 0.4,
 	MinCameraPitch: 5,

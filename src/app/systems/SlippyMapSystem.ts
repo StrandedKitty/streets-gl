@@ -38,7 +38,7 @@ export default class SlippyMapSystem extends System {
 	}
 
 	private getCameraPositionNormalized(): Vec2 {
-		return MathUtils.meters2tile(-this.camera.position.z, this.camera.position.x, 0);
+		return MathUtils.meters2tile(this.camera.position.x, this.camera.position.z, 0);
 	}
 
 	public update(deltaTime: number): void {

@@ -300,7 +300,7 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		} else {
 			this.yaw = 0;
 			this.pitch = MathUtils.toRad(Config.MaxCameraPitch);
-			this.target.set(-this.camera.position.z, 0, this.camera.position.x);
+			this.target.set(this.camera.position.x, 0, this.camera.position.z);
 			this.distance = this.camera.position.y;
 			this.logDistance = this.logDistanceTarget = Math.log2(this.distance);
 			this.camera.near = 10;

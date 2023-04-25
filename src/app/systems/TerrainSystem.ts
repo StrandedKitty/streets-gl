@@ -68,8 +68,11 @@ export default class TerrainSystem extends System {
 		const camera = this.systemManager.getSystem(SceneSystem).objects.camera;
 		const slippyMode = this.systemManager.getSystem(ControlsSystem).mode === NavigationMode.Slippy;
 
-		if (!slippyMode) {
+		if (!slippyMode || camera.position.y < 10000) {
 			this.updateAreaLoaders(camera);
+		}
+
+		if (!slippyMode) {
 			this.updateRingPositions(terrain, camera);
 			this.updateRingAreaTransforms(terrain);
 			this.updateRingMaskTransforms(terrain, camera);

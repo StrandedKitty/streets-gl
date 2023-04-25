@@ -58,12 +58,13 @@ export default class SlippyMapPass extends Pass<{
 			const tilePos = MathUtils.tile2meters(tile.x, tile.y, tile.zoom);
 
 			dummy.position.set(
-				tilePos.y,
+				tilePos.x,
 				0,
-				-tilePos.x
+				tilePos.y
 			);
 			dummy.scale.set(tileSize, tileSize, tileSize);
 			dummy.rotation.x = Math.PI / 2;
+			dummy.rotation.z = Math.PI / 2;
 
 			dummy.updateMatrix();
 			dummy.updateMatrixWorld();

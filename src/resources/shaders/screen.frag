@@ -35,9 +35,7 @@ void main() {
 	vec3 sceneColor = LINEARtoSRGB(texture(tHDR, uv).rgb);
 	vec3 sceneWithLabelsColor = mix(sceneColor, labels.rgb, labels.a);
 
-	FragColor = vec4(sceneWithLabelsColor, 1);
+	vec3 withSlippyMap = mix(sceneWithLabelsColor, texture(tSlippyMap, uv).rgb, slippyMapFactor);
 
-	if (slippyMapFactor > 0.) {
-		FragColor = texture(tSlippyMap, uv);
-	}
+	FragColor = vec4(withSlippyMap, 1);
 }

@@ -57,10 +57,11 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 			return;
 		}
 
-		//const viewportWidth = 1 / (2 ** this.zoom) / window.innerHeight;
+		const projectionHeight = Math.tan(MathUtils.toRad(this.camera.fov / 2)) * this.camera.position.y * 2;
+		const projectionWidth = projectionHeight * this.camera.aspect;
 
-		this.position.x -= (e.movementX / window.innerHeight) * this.height;
-		this.position.y -= (e.movementY / window.innerHeight) * this.height;
+		this.position.x += (e.movementY / window.innerHeight) * projectionHeight;
+		this.position.y -= (e.movementX / window.innerWidth) * projectionWidth;
 	}
 
 	private wheelEvent(e: WheelEvent): void {
@@ -70,35 +71,37 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 
 		e.preventDefault();
 
-		/*const oldZoom = this.zoom;
-		const newZoom = MathUtils.clamp(
-			this.zoom - e.deltaY * Config.SlippyMapZoomFactor,
-			Config.SlippyMapMinZoom,
-			Config.SlippyMapMaxZoom
-		);
-
-		const getWorldPos = (x: number, y: number, zoom: number): Vec2 => {
-			return new Vec2(
-				x * (1 / (2 ** zoom)) + this.position.x,
-				y * (1 / (2 ** zoom)) + this.position.y
-			);
-		}
-
-		const aspectRatio = window.innerWidth / window.innerHeight;
-		const pointerX = (e.clientX / window.innerWidth - 0.5) * aspectRatio;
-		const pointerY = 1 - e.clientY / window.innerHeight - 0.5;
-
-		const posOld = getWorldPos(pointerX, pointerY, oldZoom);
-		const posNew = getWorldPos(pointerX, pointerY, newZoom);
-
-		this.position.x += posOld.x - posNew.x;
-		this.position.y += posOld.y - posNew.y;*/
+		const oldDistance = this.height;
 
 		const logSpaceHeight = Math.log2(this.height);
 		const newLogSpaceHeight = logSpaceHeight + e.deltaY * 0.001;
-		this.height = 2 ** newLogSpaceHeight;
 
-		this.height = MathUtils.clamp(this.height, Config.MaxCameraDistance, this.getMaxHeight());
+		const newDistance = MathUtils.clamp(
+			2 ** newLogSpaceHeight,
+			Config.MaxCameraDistance,
+			this.getMaxHeight()
+		);
+
+		const getWorldPos = (x: number, y: number, distance: number): Vec2 => {
+			const projectionHeight = Math.tan(MathUtils.toRad(this.camera.fov / 2)) * distance * 2;
+			const projectionWidth = projectionHeight * this.camera.aspect;
+
+			return new Vec2(
+				this.position.y + projectionHeight * y,
+				this.position.x + projectionWidth * x
+			);
+		}
+
+		const pointerX = e.clientX / window.innerWidth - 0.5;
+		const pointerY = 1 - e.clientY / window.innerHeight - 0.5;
+
+		const posOld = getWorldPos(pointerX, pointerY, oldDistance);
+		const posNew = getWorldPos(pointerX, pointerY, newDistance);
+
+		this.position.x += posOld.x - posNew.x;
+		this.position.y += posOld.y - posNew.y;
+
+		this.height = newDistance;
 	}
 
 	private getMaxHeight(): number {
@@ -134,7 +137,7 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 			z: this.position.y,
 			pitch: 0,
 			yaw: 0,
-			distance: 1000
+			distance: this.height
 		};
 	}
 
@@ -144,6 +147,7 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 		this.camera.position.z = this.position.y;
 
 		this.camera.rotation.x = -Math.PI / 2;
+		this.camera.rotation.z = -Math.PI / 2;
 
 		//const viewportHeight = 1 / (2 ** this.zoom);
 		//const viewportWidth = viewportHeight * (window.innerWidth / window.innerHeight);
