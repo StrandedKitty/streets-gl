@@ -1,8 +1,10 @@
 <div align="center">
     <h1>Streets GL</h1>
-    <img src="https://img.shields.io/github/commit-activity/m/strandedkitty/streets-gl" alt="GitHub commit activity">
+    <a href="https://trello.com/b/WJ1D07lT"><img src="https://img.shields.io/static/v1?label=&message=Trello%20board&logo=trello&logoColor=ffffff&color=0052CC" alt="Trello board" /></a>
+    <a href="https://discord.gg/bewggJ3eMC"><img src="https://img.shields.io/discord/1098082266451820544.svg?label=&logo=discord&logoColor=ffffff&color=6A7EC2" alt="Discord" /></a>
+    <img src="https://img.shields.io/github/commit-activity/m/strandedkitty/streets-gl?color=d77bdb" alt="GitHub commit activity">
     <br>
-    <h3><b><a href="https://streets.gl/">streets.gl</a></b></h3>
+    <h3><a href="https://streets.gl/">streets.gl</a></h3>
 </div>
 <br>
 
