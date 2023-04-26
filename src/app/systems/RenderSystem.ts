@@ -170,14 +170,14 @@ export default class RenderSystem extends System {
 		const pass = <GBufferPass>this.passManager.getPass('GBufferPass');
 
 		if (!pass || !controlsSystem.isTilesVisible) {
-			this.systemManager.getSystem(CursorStyleSystem).disablePointer();
+			pickingSystem.clearHoveredObjectId();
 			return;
 		}
 
 		pass.objectIdX = pickingSystem.pointerPosition.x;
 		pass.objectIdY = pickingSystem.pointerPosition.y;
 
-		this.systemManager.getSystem(PickingSystem).readObjectId(pass.objectIdBuffer);
+		pickingSystem.readObjectId(pass.objectIdBuffer);
 	}
 
 	public get resolutionUI(): Vec2 {

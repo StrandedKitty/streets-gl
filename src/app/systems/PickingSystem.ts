@@ -8,12 +8,12 @@ import TileObjectsSystem from "./TileObjectsSystem";
 import TileBuilding from "../world/TileBuilding";
 
 export default class PickingSystem extends System {
-	public pointerPosition: Vec2 = new Vec2();
-	private enablePicking = true;
-	public hoveredObjectId = 0;
-	public selectedObjectId = 0;
+	private enablePicking: boolean = true;
+	private hoveredObjectId: number = 0;
+	private selectedObjectId: number = 0;
+	private pointerDownPosition: Vec2 = new Vec2();
 	public selectedTileBuilding: TileBuilding = null;
-	public pointerDownPosition: Vec2 = new Vec2();
+	public pointerPosition: Vec2 = new Vec2();
 
 	public constructor() {
 		super();
@@ -74,6 +74,11 @@ export default class PickingSystem extends System {
 
 	public readObjectId(buffer: Uint32Array): void {
 		this.hoveredObjectId = buffer[0];
+		this.updatePointer();
+	}
+
+	public clearHoveredObjectId(): void {
+		this.hoveredObjectId = 0;
 		this.updatePointer();
 	}
 

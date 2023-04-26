@@ -65,8 +65,6 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 			return;
 		}
 
-		console.log('double click');
-
 		e.preventDefault();
 
 		const logSpaceDistance = Math.log2(this.distanceTarget);
