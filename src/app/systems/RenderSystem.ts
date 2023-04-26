@@ -27,6 +27,8 @@ import SlippyMapPass from "~/app/render/passes/SlippyMapPass";
 import AbstractTexture2D from "~/lib/renderer/abstract-renderer/AbstractTexture2D";
 import ResourceLoader from "~/app/world/ResourceLoader";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
+import ControlsSystem from "~/app/systems/ControlsSystem";
+import CursorStyleSystem from "~/app/systems/CursorStyleSystem";
 
 export default class RenderSystem extends System {
 	private renderer: AbstractRenderer;
@@ -96,9 +98,15 @@ export default class RenderSystem extends System {
 	}
 
 	public update(deltaTime: number): void {
-		const settings = this.systemManager.getSystem(SettingsSystem).settings;
+		const controlsSystem = this.systemManager.getSystem(ControlsSystem);
 		const sceneSystem = this.systemManager.getSystem(SceneSystem);
+		const settings = this.systemManager.getSystem(SettingsSystem).settings;
 		const tiles = sceneSystem.objects.tiles;
+
+		this.passManager.updateRenderGraph(
+			controlsSystem.isSlippyMapVisible,
+			controlsSystem.isTilesVisible
+		);
 
 		if (settings.get('labels').statusValue === 'on') {
 			sceneSystem.objects.labels.updateFromTiles(tiles, sceneSystem.objects.camera, this.resolutionScene);
@@ -142,10 +150,10 @@ export default class RenderSystem extends System {
 		};
 	}
 
-	public createTileTexture(image: HTMLImageElement, width: number, height: number): AbstractTexture2D {
+	public createTileTexture(image: HTMLImageElement): AbstractTexture2D {
 		return this.renderer.createTexture2D({
-			width: width,
-			height: height,
+			width: image.width,
+			height: image.height,
 			data: image,
 			minFilter: RendererTypes.MinFilter.Linear,
 			magFilter: RendererTypes.MagFilter.Linear,
@@ -157,15 +165,17 @@ export default class RenderSystem extends System {
 	}
 
 	private pickObjectId(): void {
-		const picking = this.systemManager.getSystem(PickingSystem);
+		const pickingSystem = this.systemManager.getSystem(PickingSystem);
+		const controlsSystem = this.systemManager.getSystem(ControlsSystem);
 		const pass = <GBufferPass>this.passManager.getPass('GBufferPass');
 
-		if (!pass) {
+		if (!pass || !controlsSystem.isTilesVisible) {
+			this.systemManager.getSystem(CursorStyleSystem).disablePointer();
 			return;
 		}
 
-		pass.objectIdX = picking.pointerPosition.x;
-		pass.objectIdY = picking.pointerPosition.y;
+		pass.objectIdX = pickingSystem.pointerPosition.x;
+		pass.objectIdY = pickingSystem.pointerPosition.y;
 
 		this.systemManager.getSystem(PickingSystem).readObjectId(pass.objectIdBuffer);
 	}

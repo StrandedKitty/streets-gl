@@ -12,6 +12,7 @@ import CursorStyleSystem from "./CursorStyleSystem";
 import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 import TerrainSystem from "~/app/systems/TerrainSystem";
 import SlippyControlsNavigator from "~/app/controls/SlippyControlsNavigator";
+import RenderSystem from "~/app/systems/RenderSystem";
 
 const WheelZoomFactor = 6;
 
@@ -153,7 +154,7 @@ export default class ControlsSystem extends System {
 	private mouseDownEvent(e: MouseEvent): void {
 		e.preventDefault();
 
-		if (e.button === 1) {
+		if (e.button === 1 && !this.slippyNavigator.isEnabled) {
 			this.wheelZoomScaleTarget = 1;
 		}
 	}
@@ -183,8 +184,20 @@ export default class ControlsSystem extends System {
 		return this.urlHandler.serializeControlsState(this.state);
 	}
 
-	public get drawSlippyMap(): boolean {
+	public get isSlippyMapVisible(): boolean {
 		return this.slippyNavigator.isEnabled;
+	}
+
+	public get isTilesVisible(): boolean {
+		return this.groundNavigator.isEnabled || this.freeNavigator.isEnabled;
+	}
+
+	public get northDirection(): number {
+		if (this.groundNavigator && this.groundNavigator.isEnabled) {
+			return this.groundNavigator.yaw;
+		}
+
+		return 0;
 	}
 
 	public update(deltaTime: number): void {
@@ -192,22 +205,26 @@ export default class ControlsSystem extends System {
 			this.initCameraAndNavigators();
 		}
 
-		if (this.groundNavigator.distance === Config.MaxCameraDistance && this.groundNavigator.isEnabled) {
+		if (this.groundNavigator.distance >= Config.MaxCameraDistance && this.groundNavigator.isEnabled) {
 			this.groundNavigator.disable();
 			this.slippyNavigator.enable();
 			this.slippyNavigator.syncWithCamera(this.groundNavigator);
 
 			this.activeNavigator = this.slippyNavigator;
 			this.mode = NavigationMode.Slippy;
+
+			console.log('to slippy');
 		}
 
-		if (this.slippyNavigator.distance === Config.MaxCameraDistance && this.slippyNavigator.isEnabled) {
+		if (this.slippyNavigator.distance <= Config.MaxCameraDistance && this.slippyNavigator.isEnabled) {
 			this.slippyNavigator.disable();
 			this.groundNavigator.enable();
 			this.groundNavigator.syncWithCamera(this.slippyNavigator);
 
 			this.activeNavigator = this.groundNavigator;
 			this.mode = NavigationMode.Ground;
+
+			console.log('to ground');
 		}
 
 		if (this.activeNavigator) {

@@ -8,19 +8,14 @@ import Vec2 from "~/lib/math/Vec2";
 import Config from "~/app/Config";
 import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 import MathUtils from "~/lib/math/MathUtils";
-
-interface TileQueueItem {
-	x: number;
-	y: number;
-	zoom: number;
-}
+import Vec3 from "~/lib/math/Vec3";
 
 export default class SlippyMapSystem extends System {
 	private readonly viewport: CameraViewport = new CameraViewport();
 	private readonly tileTree: TileTree = new TileTree();
 	private camera: PerspectiveCamera;
 	private tiles: Map<string, TileTreeImage> = new Map();
-	private queue: TileQueueItem[] = [];
+	private queue: Vec3[] = [];
 	private isLoading: boolean = false;
 
 	public postInit(): void {
@@ -44,43 +39,71 @@ export default class SlippyMapSystem extends System {
 	public update(deltaTime: number): void {
 		this.viewport.setFromPerspectiveCamera(this.camera);
 
-		const visibleTiles = this.viewport.getVisibleTiles();
-		const weights: Map<Vec2, number> = new Map();
-		const zoom = Math.floor(this.viewport.zoom);
+		const currentZoom = Math.round(this.viewport.zoom);
+		const visibleTiles = this.viewport.getVisibleTiles(
+			Math.max(0, currentZoom - 1),
+			currentZoom,
+			1
+		);
+		const weights: Map<Vec3, number> = new Map();
 		const cameraNorm = this.getCameraPositionNormalized();
 
 		for (const position of visibleTiles) {
 			const center = new Vec2(
-				(position.x + 0.5) / (2 ** zoom),
-				(position.y + 0.5) / (2 ** zoom)
+				(position.x + 0.5) / (2 ** position.z),
+				(position.y + 0.5) / (2 ** position.z)
 			);
-			const dst = Vec2.distance(center, cameraNorm);
+			const distance = Vec2.distance(center, cameraNorm);
+			const zoomFactor = (position.z - currentZoom) * 10;
 
-			weights.set(position, dst);
+			weights.set(position, distance + zoomFactor);
 		}
 
 		visibleTiles.sort((a, b) => {
 			return weights.get(b) - weights.get(a);
 		});
 
-		for (const {x, y} of visibleTiles) {
-			if (this.tiles.has(`${x},${y},${zoom}`)) {
+		this.deleteUnusedTiles(visibleTiles);
+
+		this.queue.length = 0;
+
+		for (const position of visibleTiles) {
+			const key = SlippyMapSystem.packVec3(position);
+
+			if (this.tiles.has(key)) {
 				continue;
 			}
 
-			this.queue.push({
-				x,
-				y,
-				zoom
-			});
-		}
-
-		if (this.queue.length > 50) {
-			this.queue = this.queue.slice(-50);
+			this.queue.push(position);
 		}
 
 		if (this.queue.length > 0 && !this.isLoading) {
 			this.processQueue();
+		}
+	}
+
+	private deleteUnusedTiles(visibleTiles: Vec3[]): void {
+		const maxTiles = 150;
+
+		if (this.tiles.size <= maxTiles) {
+			return;
+		}
+
+		const visibleTilesSet = new Set<string>();
+
+		for (const tile of visibleTiles) {
+			visibleTilesSet.add(SlippyMapSystem.packVec3(tile));
+		}
+
+		for (const tile of this.tiles.values()) {
+			const key = SlippyMapSystem.packVec3(new Vec3(tile.x, tile.y, tile.zoom));
+
+			if (!visibleTilesSet.has(key)) {
+				this.tiles.delete(key);
+				tile.parent.onTileRemoved();
+				tile.texture.delete();
+				break;
+			}
 		}
 	}
 
@@ -102,26 +125,27 @@ export default class SlippyMapSystem extends System {
 		this.isLoading = false;
 	}
 
-	private async loadTile(item: TileQueueItem): Promise<void> {
-		const {x, y, zoom} = item;
+	private async loadTile(item: Vec3): Promise<void> {
+		const {x, y, z} = item;
 
 		const image = new Image();
-		image.src = `https://tile.openstreetmap.org/${zoom}/${x}/${y}.png`;
+		image.src = `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
 		image.crossOrigin = "";
 
 		return new Promise((resolve) => {
 			image.onload = (): void => {
-				const texture = this.systemManager.getSystem(RenderSystem).createTileTexture(image, image.width, image.height);
+				const texture = this.systemManager.getSystem(RenderSystem).createTileTexture(image);
 				const tile = {
 					x,
 					y,
-					zoom,
+					zoom: z,
 					image: image,
 					texture: texture
 				};
+				const key = SlippyMapSystem.packVec3(item);
 
 				this.tileTree.insert(tile);
-				this.tiles.set(`${x},${y},${zoom}`, tile);
+				this.tiles.set(key, tile);
 
 				resolve();
 			}
@@ -129,5 +153,9 @@ export default class SlippyMapSystem extends System {
 				resolve();
 			}
 		});
+	}
+
+	private static packVec3(vec: Vec3): string {
+		return `${vec.x},${vec.y},${vec.z}`;
 	}
 }

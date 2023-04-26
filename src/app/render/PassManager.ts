@@ -126,65 +126,78 @@ export default class PassManager {
 		return this.systemManager.getSystem(MapTimeSystem);
 	}
 
-	public listenToSettings(): void {
+	private getScreenHDRInput(): RenderPassResource {
 		const settings = this.systemManager.getSystem(SettingsSystem).settings;
 
-		const updateDoFBloomTAA = (): void => {
-			const taaEnabled = settings.get('taa').statusValue !== 'off';
-			const dofEnabled = settings.get('dof').statusValue !== 'off';
-			const bloomEnabled = settings.get('bloom').statusValue !== 'off';
-			let screenPassHDRResource: RenderPassResource;
-			let bloomPassColorResource: RenderPassResource;
+		const taaEnabled = settings.get('taa').statusValue !== 'off';
+		const dofEnabled = settings.get('dof').statusValue !== 'off';
+		const bloomEnabled = settings.get('bloom').statusValue !== 'off';
+		let screenPassHDRResource: RenderPassResource;
 
-			if (bloomEnabled) {
-				screenPassHDRResource = this.getSharedResource('Bloom');
-			} else if (dofEnabled) {
-				screenPassHDRResource = this.getSharedResource('DoF');
-			} else if (taaEnabled) {
-				screenPassHDRResource = this.getSharedResource('HDRAntialiased');
-			} else {
-				screenPassHDRResource = this.getSharedResource('HDR');
-			}
+		if (bloomEnabled) {
+			screenPassHDRResource = this.getSharedResource('Bloom');
+		} else if (dofEnabled) {
+			screenPassHDRResource = this.getSharedResource('DoF');
+		} else if (taaEnabled) {
+			screenPassHDRResource = this.getSharedResource('HDRAntialiased');
+		} else {
+			screenPassHDRResource = this.getSharedResource('HDR');
+		}
 
-			if (dofEnabled) {
-				bloomPassColorResource = this.getSharedResource('DoF');
-			} else if (taaEnabled) {
-				bloomPassColorResource = this.getSharedResource('HDRAntialiased');
-			} else {
-				bloomPassColorResource = this.getSharedResource('HDR');
-			}
+		return screenPassHDRResource;
+	}
 
-			this.getPass('ScreenPass').setResource('HDR', screenPassHDRResource);
-			this.getPass('BloomPass').setResource('Color', bloomPassColorResource);
-		};
+	private getScreenLabelsInput(): RenderPassResource {
+		const settings = this.systemManager.getSystem(SettingsSystem).settings;
+		const labelsEnabled = settings.get('labels').statusValue === 'on';
+
+		return labelsEnabled ? this.getSharedResource('Labels') : null;
+	}
+
+	private getBloomColorInput(): RenderPassResource {
+		const settings = this.systemManager.getSystem(SettingsSystem).settings;
+
+		const taaEnabled = settings.get('taa').statusValue !== 'off';
+		const dofEnabled = settings.get('dof').statusValue !== 'off';
+		let bloomPassColorResource: RenderPassResource;
+
+		if (dofEnabled) {
+			bloomPassColorResource = this.getSharedResource('DoF');
+		} else if (taaEnabled) {
+			bloomPassColorResource = this.getSharedResource('HDRAntialiased');
+		} else {
+			bloomPassColorResource = this.getSharedResource('HDR');
+		}
+
+		return bloomPassColorResource;
+	}
+
+	public listenToSettings(): void {
+		const settings = this.systemManager.getSystem(SettingsSystem).settings;
 
 		settings.onChange('ssao', ({statusValue}) => {
 			const shadingPassSSAOResource = statusValue === 'on' ? this.getSharedResource('SSAOResult') : null;
 			this.getPass('ShadingPass').setResource('SSAO', shadingPassSSAOResource);
 		}, true);
+
 		settings.onChange('shadows', ({statusValue}) => {
 			const shadingPassShadowMapsResource = statusValue !== 'off' ? this.getSharedResource('ShadowMaps') : null;
 			this.getPass('ShadingPass').setResource('ShadowMaps', shadingPassShadowMapsResource);
 		}, true);
-		settings.onChange('dof', () => {
-			updateDoFBloomTAA();
-		}, true);
-		settings.onChange('bloom', () => {
-			updateDoFBloomTAA();
-		}, true);
-		settings.onChange('taa', () => {
-			updateDoFBloomTAA();
-		}, true);
+
 		settings.onChange('ssr', ({statusValue}) => {
 			const shadingPassSSRResource = statusValue !== 'off' ? this.getSharedResource('SSR') : null;
 			this.getPass('ShadingPass').setResource('SSR', shadingPassSSRResource);
 
 			this.getSharedResource('SSR').isUsedExternally = statusValue !== 'off';
 		}, true);
-		settings.onChange('labels', ({statusValue}) => {
-			const screenPassLabels = statusValue === 'on' ? this.getSharedResource('Labels') : null;
-			this.getPass('ScreenPass').setResource('Labels', screenPassLabels);
-		}, true);
+	}
+
+	public updateRenderGraph(slippyMapVisible: boolean, tilesVisible: boolean): void {
+		this.getPass('ScreenPass').setResource('HDR', tilesVisible ? this.getScreenHDRInput() : null);
+		this.getPass('ScreenPass').setResource('Labels', tilesVisible ? this.getScreenLabelsInput() : null);
+		this.getPass('ScreenPass').setResource('SlippyMap', slippyMapVisible ? this.sharedResources.get('SlippyMap') : null);
+		this.getPass('BloomPass').setResource('Color', this.getBloomColorInput());
 	}
 
 	private initSharedResources(): void {

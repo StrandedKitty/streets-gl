@@ -1,10 +1,11 @@
 import Root from "./Root";
-import {UIActions, UISystemState} from "../systems/UISystem";
 import React from "react";
 import { createRoot } from 'react-dom/client';
 import {RecoilRoot} from "recoil";
 import {AtomsCollection} from "~/app/ui/state/atoms";
 import {StateStorage} from "~/app/ui/state/utils";
+import UISystemState from "~/app/ui/UISystemState";
+import UIActions from "~/app/ui/UIActions";
 
 type Listeners = {
 	[Key in keyof UISystemState]?: ((value: UISystemState[Key]) => void)[];

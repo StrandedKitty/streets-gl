@@ -1,6 +1,7 @@
 import Vec2 from "~/lib/math/Vec2";
 import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 import MathUtils from "~/lib/math/MathUtils";
+import Vec3 from "~/lib/math/Vec3";
 
 export default class CameraViewport {
 	public min: Vec2 = new Vec2();
@@ -35,22 +36,25 @@ export default class CameraViewport {
 		this.max.set(max.x, max.y);
 	}
 
-	public getVisibleTiles(): Vec2[] {
-		const tiles: Vec2[] = [];
-		const size = 2 ** Math.floor(this.zoom);
+	public getVisibleTiles(zoomMin: number, zoomMax: number, padding: number): Vec3[] {
+		const tiles: Vec3[] = [];
 
-		const minX = Math.floor(this.min.x * size);
-		const maxX = Math.floor(this.max.x * size);
-		const minY = Math.floor(this.min.y * size);
-		const maxY = Math.floor(this.max.y * size);
+		for (let zoom = zoomMin; zoom <= zoomMax; zoom++) {
+			const size = 2 ** zoom;
 
-		for (let x = minX; x <= maxX; x++) {
-			for (let y = minY; y <= maxY; y++) {
-				if (x < 0 || y < 0 || x >= size || y >= size) {
-					continue;
+			const minX = Math.floor(this.min.x * size) - padding;
+			const maxX = Math.floor(this.max.x * size) + padding;
+			const minY = Math.floor(this.min.y * size) - padding;
+			const maxY = Math.floor(this.max.y * size) + padding;
+
+			for (let x = minX; x <= maxX; x++) {
+				for (let y = minY; y <= maxY; y++) {
+					if (x < 0 || y < 0 || x >= size || y >= size) {
+						continue;
+					}
+
+					tiles.push(new Vec3(x, y, zoom));
 				}
-
-				tiles.push(new Vec2(x, y));
 			}
 		}
 

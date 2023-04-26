@@ -54,6 +54,26 @@ export default class ScreenPass extends Pass<{
 		return texture;
 	}
 
+	private getHDRTexture(): AbstractTexture2D | null {
+		let texture = null;
+
+		if (this.getResource('HDR')) {
+			texture = <AbstractTexture2D>this.getPhysicalResource('HDR').colorAttachments[0].texture;
+		}
+
+		return texture;
+	}
+
+	private getSlippyMapTexture(): AbstractTexture2D | null {
+		let texture = null;
+
+		if (this.getResource('SlippyMap')) {
+			texture = <AbstractTexture2D>this.getPhysicalResource('SlippyMap').colorAttachments[0].texture;
+		}
+
+		return texture;
+	}
+
 	private updateMaterialDefines(): void {
 		let needsRecompilation = false;
 
@@ -76,17 +96,14 @@ export default class ScreenPass extends Pass<{
 	public render(): void {
 		this.updateMaterialDefines();
 
-		const drawSlippyMap = this.manager.systemManager.getSystem(ControlsSystem).drawSlippyMap;
-
-		const sourceTexture = <AbstractTexture2D>this.getPhysicalResource('HDR').colorAttachments[0].texture;
-		const labelsTexture = this.getLabelsTexture();
+		const drawSlippyMap = this.manager.systemManager.getSystem(ControlsSystem).isSlippyMapVisible;
 		const uiResolution = this.manager.renderSystem.resolutionUI;
 
 		this.renderer.beginRenderPass(this.getPhysicalResource('Output'));
 
-		this.material.getUniform('tHDR').value = sourceTexture;
-		this.material.getUniform('tLabels').value = labelsTexture;
-		this.material.getUniform('tSlippyMap').value = <AbstractTexture2D>this.getPhysicalResource('SlippyMap').colorAttachments[0].texture;
+		this.material.getUniform('tHDR').value = this.getHDRTexture();
+		this.material.getUniform('tLabels').value = this.getLabelsTexture();
+		this.material.getUniform('tSlippyMap').value = this.getSlippyMapTexture();
 		this.material.getUniform<UniformFloat2>('resolution', 'Uniforms').value[0] = uiResolution.x;
 		this.material.getUniform<UniformFloat2>('resolution', 'Uniforms').value[1] = uiResolution.y;
 		this.material.getUniform<UniformFloat1>('slippyMapFactor', 'Uniforms').value[0] = drawSlippyMap ? 1 : 0;

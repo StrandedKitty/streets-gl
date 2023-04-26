@@ -31,6 +31,7 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 
 	private addEventListeners(): void {
 		this.element.addEventListener('mousedown', (e: MouseEvent) => this.mouseDownEvent(e));
+		this.element.addEventListener('dblclick', (e: MouseEvent) => this.doubleClickEvent(e));
 		this.element.addEventListener('mouseleave', (e: MouseEvent) => this.mouseLeaveEvent(e));
 		this.element.addEventListener('mouseup', (e: MouseEvent) => this.mouseUpEvent(e));
 		this.element.addEventListener('mousemove', (e: MouseEvent) => this.mouseMoveEvent(e));
@@ -44,15 +45,62 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 	}
 
 	private mouseDownEvent(e: MouseEvent): void {
+		e.preventDefault();
+
+		if (e.button !== 0) {
+			return;
+		}
+
 		this.isPointerDown = true;
+
+		if (!this.isEnabled) {
+			return;
+		}
+
+		this.cursorStyleSystem.enableGrabbing();
+	}
+
+	private doubleClickEvent(e: MouseEvent): void {
+		if (!this.isEnabled) {
+			return;
+		}
+
+		console.log('double click');
+
+		e.preventDefault();
+
+		const logSpaceDistance = Math.log2(this.distanceTarget);
+		const newLogSpaceDistance = logSpaceDistance - 1.;
+
+		this.distanceTarget = MathUtils.clamp(
+			2 ** newLogSpaceDistance,
+			0,
+			this.getMaxHeight()
+		);
 	}
 
 	private mouseLeaveEvent(e: MouseEvent): void {
 		this.isPointerDown = false;
+
+		if (!this.isEnabled) {
+			return;
+		}
+
+		this.cursorStyleSystem.disableGrabbing();
 	}
 
 	private mouseUpEvent(e: MouseEvent): void {
+		if (e.button !== 0) {
+			return;
+		}
+
 		this.isPointerDown = false;
+
+		if (!this.isEnabled) {
+			return;
+		}
+
+		this.cursorStyleSystem.disableGrabbing();
 	}
 
 	private mouseMoveEvent(e: MouseEvent): void {
@@ -61,7 +109,7 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 
 		this.pointerPosition.set(pointerX, pointerY);
 
-		if (!this.isPointerDown) {
+		if (!this.isPointerDown || !this.isEnabled) {
 			return;
 		}
 
@@ -79,12 +127,13 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 
 		e.preventDefault();
 
+		const zoomSpeed = Config.CameraZoomSpeed * (e.ctrlKey ? Config.CameraZoomTrackpadFactor : 1);
 		const logSpaceDistance = Math.log2(this.distanceTarget);
-		const newLogSpaceDistance = logSpaceDistance + e.deltaY * 0.0005;
+		const newLogSpaceDistance = logSpaceDistance + e.deltaY * zoomSpeed;
 
 		this.distanceTarget = MathUtils.clamp(
 			2 ** newLogSpaceDistance,
-			Config.MaxCameraDistance,
+			0,
 			this.getMaxHeight()
 		);
 	}
@@ -137,7 +186,7 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 	public syncWithCamera(prevNavigator: ControlsNavigator): void {
 		if (prevNavigator instanceof GroundControlsNavigator) {
 			this.position.set(this.camera.position.x, this.camera.position.z);
-			this.distance = this.distanceTarget = this.camera.position.y;
+			this.distance = this.distanceTarget = prevNavigator.distance + 1;
 		} else {
 			this.position.set(this.camera.position.x, this.camera.position.z);
 			this.distance = this.distanceTarget = this.getMaxHeight();
@@ -150,7 +199,7 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 
 	public syncWithState(state: ControlsState): void {
 		this.position.set(state.x, state.z);
-		this.distance = this.distanceTarget = state.distance;
+		this.distance = this.distanceTarget = 100000;
 	}
 
 	public getCurrentState(): ControlsState {

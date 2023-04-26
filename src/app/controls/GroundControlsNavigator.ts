@@ -18,8 +18,8 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 	private direction: Vec3 = new Vec3();
 	public distance: number = 0;
 	private distanceTarget: number = 0;
-	private pitch: number = MathUtils.toRad(45);
-	private yaw: number = MathUtils.toRad(0);
+	public pitch: number = MathUtils.toRad(45);
+	public yaw: number = MathUtils.toRad(0);
 	private isLMBDown: boolean = false;
 	private isRMBDown: boolean = false;
 	private LMBDownPosition: Vec2 = null;
@@ -149,8 +149,9 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 
 		e.preventDefault();
 
+		const zoomSpeed = Config.CameraZoomSpeed * (e.ctrlKey ? Config.CameraZoomTrackpadFactor : 1);
 		const logSpaceDistance = Math.log2(this.distanceTarget);
-		const newLogSpaceDistance = logSpaceDistance + e.deltaY * 0.0005;
+		const newLogSpaceDistance = logSpaceDistance + e.deltaY * zoomSpeed;
 
 		this.distanceTarget = MathUtils.clamp(
 			2 ** newLogSpaceDistance,

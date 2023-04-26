@@ -5,15 +5,17 @@ export default class TileTreeNode {
 	public x: number;
 	public y: number;
 	public zoom: number;
-	public children: TileTreeNode[] = [
+	private parent: TileTreeNode;
+	private children: TileTreeNode[] = [
 		null, null, null, null
 	];
-	public tile: TileTreeImage = null;
+	private tile: TileTreeImage = null;
 
-	public constructor(x: number, y: number, zoom: number) {
+	public constructor(x: number, y: number, zoom: number, parent: TileTreeNode = null) {
 		this.x = x;
 		this.y = y;
 		this.zoom = zoom;
+		this.parent = parent;
 	}
 
 	public insert(tile: TileTreeImage): void {
@@ -24,11 +26,33 @@ export default class TileTreeNode {
 		const tileY = Math.floor(tileYNorm * Math.pow(2, this.zoom));
 
 		if (this.zoom === tile.zoom && this.x === tileX && this.y === tileY) {
+			tile.parent = this;
 			this.tile = tile;
 			return;
 		}
 
 		this.fetchOrCreateChild(tile.x, tile.y, tile.zoom).insert(tile);
+	}
+
+	public onTileRemoved(): void {
+		this.tile = null;
+		this.tryRemoveSelf();
+	}
+
+	private tryRemoveSelf(): void {
+		if (!this.tile && this.children.every((child) => child === null)) {
+			this.parent.removeChild(this);
+		}
+	}
+
+	public removeChild(child: TileTreeNode): void {
+		const childIndex = this.children.indexOf(child);
+
+		if (childIndex !== -1) {
+			this.children[childIndex] = null;
+		}
+
+		this.tryRemoveSelf();
 	}
 
 	private fetchOrCreateChild(x: number, y: number, zoom: number): TileTreeNode {
@@ -46,7 +70,7 @@ export default class TileTreeNode {
 			return child;
 		}
 
-		const newChild = new TileTreeNode(childX, childY, childZoom);
+		const newChild = new TileTreeNode(childX, childY, childZoom, this);
 		this.children[childIndex] = newChild;
 
 		return newChild;

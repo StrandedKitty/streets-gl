@@ -4,57 +4,16 @@ import UI from "../ui/UI";
 import RenderSystem from "./RenderSystem";
 import * as RG from "~/lib/render-graph";
 import ControlsSystem from "./ControlsSystem";
-import SceneSystem from "~/app/systems/SceneSystem";
-import Vec3 from "~/lib/math/Vec3";
-import Vec2 from "~/lib/math/Vec2";
 import {getAtoms} from "~/app/ui/state/atoms";
 import MapTimeSystem from "~/app/systems/MapTimeSystem";
 import PickingSystem from "~/app/systems/PickingSystem";
 import SettingsSystem from "~/app/systems/SettingsSystem";
 import SettingsStorageDecorator from "~/app/settings/SettingsStorageDecorator";
-import {SettingsSchema} from "~/app/settings/SettingsSchema";
 import Utils from "~/app/Utils";
 import TileLoadingSystem, {OverpassEndpoint} from "~/app/systems/TileLoadingSystem";
-
-export interface RenderGraphSnapshot {
-	graph: {
-		type: 'resource' | 'pass';
-		name: string;
-		metadata: Record<string, string>;
-		localResources?: Record<string, string>[];
-		prev: string[];
-		next: string[];
-	}[];
-	passOrder: string[];
-}
-
-export interface UISystemState {
-	activeFeature: {type: number; id: number};
-	fps: number;
-	fpsSmooth: number;
-	frameTime: number;
-	frameTimeSmooth: number;
-	mapTime: number;
-	mapTimeMultiplier: number;
-	mapTimeMode: number;
-	renderGraph: RenderGraphSnapshot;
-	resourcesLoadingProgress: number;
-	resourceInProgressPath: string;
-	northDirection: number;
-	settingsSchema: SettingsSchema;
-	overpassEndpoints: OverpassEndpoint[];
-}
-
-export interface UIActions {
-	updateRenderGraph: () => void;
-	goToLatLon: (lat: number, lon: number) => void;
-	lookAtNorth: () => void;
-	setTime: (time: number) => void;
-	resetSettings: () => void;
-	setOverpassEndpoints: (endpoints: OverpassEndpoint[]) => void;
-	resetOverpassEndpoints: () => void;
-	getControlsStateHash: () => string;
-}
+import UISystemState from "~/app/ui/UISystemState";
+import RenderGraphSnapshot from "~/app/ui/RenderGraphSnapshot";
+import UIActions from "~/app/ui/UIActions";
 
 const FPSUpdateInterval = 0.4;
 
@@ -237,7 +196,26 @@ export default class UISystem extends System {
 		return 2;
 	}
 
-	public update(deltaTime: number): void {
+	private updateNorthDirection(): void {
+		const controlsSystem = this.systemManager.getSystem(ControlsSystem);
+		if (controlsSystem) {
+			this.ui.setStateFieldValue('northDirection', Math.round(-MathUtils.toDeg(controlsSystem.northDirection)));
+		}
+	}
+
+	private updateOverpassEndpoints(): void {
+		const tileLoadingSystem = this.systemManager.getSystem(TileLoadingSystem);
+		if (tileLoadingSystem) {
+			this.ui.setStateFieldValue('overpassEndpoints', tileLoadingSystem.overpassEndpoints);
+		}
+	}
+
+	private updateMapTime(deltaTime: number): void {
+		const newMapTime = this.state.mapTime + deltaTime * 1000 * this.state.mapTimeMultiplier;
+		this.ui.setStateFieldValue('mapTime', newMapTime);
+	}
+
+	private updateFPS(deltaTime: number): void {
 		const newFps = Math.min(Math.round(1 / deltaTime), 1e3);
 		this.ui.setStateFieldValue('fps', MathUtils.lerp(this.state.fps, newFps, 0.1));
 
@@ -248,22 +226,12 @@ export default class UISystem extends System {
 		}
 
 		this.fpsUpdateTimer += deltaTime;
+	}
 
-		const newMapTime = this.state.mapTime + deltaTime * 1000 * this.state.mapTimeMultiplier;
-		this.ui.setStateFieldValue('mapTime', newMapTime);
-
-		const scene = this.systemManager.getSystem(SceneSystem);
-
-		if (scene) {
-			const dir = Vec3.applyMatrix4(new Vec3(0, 0, -1), scene.objects.camera.matrixWorld);
-			const angle = new Vec2(dir.x, dir.z).getAngle();
-			this.ui.setStateFieldValue('northDirection', Math.round(-MathUtils.toDeg(angle)));
-		}
-
-		const tileLoadingSystem = this.systemManager.getSystem(TileLoadingSystem);
-
-		if (tileLoadingSystem) {
-			this.ui.setStateFieldValue('overpassEndpoints', tileLoadingSystem.overpassEndpoints);
-		}
+	public update(deltaTime: number): void {
+		this.updateFPS(deltaTime);
+		this.updateMapTime(deltaTime);
+		this.updateOverpassEndpoints();
+		this.updateNorthDirection();
 	}
 }

@@ -29,7 +29,7 @@ export default class MapWorkerSystem extends System {
 			return heights;
 		};
 
-		for (let i = 0; i < Config.WebWorkersNumber; i++) {
+		for (let i = 0; i < Config.WorkersCount; i++) {
 			this.workers.push(new MapWorker(getTerrainHeight));
 		}
 	}
