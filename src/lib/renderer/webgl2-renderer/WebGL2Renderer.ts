@@ -35,7 +35,7 @@ export default class WebGL2Renderer implements AbstractRenderer {
 	private cullingModeState: RendererTypes.CullMode = RendererTypes.CullMode.Back;
 	private depthWriteState: boolean = true;
 	private depthTestState: boolean = false;
-	private depthFuncState: RendererTypes.DepthCompare = RendererTypes.DepthCompare.LessEqual;
+	private depthFuncState: RendererTypes.DepthCompare = RendererTypes.DepthCompare.Less;
 	private depthBiasEnabled: boolean = false;
 	private depthBiasConstant: number = 0;
 	private depthBiasSlopeScale: number = 0;
@@ -127,20 +127,18 @@ export default class WebGL2Renderer implements AbstractRenderer {
 	}
 
 	public useMaterial(material: WebGL2Material): void {
-		if (this.boundMaterial !== material) {
-			material.use();
+		material.use();
 
-			this.culling = material.primitive.cullMode !== RendererTypes.CullMode.None;
-			this.cullingMode = material.primitive.cullMode;
-			this.frontFace = material.primitive.frontFace;
-			this.depthTest = material.depth.depthCompare !== RendererTypes.DepthCompare.Always;
-			this.depthFunc = material.depth.depthCompare;
-			this.depthWrite = material.depth.depthWrite;
-			this.setDepthBias(material.depth.depthBiasSlopeScale, material.depth.depthBiasConstant);
-			this.setBlend(material.blend);
+		this.culling = material.primitive.cullMode !== RendererTypes.CullMode.None;
+		this.cullingMode = material.primitive.cullMode;
+		this.frontFace = material.primitive.frontFace;
+		this.depthTest = material.depth.depthCompare !== RendererTypes.DepthCompare.Always;
+		this.depthFunc = material.depth.depthCompare;
+		this.depthWrite = material.depth.depthWrite;
+		this.setDepthBias(material.depth.depthBiasSlopeScale, material.depth.depthBiasConstant);
+		this.setBlend(material.blend);
 
-			this.boundMaterial = material;
-		}
+		this.boundMaterial = material;
 	}
 
 	public set frontFace(state: RendererTypes.FrontFace) {
@@ -180,7 +178,7 @@ export default class WebGL2Renderer implements AbstractRenderer {
 
 		if (state === RendererTypes.CullMode.Front) {
 			this.gl.cullFace(WebGL2Constants.FRONT);
-		} else {
+		} else if (state === RendererTypes.CullMode.Back) {
 			this.gl.cullFace(WebGL2Constants.BACK);
 		}
 	}

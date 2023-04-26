@@ -243,7 +243,6 @@ export default class SceneSystem extends System {
 
 		this.objects.wrapper.position.x = -cameraPos.x;
 		this.objects.wrapper.position.z = -cameraPos.z;
-
 		this.objects.wrapper.updateMatrix();
 
 		this.objects.skybox.position.set(cameraPos.x, cameraPos.y, cameraPos.z);
@@ -258,7 +257,7 @@ export default class SceneSystem extends System {
 
 		this.updateTiles();
 
-		this.scene.updateMatrixRecursively();
+		//this.scene.updateMatrixRecursively();
 		this.scene.updateMatrixWorldRecursively();
 
 		this.objects.camera.updateMatrixWorldInverse();

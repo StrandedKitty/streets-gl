@@ -46,8 +46,8 @@ export default class ScreenMaterialContainer extends MaterialContainer {
 				cullMode: RendererTypes.CullMode.Back
 			},
 			depth: {
-				depthWrite: true,
-				depthCompare: RendererTypes.DepthCompare.LessEqual
+				depthWrite: false,
+				depthCompare: RendererTypes.DepthCompare.Always
 			},
 			blend: {
 				color: {

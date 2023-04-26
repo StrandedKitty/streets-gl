@@ -193,7 +193,7 @@ export default class UISystem extends System {
 			return parseInt(saved);
 		}
 
-		return 2;
+		return 1;
 	}
 
 	private updateNorthDirection(): void {

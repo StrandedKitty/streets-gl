@@ -126,6 +126,22 @@ export default class ControlsSystem extends System {
 	}
 
 	private updatePositionFromState(state: ControlsState): void {
+		if (state.distance < Config.MaxCameraDistance && this.slippyNavigator.isEnabled) {
+			this.slippyNavigator.disable();
+			this.groundNavigator.enable();
+
+			this.activeNavigator = this.groundNavigator;
+			this.mode = NavigationMode.Ground;
+		}
+
+		if (state.distance > Config.MaxCameraDistance && this.groundNavigator.isEnabled) {
+			this.groundNavigator.disable();
+			this.slippyNavigator.enable();
+
+			this.activeNavigator = this.slippyNavigator;
+			this.mode = NavigationMode.Slippy;
+		}
+
 		if (this.activeNavigator) {
 			this.activeNavigator.syncWithState(state);
 		}
@@ -212,8 +228,6 @@ export default class ControlsSystem extends System {
 
 			this.activeNavigator = this.slippyNavigator;
 			this.mode = NavigationMode.Slippy;
-
-			console.log('to slippy');
 		}
 
 		if (this.slippyNavigator.distance <= Config.MaxCameraDistance && this.slippyNavigator.isEnabled) {
@@ -223,8 +237,6 @@ export default class ControlsSystem extends System {
 
 			this.activeNavigator = this.groundNavigator;
 			this.mode = NavigationMode.Ground;
-
-			console.log('to ground');
 		}
 
 		if (this.activeNavigator) {

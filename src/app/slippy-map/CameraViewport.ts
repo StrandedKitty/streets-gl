@@ -27,7 +27,7 @@ export default class CameraViewport {
 		if (projectionHeightNorm === 0) {
 			this.zoom = 0;
 		} else {
-			this.zoom = Math.log2(1 / projectionHeightNorm) + 2;
+			this.zoom = Math.log2(1 / projectionHeightNorm) + 1.5;
 		}
 
 		this.zoom = MathUtils.clamp(this.zoom, 0, 16);

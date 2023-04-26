@@ -9,6 +9,7 @@ import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 import TerrainHeightProvider from "~/app/terrain/TerrainHeightProvider";
 import FreeControlsNavigator from "~/app/controls/FreeControlsNavigator";
 import Mat4 from "~/lib/math/Mat4";
+import SlippyControlsNavigator from "~/app/controls/SlippyControlsNavigator";
 
 export default class GroundControlsNavigator extends ControlsNavigator {
 	private readonly camera: PerspectiveCamera;
@@ -197,10 +198,6 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 	}
 
 	private keyUpEvent(e: KeyboardEvent): void {
-		if (!this.isEnabled) {
-			return;
-		}
-
 		switch (e.code) {
 			case 'KeyW':
 				this.forwardKeyPressed = false;
@@ -330,13 +327,12 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 			this.distance = this.distanceTarget = Config.MaxCameraDistance * 0.5;
 			this.target.set(this.camera.position.x, 0, this.camera.position.z);
 			this.updateTargetHeightFromHeightmap();
-		} else {
+		} else if (prevNavigator instanceof SlippyControlsNavigator) {
 			this.yaw = 0;
 			this.pitch = MathUtils.toRad(Config.MaxCameraPitch);
 			this.target.set(this.camera.position.x, 0, this.camera.position.z);
 			this.updateTargetHeightFromHeightmap();
-			this.distance = this.camera.position.y;
-			this.distance = this.distanceTarget = this.camera.position.y - 1;
+			this.distance = this.distanceTarget = prevNavigator.distance - 1;
 			this.camera.near = 10;
 			this.camera.far = 100000;
 			this.camera.updateProjectionMatrix();

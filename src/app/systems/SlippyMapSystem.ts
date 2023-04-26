@@ -22,14 +22,51 @@ export default class SlippyMapSystem extends System {
 		this.camera = this.systemManager.getSystem(SceneSystem).objects.camera;
 	}
 
-	public getRenderedTiles(): TileTreeImage[] {
-		const tiles = this.tileTree.getLeafs(this.viewport);
+	private getTileImageRecursive(x: number, y: number, zoom: number): TileTreeImage {
+		const key = SlippyMapSystem.packVec3(new Vec3(x, y, zoom));
 
-		tiles.sort((a, b) => {
+		if (this.tiles.has(key) || zoom === 0) {
+			return this.tiles.get(key);
+		}
+
+		const parentX = Math.floor(x / 2);
+		const parentY = Math.floor(y / 2);
+		const parentZoom = zoom - 1;
+
+		return this.getTileImageRecursive(parentX, parentY, parentZoom);
+	}
+
+	public getRenderedTiles(): TileTreeImage[] {
+		const tiles: TileTreeImage[] = [];
+		const zoom = Math.round(this.viewport.zoom);
+
+		const visibleTiles = this.viewport.getVisibleTiles(zoom, zoom, 0);
+
+		for (const tile of visibleTiles) {
+			const image = this.getTileImageRecursive(tile.x, tile.y, tile.z);
+
+			if (image) {
+				tiles.push(image);
+			}
+		}
+
+		const tilesSet = new Set<string>();
+		const uniqueTiles: TileTreeImage[] = [];
+
+		for (const tile of tiles) {
+			const key = SlippyMapSystem.packVec3(new Vec3(tile.x, tile.y, tile.zoom));
+
+			if (!tilesSet.has(key)) {
+				uniqueTiles.push(tile);
+				tilesSet.add(key);
+			}
+		}
+
+		uniqueTiles.sort((a, b) => {
 			return a.zoom - b.zoom;
 		});
 
-		return tiles;
+		return uniqueTiles;
 	}
 
 	private getCameraPositionNormalized(): Vec2 {
@@ -63,7 +100,7 @@ export default class SlippyMapSystem extends System {
 			return weights.get(b) - weights.get(a);
 		});
 
-		this.deleteUnusedTiles(visibleTiles);
+		//this.deleteUnusedTiles(visibleTiles);
 
 		this.queue.length = 0;
 

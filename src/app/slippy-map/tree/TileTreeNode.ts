@@ -82,49 +82,4 @@ export default class TileTreeNode {
 
 		return x + y * 2;
 	}
-
-	public getLeafs(viewport: CameraViewport, arr: TileTreeImage[] = []): TileTreeImage[] {
-		if (!this.intersectsViewport(viewport)) {
-			return arr;
-		}
-
-		let childSkipped = false;
-
-		for (const child of this.children) {
-			if (child === null || !child.intersectsViewport(viewport)) {
-				childSkipped = true;
-			}
-
-			if (child !== null) {
-				child.getLeafs(viewport, arr);
-			}
-		}
-
-		if (childSkipped && this.tile) {
-			arr.push(this.tile);
-		}
-
-		return arr;
-	}
-
-	public intersectsViewport(viewport: CameraViewport): boolean {
-		if (this.zoom > Math.floor(viewport.zoom)) {
-			return false;
-		}
-
-		const tileSize = 1 / Math.pow(2, this.zoom);
-
-		const minX = this.x * tileSize;
-		const minY = this.y * tileSize;
-
-		const maxX = minX + tileSize;
-		const maxY = minY + tileSize;
-
-		return (
-			minX <= viewport.max.x &&
-			maxX >= viewport.min.x &&
-			minY <= viewport.max.y &&
-			maxY >= viewport.min.y
-		);
-	}
 }

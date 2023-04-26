@@ -197,14 +197,14 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 
 	public syncWithState(state: ControlsState): void {
 		this.position.set(state.x, state.z);
-		this.distance = this.distanceTarget = 100000;
+		this.distance = this.distanceTarget = state.distance;
 	}
 
 	public getCurrentState(): ControlsState {
 		return {
 			x: this.position.x,
 			z: this.position.y,
-			pitch: 0,
+			pitch: MathUtils.toRad(Config.MaxCameraPitch),
 			yaw: 0,
 			distance: this.distance
 		};
