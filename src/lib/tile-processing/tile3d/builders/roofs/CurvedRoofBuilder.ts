@@ -7,126 +7,42 @@ import {Tile3DRingType} from "~/lib/tile-processing/tile3d/builders/Tile3DRing";
 import {signedDstToLine} from "~/lib/tile-processing/tile3d/builders/utils";
 
 export default abstract class CurvedRoofBuilder implements RoofBuilder {
-	protected abstract splits: [number, number][];
+	protected readonly abstract splits: Vec2[];
+	protected readonly abstract isEdgy: boolean;
+	private splitsNormals: Vec2[];
 
 	public build(params: RoofParams): RoofGeometry {
+		this.calculateSplitsNormals();
+
 		const {multipolygon, minHeight, height, scaleX, scaleY} = params;
 
+		const topHeight = minHeight + height;
 		const outerRing = multipolygon.rings.find(ring => ring.type === Tile3DRingType.Outer);
 		const ringVertices = outerRing.nodes.slice(0, -1);
 		const center = this.getCenter(ringVertices);
-		const minDstToCenter = this.getDistanceToCenter(center, ringVertices);
-
-		const topHeight = minHeight + height;
+		const polylines = this.splitPolygon(ringVertices);
 
 		const positions: number[] = [];
 		const normals: number[] = [];
 		const uvs: number[] = [];
 
-		const points: Vec3[][] = [];
-
-		for (let i = 0; i < ringVertices.length; i++) {
-			const vertex = ringVertices[i];
-			const pointsArray: Vec3[] = [];
-
-			for (let i = 0; i < this.splits.length; i++) {
-				const split = this.splits[i];
-				const position = Vec2.lerp(center, vertex, split[1]);
-				const height = MathUtils.lerp(minHeight, topHeight, split[0]);
-				pointsArray.push(new Vec3(position.x, height, position.y));
-			}
-
-			points.push(pointsArray);
-		}
-
-		let uvProgressX = 0;
-
-		for (let i = 0; i < points.length; i++) {
-			const arr0 = points[i];
-			const arr1 = points[(i + 1) % points.length];
-
-			const a: [Vec2, Vec2] = [arr0[0].xz, arr1[0].xz];
-			const b: [Vec2, Vec2] = [arr0[0].xz, Vec2.add(arr0[0].xz, Vec2.rotateRight(Vec2.sub(arr1[0].xz, arr0[0].xz)))];
-
-			for (let j = 0; j < arr0.length - 1; j++) {
-				const p0 = arr0[j];
-				const p1 = arr0[j + 1];
-				const p2 = arr1[j];
-				const p3 = arr1[j + 1];
-
-				const segmentLength = Vec3.distance(p0, p2);
-				const segmentDepth = Vec2.distance(p0.xz, p1.xz);
-
-				const poss = [p0, p2, p1, p1, p2, p3]
-
-				for (const p of poss) {
-					positions.push(p.x, p.y, p.z);
-
-					const dstA = signedDstToLine(p.xz, a);
-					const dstB = signedDstToLine(p.xz, b);
-
-					uvs.push((dstB + uvProgressX) / scaleX, dstA / scaleY);
-				}
-
-				const normal = MathUtils.calculateNormal(p0, p2, p1);
-
-				for (let i = 0; i < 6; i++) {
-					normals.push(normal.x, normal.y, normal.z);
-				}
-			}
-
-			uvProgressX += Vec2.distance(a[0], a[1]);
-		}
-
-
-		/*const roofSlopeLength = Math.hypot(minDstToCenter, height);
-		let uvProgress = 0;
-		const uvScaleX = params.scaleX;
-		const uvScaleY = params.scaleY;
-
-		for (let i = 0; i < ringVertices.length; i++) {
-			const vertex = ringVertices[i];
-			const nextVertex = ringVertices[(i + 1) % ringVertices.length];
-			const segmentSize = Vec2.distance(vertex, nextVertex);
-			const nextUvProgress = uvProgress + segmentSize;
-
-			position[i * 9] = vertex.x;
-			position[i * 9 + 1] = minHeight;
-			position[i * 9 + 2] = vertex.y;
-
-			position[i * 9 + 3] = nextVertex.x;
-			position[i * 9 + 4] = minHeight;
-			position[i * 9 + 5] = nextVertex.y;
-
-			position[i * 9 + 6] = center.x;
-			position[i * 9 + 7] = topHeight;
-			position[i * 9 + 8] = center.y;
-
-			const segmentDir = Vec2.sub(nextVertex, vertex);
-			const segmentAngle = Vec2.normalize(segmentDir).getAngle();
-			const localCenter = Vec2.rotate(Vec2.sub(center, vertex), -segmentAngle);
-
-			uvs[i * 6] = uvProgress / uvScaleX;
-			uvs[i * 6 + 1] = 0;
-			uvs[i * 6 + 2] = nextUvProgress / uvScaleX;
-			uvs[i * 6 + 3] = 0;
-			uvs[i * 6 + 4] = (uvProgress + localCenter.x) / uvScaleX;
-			uvs[i * 6 + 5] = roofSlopeLength / uvScaleY;
-
-			uvProgress = nextUvProgress;
-
-			const normal = MathUtils.calculateNormal(
-				new Vec3(vertex.x, minHeight, vertex.y),
-				new Vec3(nextVertex.x, minHeight, nextVertex.y),
-				new Vec3(center.x, topHeight, center.y)
+		for (const polyline of polylines) {
+			const points = this.getRoofPartPoints(
+				polyline,
+				topHeight,
+				minHeight,
+				center
 			);
 
-			for (let j = 0; j < 9; j += 3) {
-				normals[i * 9 + j] = normal.x;
-				normals[i * 9 + j + 1] = normal.y;
-				normals[i * 9 + j + 2] = normal.z;
-			}
-		}*/
+			this.buildRoofPart(
+				positions,
+				normals,
+				uvs,
+				points,
+				scaleX,
+				scaleY
+			);
+		}
 
 		return {
 			position: positions,
@@ -135,6 +51,121 @@ export default abstract class CurvedRoofBuilder implements RoofBuilder {
 			addSkirt: false,
 			canExtendOutsideFootprint: true
 		};
+	}
+
+	private getRoofPartPoints(
+		polyline: Vec2[],
+		topHeight: number,
+		minHeight: number,
+		center: Vec2,
+	): {position: Vec3; normal: Vec3}[][] {
+		const isClosed = polyline[0].equals(polyline[polyline.length - 1]);
+		const points: {position: Vec3; normal: Vec3}[][] = [];
+
+		for (let i = 0; i < polyline.length; i++) {
+			const vertex = polyline[i];
+			const pointsArray: {position: Vec3; normal: Vec3}[] = [];
+
+			const scaleX = topHeight - minHeight;
+			const scaleY = Vec2.distance(vertex, center);
+			let angle: number;
+
+			if (!isClosed) {
+				if (i === 0) {
+					const vertexNext = polyline[i + 1];
+					const segment = Vec2.sub(vertexNext, vertex);
+
+					angle = Vec2.angleClockwise(new Vec2(1, 0), segment);
+				} else if (i === polyline.length - 1) {
+					const vertexPrev = polyline[i - 1];
+					const segment = Vec2.sub(vertex, vertexPrev);
+
+					angle = Vec2.angleClockwise(new Vec2(1, 0), segment);
+				}
+			} else {
+				angle = Vec2.angleClockwise(new Vec2(0, 1), Vec2.sub(vertex, center));
+			}
+
+			for (let j = 0; j < this.splits.length; j++) {
+				const split = this.splits[j];
+				const position2D = Vec2.lerp(center, vertex, split.y);
+				const height = MathUtils.lerp(minHeight, topHeight, split.x);
+				const position = new Vec3(position2D.x, height, position2D.y);
+
+				const normalSource = this.splitsNormals[j];
+				const normalRotated = Vec3.rotateAroundAxis(
+					new Vec3(normalSource.y / scaleY, normalSource.x / scaleX, 0),
+					new Vec3(0, 1, 0),
+					-angle - Math.PI / 2
+				);
+
+				pointsArray.push({
+					position: position,
+					normal: Vec3.normalize(normalRotated)
+				});
+			}
+
+			points.push(pointsArray);
+		}
+
+		return points;
+	}
+
+	private buildRoofPart(
+		positionOut: number[],
+		normalOut: number[],
+		uvOut: number[],
+		points: {position: Vec3; normal: Vec3}[][],
+		scaleX: number,
+		scaleY: number
+	): void {
+		for (let i = 0; i < points.length - 1; i++) {
+			const arr0 = points[i];
+			const arr1 = points[i + 1];
+
+			const segment: [Vec2, Vec2] = [
+				arr0[0].position.xz,
+				arr1[0].position.xz
+			];
+			const segmentVector = Vec2.sub(segment[1], segment[0]);
+			const segmentPerpendicular: [Vec2, Vec2] = [
+				segment[0],
+				Vec2.add(segment[0], Vec2.rotateRight(segmentVector))
+			];
+
+			let uvProgressY = 0;
+
+			for (let j = 0; j < arr0.length - 1; j++) {
+				const p0 = arr0[j];
+				const p1 = arr0[j + 1];
+				const p2 = arr1[j];
+				const p3 = arr1[j + 1];
+
+				let triPoints = [p0, p2, p1, p1, p2, p3];
+				let triUVs = [0, 0, 1, 1, 0, 1];
+
+				if (p1.position.equals(p3.position)) {
+					triPoints = [p0, p2, p1];
+					triUVs = [0, 0, 1];
+				}
+
+				const quadUvYSize = Vec3.distance(p0.position, p1.position);
+
+				for (let i = 0; i < triPoints.length; i++) {
+					const {position, normal} = triPoints[i];
+					const uvYFactor = triUVs[i];
+					positionOut.push(position.x, position.y, position.z);
+					normalOut.push(normal.x, normal.y, normal.z);
+
+					const distanceY = uvProgressY + uvYFactor * quadUvYSize;
+					const distanceX = signedDstToLine(position.xz, segmentPerpendicular);
+
+					uvOut.push(distanceX / scaleX, distanceY / scaleY);
+				}
+
+				uvProgressY += quadUvYSize;
+			}
+		}
 	}
 
 	private getCenter(ringVertices: Vec2[]): Vec2 {
@@ -150,15 +181,90 @@ export default abstract class CurvedRoofBuilder implements RoofBuilder {
 		return new Vec2(result[0], result[1]);
 	}
 
-	private getDistanceToCenter(center: Vec2, ringVertices: Vec2[]): number {
-		let dst = 0;
+	private getPolygonSplitFlags(points: Vec2[]): boolean[] {
+		const splitFlags: boolean[] = [];
 
-		for (let i = 0; i < ringVertices.length; i++) {
-			const vertex = ringVertices[i];
+		for (let i = 0; i < points.length; i++) {
+			if (this.isEdgy) {
+				splitFlags.push(true);
+				continue;
+			}
 
-			dst = Math.min(dst, Vec2.distance(vertex, center));
+			const point = points[i];
+			const prev = points[i - 1] ?? points[points.length - 1];
+			const next = points[i + 1] ?? points[0];
+
+			const vecToPrev = Vec2.normalize(Vec2.sub(point, prev));
+			const vecToNext = Vec2.normalize(Vec2.sub(next, point));
+
+			const dot = Vec2.dot(vecToPrev, vecToNext);
+
+			splitFlags.push(dot < Math.cos(MathUtils.toRad(45)));
 		}
 
-		return dst;
+		return splitFlags;
+	}
+
+	private splitPolygon(points: Vec2[]): Vec2[][] {
+		const splitFlags = this.getPolygonSplitFlags(points);
+		const firstSplitIndex = splitFlags.findIndex(f => f);
+
+		if (firstSplitIndex !== -1) {
+			for (let i = 0; i < firstSplitIndex; i++) {
+				points.unshift(points.pop());
+				splitFlags.unshift(splitFlags.pop());
+			}
+		}
+
+		let currentPolyline: Vec2[] = [points[0]];
+		const polylines: Vec2[][] = [];
+
+		for (let i = 1; i < points.length + 1; i++) {
+			const point = points[i] ?? points[0];
+			const split = splitFlags[i] ?? splitFlags[0];
+
+			currentPolyline.push(point);
+
+			if (split || i === points.length) {
+				polylines.push(currentPolyline);
+				currentPolyline = [point];
+			}
+		}
+
+		return polylines;
+	}
+
+	private calculateSplitsNormals(): void {
+		const points = this.splits;
+		const pointNormals: Vec2[] = [];
+		const edgeNormals: Vec2[] = [];
+
+		for (let i = 0; i < points.length - 1; i++) {
+			const p0 = points[i];
+			const p1 = points[i + 1];
+
+			const edge = Vec2.sub(p1, p0);
+			edgeNormals.push(Vec2.rotateLeft(edge));
+		}
+
+		for (let i = 0; i < points.length; i++) {
+			const edge0 = edgeNormals[i - 1];
+			const edge1 = edgeNormals[i];
+
+			if (!edge0) {
+				pointNormals.push(Vec2.normalize(edge1));
+				continue;
+			}
+
+			if (!edge1) {
+				pointNormals.push(Vec2.normalize(edge0));
+				continue;
+			}
+
+			const normal = Vec2.normalize(Vec2.add(edge0, edge1));
+			pointNormals.push(normal);
+		}
+
+		this.splitsNormals = pointNormals;
 	}
 }

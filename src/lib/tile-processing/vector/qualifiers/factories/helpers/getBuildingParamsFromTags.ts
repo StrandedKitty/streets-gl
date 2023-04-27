@@ -75,7 +75,7 @@ export default function getBuildingParamsFromTags(
 	const label = tags.name ?? null;
 
 	let windows = isBuildingHasWindows(tags);
-	if (height - minHeight < 2) {
+	if (height - minHeight - roofHeight < 2) {
 		windows = false;
 	}
 
