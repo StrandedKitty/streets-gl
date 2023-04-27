@@ -68,20 +68,17 @@ export default abstract class CurvedRoofBuilder implements RoofBuilder {
 
 			const scaleX = topHeight - minHeight;
 			const scaleY = Vec2.distance(vertex, center);
+
 			let angle: number;
 
-			if (!isClosed) {
-				if (i === 0) {
-					const vertexNext = polyline[i + 1];
-					const segment = Vec2.sub(vertexNext, vertex);
-
-					angle = Vec2.angleClockwise(new Vec2(1, 0), segment);
-				} else if (i === polyline.length - 1) {
-					const vertexPrev = polyline[i - 1];
-					const segment = Vec2.sub(vertex, vertexPrev);
-
-					angle = Vec2.angleClockwise(new Vec2(1, 0), segment);
-				}
+			if (!isClosed && i === 0) {
+				const vertexNext = polyline[i + 1];
+				const segment = Vec2.sub(vertexNext, vertex);
+				angle = Vec2.angleClockwise(new Vec2(1, 0), segment);
+			} else if (!isClosed && i === polyline.length - 1) {
+				const vertexPrev = polyline[i - 1];
+				const segment = Vec2.sub(vertex, vertexPrev);
+				angle = Vec2.angleClockwise(new Vec2(1, 0), segment);
 			} else {
 				angle = Vec2.angleClockwise(new Vec2(0, 1), Vec2.sub(vertex, center));
 			}
@@ -199,7 +196,7 @@ export default abstract class CurvedRoofBuilder implements RoofBuilder {
 
 			const dot = Vec2.dot(vecToPrev, vecToNext);
 
-			splitFlags.push(dot < Math.cos(MathUtils.toRad(45)));
+			splitFlags.push(dot < Math.cos(MathUtils.toRad(40)));
 		}
 
 		return splitFlags;
