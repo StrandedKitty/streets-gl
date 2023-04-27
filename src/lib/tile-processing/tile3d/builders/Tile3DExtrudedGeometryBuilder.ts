@@ -110,7 +110,7 @@ export default class Tile3DExtrudedGeometryBuilder {
 
 				let levelHeight = (height - minHeight) / levels;
 
-				if (levelHeight < 0.01) {
+				if (levelHeight < 0.01 || levels === 0) {
 					levelHeight = 4;
 				}
 
