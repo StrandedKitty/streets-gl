@@ -116,6 +116,8 @@ export default abstract class CurvedRoofBuilder implements RoofBuilder {
 		scaleX: number,
 		scaleY: number
 	): void {
+		let uvProgressX = 0;
+
 		for (let i = 0; i < points.length - 1; i++) {
 			const arr0 = points[i];
 			const arr1 = points[i + 1];
@@ -155,13 +157,15 @@ export default abstract class CurvedRoofBuilder implements RoofBuilder {
 					normalOut.push(normal.x, normal.y, normal.z);
 
 					const distanceY = uvProgressY + uvYFactor * quadUvYSize;
-					const distanceX = signedDstToLine(position.xz, segmentPerpendicular);
+					const distanceX = uvProgressX + signedDstToLine(position.xz, segmentPerpendicular);
 
 					uvOut.push(distanceX / scaleX, distanceY / scaleY);
 				}
 
 				uvProgressY += quadUvYSize;
 			}
+
+			uvProgressX += Vec2.getLength(segmentVector);
 		}
 	}
 
@@ -208,8 +212,8 @@ export default abstract class CurvedRoofBuilder implements RoofBuilder {
 
 		if (firstSplitIndex !== -1) {
 			for (let i = 0; i < firstSplitIndex; i++) {
-				points.unshift(points.pop());
-				splitFlags.unshift(splitFlags.pop());
+				points.push(points.shift());
+				splitFlags.push(splitFlags.shift());
 			}
 		}
 

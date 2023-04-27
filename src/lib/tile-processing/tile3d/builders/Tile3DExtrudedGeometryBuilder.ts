@@ -101,13 +101,31 @@ export default class Tile3DExtrudedGeometryBuilder {
 			for (const {points, hasWindows} of skirt) {
 				const vertices = points.map(point => point.position);
 				const heights = points.map(point => point.height);
-				const levels = Math.max(1, Math.round((Math.max(...heights) - height) / 4));
+
+				let skirtPartMaxHeight = 0;
+
+				for (const height of heights) {
+					skirtPartMaxHeight = Math.max(skirtPartMaxHeight, height);
+				}
+
+				let levelHeight = (height - minHeight) / levels;
+
+				if (levelHeight < 0.01) {
+					levelHeight = 4;
+				}
+
+				let skirtLevels = (skirtPartMaxHeight - height) / levelHeight;
+
+				if (hasWindows && skirtLevels > 0.5) {
+					skirtLevels = Math.round(skirtLevels);
+				}
 
 				const walls = WallsBuilder.build({
 					vertices,
 					minHeight: height,
-					height: heights,
-					levels: levels,
+					height: skirtPartMaxHeight,
+					heightPoints: heights,
+					levels: skirtLevels,
 					windowWidth,
 					textureIdWall,
 					textureIdWindow: hasWindows ? textureIdWindow : textureIdWall

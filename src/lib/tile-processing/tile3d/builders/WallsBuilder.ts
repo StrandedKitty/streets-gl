@@ -9,6 +9,7 @@ export default class WallsBuilder {
 			vertices,
 			minHeight,
 			height,
+			heightPoints,
 			levels,
 			windowWidth,
 			textureIdWindow,
@@ -17,7 +18,8 @@ export default class WallsBuilder {
 		}: {
 			vertices: Vec2[];
 			minHeight: number;
-			height: number | number[];
+			height: number;
+			heightPoints?: number[];
 			levels: number;
 			windowWidth: number;
 			textureIdWindow: number;
@@ -31,8 +33,8 @@ export default class WallsBuilder {
 			vertices = vertices.slice(1);
 			isClosed = true;
 
-			if (typeof height !== 'number') {
-				height = height.slice(1);
+			if (heightPoints) {
+				heightPoints = heightPoints.slice(1);
 			}
 		}
 
@@ -45,8 +47,8 @@ export default class WallsBuilder {
 				edgeSmoothness.push(edgeSmoothness.shift());
 				vertices.push(vertices.shift());
 
-				if (typeof height !== 'number') {
-					height.push(height.shift());
+				if (heightPoints) {
+					heightPoints.push(heightPoints.shift());
 				}
 			}
 		}
@@ -54,12 +56,13 @@ export default class WallsBuilder {
 		const segmentNormals = this.getSegmentsNormals(vertices, isClosed);
 		const walls = this.getWalls(vertices, isClosed, edgeSmoothness, windowWidth);
 
-		const positions = this.getWallPositions(vertices, isClosed, height, minHeight);
+		const positions = this.getWallPositions(vertices, isClosed, minHeight, height, heightPoints);
 		const {uvs, textureIds} = this.getWallUVsAndTextureIds({
 			vertices,
 			isClosed,
 			height,
 			minHeight,
+			heightPoints,
 			levels,
 			textureIdWall,
 			textureIdWindow,
@@ -281,7 +284,13 @@ export default class WallsBuilder {
 		return normals;
 	}
 
-	private static getWallPositions(vertices: Vec2[], isClosed: boolean, height: number | number[], minHeight: number): number[] {
+	private static getWallPositions(
+		vertices: Vec2[],
+		isClosed: boolean,
+		minHeight: number,
+		height: number,
+		heightPoints?: number[]
+	): number[] {
 		const positions: number[] = [];
 
 		const segmentCount = isClosed ? vertices.length : (vertices.length - 1);
@@ -292,12 +301,12 @@ export default class WallsBuilder {
 			let vertexHeight: number;
 			let nextVertexHeight: number;
 
-			if (typeof height === 'number') {
+			if (heightPoints) {
+				vertexHeight = heightPoints[i];
+				nextVertexHeight = heightPoints[i + 1] ?? heightPoints[0];
+			} else {
 				vertexHeight = height;
 				nextVertexHeight = height;
-			} else {
-				vertexHeight = height[i];
-				nextVertexHeight = height[i + 1] ?? height[0];
 			}
 
 			positions.push(nextVertex.x, minHeight, nextVertex.y);
@@ -318,6 +327,7 @@ export default class WallsBuilder {
 			isClosed,
 			height,
 			minHeight,
+			heightPoints,
 			levels,
 			textureIdWall,
 			textureIdWindow,
@@ -326,8 +336,9 @@ export default class WallsBuilder {
 		}: {
 			vertices: Vec2[];
 			isClosed: boolean;
-			height: number | number[];
+			height: number;
 			minHeight: number;
+			heightPoints?: number[];
 			levels: number;
 			textureIdWall: number;
 			textureIdWindow: number;
@@ -347,12 +358,12 @@ export default class WallsBuilder {
 			let vertexHeight: number;
 			let nextVertexHeight: number;
 
-			if (typeof height === 'number') {
+			if (heightPoints) {
+				vertexHeight = heightPoints[i];
+				nextVertexHeight = heightPoints[i + 1] ?? heightPoints[0];
+			} else {
 				vertexHeight = height;
 				nextVertexHeight = height;
-			} else {
-				vertexHeight = height[i];
-				nextVertexHeight = height[i + 1] ?? height[0];
 			}
 
 			vertexHeight -= minHeight;
@@ -360,12 +371,12 @@ export default class WallsBuilder {
 
 			const [uvXMin, uvXMax, hasWindow] = walls[i];
 
-			let uvMax0 = levels;
-			let uvMax1 = levels;
+			let uvMax0 = Math.max(nextVertexHeight, vertexHeight) / (height - minHeight) * levels;
+			let uvMax1 = uvMax0;
 
 			if (vertexHeight > nextVertexHeight) {
 				uvMax1 *= nextVertexHeight / vertexHeight;
-			} else if (vertexHeight < nextVertexHeight) {
+			} else if (nextVertexHeight > vertexHeight) {
 				uvMax0 *= vertexHeight / nextVertexHeight;
 			}
 
