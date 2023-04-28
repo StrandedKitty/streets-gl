@@ -509,6 +509,8 @@ export default class VectorAreaHandler implements Handler {
 				return RoofType.Flat;
 			case 'gabled':
 				return RoofType.Gabled;
+			case 'gambrel':
+				return RoofType.Gambrel;
 			case 'hipped':
 				return RoofType.Hipped;
 			case 'pyramidal':

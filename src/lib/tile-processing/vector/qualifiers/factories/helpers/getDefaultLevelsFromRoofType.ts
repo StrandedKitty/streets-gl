@@ -4,6 +4,7 @@ const lookup: Record<VectorAreaDescriptor['buildingRoofType'], number> = {
 	flat: 0,
 	hipped: 1,
 	gabled: 1,
+	gambrel: 1,
 	pyramidal: 1,
 	onion: 2,
 	dome: 2,

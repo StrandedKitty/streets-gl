@@ -1,9 +1,10 @@
 import {EdgeResult} from "straight-skeleton";
-import HippedRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/HippedRoofBuilder";
 import Vec2 from "~/lib/math/Vec2";
 import splitPolygon from "~/lib/tile-processing/tile3d/builders/roofs/splitPolygon";
+import GabledRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/GabledRoofBuilder";
+import {RoofSkirtPoint, RoofSkirtPolyline} from "~/lib/tile-processing/tile3d/builders/roofs/RoofBuilder";
 
-export default class MansardRoofBuilder extends HippedRoofBuilder {
+export default class GambrelRoofBuilder extends GabledRoofBuilder {
 	protected splitProgress: number = 0.3;
 	protected edgeBumpFactor: number = 0.3;
 
@@ -132,5 +133,58 @@ export default class MansardRoofBuilder extends HippedRoofBuilder {
 
 	private calculateRoofHeightTop(progress: number): number {
 		return progress + ((1 - progress) / (1 - this.splitProgress)) * this.edgeBumpFactor;
+	}
+
+	protected override getSkirtPart(
+		edgeStart: Vec2,
+		edgeEnd: Vec2,
+		edgeCenter: Vec2,
+		minHeight: number,
+		height: number,
+		centerHeight: number
+	): RoofSkirtPolyline {
+		const centerRoofHeight = this.calculateRoofHeightTop(centerHeight) * height;
+		const halfRoofHeight = this.calculateRoofHeightTop(this.splitProgress) * height;
+
+		let points: RoofSkirtPoint[];
+
+		if (halfRoofHeight >= centerRoofHeight) {
+			points = [
+				{
+					position: edgeEnd,
+					height: minHeight
+				}, {
+					position: edgeCenter,
+					height: minHeight + centerRoofHeight
+				}, {
+					position: edgeStart,
+					height: minHeight
+				}
+			];
+		} else {
+			points = [
+				{
+					position: edgeEnd,
+					height: minHeight
+				}, {
+					position: Vec2.lerp(edgeEnd, edgeCenter, this.splitProgress / centerHeight),
+					height: minHeight + halfRoofHeight
+				}, {
+					position: edgeCenter,
+					height: minHeight + centerRoofHeight
+				}, {
+					position: Vec2.lerp(edgeStart, edgeCenter, this.splitProgress / centerHeight),
+					height: minHeight + halfRoofHeight
+				}, {
+					position: edgeStart,
+					height: minHeight
+				}
+			];
+		}
+
+		return {
+			points: points,
+			hasWindows: false
+		};
 	}
 }

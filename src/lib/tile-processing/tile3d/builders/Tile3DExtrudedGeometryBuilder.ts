@@ -25,10 +25,12 @@ import DomeRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/DomeRoo
 import {ExtrudedTextures} from "~/lib/tile-processing/tile3d/textures";
 import SeededRandom from "~/lib/math/SeededRandom";
 import Vec2 from "~/lib/math/Vec2";
+import GambrelRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/GambrelRoofBuilder";
 
 export enum RoofType {
 	Flat,
 	Gabled,
+	Gambrel,
 	Hipped,
 	Pyramidal,
 	Onion,
@@ -36,7 +38,7 @@ export enum RoofType {
 	Round,
 	Skillion,
 	Mansard,
-	QuadrupleSaltbox
+	QuadrupleSaltbox,
 }
 
 export default class Tile3DExtrudedGeometryBuilder {
@@ -245,6 +247,10 @@ export default class Tile3DExtrudedGeometryBuilder {
 				} else {
 					builder = new GabledRoofBuilder();
 				}
+				break;
+			}
+			case RoofType.Gambrel: {
+				builder = new GambrelRoofBuilder();
 				break;
 			}
 			case RoofType.Mansard: {

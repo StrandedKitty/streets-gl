@@ -1,10 +1,17 @@
-import {Edge, Skeleton, Vector2d} from "straight-skeleton";
+import {Edge, EdgeResult, Skeleton, Vector2d} from "straight-skeleton";
 import HippedRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/HippedRoofBuilder";
-import {RoofSkirt} from "~/lib/tile-processing/tile3d/builders/roofs/RoofBuilder";
+import {RoofSkirt, RoofSkirtPolyline} from "~/lib/tile-processing/tile3d/builders/roofs/RoofBuilder";
 import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 import {copySkeletonPolygons} from "~/lib/tile-processing/tile3d/builders/utils";
 import Vec2 from "~/lib/math/Vec2";
 import MathUtils from "~/lib/math/MathUtils";
+
+interface SkirtSegmentParams {
+	begin: Vec2;
+	end: Vec2;
+	center: Vec2;
+	prevEdge: EdgeResult;
+}
 
 export default class GabledRoofBuilder extends HippedRoofBuilder {
 	protected override convertSkeletonToVertices(
@@ -30,19 +37,18 @@ export default class GabledRoofBuilder extends HippedRoofBuilder {
 	): {position: number[]; uv: number[]; skirt?: RoofSkirt} {
 		skeleton = copySkeletonPolygons(skeleton);
 
-		const skirt: RoofSkirt = [];
-		const edgePolygonMap: Map<Edge, Vector2d[]> = new Map();
+		const edgeResultMap = this.buildEdgeResultMap(skeleton);
 
-		for (const edge of skeleton.Edges) {
-			edgePolygonMap.set(edge.Edge, edge.Polygon);
-		}
+		const skirtSegments: SkirtSegmentParams[] = [];
 
 		for (const edge of skeleton.Edges) {
 			if (edge.Polygon.length === 3) {
 				const prevEdge = edge.Edge.Previous as Edge;
 				const nextEdge = edge.Edge.Next as Edge;
-				const prevPolygon = edgePolygonMap.get(prevEdge);
-				const nextPolygon = edgePolygonMap.get(nextEdge);
+				const prevEdgeResult = edgeResultMap.get(prevEdge);
+				const nextEdgeResult = edgeResultMap.get(nextEdge);
+				const prevPolygon = prevEdgeResult.Polygon;
+				const nextPolygon = nextEdgeResult.Polygon;
 
 				if (prevPolygon.length > 3 && nextPolygon.length > 3) {
 					const begin = edge.Edge.Begin;
@@ -69,32 +75,21 @@ export default class GabledRoofBuilder extends HippedRoofBuilder {
 						const a = new Vec2(extrudedPoint.X, extrudedPoint.Y);
 						const b = new Vec2(otherPoint.X, otherPoint.Y);
 						const t = Vec2.add(b, Vec2.multiplyScalar(Vec2.sub(a, b), 1000));
-						const center2 = MathUtils.getIntersectionLineLine(
+						const center = MathUtils.getIntersectionLineLine(
 							[begin.X, begin.Y],
 							[end.X, end.Y],
 							[b.x, b.y],
 							[t.x, t.y]
 						);
 
-						if (center2) {
-							const centerVec = new Vec2(center2[0], center2[1]);
-							const edgeVec: [Vec2, Vec2] = [new Vec2(prevEdge.Begin.X, prevEdge.Begin.Y), new Vec2(prevEdge.End.X, prevEdge.End.Y)];
-							const centerHeight = this.getVertexHeightFromEdge(centerVec, edgeVec, maxSkeletonHeight, height);
+						if (center) {
+							const centerVec = new Vec2(center[0], center[1]);
 
-							skirt.push({
-								points: [
-									{
-										position: new Vec2(edge.Edge.End.X, edge.Edge.End.Y),
-										height: minHeight
-									}, {
-										position: centerVec,
-										height: minHeight + centerHeight
-									}, {
-										position: new Vec2(edge.Edge.Begin.X, edge.Edge.Begin.Y),
-										height: minHeight
-									}
-								],
-								hasWindows: false
+							skirtSegments.push({
+								begin: new Vec2(edge.Edge.Begin.X, edge.Edge.Begin.Y),
+								end: new Vec2(edge.Edge.End.X, edge.Edge.End.Y),
+								center: centerVec,
+								prevEdge: prevEdgeResult
 							});
 
 							prevPolygonExtrudedPoint.X = nextPolygonExtrudedPoint.X = centerVec.x;
@@ -110,31 +105,83 @@ export default class GabledRoofBuilder extends HippedRoofBuilder {
 			}
 		}
 
-		let positionResult: number[] = [];
-		let uvResult: number[] = [];
+		maxSkeletonHeight = this.getSkeletonMaxHeight(skeleton);
+
+		const skirt = this.buildSkirtFromSegmentsParams(skirtSegments, minHeight, height, maxSkeletonHeight);
+		const {position, uv} = super.convertSkeletonToVertices({
+			multipolygon,
+			skeleton,
+			minHeight,
+			height,
+			maxSkeletonHeight,
+			flip,
+			scaleX,
+			scaleY
+		});
+
+		return {position, uv, skirt: skirt};
+	}
+
+	private buildEdgeResultMap(skeleton: Skeleton): Map<Edge, EdgeResult> {
+		const edgeResultMap: Map<Edge, EdgeResult> = new Map();
 
 		for (const edge of skeleton.Edges) {
-			if (!edge.Polygon.length) {
-				continue;
-			}
-
-			const {position, uv} = this.convertEdgeResultToVertices({
-				edge,
-				minHeight,
-				height,
-				maxSkeletonHeight,
-				scaleX,
-				scaleY
-			});
-
-			if (flip) {
-				position.reverse();
-			}
-
-			positionResult = positionResult.concat(position);
-			uvResult = uvResult.concat(uv);
+			edgeResultMap.set(edge.Edge, edge);
 		}
 
-		return {position: positionResult, uv: uvResult, skirt: skirt};
+		return edgeResultMap;
+	}
+
+	private buildSkirtFromSegmentsParams(
+		skirtSegments: SkirtSegmentParams[],
+		minHeight: number,
+		height: number,
+		maxSkeletonHeight: number
+	): RoofSkirt {
+		const skirt: RoofSkirt = [];
+
+		for (const {begin, end, center, prevEdge} of skirtSegments) {
+			const edgeLine: [Vec2, Vec2] = [
+				new Vec2(prevEdge.Edge.Begin.X, prevEdge.Edge.Begin.Y),
+				new Vec2(prevEdge.Edge.End.X, prevEdge.Edge.End.Y)
+			];
+			const centerHeight = this.getVertexHeightFromEdge(center, edgeLine, maxSkeletonHeight, 1);
+
+			skirt.push(this.getSkirtPart(
+				begin,
+				end,
+				center,
+				minHeight,
+				height,
+				centerHeight,
+			));
+		}
+
+		return skirt;
+	}
+
+	protected getSkirtPart(
+		edgeStart: Vec2,
+		edgeEnd: Vec2,
+		edgeCenter: Vec2,
+		minHeight: number,
+		height: number,
+		centerHeight: number
+	): RoofSkirtPolyline {
+		return {
+			points: [
+				{
+					position: edgeEnd,
+					height: minHeight
+				}, {
+					position: edgeCenter,
+					height: minHeight + height * centerHeight
+				}, {
+					position: edgeStart,
+					height: minHeight
+				}
+			],
+			hasWindows: false
+		};
 	}
 }

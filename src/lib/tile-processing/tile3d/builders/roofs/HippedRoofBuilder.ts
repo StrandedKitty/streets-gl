@@ -55,8 +55,24 @@ export default class HippedRoofBuilder implements RoofBuilder {
 		};
 	}
 
-	private getSkeletonMaxHeight(skeleton: Skeleton): number {
-		return Math.max(...skeleton.Distances.values());
+	protected getSkeletonMaxHeight(skeleton: Skeleton): number {
+		let maxHeight = 0;
+
+		for (const edge of skeleton.Edges) {
+			const edgeLine: [Vec2, Vec2] = [
+				new Vec2(edge.Edge.Begin.X, edge.Edge.Begin.Y),
+				new Vec2(edge.Edge.End.X, edge.Edge.End.Y)
+			];
+
+			for (const point of edge.Polygon) {
+				const vertex = new Vec2(point.X, point.Y);
+				const dst = this.getVertexHeightFromEdge(vertex, edgeLine, 1, 1);
+
+				maxHeight = Math.max(maxHeight, dst);
+			}
+		}
+
+		return maxHeight;
 	}
 
 	protected convertSkeletonToVertices(
@@ -141,7 +157,8 @@ export default class HippedRoofBuilder implements RoofBuilder {
 		maxSkeletonHeight: number,
 		edgeLine: [Vec2, Vec2],
 		uvScaleX: number,
-		uvScaleY: number
+		uvScaleY: number,
+		dstModifier: (n: number) => number = (n: number): number => n
 	): {position: number[]; uv: number[]} {
 		const position: number[] = [];
 		const uv: number[] = [];
@@ -154,8 +171,7 @@ export default class HippedRoofBuilder implements RoofBuilder {
 			const z = flatVertices[index * 2 + 1];
 			const vertex = new Vec2(x, z);
 			const dst = signedDstToLine(vertex, edgeLine);
-
-			const vertexHeight = minHeight + dst / maxSkeletonHeight * height;
+			const vertexHeight = minHeight + height * dstModifier(dst / maxSkeletonHeight);
 
 			position.push(x, vertexHeight, z);
 
