@@ -24,9 +24,11 @@ export default class TileAreaLoader<T extends TileSource<any>> {
 	public readonly bufferSize: number;
 	public readonly maxStoredTiles: number;
 	public readonly viewportSize: number;
+	public readonly maxConcurrentRequests: number;
 	private readonly states: TileAreaLoaderCellState<T>[] = [];
 	private readonly tiles: Map<string, T> = new Map();
 	private readonly sourceFactory: TileSourceFactory<T>;
+	private tileLoadingCount: number = 0;
 
 	public constructor(
 		{
@@ -34,13 +36,15 @@ export default class TileAreaLoader<T extends TileSource<any>> {
 			zoom,
 			maxStoredTiles,
 			viewportSize,
-			bufferSize
+			bufferSize,
+			maxConcurrentRequests
 		}: {
 			sourceFactory: TileSourceFactory<T>;
 			zoom: number;
 			maxStoredTiles: number;
 			viewportSize: number;
 			bufferSize: number;
+			maxConcurrentRequests: number;
 		}
 	) {
 		this.sourceFactory = sourceFactory;
@@ -48,6 +52,7 @@ export default class TileAreaLoader<T extends TileSource<any>> {
 		this.bufferSize = bufferSize;
 		this.maxStoredTiles = maxStoredTiles;
 		this.viewportSize = viewportSize;
+		this.maxConcurrentRequests = maxConcurrentRequests;
 
 		this.initStates();
 	}
@@ -90,19 +95,35 @@ export default class TileAreaLoader<T extends TileSource<any>> {
 		min.x = Math.round(min.x);
 		min.y = Math.round(min.y);
 
+		const queue: {x: number; y: number; priority: number}[] = [];
+
 		for (let x = -this.bufferSize; x < this.viewportSize + this.bufferSize; x++) {
 			for (let y = -this.bufferSize; y < this.viewportSize + this.bufferSize; y++) {
 				const tileX = x + min.x;
 				const tileY = y + min.y;
 
 				if (!this.getTile(tileX, tileY)) {
-					this.fetchTile(tileX, tileY);
+					const dstToCenter = Vec2.getLength(new Vec2(x - this.viewportSize / 2, y - this.viewportSize / 2));
+
+					queue.push({
+						x: tileX,
+						y: tileY,
+						priority: dstToCenter
+					});
+
+					continue;
 				}
 
 				const tile = this.getTile(tileX, tileY);
-
 				tile.markUsed();
 			}
+		}
+
+		queue.sort((a, b) => a.priority - b.priority);
+
+		while (this.tileLoadingCount < this.maxConcurrentRequests && queue.length > 0) {
+			const item = queue.shift();
+			this.loadTile(item.x, item.y);
 		}
 
 		this.markDirtyTileStates(min);
@@ -114,8 +135,10 @@ export default class TileAreaLoader<T extends TileSource<any>> {
 				const state = this.getState(x, y);
 				const tileX = x + viewportOrigin.x;
 				const tileY = y + viewportOrigin.y;
+				const oldTile = state.tile;
+				const newTile = this.getTile(tileX, tileY);
 
-				if (state.x !== tileX || state.y !== tileY) {
+				if (state.x !== tileX || state.y !== tileY || oldTile !== newTile) {
 					state.x = tileX;
 					state.y = tileY;
 					state.type = TileAreaLoaderCellStateType.Clear;
@@ -147,8 +170,11 @@ export default class TileAreaLoader<T extends TileSource<any>> {
 		return result;
 	}
 
-	private fetchTile(x: number, y: number): void {
-		const tile = this.sourceFactory.create(x, y, this.zoom);
+	private async loadTile(x: number, y: number): Promise<void> {
+		this.tileLoadingCount++;
+		const tile = await this.sourceFactory.create(x, y, this.zoom);
+		this.tileLoadingCount--;
+
 		this.setTile(x, y, tile);
 		tile.markUsed();
 

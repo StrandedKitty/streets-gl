@@ -32,28 +32,32 @@ export default class TerrainSystem extends System {
 				zoom: 13,
 				maxStoredTiles: 100,
 				viewportSize: 4,
-				bufferSize: 1
+				bufferSize: 1,
+				maxConcurrentRequests: 1
 			}),
 			water1: new TileAreaLoader({
 				sourceFactory: new WaterTileSourceFactory(),
 				zoom: 9,
 				maxStoredTiles: 100,
 				viewportSize: 4,
-				bufferSize: 1
+				bufferSize: 1,
+				maxConcurrentRequests: 1
 			}),
 			height0: new TileAreaLoader({
 				sourceFactory: new HeightReusedTileSourceFactory(this.terrainHeightProvider, 0),
 				zoom: 12,
 				maxStoredTiles: 100,
 				viewportSize: 4,
-				bufferSize: 1
+				bufferSize: 1,
+				maxConcurrentRequests: 1
 			}),
 			height1: new TileAreaLoader({
 				sourceFactory: new HeightTileSourceFactory(),
 				zoom: 9,
 				maxStoredTiles: 100,
 				viewportSize: 4,
-				bufferSize: 1
+				bufferSize: 1,
+				maxConcurrentRequests: 1
 			}),
 		};
 	}

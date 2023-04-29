@@ -5,32 +5,55 @@ import Vec3 from "~/lib/math/Vec3";
 import ConvexHullGrahamScan from "~/lib/math/ConvexHullGrahamScan";
 import MathUtils from "~/lib/math/MathUtils";
 import Config from "../Config";
-import TileLoadingSystem from "./TileLoadingSystem";
 import TileObjectsSystem from "./TileObjectsSystem";
 import System from "../System";
 import SceneSystem from './SceneSystem';
 import Camera from "~/lib/core/Camera";
 import TerrainSystem from "~/app/systems/TerrainSystem";
 import {HeightLoaderTile} from "~/app/terrain/TerrainHeightLoader";
+import Tile3DBuffers from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
+
+interface QueueItem {
+	position: Vec2;
+	onBeforeLoad: () => Promise<void>;
+	onLoad: (tileData: Tile3DBuffers) => Promise<void>;
+}
 
 export default class TileSystem extends System {
-	public tiles: Map<string, Tile> = new Map();
+	public readonly tiles: Map<string, Tile> = new Map();
 	private cameraFrustum: Frustum;
 	private objectsManager: TileObjectsSystem;
+	private readonly queue: QueueItem[] = [];
 
 	public postInit(): void {
 		this.objectsManager = this.systemManager.getSystem(TileObjectsSystem);
 	}
 
 	public addTile(x: number, y: number): void {
-		const tile = new Tile(x, y);
-		this.tiles.set(`${x},${y}`, tile);
+		let tile: Tile;
 
-		this.claimHeightDataForTile(x, y, tile).then(async () => {
-			const tilePromise = this.systemManager.getSystem(TileLoadingSystem).getTileObjects(tile);
-			const instancedObjects = this.systemManager.getSystem(SceneSystem).objects.instancedObjects;
-			await tile.load(tilePromise);
-			tile.updateInstancesBoundingBoxes(instancedObjects);
+		this.queue.push({
+			position: new Vec2(x, y),
+			onBeforeLoad: async () => {
+				tile = new Tile(x, y);
+				this.tiles.set(`${x},${y}`, tile);
+
+				await this.claimHeightDataForTile(x, y, tile)
+			},
+			onLoad: async (tileData) => {
+				if (tile.disposed) {
+					return;
+				}
+
+				if (!tileData) {
+					this.removeTile(x, y);
+					return;
+				}
+
+				const instancedObjects = this.systemManager.getSystem(SceneSystem).objects.instancedObjects;
+				tile.load(tileData);
+				tile.updateInstancesBoundingBoxes(instancedObjects);
+			}
 		});
 	}
 
@@ -113,7 +136,7 @@ export default class TileSystem extends System {
 			this.cameraFrustum.fov !== camera.fov ||
 			this.cameraFrustum.aspect !== camera.aspect
 		) {
-			this.cameraFrustum = new Frustum(camera.fov, camera.aspect, 1, 5000);
+			this.cameraFrustum = new Frustum(camera.fov, camera.aspect, 1, 8000);
 			this.cameraFrustum.updateViewSpaceVertices();
 		}
 
@@ -124,12 +147,12 @@ export default class TileSystem extends System {
 			tile.inFrustum = false;
 		}
 
-		let tilesToAdd = 1;
+		this.queue.length = 0;
 
 		for (const tilePosition of frustumTiles) {
-			if (!this.getTile(tilePosition.x, tilePosition.y) && tilesToAdd > 0) {
+			if (!this.getTile(tilePosition.x, tilePosition.y)) {
 				this.addTile(tilePosition.x, tilePosition.y);
-				--tilesToAdd;
+				continue;
 			}
 
 			const tile = this.getTile(tilePosition.x, tilePosition.y);
@@ -140,6 +163,10 @@ export default class TileSystem extends System {
 		}
 
 		this.updateTilesDistancesToCamera(camera);
+	}
+
+	public getNextTileToLoad(): QueueItem {
+		return this.queue.shift();
 	}
 
 	private updateTilesDistancesToCamera(camera: Camera): void {
@@ -264,20 +291,15 @@ export default class TileSystem extends System {
 			});
 		}
 
-		tilesList.sort((a: {distance: number}, b: {distance: number}) => (a.distance > b.distance) ? 1 : -1);
+		tilesList.sort((a, b): number => {
+			return a.distance - b.distance;
+		});
 
-		const result: Vec2[] = [];
-
-		for (const {tile} of tilesList) {
-			result.push(tile);
-		}
-
-		return result;
+		return tilesList.map(entry => entry.tile);
 	}
 
 	private removeCulledTiles(): void {
-		type tileEntry = {tile: Tile; distance: number};
-		const tileList: tileEntry[] = [];
+		const tileList: {tile: Tile; distance: number}[] = [];
 
 		for (const tile of this.tiles.values()) {
 			if (!tile.inFrustum) {
@@ -285,7 +307,7 @@ export default class TileSystem extends System {
 			}
 		}
 
-		tileList.sort((a: tileEntry, b: tileEntry): number => {
+		tileList.sort((a, b): number => {
 			return b.distance - a.distance;
 		});
 

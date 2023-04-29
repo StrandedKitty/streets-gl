@@ -10,7 +10,10 @@ export default class HeightReusedTileSourceFactory extends TileSourceFactory<Hei
 		super();
 	}
 
-	public create(x: number, y: number, zoom: number): HeightTileSource {
-		return new HeightTileSource(x, y, zoom, this.terrainHeightProvider.heightLoader, this.level);
+	public async create(x: number, y: number, zoom: number): Promise<HeightTileSource> {
+		const source = new HeightTileSource(x, y, zoom);
+		await source.loadFromHeightLoader(this.terrainHeightProvider.heightLoader, this.level);
+
+		return source;
 	}
 }

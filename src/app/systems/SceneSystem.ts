@@ -63,7 +63,7 @@ export default class SceneSystem extends System {
 			near: camera.near,
 			far: 4000,
 			resolution: 2048,
-			cascades: Config.ShadowCascades,
+			cascades: 3,
 			shadowBias: -0.003,
 			shadowNormalBias: 0.002,
 		});

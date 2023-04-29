@@ -13,7 +13,6 @@ export default class WaterTileSource extends TileSource<Float32Array> {
 
 	public constructor(x: number, y: number, zoom: number) {
 		super(x, y, zoom);
-		this.load();
 	}
 
 	private async fetchTile(x: number, y: number, zoom: number, scale: number): Promise<PBFPolygon[]> {
@@ -43,7 +42,7 @@ export default class WaterTileSource extends TileSource<Float32Array> {
 		return polygons;
 	}
 
-	private async load(): Promise<void> {
+	public async load(): Promise<void> {
 		const tiles = await this.fetchTile(this.x, this.y, this.zoom, 1);
 		const tris = this.polygonsToTriangles(tiles, 0, 0);
 		this.data = new Float32Array(tris);

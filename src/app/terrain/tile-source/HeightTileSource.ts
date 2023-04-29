@@ -8,29 +8,23 @@ export default class HeightTileSource extends TileSource<ImageBitmap> {
 	private texture: AbstractTexture2D = null;
 	private heightLoaderTile: HeightLoaderTile = null;
 
-	public constructor(x: number, y: number, zoom: number, heightLoader?: TerrainHeightLoader, level?: number) {
+	public constructor(x: number, y: number, zoom: number) {
 		super(x, y, zoom);
+	}
 
-		if (heightLoader) {
-			const tilePromise = heightLoader.getOrLoadTile(x, y, zoom, this);
+	public async loadFromHeightLoader(heightLoader: TerrainHeightLoader, level: number): Promise<void> {
+		const tile = await heightLoader.getOrLoadTile(this.x, this.y, this.zoom, this);
 
-			tilePromise.then(tile => {
-				if (this.deleted) {
-					this.heightLoaderTile.tracker.release(this);
-					return;
-				}
-
-				this.heightLoaderTile = tile;
-				this.data = tile.getLevel(level).bitmap;
-			});
-
+		if (this.deleted) {
+			this.heightLoaderTile.tracker.release(this);
 			return;
 		}
 
-		this.load();
+		this.heightLoaderTile = tile;
+		this.data = tile.getLevel(level).bitmap;
 	}
 
-	private async load(): Promise<void> {
+	public async load(): Promise<void> {
 		const url = HeightTileSource.getURL(this.x, this.y, this.zoom);
 		const response = await fetch(url, {
 			method: 'GET'

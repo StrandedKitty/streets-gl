@@ -61,6 +61,7 @@ export default class Tile extends Object3D {
 	public huggingMesh: TileHuggingMesh;
 
 	public usedHeightTiles: Vec2[] = [];
+	public isLoading: boolean = false;
 
 	public constructor(x: number, y: number) {
 		super();
@@ -84,48 +85,44 @@ export default class Tile extends Object3D {
 		this.updateMatrix();
 	}
 
-	public async load(
-		buffersPromise: Promise<Tile3DBuffers>
-	): Promise<void> {
-		return buffersPromise.then((buffers: Tile3DBuffers) => {
-			this.updateExtrudedGeometryOffsets(buffers.extruded);
+	public load(buffers: Tile3DBuffers): void {
+		this.updateExtrudedGeometryOffsets(buffers.extruded);
 
-			this.extrudedMesh = new TileExtrudedMesh(buffers.extruded);
-			this.projectedMesh = new TileProjectedMesh(buffers.projected);
-			this.huggingMesh = new TileHuggingMesh(buffers.hugging);
+		this.extrudedMesh = new TileExtrudedMesh(buffers.extruded);
+		this.projectedMesh = new TileProjectedMesh(buffers.projected);
+		this.huggingMesh = new TileHuggingMesh(buffers.hugging);
 
-			this.add(this.extrudedMesh, this.projectedMesh, this.huggingMesh);
-			this.updateLabelBufferList(buffers.labels);
+		this.add(this.extrudedMesh, this.projectedMesh, this.huggingMesh);
+		this.updateLabelBufferList(buffers.labels);
 
-			for (const [key, instanceBuffers] of Object.entries(buffers.instances)) {
-				const LOD0 = instanceBuffers.interleavedBufferLOD0;
-				const LOD1 = instanceBuffers.interleavedBufferLOD1;
+		for (const [key, instanceBuffers] of Object.entries(buffers.instances)) {
+			const LOD0 = instanceBuffers.interleavedBufferLOD0;
+			const LOD1 = instanceBuffers.interleavedBufferLOD1;
 
-				const config = Tile3DInstanceLODConfig[key as Tile3DInstanceType];
-				const schema = InstanceStructureSchemas[config.structure];
+			const config = Tile3DInstanceLODConfig[key as Tile3DInstanceType];
+			const schema = InstanceStructureSchemas[config.structure];
 
-				const boundingBoxLOD0 = new AABB3D();
-				for (let i = 0; i < LOD0.length; i += schema.componentsPerInstance) {
-					boundingBoxLOD0.includePoint(new Vec3(LOD0[i], LOD0[i + 1], LOD0[i + 2]));
-				}
-
-				const boundingBoxLOD1 = new AABB3D();
-				for (let i = 0; i < LOD1.length; i += schema.componentsPerInstance) {
-					boundingBoxLOD1.includePoint(new Vec3(LOD1[i], LOD1[i + 1], LOD1[i + 2]));
-				}
-
-				this.instanceBuffers.set(key as Tile3DInstanceType, {
-					rawLOD0: LOD0,
-					rawLOD1: LOD1,
-					transformedLOD0: new Float32Array(LOD0),
-					transformedLOD1: new Float32Array(LOD1),
-					transformOriginLOD0: new Vec2(NaN, NaN),
-					transformOriginLOD1: new Vec2(NaN, NaN),
-					boundingBoxLOD0: boundingBoxLOD0,
-					boundingBoxLOD1: boundingBoxLOD1
-				});
+			const boundingBoxLOD0 = new AABB3D();
+			for (let i = 0; i < LOD0.length; i += schema.componentsPerInstance) {
+				boundingBoxLOD0.includePoint(new Vec3(LOD0[i], LOD0[i + 1], LOD0[i + 2]));
 			}
-		});
+
+			const boundingBoxLOD1 = new AABB3D();
+			for (let i = 0; i < LOD1.length; i += schema.componentsPerInstance) {
+				boundingBoxLOD1.includePoint(new Vec3(LOD1[i], LOD1[i + 1], LOD1[i + 2]));
+			}
+
+			this.instanceBuffers.set(key as Tile3DInstanceType, {
+				rawLOD0: LOD0,
+				rawLOD1: LOD1,
+				transformedLOD0: new Float32Array(LOD0),
+				transformedLOD1: new Float32Array(LOD1),
+				transformOriginLOD0: new Vec2(NaN, NaN),
+				transformOriginLOD1: new Vec2(NaN, NaN),
+				boundingBoxLOD0: boundingBoxLOD0,
+				boundingBoxLOD1: boundingBoxLOD1
+			});
+		}
 	}
 
 	public updateInstancesBoundingBoxes(instancedObjects: Map<string, InstancedObject>): void {

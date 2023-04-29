@@ -3,10 +3,9 @@ import {SettingsSchema, SettingsSchemaRangeScale} from "~/app/settings/SettingsS
 const Config = {
 	TileSize: /*40075016.68 / (1 << 16)*/ 611.4962158203125,
 	GroundSegments: 16,
-	MaxConcurrentTiles: 100,
+	MaxConcurrentTiles: 150,
 	MaxTilesPerWorker: 1,
 	WebWorkersNumber: Math.min(6, navigator.hardwareConcurrency),
-	ShadowCascades: 3,
 	StartPosition: [40.76050, -73.98088],
 	MinCameraDistance: 10,
 	MaxCameraDistance: 3000,

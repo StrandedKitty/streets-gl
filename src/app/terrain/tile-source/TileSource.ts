@@ -10,6 +10,8 @@ export default abstract class TileSource<T> {
 		public readonly zoom: number
 	) {}
 
+	public abstract load(): Promise<void>;
+
 	public markUnused(): void {
 		this.isCurrentlyUsed = false;
 	}

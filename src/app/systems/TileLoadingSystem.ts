@@ -1,15 +1,11 @@
-import Tile from "../objects/Tile";
 import System from "../System";
 import MapWorkerSystem from "./MapWorkerSystem";
 import Tile3DBuffers from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
 import Config from "~/app/Config";
 import MapWorker from "~/app/world/worker/MapWorker";
 import SettingsSystem from "~/app/systems/SettingsSystem";
-
-interface QueueItem {
-	tile: Tile;
-	onLoad: (buffers: Tile3DBuffers) => void;
-}
+import TileSystem from "~/app/systems/TileSystem";
+import Vec2 from "~/lib/math/Vec2";
 
 export interface OverpassEndpoint {
 	url: string;
@@ -18,7 +14,6 @@ export interface OverpassEndpoint {
 }
 
 export default class TileLoadingSystem extends System {
-	private readonly queue: QueueItem[] = [];
 	public readonly overpassEndpointsDefault: OverpassEndpoint[] = [];
 	public overpassEndpoints: OverpassEndpoint[] = [];
 
@@ -57,33 +52,33 @@ export default class TileLoadingSystem extends System {
 		return urls[Math.floor(Math.random() * urls.length)];
 	}
 
-	public async getTileObjects(tile: Tile): Promise<Tile3DBuffers> {
-		return new Promise<Tile3DBuffers>((resolve) => {
-			this.queue.push({
-				tile,
-				onLoad: (data: Tile3DBuffers) => {
-					resolve(data);
-				}
-			});
-		});
-	}
-
 	public update(deltaTime: number): void {
-		this.removeDisposedTiles();
-
 		const mapWorkerSystem = this.systemManager.getSystem(MapWorkerSystem);
+		const tileSystem = this.systemManager.getSystem(TileSystem);
 
-		while (this.queue.length > 0 && mapWorkerSystem.getFreeWorker() && this.getNextOverpassEndpoint()) {
+		const queuedTile = tileSystem.getNextTileToLoad();
+		const worker = mapWorkerSystem.getFreeWorker();
+		const overpassEndpoint = this.getNextOverpassEndpoint();
+
+		if (queuedTile && worker && overpassEndpoint) {
 			this.loadTile(
-				this.getNearestTileInQueue(),
-				mapWorkerSystem.getFreeWorker(),
-				this.getNextOverpassEndpoint()
+				queuedTile.position,
+				queuedTile.onBeforeLoad,
+				queuedTile.onLoad,
+				worker,
+				overpassEndpoint
 			);
 		}
 	}
 
-	private loadTile(queuedTile: QueueItem, worker: MapWorker, overpassEndpoint: string): void {
-		const {tile, onLoad} = queuedTile;
+	private async loadTile(
+		tile: Vec2,
+		onBeforeLoad: () => Promise<any>,
+		onLoad: (buffers: Tile3DBuffers) => void,
+		worker: MapWorker,
+		overpassEndpoint: string
+	): Promise<void> {
+		await onBeforeLoad();
 
 		worker.requestTile(tile.x, tile.y, {
 			overpassEndpoint: overpassEndpoint,
@@ -95,22 +90,8 @@ export default class TileLoadingSystem extends System {
 			onLoad(result);
 		}, error => {
 			console.error(`Failed to load tile ${tile.x},${tile.y}. Retrying...`, error);
-			this.queue.unshift({tile, onLoad});
+			onLoad(null);
 		});
-	}
-
-	private removeDisposedTiles(): void {
-		this.queue.filter((entry: QueueItem) => {
-			return !entry.tile.disposed;
-		});
-	}
-
-	private getNearestTileInQueue(): QueueItem {
-		this.queue.sort((a: QueueItem, b: QueueItem): number => {
-			return b.tile.distanceToCamera - a.tile.distanceToCamera;
-		});
-
-		return this.queue.pop();
 	}
 
 	private get useCachedTiles(): boolean {
