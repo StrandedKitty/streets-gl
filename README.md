@@ -32,6 +32,10 @@ The goals of this project include providing a way to explore the feature-rich OS
 - Rich postprocessing: TAA, SSAO, depth of field, screen-space reflections, bloom
 - Realistic atmosphere and aerial perspective rendering
 
+## 🖼️ Screenshots
+
+<img src="https://user-images.githubusercontent.com/48140945/235284116-a1730bb2-5467-486f-9aca-e7953963fe94.png" width="30%"></img> <img src="https://user-images.githubusercontent.com/48140945/235284103-0f714011-643d-4d73-a4fd-6d6881acd00b.png" width="30%"></img> <img src="https://user-images.githubusercontent.com/48140945/235284113-48afe76d-1ac9-4f00-b5cc-b4fb64587125.png" width="30%"></img> <img src="https://user-images.githubusercontent.com/48140945/235284096-b22d31cf-47c5-4237-9637-fc3de3628778.png" width="30%"></img> <img src="https://user-images.githubusercontent.com/48140945/235284120-3065b7fd-7706-4c4a-83af-a4cdb1ed7f56.png" width="30%"></img> <img src="https://user-images.githubusercontent.com/48140945/235284106-b9c0b90f-002b-47ac-a7f0-e1bd3056e2b6.png" width="30%"></img>
+
 ## 💻 Minimum requirements
 
 To run this application you need a machine that supports WebGL2 with following extensions:
