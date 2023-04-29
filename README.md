@@ -1,10 +1,11 @@
+![cityscape banner](https://user-images.githubusercontent.com/48140945/235281559-9a78fdbb-7b22-4c2d-8d74-dddaf5eaece6.png)
+
 <div align="center">
     <h1>Streets GL</h1>
     <a href="https://trello.com/b/WJ1D07lT"><img src="https://img.shields.io/static/v1?label=&message=Trello%20board&logo=trello&logoColor=ffffff&color=0052CC" alt="Trello board" /></a>
     <a href="https://discord.gg/bewggJ3eMC"><img src="https://img.shields.io/discord/1098082266451820544.svg?label=&logo=discord&logoColor=ffffff&color=6A7EC2" alt="Discord" /></a>
     <img src="https://img.shields.io/github/commit-activity/m/strandedkitty/streets-gl?color=d77bdb" alt="GitHub commit activity">
-    <br>
-    <h3><a href="https://streets.gl/">streets.gl</a></h3>
+    
 </div>
 <br>
 
@@ -15,6 +16,10 @@ The whole project is written in Typescript. For rendering it uses a custom low-l
 The goals of this project include providing a way to explore the feature-rich OSM database in 3D, promoting open data, and offering a way for the mapping community to easily validate the map by visual means.
 
 > **Warning**: This project is still in early development, expect bugs and missing features.
+
+<div align="center">
+<b><a href="https://streets.gl/">Visit streets.gl</a></b>
+</div>
 
 ## ⭐ Features
 
