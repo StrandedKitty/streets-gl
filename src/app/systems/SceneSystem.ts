@@ -22,6 +22,7 @@ import InstancedObject from "~/app/objects/InstancedObject";
 import {Tile3DInstanceLODConfig, Tile3DInstanceType} from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
 import Camera from "~/lib/core/Camera";
 import Utils from "~/app/Utils";
+import OrthographicCamera from "~/lib/core/OrthographicCamera";
 
 interface SceneObjects {
 	wrapper: Object3D;
@@ -242,7 +243,6 @@ export default class SceneSystem extends System {
 
 		this.objects.wrapper.position.x = -cameraPos.x;
 		this.objects.wrapper.position.z = -cameraPos.z;
-
 		this.objects.wrapper.updateMatrix();
 
 		this.objects.skybox.position.set(cameraPos.x, cameraPos.y, cameraPos.z);
@@ -257,7 +257,7 @@ export default class SceneSystem extends System {
 
 		this.updateTiles();
 
-		this.scene.updateMatrixRecursively();
+		//this.scene.updateMatrixRecursively();
 		this.scene.updateMatrixWorldRecursively();
 
 		this.objects.camera.updateMatrixWorldInverse();

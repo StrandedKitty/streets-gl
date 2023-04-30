@@ -415,8 +415,6 @@ void main() {
 	);
 
 	color = color * clamp(aerialPerspective.a, 0., 1.) + aerialPerspective.rgb;
-	//color = worldNormal;
-
 	color = applySelectionOverlay(color);
 
 	FragColor = vec4(color, 1);

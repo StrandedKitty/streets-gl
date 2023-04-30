@@ -2,7 +2,6 @@ import TileSystem from "./TileSystem";
 import Tile from "../objects/Tile";
 import TileBuilding from "../world/TileBuilding";
 import System from "../System";
-import SystemManager from "../SystemManager";
 
 export default class TileObjectsSystem extends System {
 	private buildingsList: Map<number, TileBuilding> = new Map();

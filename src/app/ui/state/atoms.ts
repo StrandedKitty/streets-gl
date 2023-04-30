@@ -1,9 +1,9 @@
-import {atom, atomFamily, RecoilState, selectorFamily} from "recoil";
-import {RenderGraphSnapshot} from "~/app/systems/UISystem";
+import {atom, atomFamily, RecoilState} from "recoil";
 import {bidirectionalSyncEffect, StateStorage} from "~/app/ui/state/utils";
-import {SettingsObject, SettingsObjectEntry} from "~/app/settings/SettingsObject";
+import {SettingsObjectEntry} from "~/app/settings/SettingsObject";
 import {SettingsSchema} from "~/app/settings/SettingsSchema";
 import {OverpassEndpoint} from "~/app/systems/TileLoadingSystem";
+import RenderGraphSnapshot from "~/app/ui/RenderGraphSnapshot";
 
 export interface AtomsCollection {
 	activeFeature: RecoilState<{type: number; id: number}>;

@@ -7,17 +7,26 @@ import CursorStyleSystem from "../systems/CursorStyleSystem";
 import {ControlsState} from "../systems/ControlsSystem";
 import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 import TerrainHeightProvider from "~/app/terrain/TerrainHeightProvider";
+import FreeControlsNavigator from "~/app/controls/FreeControlsNavigator";
+import Mat4 from "~/lib/math/Mat4";
+import SlippyControlsNavigator from "~/app/controls/SlippyControlsNavigator";
+import Easing from "~/lib/math/Easing";
+
+enum TransitionType {
+	FromSlippy,
+	ToSlippy
+}
 
 export default class GroundControlsNavigator extends ControlsNavigator {
+	private readonly camera: PerspectiveCamera;
 	private readonly cursorStyleSystem: CursorStyleSystem;
 	private readonly terrainHeightProvider: TerrainHeightProvider;
 	public target: Vec3 = new Vec3();
 	private direction: Vec3 = new Vec3();
-	private normalizedDistance: number = 10;
-	private normalizedDistanceTarget: number = 10;
-	private distance: number = 0;
-	private pitch: number = MathUtils.toRad(45);
-	private yaw: number = MathUtils.toRad(0);
+	public distance: number = 0;
+	private distanceTarget: number = 0;
+	public pitch: number = MathUtils.toRad(45);
+	public yaw: number = MathUtils.toRad(0);
 	private isLMBDown: boolean = false;
 	private isRMBDown: boolean = false;
 	private LMBDownPosition: Vec2 = null;
@@ -31,6 +40,14 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 	private pitchPlusKeyPressed: boolean = false;
 	private yawMinusKeyPressed: boolean = false;
 	private yawPlusKeyPressed: boolean = false;
+	private pointerPosition: Vec2 = new Vec2(0, 0);
+	private isInTransition: boolean = false;
+	private transitionType: TransitionType = null;
+	private transitionStart: number = 0;
+	public slippyMapOverlayFactor: number = 0;
+	public switchToSlippy: boolean = false;
+	private transitionYawFrom: number = 0;
+	private transitionPitchFrom: number = 0;
 
 	public constructor(
 		element: HTMLElement,
@@ -38,8 +55,9 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		cursorStyleSystem: CursorStyleSystem,
 		terrainHeightProvider: TerrainHeightProvider
 	) {
-		super(element, camera);
+		super(element);
 
+		this.camera = camera;
 		this.cursorStyleSystem = cursorStyleSystem;
 		this.terrainHeightProvider = terrainHeightProvider;
 
@@ -115,6 +133,11 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 	}
 
 	private mouseMoveEvent(e: MouseEvent): void {
+		this.pointerPosition.set(
+			e.clientX / window.innerWidth * 2 - 1,
+			-e.clientY / window.innerHeight * 2 + 1,
+		);
+
 		if (!this.isEnabled) {
 			return;
 		}
@@ -134,18 +157,21 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 	}
 
 	private wheelEvent(e: WheelEvent): void {
-		if (!this.isEnabled) {
+		if (!this.isEnabled || this.isInTransition) {
 			return;
 		}
 
 		e.preventDefault();
 
-		if (e.ctrlKey) {
-			this.normalizedDistanceTarget += e.deltaY / 200.;
-			return;
-		}
+		const zoomSpeed = Config.CameraZoomSpeed * (e.ctrlKey ? Config.CameraZoomTrackpadFactor : 1);
+		const logSpaceDistance = Math.log2(this.distanceTarget);
+		const newLogSpaceDistance = logSpaceDistance + e.deltaY * zoomSpeed;
 
-		this.normalizedDistanceTarget += e.deltaY / 2000.;
+		this.distanceTarget = MathUtils.clamp(
+			2 ** newLogSpaceDistance,
+			Config.MinCameraDistance,
+			Infinity
+		);
 	}
 
 	private keyDownEvent(e: KeyboardEvent): void {
@@ -185,10 +211,6 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 	}
 
 	private keyUpEvent(e: KeyboardEvent): void {
-		if (!this.isEnabled) {
-			return;
-		}
-
 		switch (e.code) {
 			case 'KeyW':
 				this.forwardKeyPressed = false;
@@ -251,19 +273,49 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		return new Vec2(positionOnGround.x, positionOnGround.z);
 	}
 
-	private updateDistance(): void {
-		const min = Math.log2(Config.MinCameraDistance);
-		const max = Math.log2(Config.MaxCameraDistance);
+	private projectOnGroundPredict(x: number, y: number, distance: number): Vec2 {
+		const oldMatrix = Mat4.copy(this.camera.matrix);
 
-		this.normalizedDistanceTarget = MathUtils.clamp(this.normalizedDistanceTarget, min, max);
+		const cameraOffset = Vec3.multiplyScalar(this.direction, -distance);
+		const cameraPosition = Vec3.add(this.target, cameraOffset);
+		this.camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+		this.camera.lookAt(this.target, false);
 
-		this.normalizedDistance = MathUtils.lerp(
-			this.normalizedDistance,
-			this.normalizedDistanceTarget,
-			Config.CameraZoomSmoothing
-		);
+		let vector = Vec3.unproject(new Vec3(x, y, 0.5), this.camera, false);
 
-		this.distance = 2 ** this.normalizedDistance;
+		this.camera.matrix.values.set(oldMatrix.values);
+
+		vector = Vec3.sub(vector, this.camera.position);
+
+		const distanceToGround = (this.camera.position.y - this.target.y) / vector.y;
+		const vectorToGround = Vec3.multiplyScalar(vector, distanceToGround);
+		const positionOnGround = Vec3.sub(this.camera.position, vectorToGround);
+
+		return new Vec2(positionOnGround.x, positionOnGround.z);
+	}
+
+	private updateDistance(deltaTime: number): void {
+		const alpha = 1 - Math.pow(1 - 0.3, deltaTime / (1 / 60));
+
+		const oldDistance = this.distance;
+		let newDistance = MathUtils.lerp(this.distance, this.distanceTarget, alpha);
+
+		if (Math.abs(newDistance - this.distanceTarget) < 0.001) {
+			newDistance = this.distanceTarget;
+		}
+
+		const oldPosition = this.projectOnGroundPredict(this.pointerPosition.x, this.pointerPosition.y, oldDistance);
+		const newPosition = this.projectOnGroundPredict(this.pointerPosition.x, this.pointerPosition.y, newDistance);
+
+		this.target.x += oldPosition.x - newPosition.x;
+		this.target.z += oldPosition.y - newPosition.y;
+		this.distance = newDistance;
+
+		if (this.distance > Config.MaxCameraDistance && !this.isInTransition) {
+			this.startTransition(TransitionType.ToSlippy);
+			this.transitionYawFrom = this.yaw;
+			this.transitionPitchFrom = this.pitch;
+		}
 	}
 
 	private clampPitchAndYaw(): void {
@@ -283,16 +335,36 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		}
 	}
 
-	public syncWithCamera(): void {
-		const mat = this.camera.matrixWorld.values;
-		const forwardDir = Vec3.normalize(new Vec3(mat[8], mat[9], mat[10]));
-		const [pitch, yaw] = MathUtils.cartesianToPolar(forwardDir);
+	private updateCameraProjectionMatrix(): void {
+		this.camera.near = 10;
+		this.camera.far = 100000;
+		this.camera.updateProjectionMatrix();
+	}
 
-		this.pitch = pitch;
-		this.yaw = yaw;
-		this.normalizedDistance = this.normalizedDistanceTarget = 10;
-		this.target.set(this.camera.position.x, 0, this.camera.position.z);
-		this.updateTargetHeightFromHeightmap();
+	public syncWithCamera(prevNavigator: ControlsNavigator): void {
+		if (prevNavigator instanceof FreeControlsNavigator) {
+			const mat = this.camera.matrixWorld.values;
+			const forwardDir = Vec3.normalize(new Vec3(mat[8], mat[9], mat[10]));
+			const [pitch, yaw] = MathUtils.cartesianToPolar(forwardDir);
+
+			this.pitch = pitch;
+			this.yaw = yaw;
+			this.distance = this.distanceTarget = Config.MaxCameraDistance * 0.5;
+			this.target.set(this.camera.position.x, 0, this.camera.position.z);
+			this.updateTargetHeightFromHeightmap();
+		} else if (prevNavigator instanceof SlippyControlsNavigator) {
+			this.yaw = 0;
+			this.pitch = MathUtils.toRad(Config.MaxCameraPitch);
+			this.target.set(this.camera.position.x, 0, this.camera.position.z);
+			this.updateTargetHeightFromHeightmap();
+			this.distance = this.distanceTarget = prevNavigator.distance - 1;
+
+			if (!this.isInTransition) {
+				this.startTransition(TransitionType.FromSlippy);
+			}
+		}
+
+		this.updateCameraProjectionMatrix();
 	}
 
 	public syncWithState(state: ControlsState): void {
@@ -300,7 +372,9 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		this.target.z = state.z;
 		this.pitch = state.pitch;
 		this.yaw = state.yaw;
-		this.normalizedDistance = this.normalizedDistanceTarget = Math.log2(state.distance);
+		this.distance = this.distanceTarget = state.distance;
+
+		this.updateCameraProjectionMatrix();
 	}
 
 	public getCurrentState(): ControlsState {
@@ -309,7 +383,7 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 			z: this.target.z,
 			pitch: this.pitch,
 			yaw: this.yaw,
-			distance: 2 ** this.normalizedDistance
+			distance: this.distance
 		};
 	}
 
@@ -318,6 +392,12 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		this.cursorStyleSystem.disableGrabbing();
 		this.LMBDownPosition = null;
 		this.lastLMBMoveEvent = null;
+	}
+
+	private startTransition(type: TransitionType): void {
+		this.isInTransition = true;
+		this.transitionType = type;
+		this.transitionStart = Date.now();
 	}
 
 	private processMovementByKeys(deltaTime: number): void {
@@ -358,13 +438,54 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		}
 	}
 
+	private doTransition(): void {
+		if (!this.isInTransition) {
+			return;
+		}
+
+		const duration = Config.SlippyMapTransitionDuration;
+		const elapsed = Date.now() - this.transitionStart;
+		const t = MathUtils.clamp(elapsed / duration, 0, 1);
+		const tSmooth = Easing.easeOutCubic(t);
+
+		switch (this.transitionType) {
+			case TransitionType.ToSlippy: {
+				this.slippyMapOverlayFactor = tSmooth;
+
+				this.yaw = MathUtils.lerpAngle(this.transitionYawFrom, 0, tSmooth);
+				this.pitch = MathUtils.lerp(this.transitionPitchFrom, MathUtils.toRad(Config.MaxCameraPitch), tSmooth);
+
+				break;
+			}
+			case TransitionType.FromSlippy: {
+				this.slippyMapOverlayFactor = 1 - tSmooth;
+
+				this.yaw = 0;
+				this.pitch = MathUtils.lerp(MathUtils.toRad(Config.MaxCameraPitch), MathUtils.toRad(45), tSmooth);
+
+				break;
+			}
+		}
+
+		if (t >= 1) {
+			this.slippyMapOverlayFactor = 0;
+			this.isInTransition = false;
+
+			if (this.transitionType === TransitionType.ToSlippy) {
+				this.switchToSlippy = true;
+			}
+		}
+	}
+
 	public update(deltaTime: number): void {
-		this.processMovementByKeys(deltaTime);
-		this.updateDistance();
 		this.clampPitchAndYaw();
+		this.direction = Vec3.normalize(MathUtils.polarToCartesian(this.yaw, -this.pitch));
+
+		this.processMovementByKeys(deltaTime);
+		this.updateDistance(deltaTime);
 		this.updateTargetHeightFromHeightmap();
 
-		this.direction = Vec3.normalize(MathUtils.polarToCartesian(this.yaw, -this.pitch));
+		this.doTransition();
 
 		const cameraOffset = Vec3.multiplyScalar(this.direction, -this.distance);
 		const cameraPosition = Vec3.add(this.target, cameraOffset);

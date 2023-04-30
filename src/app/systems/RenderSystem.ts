@@ -23,6 +23,12 @@ import BloomPass from "../render/passes/BloomPass";
 import FullScreenTriangle from "../objects/FullScreenTriangle";
 import Node from "../../lib/render-graph/Node";
 import SettingsSystem from "~/app/systems/SettingsSystem";
+import SlippyMapPass from "~/app/render/passes/SlippyMapPass";
+import AbstractTexture2D from "~/lib/renderer/abstract-renderer/AbstractTexture2D";
+import ResourceLoader from "~/app/world/ResourceLoader";
+import {RendererTypes} from "~/lib/renderer/RendererTypes";
+import ControlsSystem from "~/app/systems/ControlsSystem";
+import CursorStyleSystem from "~/app/systems/CursorStyleSystem";
 
 export default class RenderSystem extends System {
 	private renderer: AbstractRenderer;
@@ -72,7 +78,8 @@ export default class RenderSystem extends System {
 			new SSRPass(this.passManager),
 			new DoFPass(this.passManager),
 			new BloomPass(this.passManager),
-			new TerrainTexturesPass(this.passManager)
+			new TerrainTexturesPass(this.passManager),
+			new SlippyMapPass(this.passManager)
 		);
 
 		this.passManager.listenToSettings();
@@ -91,9 +98,15 @@ export default class RenderSystem extends System {
 	}
 
 	public update(deltaTime: number): void {
-		const settings = this.systemManager.getSystem(SettingsSystem).settings;
+		const controlsSystem = this.systemManager.getSystem(ControlsSystem);
 		const sceneSystem = this.systemManager.getSystem(SceneSystem);
+		const settings = this.systemManager.getSystem(SettingsSystem).settings;
 		const tiles = sceneSystem.objects.tiles;
+
+		this.passManager.updateRenderGraph(
+			controlsSystem.isSlippyMapVisible,
+			controlsSystem.isTilesVisible
+		);
 
 		if (settings.get('labels').statusValue === 'on') {
 			sceneSystem.objects.labels.updateFromTiles(tiles, sceneSystem.objects.camera, this.resolutionScene);
@@ -137,18 +150,34 @@ export default class RenderSystem extends System {
 		};
 	}
 
+	public createTileTexture(image: HTMLImageElement): AbstractTexture2D {
+		return this.renderer.createTexture2D({
+			width: image.width,
+			height: image.height,
+			data: image,
+			minFilter: RendererTypes.MinFilter.Linear,
+			magFilter: RendererTypes.MagFilter.Linear,
+			wrap: RendererTypes.TextureWrap.ClampToEdge,
+			format: RendererTypes.TextureFormat.RGBA8Unorm,
+			mipmaps: false,
+			flipY: false
+		});
+	}
+
 	private pickObjectId(): void {
-		const picking = this.systemManager.getSystem(PickingSystem);
+		const pickingSystem = this.systemManager.getSystem(PickingSystem);
+		const controlsSystem = this.systemManager.getSystem(ControlsSystem);
 		const pass = <GBufferPass>this.passManager.getPass('GBufferPass');
 
-		if (!pass) {
+		if (!pass || !controlsSystem.isTilesVisible) {
+			pickingSystem.clearHoveredObjectId();
 			return;
 		}
 
-		pass.objectIdX = picking.pointerPosition.x;
-		pass.objectIdY = picking.pointerPosition.y;
+		pass.objectIdX = pickingSystem.pointerPosition.x;
+		pass.objectIdY = pickingSystem.pointerPosition.y;
 
-		this.systemManager.getSystem(PickingSystem).readObjectId(pass.objectIdBuffer);
+		pickingSystem.readObjectId(pass.objectIdBuffer);
 	}
 
 	public get resolutionUI(): Vec2 {

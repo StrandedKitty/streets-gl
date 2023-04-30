@@ -51,7 +51,7 @@ export default class URLControlsStateHandler {
 				newState.z = position.y;
 				newState.pitch = MathUtils.toRad(MathUtils.clamp(parseFloat(hashData[2]), Config.MinCameraPitch, Config.MaxCameraPitch));
 				newState.yaw = MathUtils.toRad(MathUtils.clamp(parseFloat(hashData[3]), 0, 360));
-				newState.distance = MathUtils.clamp(parseFloat(hashData[4]), Config.MinCameraDistance, Config.MaxCameraDistance);
+				newState.distance = Math.max(parseFloat(hashData[4]), Config.MinCameraDistance);
 			}
 		}
 

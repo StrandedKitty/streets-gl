@@ -1,5 +1,4 @@
 import System from "../System";
-import SystemManager from "../SystemManager";
 import ControlsSystem from "./ControlsSystem";
 import MathUtils from "~/lib/math/MathUtils";
 import Vec3 from "~/lib/math/Vec3";
@@ -11,7 +10,6 @@ import {createTimeOfInterest} from "astronomy-bundle/time";
 import {createStar} from "astronomy-bundle/stars";
 import {createLocation} from "astronomy-bundle/earth";
 import Mat4 from "~/lib/math/Mat4";
-import UI from "~/app/ui/UI";
 
 const StaticPresets: [Vec3, Vec3][] = [
 	[new Vec3(-1, -1, -1).normalize(), new Vec3(0, 1, 0).normalize()],
@@ -211,7 +209,7 @@ export default class MapTimeSystem extends System {
 		this.doTransition(targetSunDirection, targetMoonDirection, this.skyDirectionTarget, deltaTime);
 
 		if (this.sunDirection.y < 0) {
-			this.lightIntensity = 6;
+			this.lightIntensity = 10;
 			this.ambientIntensity = 0.2;
 			this.lightDirection = this.sunDirection;
 		} else {

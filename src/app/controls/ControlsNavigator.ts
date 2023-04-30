@@ -1,18 +1,14 @@
 import {ControlsState} from "../systems/ControlsSystem";
-import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 
 export default abstract class ControlsNavigator {
 	protected readonly element: HTMLElement;
-	protected camera: PerspectiveCamera;
-	protected isEnabled: boolean = false;
+	public isEnabled: boolean = false;
 
-	protected constructor(element: HTMLElement, camera: PerspectiveCamera) {
+	protected constructor(element: HTMLElement) {
 		this.element = element;
-		this.camera = camera;
 	}
 
 	public enable(): void {
-		this.syncWithCamera();
 		this.isEnabled = true;
 	}
 
@@ -28,7 +24,7 @@ export default abstract class ControlsNavigator {
 		);
 	}
 
-	protected abstract syncWithCamera(): void;
+	public abstract syncWithCamera(prevNavigator: ControlsNavigator): void;
 
 	public abstract syncWithState(state: ControlsState): void;
 

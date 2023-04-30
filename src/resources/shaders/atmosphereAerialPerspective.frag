@@ -71,7 +71,7 @@ void main() {
 
     float earthR = groundRadiusMM;
     vec3 earthO = vec3(0.0, 0.0, -earthR);
-    vec3 camPos = vec3(0, cameraPosition.y / 1000000., 0) + vec3(0, earthR, 0);
+    vec3 camPos = vec3(0, min(0.01, cameraPosition.y / 1000000.), 0) + vec3(0, earthR, 0);
 
     vec3 WorldPos = camPos;
 

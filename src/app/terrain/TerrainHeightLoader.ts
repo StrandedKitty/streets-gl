@@ -52,11 +52,9 @@ export default class TerrainHeightLoader {
 		const url = TerrainHeightLoader.getURL(x, y, zoom);
 		const response = await fetch(url, {
 			method: 'GET'
-		}).catch(e => {
-			console.error(e);
 		});
 
-		if (!response) {
+		if (response.status !== 200) {
 			return;
 		}
 

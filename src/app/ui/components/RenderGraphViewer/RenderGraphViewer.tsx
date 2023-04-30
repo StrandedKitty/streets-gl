@@ -3,10 +3,10 @@ import dagre from "dagre";
 import dagreD3 from "dagre-d3";
 import * as d3 from "d3";
 import {useRecoilValue} from "recoil";
-import {RenderGraphSnapshot} from "~/app/systems/UISystem";
 import styles from './RenderGraphViewer.scss';
 import {AtomsContext} from "~/app/ui/UI";
 import stringifyRecord from "~/app/ui/components/RenderGraphViewer/stringifyRecord";
+import RenderGraphSnapshot from "~/app/ui/RenderGraphSnapshot";
 
 const constructGraphFromData = (data: RenderGraphSnapshot): dagre.graphlib.Graph => {
 	const g = new dagre.graphlib.Graph({compound: true});

@@ -12,6 +12,7 @@ import TerrainHeightProvider from "~/app/terrain/TerrainHeightProvider";
 import WaterTileSourceFactory from "~/app/terrain/tile-source/factory/WaterTileSourceFactory";
 import HeightReusedTileSourceFactory from "~/app/terrain/tile-source/factory/HeightReusedTileSourceFactory";
 import HeightTileSourceFactory from "~/app/terrain/tile-source/factory/HeightTileSourceFactory";
+import ControlsSystem, {NavigationMode} from "~/app/systems/ControlsSystem";
 
 export interface TerrainAreaLoaders {
 	water0: TileAreaLoader<WaterTileSource>;
@@ -65,11 +66,17 @@ export default class TerrainSystem extends System {
 	public update(deltaTime: number): void {
 		const terrain = this.systemManager.getSystem(SceneSystem).objects.terrain;
 		const camera = this.systemManager.getSystem(SceneSystem).objects.camera;
+		const slippyMode = this.systemManager.getSystem(ControlsSystem).mode === NavigationMode.Slippy;
 
-		this.updateAreaLoaders(camera);
-		this.updateRingPositions(terrain, camera);
-		this.updateRingAreaTransforms(terrain);
-		this.updateRingMaskTransforms(terrain, camera);
+		if (!slippyMode || camera.position.y < 10000) {
+			this.updateAreaLoaders(camera);
+		}
+
+		if (!slippyMode) {
+			this.updateRingPositions(terrain, camera);
+			this.updateRingAreaTransforms(terrain);
+			this.updateRingMaskTransforms(terrain, camera);
+		}
 	}
 
 	private updateAreaLoaders(camera: Object3D): void {

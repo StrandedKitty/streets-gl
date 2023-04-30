@@ -8,6 +8,7 @@ import TerrainHeightProvider from "~/app/terrain/TerrainHeightProvider";
 
 export default class FreeControlsNavigator extends ControlsNavigator {
 	private readonly terrainHeightProvider: TerrainHeightProvider;
+	private readonly camera: PerspectiveCamera;
 	private pitch: number = MathUtils.toRad(45);
 	private yaw: number = MathUtils.toRad(0);
 	private forwardKeyPressed: boolean = false;
@@ -26,8 +27,9 @@ export default class FreeControlsNavigator extends ControlsNavigator {
 		camera: PerspectiveCamera,
 		terrainHeightProvider: TerrainHeightProvider
 	) {
-		super(element, camera);
+		super(element);
 
+		this.camera = camera;
 		this.terrainHeightProvider = terrainHeightProvider;
 
 		this.addEventListeners();
@@ -154,7 +156,7 @@ export default class FreeControlsNavigator extends ControlsNavigator {
 		return 0;
 	}
 
-	public syncWithCamera(): void {
+	public syncWithCamera(prevNavigator: ControlsNavigator): void {
 		const mat = this.camera.matrixWorld.values;
 		const forwardDir = Vec3.normalize(new Vec3(mat[8], mat[9], mat[10]));
 		const [pitch, yaw] = MathUtils.cartesianToPolar(forwardDir);
