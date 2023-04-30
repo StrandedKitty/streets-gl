@@ -1,79 +1,116 @@
 @import "../../styles/common.scss";
 
-.endpointRow {
+.endpoint {
 	display: flex;
 	flex-direction: row;
+	justify-content: space-between;
+	padding: 8px;
+	border-radius: 8px;
+	box-shadow: 0 1px 2px 0 rgba(16, 24, 40, 0.1);
 	margin: 0 0 12px 0;
 
 	&:last-child {
 		margin: 0;
 	}
 
-	&__radio {
-		width: 24px;
+	&__info {
+		height: 32px;
 		display: flex;
 		flex-direction: row;
-		justify-content: start;
-		align-items: center;
+		max-width: 340px;
+		flex: 1;
 
-		&__input {
-			display: block;
-			margin: 0;
+		&__status {
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+		}
+
+		&__url {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			overflow: hidden;
+			flex: 1;
 		}
 	}
 
-	&__content {
-		flex: 1;
-		min-width: 0;
-	}
-}
+	&__controls {
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-end;
+		align-items: center;
 
-.endpoint {
-	background: #f2f2f2;
-	border-radius: 12px;
-	display: flex;
-	flex-direction: row;
+		&__button {
+			margin: 0 0 0 8px;
+			height: 32px;
+			width: 36px;
+			display: flex;
+			flex-direction: row;
+			justify-content: center;
+			align-items: center;
+			border-radius: 5px;
+			font-size: 12px;
+			font-weight: 600;
+			transition: background-color 0.2s ease-in-out;
 
-	&__title {
-		font-size: 14px;
-		flex: 1;
-		min-width: 0;
-		padding: 12px;
-		text-overflow: ellipsis;
-		overflow: hidden;
-		white-space: nowrap;
-	}
-
-	&__input {
-		border: none;
-		font-size: 14px;
-		flex: 1;
-		min-width: 0;
-		padding: 12px;
-		margin: 0;
-		display: block;
-		background: transparent;
-	}
-
-	&__button {
-		display: block;
-		border-radius: 4px;
-		margin: 6px 7px;
-		box-shadow: 0 1px 2px 0 rgba(16, 24, 40, 0.05);
-		border: 1px solid #e6e6e6;
-		padding: 4px 6px;
-
-		* > svg {
-			display: block;
+			&--big {
+				width: 65px;
+			}
 		}
 	}
 }
 
 @include themify($themes) {
 	.endpoint {
-		&__button {
-			color: themed('text-color');
-			background: themed('button-bg');
+		background: themed('modal-category-item-bg');
+
+		&__controls {
+			&__button {
+				border: 1px solid themed('modal-button-border-color');
+				color: themed('modal-button-text-color');
+				background-color: themed('modal-button-bg');
+				box-shadow: 0 1px 2px 0 themed('modal-button-shadow-color');
+
+				&:hover {
+					background-color: themed('modal-button-bg-hover');
+				}
+			}
 		}
 	}
 }
+
+.status {
+	display: block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	margin: 0 8px 0 4px;
+
+	&--enabled {
+		background-color: #8dcca4;
+	}
+
+	&--disabled {
+		background-color: #ff7b8d;
+	}
+}
+
+.input {
+	border: none;
+	background: transparent;
+	color: inherit;
+	padding: 0;
+	margin: 0;
+	display: block;
+	font-size: 14px;
+	width: 100%;
+}
+
+.title {
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+	font-size: 14px;
+}
+

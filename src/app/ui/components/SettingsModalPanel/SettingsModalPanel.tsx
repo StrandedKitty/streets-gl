@@ -1,4 +1,4 @@
-import React, {useContext, useMemo} from "react";
+import React, {useContext, useMemo, useRef} from "react";
 import ModalPanel from "~/app/ui/components/ModalPanel";
 import styles from './SettingsModalPanel.scss';
 import {useRecoilValue} from "recoil";
@@ -18,6 +18,7 @@ const SettingsModalPanel: React.FC<{
 	const schema = useRecoilValue(atoms.settingsSchema);
 	const endpoints = useRecoilValue(atoms.overpassEndpoints);
 	const setEndpoints = actions.setOverpassEndpoints;
+	const endpointsRef = useRef(null);
 
 	const categorizedGroups = useMemo(() => {
 		const categories: Record<string, SettingsGroupStructure[]> = {};
@@ -75,6 +76,7 @@ const SettingsModalPanel: React.FC<{
 			<ModalCategoryContainer>
 				<ModalCategory label={'Overpass endpoints'}>
 					<Endpoints
+						ref={endpointsRef}
 						endpoints={endpoints}
 						setEndpoints={setEndpoints}
 					/>
@@ -86,8 +88,11 @@ const SettingsModalPanel: React.FC<{
 						<AiOutlineUndo size={16} />
 					]}
 					onClicks={[
-						(): void => { },
-						(): void => actions.resetOverpassEndpoints()
+						(): void => endpointsRef.current.createNewEndpoint(),
+						(): void => {
+							endpointsRef.current.stopEditing();
+							actions.resetOverpassEndpoints();
+						}
 					]}
 				/>
 			</ModalCategoryContainer>

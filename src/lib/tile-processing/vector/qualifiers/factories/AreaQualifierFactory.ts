@@ -99,7 +99,7 @@ export default class AreaQualifierFactory extends AbstractQualifierFactory<Vecto
 			}];
 		}
 
-		if (tags.landuse === 'construction') {
+		if (tags.landuse === 'construction' || tags.landuse === 'brownfield') {
 			return [{
 				type: QualifierType.Descriptor,
 				data: {

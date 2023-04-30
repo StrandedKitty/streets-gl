@@ -73,6 +73,8 @@ export default class CameraViewport {
 			const minY = Math.floor(this.boundingBox.min.y * size) - padding;
 			const maxY = Math.floor(this.boundingBox.max.y * size) + padding;
 
+			let i = 0;
+
 			for (let x = minX; x <= maxX; x++) {
 				for (let y = minY; y <= maxY; y++) {
 					if (x < 0 || y < 0 || x >= size || y >= size) {
@@ -80,6 +82,11 @@ export default class CameraViewport {
 					}
 
 					tiles.push(new Vec3(x, y, zoom));
+					++i;
+
+					if (i > 500) {
+						break;
+					}
 				}
 			}
 		}

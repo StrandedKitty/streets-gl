@@ -15,6 +15,7 @@ const SavedPlacesModalPanel: React.FC<{
 	const [savedPlaces, setSavedPlaces] = useState<SavedPlaceParams[]>([]);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const scrollableListRef = useRef<HTMLDivElement>(null);
+	const [scrollToBottom, setScrollToBottom] = useState<boolean>(false);
 
 	const updateLocalStorage = (data: SavedPlaceParams[]): void => {
 		localStorage.setItem('savedPlaces', JSON.stringify(data));
@@ -49,6 +50,13 @@ const SavedPlacesModalPanel: React.FC<{
 
 		setSavedPlaces(data);
 	}, []);
+
+	useEffect(() => {
+		if (scrollToBottom && scrollableListRef.current) {
+			scrollableListRef.current.scrollTop = scrollableListRef.current.scrollHeight;
+			setScrollToBottom(false);
+		}
+	}, [scrollToBottom]);
 
 	const addNewPlace = (): void => {
 		setIsLoading(true);
@@ -99,10 +107,7 @@ const SavedPlacesModalPanel: React.FC<{
 			updateLocalStorage(newPlaces);
 
 			setIsLoading(false);
-
-			if (scrollableListRef.current) {
-				scrollableListRef.current.scrollTop = scrollableListRef.current.scrollHeight;
-			}
+			setScrollToBottom(true);
 		})
 	}
 

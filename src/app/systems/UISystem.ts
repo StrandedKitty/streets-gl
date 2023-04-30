@@ -59,7 +59,7 @@ export default class UISystem extends System {
 		this.systemManager.onSystemReady(TileLoadingSystem, system => {
 			this.ui.addStateFieldListener('overpassEndpoints', value => {
 				if (value.length > 0) {
-					system.overpassEndpoints = value;
+					system.setOverpassEndpoints(value);
 				}
 			});
 		});

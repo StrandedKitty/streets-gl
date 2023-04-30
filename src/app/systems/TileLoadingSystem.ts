@@ -14,7 +14,7 @@ export interface OverpassEndpoint {
 }
 
 export default class TileLoadingSystem extends System {
-	public readonly overpassEndpointsDefault: OverpassEndpoint[] = [];
+	private readonly overpassEndpointsDefault: OverpassEndpoint[] = [];
 	public overpassEndpoints: OverpassEndpoint[] = [];
 
 	public constructor() {
@@ -27,13 +27,37 @@ export default class TileLoadingSystem extends System {
 				isUserDefined: false
 			};
 
-			this.overpassEndpoints.push(endpoint);
 			this.overpassEndpointsDefault.push(endpoint);
+		}
+
+		this.overpassEndpoints.push(...this.overpassEndpointsDefault);
+
+		try {
+			const lsEndpoints = JSON.parse(localStorage.getItem('overpassEndpoints'));
+
+			if (Array.isArray(lsEndpoints)) {
+				for (const endpoint of lsEndpoints) {
+					this.overpassEndpoints.push({
+						url: String(endpoint.url),
+						isEnabled: Boolean(endpoint.isEnabled),
+						isUserDefined: true
+					});
+				}
+			}
+		} catch (e) {
+			console.error(e);
 		}
 	}
 
 	public postInit(): void {
 
+	}
+
+	public setOverpassEndpoints(endpoints: OverpassEndpoint[]): void {
+		this.overpassEndpoints = endpoints;
+
+		const userEndpoints = endpoints.filter(endpoint => endpoint.isUserDefined);
+		localStorage.setItem('overpassEndpoints', JSON.stringify(userEndpoints));
 	}
 
 	public resetOverpassEndpoints(): void {
