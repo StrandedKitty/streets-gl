@@ -138,7 +138,7 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 			-e.clientY / window.innerHeight * 2 + 1,
 		);
 
-		if (!this.isEnabled) {
+		if (!this.isEnabled || this.isInTransition) {
 			return;
 		}
 
@@ -175,7 +175,7 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 	}
 
 	private keyDownEvent(e: KeyboardEvent): void {
-		if (!this.isEnabled || !this.isInFocus || e.ctrlKey || e.metaKey) {
+		if (!this.isEnabled || !this.isInFocus || e.ctrlKey || e.metaKey || e.altKey) {
 			return;
 		}
 
@@ -390,6 +390,8 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 	public override disable(): void {
 		super.disable();
 		this.cursorStyleSystem.disableGrabbing();
+		this.isRMBDown = false;
+		this.isLMBDown = false;
 		this.LMBDownPosition = null;
 		this.lastLMBMoveEvent = null;
 	}
@@ -401,6 +403,10 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 	}
 
 	private processMovementByKeys(deltaTime: number): void {
+		if (this.isInTransition) {
+			return;
+		}
+
 		const mat = this.camera.matrixWorld.values;
 		const forwardDir = Vec2.normalize(new Vec2(mat[8], mat[10]));
 		const rightDir = Vec2.normalize(new Vec2(mat[0], mat[2]));
