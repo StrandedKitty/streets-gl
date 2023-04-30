@@ -75,20 +75,21 @@ export default class CameraViewport {
 
 			let i = 0;
 
-			for (let x = minX; x <= maxX; x++) {
-				for (let y = minY; y <= maxY; y++) {
-					if (x < 0 || y < 0 || x >= size || y >= size) {
-						continue;
-					}
+			loop:
+				for (let x = minX; x <= maxX; x++) {
+					for (let y = minY; y <= maxY; y++) {
+						if (x < 0 || y < 0 || x >= size || y >= size) {
+							continue;
+						}
 
-					tiles.push(new Vec3(x, y, zoom));
-					++i;
+						tiles.push(new Vec3(x, y, zoom));
+						++i;
 
-					if (i > 500) {
-						break;
+						if (i > 100) {
+							break loop;
+						}
 					}
 				}
-			}
 		}
 
 		return tiles;
