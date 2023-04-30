@@ -9,6 +9,7 @@ import ModalParAnchor from "~/app/ui/components/ModalPanel/ModalParAnchor";
 import ModalButton from "~/app/ui/components/ModalButton";
 
 const RepositoryURL = 'https://github.com/StrandedKitty/streets-gl';
+const DiscordURL = 'https://discord.gg/bewggJ3eMC';
 
 const Key: React.FC<{text: string}> = ({text}) => {
 	return <kbd className={styles.keyboardKey}>{text}</kbd>;
@@ -70,16 +71,16 @@ const InfoModalPanel: React.FC<{
 								icon={<IoLogoGithub size={16}/>}
 							/>
 						</a>
-						{/*<a
+						<a
 							className={styles.anchor}
-							href={RepositoryURL}
+							href={DiscordURL}
 							target={'_blank'}
 						>
 							<ModalButton
 								text={'Discord server'}
 								icon={<IoLogoDiscord size={16}/>}
 							/>
-						</a>*/}
+						</a>
 					</div>
 				</ModalPar>
 			</ModalCategory>
