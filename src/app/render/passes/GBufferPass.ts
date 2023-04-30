@@ -272,12 +272,18 @@ export default class GBufferPass extends Pass<{
 				continue;
 			}
 
+			const tileParams = terrain.getTileParams(tile);
+
+			if (!tileParams) {
+				continue;
+			}
+
+			const {ring0, levelId, ring0Offset, ring1Offset} = tileParams;
+			const normalTextureTransforms = this.getTileNormalTexturesTransforms(tile);
+
 			const offsetSize = Config.TileSize * 256;
 			const detailOffsetX = tile.position.x % offsetSize;
 			const detailOffsetY = tile.position.z % offsetSize;
-
-			const normalTextureTransforms = this.getTileNormalTexturesTransforms(tile);
-			const {ring0, levelId, ring0Offset, ring1Offset} = terrain.getTileParams(tile);
 
 			const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, tile.matrixWorld);
 			const mvMatrixPrev = Mat4.multiply(this.cameraMatrixWorldInversePrev, tile.matrixWorld);
@@ -324,8 +330,14 @@ export default class GBufferPass extends Pass<{
 				continue;
 			}
 
+			const tileParams = terrain.getTileParams(tile);
+
+			if (!tileParams) {
+				continue;
+			}
+
+			const {ring0, levelId, ring0Offset, ring1Offset} = tileParams;
 			const normalTextureTransforms = this.getTileNormalTexturesTransforms(tile);
-			const {ring0, levelId, ring0Offset, ring1Offset} = terrain.getTileParams(tile);
 
 			const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, tile.matrixWorld);
 			const mvMatrixPrev = Mat4.multiply(this.cameraMatrixWorldInversePrev, tile.matrixWorld);

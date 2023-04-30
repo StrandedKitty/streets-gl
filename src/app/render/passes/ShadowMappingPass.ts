@@ -131,7 +131,14 @@ export default class ShadowMappingPass extends Pass<{
 			if (!tile.huggingMesh || !tile.huggingMesh.inCameraFrustum(shadowCamera)) {
 				continue;
 			}
-			const {ring0, levelId, ring0Offset, ring1Offset} = terrain.getTileParams(tile);
+
+			const tileParams = terrain.getTileParams(tile);
+
+			if (!tileParams) {
+				continue;
+			}
+
+			const {ring0, levelId, ring0Offset, ring1Offset} = tileParams;
 
 			const mvMatrix = Mat4.multiply(shadowCamera.matrixWorldInverse, tile.matrixWorld);
 

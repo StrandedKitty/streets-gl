@@ -50,6 +50,10 @@ export default class Terrain extends Object3D {
 			}
 		}
 
+		if (!ring0 || !ring1) {
+			return null;
+		}
+
 		const ring0Offset = Vec2.sub(tile.position.xz, ring0.position.xz);
 		const ring1Offset = Vec2.sub(tile.position.xz, ring1.position.xz);
 
