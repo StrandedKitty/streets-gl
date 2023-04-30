@@ -6,25 +6,31 @@ import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 import MathUtils from "~/lib/math/MathUtils";
 import Config from "~/app/Config";
 import GroundControlsNavigator from "~/app/controls/GroundControlsNavigator";
+import TerrainHeightProvider from "~/app/terrain/TerrainHeightProvider";
+import TerrainSystem from "~/app/systems/TerrainSystem";
 
 export default class SlippyControlsNavigator extends ControlsNavigator {
 	public readonly camera: PerspectiveCamera;
 	private readonly cursorStyleSystem: CursorStyleSystem;
+	private readonly terrainHeightProvider: TerrainHeightProvider;
 	public distance: number = 1;
 	private distanceTarget: number = 1;
 	private position: Vec2 = new Vec2(0, 0);
 	private isPointerDown: boolean = false;
 	private pointerPosition: Vec2 = new Vec2(0, 0);
+	public switchToGround: boolean = false;
 
 	public constructor(
 		element: HTMLElement,
 		camera: PerspectiveCamera,
-		cursorStyleSystem: CursorStyleSystem
+		cursorStyleSystem: CursorStyleSystem,
+		terrainHeightProvider: TerrainHeightProvider
 	) {
 		super(element);
 
 		this.camera = camera;
 		this.cursorStyleSystem = cursorStyleSystem;
+		this.terrainHeightProvider = terrainHeightProvider;
 
 		this.addEventListeners();
 	}
@@ -164,6 +170,10 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 		this.position.y += posOld.y - posNew.y;
 
 		this.distance = newDistance;
+
+		if (this.distance <= Config.MaxCameraDistance) {
+			this.switchToGround = true;
+		}
 	}
 
 	private getMaxHeight(): number {
@@ -181,23 +191,29 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 
 	}
 
+	private updateCameraProjectionMatrix(): void {
+		this.camera.near = 1000;
+		this.camera.far = 40075016 * 10;
+		this.camera.updateProjectionMatrix();
+	}
+
 	public syncWithCamera(prevNavigator: ControlsNavigator): void {
 		if (prevNavigator instanceof GroundControlsNavigator) {
-			this.position.set(this.camera.position.x, this.camera.position.z);
+			this.position.set(prevNavigator.target.x, prevNavigator.target.z);
 			this.distance = this.distanceTarget = prevNavigator.distance + 1;
 		} else {
 			this.position.set(this.camera.position.x, this.camera.position.z);
 			this.distance = this.distanceTarget = this.getMaxHeight();
 		}
 
-		this.camera.near = 1000;
-		this.camera.far = 40075016 * 10;
-		this.camera.updateProjectionMatrix();
+		this.updateCameraProjectionMatrix();
 	}
 
 	public syncWithState(state: ControlsState): void {
 		this.position.set(state.x, state.z);
 		this.distance = this.distanceTarget = state.distance;
+
+		this.updateCameraProjectionMatrix();
 	}
 
 	public getCurrentState(): ControlsState {
@@ -210,11 +226,15 @@ export default class SlippyControlsNavigator extends ControlsNavigator {
 		};
 	}
 
+	private getCurrentWorldHeight(): number {
+		return this.terrainHeightProvider.getHeightGlobalInterpolated(this.position.x, this.position.y, true);
+	}
+
 	public update(deltaTime: number): void {
 		this.updateDistance(deltaTime);
 
 		this.camera.position.x = this.position.x;
-		this.camera.position.y = this.distance;
+		this.camera.position.y = this.distance + this.getCurrentWorldHeight();
 		this.camera.position.z = this.position.y;
 
 		this.camera.rotation.x = -Math.PI / 2;

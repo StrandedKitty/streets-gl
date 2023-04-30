@@ -75,7 +75,7 @@ export default class ControlsSystem extends System {
 
 		this.groundNavigator = new GroundControlsNavigator(this.element, this.camera, cursorStyleSystem, terrainHeightProvider);
 		this.freeNavigator = new FreeControlsNavigator(this.element, this.camera, terrainHeightProvider);
-		this.slippyNavigator = new SlippyControlsNavigator(this.element, this.camera, cursorStyleSystem);
+		this.slippyNavigator = new SlippyControlsNavigator(this.element, this.camera, cursorStyleSystem, terrainHeightProvider);
 
 		this.activeNavigator = this.slippyNavigator;
 		this.slippyNavigator.enable();
@@ -99,7 +99,7 @@ export default class ControlsSystem extends System {
 				z: startPosition.y,
 				pitch: MathUtils.toRad(45),
 				yaw: MathUtils.toRad(0),
-				distance: 2 ** 10
+				distance: 2000
 			}
 
 			this.updatePositionFromState(this.state);
@@ -115,6 +115,9 @@ export default class ControlsSystem extends System {
 
 		this.state.x = position.x;
 		this.state.z = position.y;
+		this.state.distance = 1500;
+		this.state.pitch = MathUtils.toRad(45);
+		this.state.yaw = MathUtils.toRad(0);
 
 		this.updatePositionFromState(this.state);
 	}
@@ -151,14 +154,14 @@ export default class ControlsSystem extends System {
 		if (e.code === 'Tab') {
 			e.preventDefault();
 
-			this.mode = this.mode === NavigationMode.Ground ? NavigationMode.Free : NavigationMode.Ground;
-
-			if (this.mode === NavigationMode.Ground) {
+			if (this.mode === NavigationMode.Free) {
+				this.mode = NavigationMode.Ground;
 				this.activeNavigator = this.groundNavigator;
 				this.freeNavigator.disable();
 				this.groundNavigator.enable();
 				this.groundNavigator.syncWithCamera(this.freeNavigator);
-			} else {
+			} else if (this.mode === NavigationMode.Ground) {
+				this.mode = NavigationMode.Free;
 				this.activeNavigator = this.freeNavigator;
 				this.groundNavigator.disable();
 				this.freeNavigator.enable();
@@ -201,11 +204,19 @@ export default class ControlsSystem extends System {
 	}
 
 	public get isSlippyMapVisible(): boolean {
-		return this.slippyNavigator.isEnabled;
+		return this.slippyNavigator.isEnabled || this.groundNavigator.slippyMapOverlayFactor > 0;
 	}
 
 	public get isTilesVisible(): boolean {
 		return this.groundNavigator.isEnabled || this.freeNavigator.isEnabled;
+	}
+
+	public get slippyMapAndTilesFactor(): number {
+		if (this.slippyNavigator.isEnabled) {
+			return 1;
+		}
+
+		return this.groundNavigator.slippyMapOverlayFactor;
 	}
 
 	public get northDirection(): number {
@@ -216,30 +227,40 @@ export default class ControlsSystem extends System {
 		return 0;
 	}
 
+	public getGroundControlsTarget(): Vec3 {
+		return this.groundNavigator.target;
+	}
+
 	public update(deltaTime: number): void {
 		if (!this.camera) {
 			this.initCameraAndNavigators();
 		}
 
-		if (this.groundNavigator.distance >= Config.MaxCameraDistance && this.groundNavigator.isEnabled) {
+		this.activeNavigator.update(deltaTime);
+
+		if (this.groundNavigator.switchToSlippy) {
+			this.groundNavigator.switchToSlippy = false;
+
 			this.groundNavigator.disable();
 			this.slippyNavigator.enable();
 			this.slippyNavigator.syncWithCamera(this.groundNavigator);
 
 			this.activeNavigator = this.slippyNavigator;
 			this.mode = NavigationMode.Slippy;
+
+			this.activeNavigator.update(deltaTime);
 		}
 
-		if (this.slippyNavigator.distance <= Config.MaxCameraDistance && this.slippyNavigator.isEnabled) {
+		if (this.slippyNavigator.switchToGround) {
+			this.slippyNavigator.switchToGround = false;
+
 			this.slippyNavigator.disable();
 			this.groundNavigator.enable();
 			this.groundNavigator.syncWithCamera(this.slippyNavigator);
 
 			this.activeNavigator = this.groundNavigator;
 			this.mode = NavigationMode.Ground;
-		}
 
-		if (this.activeNavigator) {
 			this.activeNavigator.update(deltaTime);
 		}
 

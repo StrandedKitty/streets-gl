@@ -38,6 +38,7 @@ export default class SlippyMapPass extends Pass<{
 		const camera = this.manager.sceneSystem.objects.camera;
 		const wrapper = this.manager.sceneSystem.objects.wrapper;
 		const tiles = this.manager.systemManager.getSystem(SlippyMapSystem).getRenderedTiles();
+		const height = this.manager.systemManager.getSystem(SlippyMapSystem).getCurrentWorldHeight();
 
 		this.renderer.beginRenderPass(this.getPhysicalResource('SlippyMap'));
 
@@ -59,7 +60,7 @@ export default class SlippyMapPass extends Pass<{
 
 			dummy.position.set(
 				tilePos.x,
-				0,
+				height,
 				tilePos.y
 			);
 			dummy.scale.set(tileSize, tileSize, tileSize);

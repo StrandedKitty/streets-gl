@@ -9,6 +9,8 @@ import Config from "~/app/Config";
 import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 import MathUtils from "~/lib/math/MathUtils";
 import Vec3 from "~/lib/math/Vec3";
+import TerrainSystem from "~/app/systems/TerrainSystem";
+import ControlsSystem from "~/app/systems/ControlsSystem";
 
 export default class SlippyMapSystem extends System {
 	private readonly viewport: CameraViewport = new CameraViewport();
@@ -38,7 +40,7 @@ export default class SlippyMapSystem extends System {
 
 	public getRenderedTiles(): TileTreeImage[] {
 		const tiles: TileTreeImage[] = [];
-		const zoom = Math.round(this.viewport.zoom);
+		const zoom = Math.round(this.viewport.currentZoom);
 
 		const visibleTiles = this.viewport.getVisibleTiles(zoom, zoom, 0);
 
@@ -74,9 +76,10 @@ export default class SlippyMapSystem extends System {
 	}
 
 	public update(deltaTime: number): void {
-		this.viewport.setFromPerspectiveCamera(this.camera);
+		const worldHeight = this.getCurrentWorldHeight();
+		this.viewport.setFromPerspectiveCamera(this.camera, worldHeight);
 
-		const currentZoom = Math.round(this.viewport.zoom);
+		const currentZoom = Math.round(this.viewport.currentZoom);
 		const visibleTiles = this.viewport.getVisibleTiles(
 			Math.max(0, currentZoom - 1),
 			currentZoom,
@@ -100,7 +103,7 @@ export default class SlippyMapSystem extends System {
 			return weights.get(b) - weights.get(a);
 		});
 
-		//this.deleteUnusedTiles(visibleTiles);
+		this.deleteUnusedTiles(visibleTiles);
 
 		this.queue.length = 0;
 
@@ -190,6 +193,13 @@ export default class SlippyMapSystem extends System {
 				resolve();
 			}
 		});
+	}
+
+	public getCurrentWorldHeight(): number {
+		const terrainHeightProvider = this.systemManager.getSystem(TerrainSystem).terrainHeightProvider;
+		const target = this.systemManager.getSystem(ControlsSystem).getGroundControlsTarget();
+
+		return terrainHeightProvider.getHeightGlobalInterpolated(target.x, target.z, true);
 	}
 
 	private static packVec3(vec: Vec3): string {

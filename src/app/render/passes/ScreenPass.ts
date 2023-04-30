@@ -96,7 +96,7 @@ export default class ScreenPass extends Pass<{
 	public render(): void {
 		this.updateMaterialDefines();
 
-		const drawSlippyMap = this.manager.systemManager.getSystem(ControlsSystem).isSlippyMapVisible;
+		const slippyMapFactor = this.manager.systemManager.getSystem(ControlsSystem).slippyMapAndTilesFactor;
 		const uiResolution = this.manager.renderSystem.resolutionUI;
 
 		this.renderer.beginRenderPass(this.getPhysicalResource('Output'));
@@ -106,7 +106,7 @@ export default class ScreenPass extends Pass<{
 		this.material.getUniform('tSlippyMap').value = this.getSlippyMapTexture();
 		this.material.getUniform<UniformFloat2>('resolution', 'Uniforms').value[0] = uiResolution.x;
 		this.material.getUniform<UniformFloat2>('resolution', 'Uniforms').value[1] = uiResolution.y;
-		this.material.getUniform<UniformFloat1>('slippyMapFactor', 'Uniforms').value[0] = drawSlippyMap ? 1 : 0;
+		this.material.getUniform<UniformFloat1>('slippyMapFactor', 'Uniforms').value[0] = slippyMapFactor;
 		this.material.updateUniformBlock('Uniforms');
 
 		this.renderer.useMaterial(this.material);

@@ -10,6 +10,12 @@ import TerrainHeightProvider from "~/app/terrain/TerrainHeightProvider";
 import FreeControlsNavigator from "~/app/controls/FreeControlsNavigator";
 import Mat4 from "~/lib/math/Mat4";
 import SlippyControlsNavigator from "~/app/controls/SlippyControlsNavigator";
+import Easing from "~/lib/math/Easing";
+
+enum TransitionType {
+	FromSlippy,
+	ToSlippy
+}
 
 export default class GroundControlsNavigator extends ControlsNavigator {
 	private readonly camera: PerspectiveCamera;
@@ -35,6 +41,13 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 	private yawMinusKeyPressed: boolean = false;
 	private yawPlusKeyPressed: boolean = false;
 	private pointerPosition: Vec2 = new Vec2(0, 0);
+	private isInTransition: boolean = false;
+	private transitionType: TransitionType = null;
+	private transitionStart: number = 0;
+	public slippyMapOverlayFactor: number = 0;
+	public switchToSlippy: boolean = false;
+	private transitionYawFrom: number = 0;
+	private transitionPitchFrom: number = 0;
 
 	public constructor(
 		element: HTMLElement,
@@ -144,7 +157,7 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 	}
 
 	private wheelEvent(e: WheelEvent): void {
-		if (!this.isEnabled) {
+		if (!this.isEnabled || this.isInTransition) {
 			return;
 		}
 
@@ -157,7 +170,7 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		this.distanceTarget = MathUtils.clamp(
 			2 ** newLogSpaceDistance,
 			Config.MinCameraDistance,
-			Config.MaxCameraDistance
+			Infinity
 		);
 	}
 
@@ -297,6 +310,12 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		this.target.x += oldPosition.x - newPosition.x;
 		this.target.z += oldPosition.y - newPosition.y;
 		this.distance = newDistance;
+
+		if (this.distance > Config.MaxCameraDistance && !this.isInTransition) {
+			this.startTransition(TransitionType.ToSlippy);
+			this.transitionYawFrom = this.yaw;
+			this.transitionPitchFrom = this.pitch;
+		}
 	}
 
 	private clampPitchAndYaw(): void {
@@ -316,6 +335,12 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		}
 	}
 
+	private updateCameraProjectionMatrix(): void {
+		this.camera.near = 10;
+		this.camera.far = 100000;
+		this.camera.updateProjectionMatrix();
+	}
+
 	public syncWithCamera(prevNavigator: ControlsNavigator): void {
 		if (prevNavigator instanceof FreeControlsNavigator) {
 			const mat = this.camera.matrixWorld.values;
@@ -333,10 +358,13 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 			this.target.set(this.camera.position.x, 0, this.camera.position.z);
 			this.updateTargetHeightFromHeightmap();
 			this.distance = this.distanceTarget = prevNavigator.distance - 1;
-			this.camera.near = 10;
-			this.camera.far = 100000;
-			this.camera.updateProjectionMatrix();
+
+			if (!this.isInTransition) {
+				this.startTransition(TransitionType.FromSlippy);
+			}
 		}
+
+		this.updateCameraProjectionMatrix();
 	}
 
 	public syncWithState(state: ControlsState): void {
@@ -345,6 +373,8 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		this.pitch = state.pitch;
 		this.yaw = state.yaw;
 		this.distance = this.distanceTarget = state.distance;
+
+		this.updateCameraProjectionMatrix();
 	}
 
 	public getCurrentState(): ControlsState {
@@ -362,6 +392,12 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		this.cursorStyleSystem.disableGrabbing();
 		this.LMBDownPosition = null;
 		this.lastLMBMoveEvent = null;
+	}
+
+	private startTransition(type: TransitionType): void {
+		this.isInTransition = true;
+		this.transitionType = type;
+		this.transitionStart = Date.now();
 	}
 
 	private processMovementByKeys(deltaTime: number): void {
@@ -402,6 +438,45 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		}
 	}
 
+	private doTransition(): void {
+		if (!this.isInTransition) {
+			return;
+		}
+
+		const duration = Config.SlippyMapTransitionDuration;
+		const elapsed = Date.now() - this.transitionStart;
+		const t = MathUtils.clamp(elapsed / duration, 0, 1);
+		const tSmooth = Easing.easeOutCubic(t);
+
+		switch (this.transitionType) {
+			case TransitionType.ToSlippy: {
+				this.slippyMapOverlayFactor = tSmooth;
+
+				this.yaw = MathUtils.lerpAngle(this.transitionYawFrom, 0, tSmooth);
+				this.pitch = MathUtils.lerp(this.transitionPitchFrom, MathUtils.toRad(Config.MaxCameraPitch), tSmooth);
+
+				break;
+			}
+			case TransitionType.FromSlippy: {
+				this.slippyMapOverlayFactor = 1 - tSmooth;
+
+				this.yaw = 0;
+				this.pitch = MathUtils.lerp(MathUtils.toRad(Config.MaxCameraPitch), MathUtils.toRad(45), tSmooth);
+
+				break;
+			}
+		}
+
+		if (t >= 1) {
+			this.slippyMapOverlayFactor = 0;
+			this.isInTransition = false;
+
+			if (this.transitionType === TransitionType.ToSlippy) {
+				this.switchToSlippy = true;
+			}
+		}
+	}
+
 	public update(deltaTime: number): void {
 		this.clampPitchAndYaw();
 		this.direction = Vec3.normalize(MathUtils.polarToCartesian(this.yaw, -this.pitch));
@@ -409,6 +484,8 @@ export default class GroundControlsNavigator extends ControlsNavigator {
 		this.processMovementByKeys(deltaTime);
 		this.updateDistance(deltaTime);
 		this.updateTargetHeightFromHeightmap();
+
+		this.doTransition();
 
 		const cameraOffset = Vec3.multiplyScalar(this.direction, -this.distance);
 		const cameraPosition = Vec3.add(this.target, cameraOffset);

@@ -8,6 +8,7 @@ const Config = {
 	StartPosition: [40.76050, -73.98088],
 	MinCameraDistance: 10,
 	MaxCameraDistance: 4000,
+	SlippyMapTransitionDuration: 400,
 	MinFreeCameraHeight: 10,
 	CameraZoomSmoothing: 0.4,
 	CameraZoomSpeed: 0.0005,
