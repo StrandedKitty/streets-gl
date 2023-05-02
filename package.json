@@ -1,6 +1,6 @@
 {
 	"name": "streets-gl",
-	"version": "0.1.0",
+	"version": "1.0.0",
 	"description": "OpenStreetMap 3D renderer",
 	"scripts": {
 		"start": "http-server ./build -p 8080",
