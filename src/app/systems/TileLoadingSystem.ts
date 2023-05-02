@@ -30,8 +30,6 @@ export default class TileLoadingSystem extends System {
 			this.overpassEndpointsDefault.push(endpoint);
 		}
 
-		this.overpassEndpoints.push(...this.overpassEndpointsDefault);
-
 		try {
 			const lsEndpoints = JSON.parse(localStorage.getItem('overpassEndpoints'));
 
@@ -40,12 +38,18 @@ export default class TileLoadingSystem extends System {
 					this.overpassEndpoints.push({
 						url: String(endpoint.url),
 						isEnabled: Boolean(endpoint.isEnabled),
-						isUserDefined: true
+						isUserDefined: Boolean(endpoint.isUserDefined),
 					});
 				}
 			}
 		} catch (e) {
 			console.error(e);
+		}
+
+		for (const endpoint of this.overpassEndpointsDefault) {
+			if (!this.overpassEndpoints.some(e => e.url === endpoint.url)) {
+				this.overpassEndpoints.push(endpoint);
+			}
 		}
 	}
 
@@ -55,9 +59,7 @@ export default class TileLoadingSystem extends System {
 
 	public setOverpassEndpoints(endpoints: OverpassEndpoint[]): void {
 		this.overpassEndpoints = endpoints;
-
-		const userEndpoints = endpoints.filter(endpoint => endpoint.isUserDefined);
-		localStorage.setItem('overpassEndpoints', JSON.stringify(userEndpoints));
+		localStorage.setItem('overpassEndpoints', JSON.stringify(endpoints));
 	}
 
 	public resetOverpassEndpoints(): void {

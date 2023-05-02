@@ -91,14 +91,15 @@ export default class ControlsSystem extends System {
 			this.state = newState;
 			this.updatePositionFromState(this.state);
 		} else {
-			const startPosition = MathUtils.degrees2meters(Config.StartPosition[0], Config.StartPosition[1]);
+			const {lat, lon, pitch, yaw, distance} = Config.StartPosition;
+			const startPosition = MathUtils.degrees2meters(lat, lon);
 
 			this.state = {
 				x: startPosition.x,
 				z: startPosition.y,
-				pitch: MathUtils.toRad(45),
-				yaw: MathUtils.toRad(0),
-				distance: 2000
+				pitch: MathUtils.toRad(pitch),
+				yaw: MathUtils.toRad(yaw),
+				distance: distance
 			}
 
 			this.updatePositionFromState(this.state);
