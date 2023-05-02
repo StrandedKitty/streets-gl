@@ -5,7 +5,7 @@ import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import AbstractAttributeBuffer from "~/lib/renderer/abstract-renderer/AbstractAttributeBuffer";
 import {ModelSourceBuffers} from "~/app/objects/models/ModelManager";
 
-export default class InstancedAircraft extends RenderableObject3D {
+export default class InstancedAircraftPart extends RenderableObject3D {
 	public mesh: AbstractMesh = null;
 	private interleavedAttributeBuffer: AbstractAttributeBuffer = null;
 	private instanceBuffers: ModelSourceBuffers;
@@ -82,18 +82,18 @@ export default class InstancedAircraft extends RenderableObject3D {
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
 						instanced: true,
-						stride: 4 * 4,
+						stride: 6 * 4,
 						offset: 0,
 						buffer: this.interleavedAttributeBuffer
 					}),
 					renderer.createAttribute({
 						name: 'instanceRotation',
-						size: 1,
+						size: 3,
 						type: RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
 						normalized: false,
 						instanced: true,
-						stride: 4 * 4,
+						stride: 6 * 4,
 						offset: 3 * 4,
 						buffer: this.interleavedAttributeBuffer
 					})

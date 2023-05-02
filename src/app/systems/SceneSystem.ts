@@ -6,13 +6,12 @@ import RenderableObject3D from '../objects/RenderableObject3D';
 import Vec2 from '~/lib/math/Vec2';
 import TileSystem from './TileSystem';
 import CSM from "../render/CSM";
-import Config from "../Config";
 import MapTimeSystem from "./MapTimeSystem";
 import Vec3 from "~/lib/math/Vec3";
 import Labels from "../objects/Labels";
 import GenericInstancedObject from "../objects/GenericInstancedObject";
 import ModelManager from "../objects/models/ModelManager";
-import InstancedAircraft from "../objects/InstancedAircraft";
+import InstancedAircraftPart from "../objects/InstancedAircraftPart";
 import Terrain from "../objects/Terrain";
 import Tile from "~/app/objects/Tile";
 import SettingsSystem from "~/app/systems/SettingsSystem";
@@ -22,7 +21,7 @@ import InstancedObject from "~/app/objects/InstancedObject";
 import {Tile3DInstanceLODConfig, Tile3DInstanceType} from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
 import Camera from "~/lib/core/Camera";
 import Utils from "~/app/Utils";
-import OrthographicCamera from "~/lib/core/OrthographicCamera";
+import {AircraftPartType} from "~/app/vehicles/aircraft/Aircraft";
 
 interface SceneObjects {
 	wrapper: Object3D;
@@ -33,7 +32,7 @@ interface SceneObjects {
 	labels: Labels;
 	terrain: Terrain;
 	instancedObjects: Map<string, InstancedObject>;
-	instancedAircraft: InstancedAircraft[];
+	instancedAircraftParts: Map<AircraftPartType, InstancedAircraftPart>;
 }
 
 export default class SceneSystem extends System {
@@ -71,13 +70,6 @@ export default class SceneSystem extends System {
 		const labels = new Labels();
 		const terrain = new Terrain();
 
-		const instancedAircraft = [
-			new InstancedAircraft(ModelManager.getGLTFModel('aircraftB777')),
-			new InstancedAircraft(ModelManager.getGLTFModel('aircraftA321')),
-			new InstancedAircraft(ModelManager.getGLTFModel('aircraftCessna208')),
-			new InstancedAircraft(ModelManager.getGLTFModel('aircraftERJ135'))
-		];
-
 		this.objects = {
 			wrapper,
 			camera,
@@ -87,8 +79,45 @@ export default class SceneSystem extends System {
 			labels,
 			terrain,
 			instancedObjects: new Map(),
-			instancedAircraft
+			instancedAircraftParts: new Map()
 		};
+
+		this.objects.instancedAircraftParts.set(
+			AircraftPartType.B777Body,
+			new InstancedAircraftPart(ModelManager.getGLTFModel('aircraftB777'))
+		);
+		this.objects.instancedAircraftParts.set(
+			AircraftPartType.A321Body,
+			new InstancedAircraftPart(ModelManager.getGLTFModel('aircraftA321'))
+		);
+		this.objects.instancedAircraftParts.set(
+			AircraftPartType.Cessna208Body,
+			new InstancedAircraftPart(ModelManager.getGLTFModel('aircraftCessna208'))
+		);
+		this.objects.instancedAircraftParts.set(
+			AircraftPartType.ERJ135Body,
+			new InstancedAircraftPart(ModelManager.getGLTFModel('aircraftERJ135'))
+		);
+		this.objects.instancedAircraftParts.set(
+			AircraftPartType.HelicopterBody,
+			new InstancedAircraftPart(ModelManager.getGLTFModel('aircraftHeliBody'))
+		);
+		this.objects.instancedAircraftParts.set(
+			AircraftPartType.HelicopterRotorSpinning,
+			new InstancedAircraftPart(ModelManager.getGLTFModel('aircraftHeliRotor'))
+		);
+		this.objects.instancedAircraftParts.set(
+			AircraftPartType.HelicopterRotorStatic,
+			new InstancedAircraftPart(ModelManager.getGLTFModel('aircraftHeliRotorStatic'))
+		);
+		this.objects.instancedAircraftParts.set(
+			AircraftPartType.HelicopterTailRotorSpinning,
+			new InstancedAircraftPart(ModelManager.getGLTFModel('aircraftHeliRotorTail'))
+		);
+		this.objects.instancedAircraftParts.set(
+			AircraftPartType.HelicopterTailRotorStatic,
+			new InstancedAircraftPart(ModelManager.getGLTFModel('aircraftHeliRotorTailStatic'))
+		);
 
 		this.objects.instancedObjects.set('tree', new InstancedTree(ModelManager.getGLTFModel('tree')));
 		this.objects.instancedObjects.set('adColumn', new GenericInstancedObject(ModelManager.getGLTFModel('adColumn')));
@@ -112,7 +141,7 @@ export default class SceneSystem extends System {
 		wrapper.add(
 			camera, csm, skybox, tiles, labels, terrain,
 			...this.objects.instancedObjects.values(),
-			...instancedAircraft
+			...this.objects.instancedAircraftParts.values()
 		);
 	}
 

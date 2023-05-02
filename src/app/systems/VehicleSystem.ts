@@ -5,6 +5,12 @@ import SettingsSystem from "~/app/systems/SettingsSystem";
 import TerrainSystem from "~/app/systems/TerrainSystem";
 import SceneSystem from "~/app/systems/SceneSystem";
 import Config from "~/app/Config";
+import Aircraft, {
+	AircraftPart,
+	AircraftPartType,
+	AircraftPosition,
+	AircraftType
+} from "~/app/vehicles/aircraft/Aircraft";
 
 interface QueryAircraft {
 	id: string;
@@ -36,21 +42,6 @@ interface AircraftState {
 	onGround: boolean;
 	timestamp: number;
 }
-
-interface AircraftPosition {
-	x: number;
-	y: number;
-	height: number;
-	heading: number;
-}
-
-interface AircraftEntry {
-	type: number;
-	states: AircraftState[];
-	isUpdatedTemp: boolean;
-	lastPosition?: AircraftPosition;
-}
-
 interface VehiclesQueryResponse {
 	timestamp: number;
 	aircraft: QueryAircraft[][];
@@ -61,11 +52,12 @@ const QueryInterval = 10000;
 const AircraftRollbackTime = 20000;
 
 export default class VehicleSystem extends System {
-	public readonly aircraftMap: Map<string, AircraftEntry> = new Map();
+	public readonly aircraftMap: Map<string, Aircraft> = new Map();
 	private lastUpdateTimestamp: number = 0;
 	private serverTimeOffset: number = null;
 	private enabled: boolean = true;
 	private lockAircraftPositions: boolean = false;
+	public aircraftPartsBuffers: Map<AircraftPartType, Float32Array> = new Map();
 
 	public postInit(): void {
 		this.listenToSettings();
@@ -103,6 +95,48 @@ export default class VehicleSystem extends System {
 	}
 
 	public update(deltaTime: number): void {
+		for (const aircraft of this.aircraftMap.values()) {
+			this.updateAircraftPosition(aircraft);
+		}
+	}
+
+	public updateBuffers(origin: Vec2): void {
+		const combinedParts: Map<AircraftPartType, AircraftPart[]> = new Map();
+
+		for (const aircraft of this.aircraftMap.values()) {
+			const parts = aircraft.getParts();
+
+			for (const part of parts) {
+				if (!combinedParts.get(part.type)) {
+					combinedParts.set(part.type, []);
+				}
+
+				combinedParts.get(part.type).push(part);
+			}
+		}
+
+		this.aircraftPartsBuffers.clear();
+
+		for (const [type, parts] of combinedParts.entries()) {
+			this.aircraftPartsBuffers.set(type, VehicleSystem.getBufferFromAircraftParts(parts, origin));
+		}
+	}
+
+	private static getBufferFromAircraftParts(parts: AircraftPart[], origin: Vec2): Float32Array {
+		const buffer = new Float32Array(parts.length * 6);
+
+		for (let i = 0; i < parts.length; i++) {
+			const part = parts[i];
+
+			buffer[i * 6] = part.position.x - origin.x;
+			buffer[i * 6 + 1] = part.position.y;
+			buffer[i * 6 + 2] = part.position.z - origin.y;
+			buffer[i * 6 + 3] = part.rotation.x;
+			buffer[i * 6 + 4] = part.rotation.y;
+			buffer[i * 6 + 5] = part.rotation.z;
+		}
+
+		return buffer;
 	}
 
 	public async fetchData(): Promise<void> {
@@ -129,21 +163,23 @@ export default class VehicleSystem extends System {
 			aircraft.isUpdatedTemp = false;
 		}
 
-		for (const aircraft of response.aircraft) {
-			const id = aircraft[0].id;
-			const states = aircraft.map(VehicleSystem.convertQueryAircraftToAircraftState);
-			const oldAircraft = this.aircraftMap.get(id);
+		for (const aircraftData of response.aircraft) {
+			const id = aircraftData[0].id;
+			const states = aircraftData.map(VehicleSystem.convertQueryAircraftToAircraftState);
+			let aircraft = this.aircraftMap.get(id);
 
-			this.aircraftMap.set(id, {
-				states: states,
-				type: VehicleSystem.getPlaneTypeInteger(aircraft[0]),
-				lastPosition: oldAircraft?.lastPosition,
-				isUpdatedTemp: true
-			});
+			if (!aircraft) {
+				const type = VehicleSystem.getAircraftType(aircraftData[0]);
+
+				aircraft = new Aircraft(type);
+				this.aircraftMap.set(id, aircraft);
+			}
+
+			aircraft.update(states);
 		}
 
 		for (const [key, aircraft] of this.aircraftMap.entries()) {
-			if (!aircraft.isUpdatedTemp) {
+			if (!aircraft.isUpdatedTemp && !this.lockAircraftPositions) {
 				this.aircraftMap.delete(key);
 			}
 		}
@@ -151,50 +187,16 @@ export default class VehicleSystem extends System {
 		this.lastUpdateTimestamp = Date.now();
 	}
 
-	public getAircraftBuffer(origin: Vec2, type: number): Float32Array {
-		if (!this.enabled) {
-			return new Float32Array();
+	private updateAircraftPosition(aircraft: Aircraft): void {
+		if (this.lockAircraftPositions && aircraft.position) {
+			return;
 		}
 
-		const aircraftOfType: AircraftEntry[] = [];
-
-		for (const aircraft of this.aircraftMap.values()) {
-			if (aircraft.type === type) {
-				aircraftOfType.push(aircraft);
-			}
-		}
-
-		if (aircraftOfType.length === 0) {
-			return new Float32Array();
-		}
-
-		const buffer = new Float32Array(aircraftOfType.length * 4);
-		let i = 0;
-
-		for (const aircraft of aircraftOfType) {
-			const position = this.getAircraftPosition(aircraft);
-
-			buffer[i++] = position.x - origin.x;
-			buffer[i++] = position.height;
-			buffer[i++] = position.y - origin.y;
-			buffer[i++] = position.heading;
-		}
-
-		return buffer;
-	}
-
-	private getAircraftPosition(aircraft: AircraftEntry): AircraftPosition {
-		if (this.lockAircraftPositions && aircraft.lastPosition) {
-			return aircraft.lastPosition;
-		}
-
-		const lerpedPosition = this.lerpAircraftStates(aircraft.states);
-		aircraft.lastPosition = lerpedPosition;
-
-		return lerpedPosition;
+		aircraft.position = this.lerpAircraftStates(aircraft.states);
 	}
 
 	private lerpAircraftStates(states: AircraftState[]): AircraftPosition {
+		const heightProvider = this.systemManager.getSystem(TerrainSystem).terrainHeightProvider;
 		const serverTime = Date.now() + this.serverTimeOffset - AircraftRollbackTime;
 
 		if (states.length > 1) {
@@ -208,24 +210,29 @@ export default class VehicleSystem extends System {
 					const lerpedY = MathUtils.lerp(a.y, b.y, progress);
 					const height = this.getActualAltitude(a, b, progress);
 					const lerpedHeading = MathUtils.lerpAngle(a.heading, b.heading, progress);
+					const groundHeight = heightProvider.getHeightGlobalInterpolated(lerpedX, lerpedY, true);
 
 					return {
 						x: lerpedX,
 						y: lerpedY,
 						height: height,
-						heading: lerpedHeading
+						heading: lerpedHeading,
+						onGround: height <= groundHeight
 					};
 				}
 			}
 		}
 
 		const lastState = states[states.length - 1];
+		const groundHeight = heightProvider.getHeightGlobalInterpolated(lastState.x, lastState.y, true);
+		const height = this.getActualAltitude(lastState, lastState, 0);
 
 		return {
 			x: lastState.x,
 			y: lastState.y,
 			height: this.getActualAltitude(lastState, lastState, 0),
 			heading: lastState.heading,
+			onGround: height <= groundHeight
 		};
 	}
 
@@ -288,7 +295,7 @@ export default class VehicleSystem extends System {
 		};
 	}
 
-	private static getPlaneTypeInteger(state: QueryAircraft): number {
+	private static getAircraftType(state: QueryAircraft): AircraftType {
 		switch (state.type) {
 			case 'B738':
 			case 'B737':
@@ -306,7 +313,7 @@ export default class VehicleSystem extends System {
 			case 'B744':
 			case 'B772':
 			case 'B39M':
-				return 0;
+				return AircraftType.B777;
 			case 'A320':
 			case 'A321':
 			case 'A20N':
@@ -315,7 +322,7 @@ export default class VehicleSystem extends System {
 			case 'A359':
 			case 'A333':
 			case 'A332':
-				return 1;
+				return AircraftType.A321;
 			case 'C172':
 			case 'P28A':
 			case 'PC12':
@@ -326,7 +333,10 @@ export default class VehicleSystem extends System {
 			case 'C182':
 			case 'DA40':
 			case 'C72R':
-				return 2;
+			case 'GLID':
+			case 'M20P':
+			case 'BE36':
+				return AircraftType.Cessna208;
 			case 'CRJ9':
 			case 'E55P':
 			case 'CRJ7':
@@ -336,9 +346,26 @@ export default class VehicleSystem extends System {
 			case 'CRJ2':
 			case 'C68A':
 			case 'C25A':
-				return 3;
+				return AircraftType.ERJ135;
+			case 'EC35':
+			case 'R44':
+			case 'A169':
+			case 'AS55':
+			case 'A139':
+			case 'EC75':
+			case 'B407':
+			case 'AS50':
+			case 'H60':
+			case 'R66':
+			case 'S76':
+			case 'B06':
+			case 'B429':
+			case 'H500':
+			case 'R22':
+			case 'AS65':
+				return AircraftType.Helicopter;
 		}
 
-		return 0;
+		return AircraftType.A321;
 	}
 }

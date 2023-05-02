@@ -37,6 +37,7 @@ import {
 import AdvancedInstanceMaterialContainer from "~/app/render/materials/AdvancedInstanceMaterialContainer";
 import {InstanceTextureIdList} from "~/app/render/textures/createInstanceTexture";
 import MapTimeSystem from "~/app/systems/MapTimeSystem";
+import {AircraftPartTextures} from "~/app/render/textures/createAircraftTexture";
 
 export default class GBufferPass extends Pass<{
 	GBufferRenderPass: {
@@ -98,7 +99,6 @@ export default class GBufferPass extends Pass<{
 	private createMaterials(): void {
 		this.skyboxMaterial = new SkyboxMaterialContainer(this.renderer).material;
 		this.terrainMaterial = new TerrainMaterialContainer(this.renderer).material;
-		this.aircraftMaterial = new AircraftMaterialContainer(this.renderer).material;
 
 		this.genericInstanceMaterial = new GenericInstanceMaterialContainer(this.renderer).material;
 		this.genericInstanceMaterial.getUniform<UniformTexture2DArray>('tMap').value =
@@ -123,6 +123,10 @@ export default class GBufferPass extends Pass<{
 		this.extrudedMeshMaterial = new ExtrudedMeshMaterialContainer(this.renderer).material;
 		this.extrudedMeshMaterial.getUniform<UniformTexture2DArray>('tMap').value =
 			<AbstractTexture2DArray>this.manager.texturePool.get('extrudedMesh');
+
+		this.aircraftMaterial = new AircraftMaterialContainer(this.renderer).material;
+		this.aircraftMaterial.getUniform<UniformTexture2DArray>('tMap').value =
+			<AbstractTexture2DArray>this.manager.texturePool.get('aircraft');
 	}
 
 	private getTileNormalTexturesTransforms(tile: Tile): [Float32Array, Float32Array] {
@@ -403,38 +407,44 @@ export default class GBufferPass extends Pass<{
 
 	private renderAircraft(instancesOrigin: Vec2): void {
 		const camera = this.manager.sceneSystem.objects.camera;
-		const aircraftList = this.manager.sceneSystem.objects.instancedAircraft;
+		const aircraftObjects = this.manager.sceneSystem.objects.instancedAircraftParts;
 		const vehicleSystem = this.manager.systemManager.getSystem(VehicleSystem);
 
-		for (let i = 0; i < aircraftList.length; i++) {
-			const aircraft = aircraftList[i];
+		vehicleSystem.updateBuffers(instancesOrigin);
 
-			if (!aircraft.mesh) {
+		const buffers = vehicleSystem.aircraftPartsBuffers;
+
+		for (const [partType, buffer] of buffers.entries()) {
+			const object = aircraftObjects.get(partType);
+
+			if (!object) {
 				continue;
 			}
 
-			const buffer = vehicleSystem.getAircraftBuffer(instancesOrigin, i);
-			const instanceCount = buffer.length / 4;
+			const instanceCount = buffer.length / 6;
 
-			aircraft.position.set(instancesOrigin.x, 0, instancesOrigin.y);
-			aircraft.updateMatrix();
-			aircraft.updateMatrixWorld();
-			aircraft.setInstancesInterleavedBuffer(buffer, buffer.length / 4);
+			object.position.set(instancesOrigin.x, 0, instancesOrigin.y);
+			object.updateMatrix();
+			object.updateMatrixWorld();
+			object.setInstancesInterleavedBuffer(buffer, instanceCount);
 
-			if (instanceCount > 0) {
-				const mvMatrixPrev = Mat4.multiply(this.cameraMatrixWorldInversePrev, aircraft.matrixWorld);
-
-				this.renderer.useMaterial(this.aircraftMaterial);
-
-				this.aircraftMaterial.getUniform('projectionMatrix', 'MainBlock').value = new Float32Array(camera.jitteredProjectionMatrix.values);
-				this.aircraftMaterial.getUniform('modelMatrix', 'MainBlock').value = new Float32Array(aircraft.matrixWorld.values);
-				this.aircraftMaterial.getUniform('viewMatrix', 'MainBlock').value = new Float32Array(camera.matrixWorldInverse.values);
-				this.aircraftMaterial.getUniform('modelViewMatrixPrev', 'MainBlock').value = new Float32Array(mvMatrixPrev.values);
-				this.aircraftMaterial.getUniform('textureId', 'MainBlock').value = new Float32Array([i]);
-				this.aircraftMaterial.updateUniformBlock('MainBlock');
-
-				aircraft.mesh.draw();
+			if (instanceCount === 0) {
+				continue;
 			}
+
+			const texture = AircraftPartTextures[partType];
+			const mvMatrixPrev = Mat4.multiply(this.cameraMatrixWorldInversePrev, object.matrixWorld);
+
+			this.renderer.useMaterial(this.aircraftMaterial);
+
+			this.aircraftMaterial.getUniform('projectionMatrix', 'MainBlock').value = new Float32Array(camera.jitteredProjectionMatrix.values);
+			this.aircraftMaterial.getUniform('modelMatrix', 'MainBlock').value = new Float32Array(object.matrixWorld.values);
+			this.aircraftMaterial.getUniform('viewMatrix', 'MainBlock').value = new Float32Array(camera.matrixWorldInverse.values);
+			this.aircraftMaterial.getUniform('modelViewMatrixPrev', 'MainBlock').value = new Float32Array(mvMatrixPrev.values);
+			this.aircraftMaterial.getUniform('textureId', 'MainBlock').value = new Float32Array([texture]);
+			this.aircraftMaterial.updateUniformBlock('MainBlock');
+
+			object.mesh.draw();
 		}
 	}
 

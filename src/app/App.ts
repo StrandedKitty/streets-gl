@@ -51,10 +51,10 @@ class App {
 				PickingSystem,
 				TileObjectsSystem,
 				SlippyMapSystem,
+				VehicleSystem,
 				RenderSystem,
 				MapWorkerSystem,
 				TileLoadingSystem,
-				VehicleSystem
 			);
 		});
 

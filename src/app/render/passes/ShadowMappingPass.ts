@@ -20,6 +20,15 @@ import {
 import {InstanceTextureIdList} from "~/app/render/textures/createInstanceTexture";
 import Camera from "~/lib/core/Camera";
 import Vec2 from "~/lib/math/Vec2";
+import VehicleSystem from "~/app/systems/VehicleSystem";
+import {AircraftPartType} from "~/app/vehicles/aircraft/Aircraft";
+
+const SkippedAircraftParts: AircraftPartType[] = [
+	AircraftPartType.HelicopterRotorSpinning,
+	AircraftPartType.HelicopterRotorStatic,
+	AircraftPartType.HelicopterTailRotorSpinning,
+	AircraftPartType.HelicopterTailRotorStatic
+];
 
 export default class ShadowMappingPass extends Pass<{
 	ShadowMaps: {
@@ -204,22 +213,30 @@ export default class ShadowMappingPass extends Pass<{
 	}
 
 	private renderAircraft(shadowCamera: CSMCascadeCamera): void {
-		const aircraftList = this.manager.sceneSystem.objects.instancedAircraft;
+		const aircraftObjects = this.manager.sceneSystem.objects.instancedAircraftParts;
+		const vehicleSystem = this.manager.systemManager.getSystem(VehicleSystem);
+		const buffers = vehicleSystem.aircraftPartsBuffers;
 
-		for (let i = 0; i < aircraftList.length; i++) {
-			const aircraft = aircraftList[i];
-
-			if (aircraft.mesh && aircraft.mesh.instanceCount > 0) {
-				const mvMatrix = Mat4.multiply(shadowCamera.matrixWorldInverse, aircraft.matrixWorld);
-
-				this.renderer.useMaterial(this.aircraftMaterial);
-
-				this.aircraftMaterial.getUniform('projectionMatrix', 'MainBlock').value = new Float32Array(shadowCamera.projectionMatrix.values);
-				this.aircraftMaterial.getUniform('modelViewMatrix', 'MainBlock').value = new Float32Array(mvMatrix.values);
-				this.aircraftMaterial.updateUniformBlock('MainBlock');
-
-				aircraft.mesh.draw();
+		for (const partType of buffers.keys()) {
+			if (SkippedAircraftParts.includes(partType)) {
+				continue;
 			}
+
+			const object = aircraftObjects.get(partType);
+
+			if (!object || object.mesh.instanceCount === 0) {
+				continue;
+			}
+
+			const mvMatrix = Mat4.multiply(shadowCamera.matrixWorldInverse, object.matrixWorld);
+
+			this.renderer.useMaterial(this.aircraftMaterial);
+
+			this.aircraftMaterial.getUniform('projectionMatrix', 'MainBlock').value = new Float32Array(shadowCamera.projectionMatrix.values);
+			this.aircraftMaterial.getUniform('modelViewMatrix', 'MainBlock').value = new Float32Array(mvMatrix.values);
+			this.aircraftMaterial.updateUniformBlock('MainBlock');
+
+			object.mesh.draw();
 		}
 	}
 

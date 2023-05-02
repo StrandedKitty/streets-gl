@@ -24,27 +24,27 @@ mat3 rotateX(float rad) {
 	float c = cos(rad);
 	float s = sin(rad);
 	return mat3(
-	1.0, 0.0, 0.0,
-	0.0, c, s,
-	0.0, -s, c
+		1.0, 0.0, 0.0,
+		0.0, c, s,
+		0.0, -s, c
 	);
 }
 mat3 rotateY(float rad) {
 	float c = cos(rad);
 	float s = sin(rad);
 	return mat3(
-	c, 0.0, -s,
-	0.0, 1.0, 0.0,
-	s, 0.0, c
+		c, 0.0, -s,
+		0.0, 1.0, 0.0,
+		s, 0.0, c
 	);
 }
 mat3 rotateZ(float rad) {
 	float c = cos(rad);
 	float s = sin(rad);
 	return mat3(
-	c, s, 0.0,
-	-s, c, 0.0,
-	0.0, 0.0, 1.0
+		c, s, 0.0,
+		-s, c, 0.0,
+		0.0, 0.0, 1.0
 	);
 }
 

@@ -4,7 +4,7 @@ in vec3 position;
 in vec3 normal;
 in vec2 uv;
 in vec3 instancePosition;
-in float instanceRotation;
+in vec3 instanceRotation;
 out vec4 vClipPos;
 out vec4 vClipPosPrev;
 
@@ -20,27 +20,45 @@ uniform MainBlock {
 	float textureId;
 };
 
-mat2 rotate2d(float angle){
-	return mat2(
-		cos(angle), -sin(angle),
-		sin(angle), cos(angle)
+mat3 rotateX(float rad) {
+	float c = cos(rad);
+	float s = sin(rad);
+	return mat3(
+		1.0, 0.0, 0.0,
+		0.0, c, s,
+		0.0, -s, c
+	);
+}
+mat3 rotateY(float rad) {
+	float c = cos(rad);
+	float s = sin(rad);
+	return mat3(
+		c, 0.0, -s,
+		0.0, 1.0, 0.0,
+		s, 0.0, c
+	);
+}
+mat3 rotateZ(float rad) {
+	float c = cos(rad);
+	float s = sin(rad);
+	return mat3(
+		c, s, 0.0,
+		-s, c, 0.0,
+		0.0, 0.0, 1.0
 	);
 }
 
 void main() {
 	vUv = uv;
 
-	mat2 rotationMatrix = rotate2d(instanceRotation);
+	mat3 rotationMatrix = rotateX(instanceRotation.x) * rotateY(instanceRotation.y) * rotateZ(instanceRotation.z);
 
 	vec3 modelNormal = normalize((modelMatrix * vec4(normal, 0)).xyz);
-	modelNormal.xz = rotationMatrix * modelNormal.xz;
+	modelNormal = rotationMatrix * modelNormal;
 	vec3 modelViewNormal = normalize((viewMatrix * vec4(modelNormal, 0)).xyz);
 	vNormal = modelViewNormal;
 
-	vec3 transformedPosition = position;
-	transformedPosition.xz = rotationMatrix * transformedPosition.xz;
-	transformedPosition += instancePosition;
-
+	vec3 transformedPosition = instancePosition + rotationMatrix * position;
 	vec4 cameraSpacePosition = viewMatrix * modelMatrix * vec4(transformedPosition, 1);
 	vec4 cameraSpacePositionPrev = modelViewMatrixPrev * vec4(transformedPosition, 1);
 

@@ -12,7 +12,6 @@ import CursorStyleSystem from "./CursorStyleSystem";
 import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 import TerrainSystem from "~/app/systems/TerrainSystem";
 import SlippyControlsNavigator from "~/app/controls/SlippyControlsNavigator";
-import RenderSystem from "~/app/systems/RenderSystem";
 
 const WheelZoomFactor = 6;
 

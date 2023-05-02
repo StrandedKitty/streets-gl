@@ -44,6 +44,7 @@ uniform sampler2D tWaterNoise;
 #include <textureNoTile>
 #include <sampleWaterNormal>
 #include <RNM>
+#include <getScreenDoorFactor>
 
 vec3 sampleNormalMap() {
 	vec2 size = vec2(textureSize(tNormal, 0));
@@ -60,20 +61,6 @@ float edgeFactor() {
 	vec3 a3 = smoothstep(vec3(0), d * widthFactor, vCenter.xyz);
 
 	return min(min(a3.x, a3.y), a3.z);
-}
-
-const mat4 thresholdMatrix = mat4(
-	1.0 / 17.0,  9.0 / 17.0,  3.0 / 17.0, 11.0 / 17.0,
-	13.0 / 17.0,  5.0 / 17.0, 15.0 / 17.0,  7.0 / 17.0,
-	4.0 / 17.0, 12.0 / 17.0,  2.0 / 17.0, 10.0 / 17.0,
-	16.0 / 17.0,  8.0 / 17.0, 14.0 / 17.0,  6.0 / 17.0
-);
-
-float getScreenDoorFactor() {
-	int x = int(gl_FragCoord.x);
-	int y = int(gl_FragCoord.y);
-
-	return thresholdMatrix[x % 4][y % 4];
 }
 
 void main() {
@@ -103,7 +90,7 @@ void main() {
 	vec3 normalMapUnpacked = texture(tMap, vec3(vUv, layer + 1)).xyz * 2. - 1.;
 	vec3 mask = texture(tMap, vec3(vUv, layer + 2)).rgb;
 
-	if (color.a - getScreenDoorFactor() < 0.) {
+	if (color.a - getScreenDoorFactor(gl_FragCoord.x, gl_FragCoord.y) < 0.) {
 		discard;
 	}
 
