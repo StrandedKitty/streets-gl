@@ -2,16 +2,14 @@ import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/desc
 import getRoofOrientationFromOSMOrientation
 	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getRoofOrientationFromOSMOrientation";
 import {
-	parseColor,
+	parseDirection,
 	parseHeight,
-	readTagAsFloat,
 	readTagAsUnsignedFloat,
 	readTagAsUnsignedInt
 } from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
 import getDefaultLevelsFromRoofType
 	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getDefaultLevelsFromRoofType";
-import getFacadeParamsFromTags
-	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getFacadeParamsFromTags";
+import getFacadeParamsFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getFacadeParamsFromTags";
 import isBuildingHasWindows from "~/lib/tile-processing/vector/qualifiers/factories/helpers/isBuildingHasWindows";
 import getRoofParamsFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getRoofParamsFromTags";
 
@@ -40,7 +38,7 @@ export default function getBuildingParamsFromTags(
 	const roofParams = getRoofParamsFromTags(tags);
 	const roofOrientation = getRoofOrientationFromOSMOrientation(tags['roof:orientation']);
 	const roofLevels = readTagAsUnsignedInt(tags, 'roof:levels') ?? getDefaultLevelsFromRoofType(roofParams.type);
-	const roofDirection = readTagAsFloat(tags, 'roof:direction') ?? 0;
+	const roofDirection = parseDirection(tags['roof:direction'], 0);
 
 	const roofHeight = parseHeight(tags['roof:height'], roofLevels * levelHeight);
 	const roofAngle = readTagAsUnsignedFloat(tags, 'roof:angle');
