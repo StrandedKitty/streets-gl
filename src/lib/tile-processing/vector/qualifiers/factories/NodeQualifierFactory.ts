@@ -3,7 +3,7 @@ import {VectorNodeDescriptor} from "~/lib/tile-processing/vector/qualifiers/desc
 import {Qualifier, QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
 import isUnderground from "~/lib/tile-processing/vector/qualifiers/factories/helpers/isUnderground";
 import {ModifierType} from "~/lib/tile-processing/vector/qualifiers/modifiers";
-import {isTagIncludesString, parseHeight} from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
+import {isTagIncludesString, parseHeight, parseDirection} from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
 import getTreeTypeFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getTreeTypeFromTags";
 
 export default class NodeQualifierFactory extends AbstractQualifierFactory<VectorNodeDescriptor> {
@@ -76,7 +76,8 @@ export default class NodeQualifierFactory extends AbstractQualifierFactory<Vecto
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
-					type: 'bench'
+					type: 'bench',
+					direction: parseDirection(tags.direction, undefined)
 				}
 			}];
 		}

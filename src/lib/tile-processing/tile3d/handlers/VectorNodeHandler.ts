@@ -11,6 +11,7 @@ import {
 	getTreeTextureIdFromType,
 	getTreeTextureScaling
 } from "~/lib/tile-processing/tile3d/utils";
+import MathUtils from "~/lib/math/MathUtils";
 
 const TileSize = 611.4962158203125;
 
@@ -75,7 +76,8 @@ export default class VectorNodeHandler implements Handler {
 		if (this.descriptor.type === 'bench') {
 			return [this.getGenericInstanceFeature({
 				type: 'bench',
-				rotateToNearestPath: true
+				rotateToNearestPath: true,
+				rotation: this.descriptor.direction
 			})];
 		}
 
@@ -137,7 +139,7 @@ export default class VectorNodeHandler implements Handler {
 		let rotationAngle: number = 0;
 
 		if (rotation !== undefined) {
-			rotationAngle = rotation;
+			rotationAngle = -MathUtils.toRad(rotation) + Math.PI * 0.5;
 		} else if (rotateToNearestPath && this.graph) {
 			const selfPosition = new Vec2(this.x, this.y);
 			const projection = this.graph.getClosestProjection(selfPosition, pathGroupId);

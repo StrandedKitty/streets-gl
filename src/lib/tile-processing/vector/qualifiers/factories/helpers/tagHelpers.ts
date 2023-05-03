@@ -1,5 +1,7 @@
 import ColorsList from "~/resources/colors.json";
+import MathUtils from "~/lib/math/MathUtils";
 import Utils from "~/app/Utils";
+
 
 export function isTagIncludesString(
 	tags: Record<string, string>,
@@ -96,6 +98,41 @@ export function parseMeters(str: string = ''): number {
 
 export function parseHeight(str: string = '', fallback?: number): number {
 	return parseMeters(str) ?? fallback;
+}
+
+export function parseDirection(str: string = '', fallback?: number): number {
+	const directions: Record<string, number> = {
+		N: 0,
+		NE: 45,
+		E: 90,
+		SE: 135,
+		S: 180,
+		SW: 225,
+		W: 270,
+		NW: 315,
+		NNW: 337.5,
+		NNE: 22.5,
+		ENE: 67.5,
+		ESE: 112.5,
+		SSE: 157.5,
+		SSW: 202.5,
+		WSW: 247.5,
+		WNW: 292.5,
+	};
+
+	const direction = directions[str.toUpperCase()];
+
+	if (direction !== undefined) {
+		return direction;
+	}
+
+	const floatValue = parseFloat(str);
+
+	if (isNaN(floatValue)) {
+		return fallback;
+	}
+
+	return floatValue;
 }
 
 export function parseColor(str: string = '', fallback?: number): number {
