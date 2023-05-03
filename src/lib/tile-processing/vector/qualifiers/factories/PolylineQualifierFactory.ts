@@ -16,6 +16,8 @@ import getTreeTypeFromTags from "~/lib/tile-processing/vector/qualifiers/factori
 import getFenceMaterialFromOSMType
 	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getFenceMaterialFromOSMType";
 import getWallTypeAndHeight from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getWallTypeAndHeight";
+import getRailwayParamsFromTags
+	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getRailwayParamsFromTags";
 
 export default class PolylineQualifierFactory extends AbstractQualifierFactory<VectorPolylineDescriptor> {
 	public fromTags(tags: Record<string, string>): Qualifier<VectorPolylineDescriptor>[] {
@@ -177,24 +179,22 @@ export default class PolylineQualifierFactory extends AbstractQualifierFactory<V
 			}];
 		}
 
-		if (tags.railway === 'rail') {
-			return [{
-				type: QualifierType.Descriptor,
-				data: {
-					type: 'path',
-					pathType: 'railway',
-					width: 1.5
-				}
-			}];
-		}
+		if (
+			tags.railway === 'rail' ||
+			tags.railway === 'light_rail' ||
+			tags.railway === 'subway' ||
+			tags.railway === 'disused' ||
+			tags.railway === 'narrow_gauge' ||
+			tags.railway === 'tram'
+		) {
+			const {type, width} = getRailwayParamsFromTags(tags);
 
-		if (tags.railway === 'tram') {
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'path',
-					pathType: 'tramway',
-					width: 1.5
+					pathType: type,
+					width: width
 				}
 			}];
 		}
