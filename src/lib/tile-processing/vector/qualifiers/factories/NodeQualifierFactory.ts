@@ -121,7 +121,10 @@ export default class NodeQualifierFactory extends AbstractQualifierFactory<Vecto
 			}];
 		}
 
-		if (tags.tourism === 'artwork' && isTagIncludesString(tags, 'artwork_type', 'sculpture')) {
+		if (
+			tags.tourism === 'artwork' && isTagIncludesString(tags, 'artwork_type', 'sculpture') ||
+			tags.historic === 'memorial' && isTagIncludesString(tags, 'memorial', 'sculpture')
+		) {
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
@@ -130,7 +133,14 @@ export default class NodeQualifierFactory extends AbstractQualifierFactory<Vecto
 			}];
 		}
 
-		if (tags.historic === 'memorial' && tags.memorial !== 'plaque') {
+		if (
+			tags.historic === 'memorial' && (
+				isTagIncludesString(tags, 'memorial', 'war_memorial') ||
+				isTagIncludesString(tags, 'memorial', 'stele') ||
+				isTagIncludesString(tags, 'memorial', 'obelisk') ||
+				isTagIncludesString(tags, 'memorial', 'memorial')
+			)
+		) {
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
