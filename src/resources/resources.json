@@ -168,12 +168,12 @@
 		"type": "image"
 	},
 
-	"starmap0": {"url": "/textures/starmap/px.png", "type": "image"},
-	"starmap1": {"url": "/textures/starmap/nx.png", "type": "image"},
-	"starmap2": {"url": "/textures/starmap/py.png", "type": "image"},
-	"starmap3": {"url": "/textures/starmap/ny.png", "type": "image"},
-	"starmap4": {"url": "/textures/starmap/pz.png", "type": "image"},
-	"starmap5": {"url": "/textures/starmap/nz.png", "type": "image"},
+	"starmap0": {"url": "/textures/starmap/px.jpg", "type": "image"},
+	"starmap1": {"url": "/textures/starmap/nx.jpg", "type": "image"},
+	"starmap2": {"url": "/textures/starmap/py.jpg", "type": "image"},
+	"starmap3": {"url": "/textures/starmap/ny.jpg", "type": "image"},
+	"starmap4": {"url": "/textures/starmap/pz.jpg", "type": "image"},
+	"starmap5": {"url": "/textures/starmap/nz.jpg", "type": "image"},
 
 	"fontSDF": {
 		"url": "/textures/Inter-Regular.png",
