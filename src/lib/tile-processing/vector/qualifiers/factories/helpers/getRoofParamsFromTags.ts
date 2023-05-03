@@ -4,6 +4,8 @@ import getRoofTypeFromOSMRoofShape
 import getRoofMaterialFromOSMMaterial
 	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getRoofMaterialFromOSMMaterial";
 import {parseColor} from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
+import isBuildingSupportsDefaultRoof
+	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/isBuildingSupportsDefaultRoof";
 
 export default function getRoofParamsFromTags(tags: Record<string, string>): {
 	type: VectorAreaDescriptor['buildingRoofType'];
@@ -11,19 +13,7 @@ export default function getRoofParamsFromTags(tags: Record<string, string>): {
 	color: number;
 } {
 	const type = getRoofTypeFromOSMRoofShape(tags['roof:shape'], 'flat');
-	const noDefault = tags.building === 'stadium'
-		|| tags.building === 'houseboat'
-		|| tags.building === 'castle'
-		|| tags.building === 'storage_tank'
-		|| tags.building === 'silo'
-		|| tags.building === 'stadium'
-		|| tags.building === 'ship'
-		|| tags.building === 'bridge'
-		|| type !== 'flat'
-		|| !!tags['bridge:support']
-		|| !!tags['ship:type']
-		|| tags.man_made === 'storage_tank'
-		|| tags.man_made === 'chimney'
+	const noDefault = !isBuildingSupportsDefaultRoof(tags) || type !== 'flat';
 
 	const materialTagValue = tags['roof:material'];
 	const colorTagValue = tags['roof:colour'];
