@@ -12,6 +12,7 @@ import getDefaultLevelsFromRoofType
 import getFacadeParamsFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getFacadeParamsFromTags";
 import isBuildingHasWindows from "~/lib/tile-processing/vector/qualifiers/factories/helpers/isBuildingHasWindows";
 import getRoofParamsFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getRoofParamsFromTags";
+import MathUtils from "~/lib/math/MathUtils";
 
 export default function getBuildingParamsFromTags(
 	tags: Record<string, string>,
@@ -39,14 +40,17 @@ export default function getBuildingParamsFromTags(
 	const roofOrientation = getRoofOrientationFromOSMOrientation(tags['roof:orientation']);
 	const roofLevels = readTagAsUnsignedInt(tags, 'roof:levels') ?? getDefaultLevelsFromRoofType(roofParams.type);
 	const roofDirection = parseDirection(tags['roof:direction'], 0);
-
-	const roofHeight = parseHeight(tags['roof:height'], roofLevels * levelHeight);
 	const roofAngle = readTagAsUnsignedFloat(tags, 'roof:angle');
+	let roofHeight = parseHeight(tags['roof:height'], roofLevels * levelHeight);
 
 	let minLevel = readTagAsUnsignedInt(tags, 'building:min_level') ?? null;
 	let height = parseHeight(tags.height, parseHeight(tags.est_height, null));
 	let levels = readTagAsUnsignedInt(tags, 'building:levels') ?? null;
 	let minHeight = parseHeight(tags.min_height, null);
+
+	if (height !== null) {
+		roofHeight = Math.min(roofHeight, height - (minHeight ?? 0));
+	}
 
 	if (height === null && levels === null) {
 		levels = fallbackLevels;
