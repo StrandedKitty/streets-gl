@@ -75,7 +75,8 @@ export default class VectorNodeHandler implements Handler {
 		if (this.descriptor.type === 'bench') {
 			return [this.getGenericInstanceFeature({
 				type: 'bench',
-				rotateToNearestPath: true
+				rotateToNearestPath: true,
+				rotation: this.descriptor.direction
 			})];
 		}
 

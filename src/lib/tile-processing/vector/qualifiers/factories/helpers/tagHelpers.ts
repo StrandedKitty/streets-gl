@@ -1,5 +1,7 @@
 import ColorsList from "~/resources/colors.json";
+import MathUtils from "~/lib/math/MathUtils";
 import Utils from "~/app/Utils";
+
 
 export function isTagIncludesString(
 	tags: Record<string, string>,
@@ -96,6 +98,18 @@ export function parseMeters(str: string = ''): number {
 
 export function parseHeight(str: string = '', fallback?: number): number {
 	return parseMeters(str) ?? fallback;
+}
+
+export function parseDirection(str: string = '', fallback?: number): number {
+	//TODO: handle cardinal directions, eg. SW = 225° (values must be converted to radians)
+	const rot_val = parseFloat(str);
+
+	if (!isNaN(rot_val)) {
+		return -MathUtils.toRad(rot_val) + Math.PI / 2;
+	}
+	else {
+		return fallback;
+	}
 }
 
 export function parseColor(str: string = '', fallback?: number): number {
