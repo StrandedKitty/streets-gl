@@ -101,15 +101,38 @@ export function parseHeight(str: string = '', fallback?: number): number {
 }
 
 export function parseDirection(str: string = '', fallback?: number): number {
-	//TODO: handle cardinal directions, eg. SW = 225° (values must be converted to radians)
-	const rot_val = parseFloat(str);
+	const directions: Record<string, number> = {
+		N: 0,
+		NE: 45,
+		E: 90,
+		SE: 135,
+		S: 180,
+		SW: 225,
+		W: 270,
+		NW: 315,
+		NNW: 337.5,
+		NNE: 22.5,
+		ENE: 67.5,
+		ESE: 112.5,
+		SSE: 157.5,
+		SSW: 202.5,
+		WSW: 247.5,
+		WNW: 292.5,
+	};
 
-	if (!isNaN(rot_val)) {
-		return -MathUtils.toRad(rot_val) + Math.PI / 2;
+	const direction = directions[str.toUpperCase()];
+
+	if (direction !== undefined) {
+		return direction;
 	}
-	else {
+
+	const floatValue = parseFloat(str);
+
+	if (isNaN(floatValue)) {
 		return fallback;
 	}
+
+	return floatValue;
 }
 
 export function parseColor(str: string = '', fallback?: number): number {
