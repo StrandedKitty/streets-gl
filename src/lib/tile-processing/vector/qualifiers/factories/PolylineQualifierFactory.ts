@@ -225,7 +225,7 @@ export default class PolylineQualifierFactory extends AbstractQualifierFactory<V
 				data: {
 					type: 'wall',
 					wallType: 'hedge',
-					height: parseHeight(tags.height, 1.5),
+					height: parseHeight(tags.height, 1),
 				}
 			}];
 		}

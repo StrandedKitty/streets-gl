@@ -209,8 +209,8 @@ export default class VectorPolylineHandler implements Handler {
 		);
 
 		builder.addFence({
-			minHeight: this.descriptor.minHeight,
-			height: this.descriptor.height,
+			minHeight: this.descriptor.minHeight * this.mercatorScale,
+			height: this.descriptor.height * this.mercatorScale,
 			width: width,
 			textureId: textureId
 		});
@@ -223,12 +223,11 @@ export default class VectorPolylineHandler implements Handler {
 		const builder = new Tile3DProjectedGeometryBuilder();
 		builder.addRing(Tile3DRingType.Outer, this.vertices);
 
-		const width = 1;
 		const params = VectorPolylineHandler.getWallParams(this.descriptor.wallType);
 
 		builder.addExtrudedPath({
-			width: width,
-			height: this.descriptor.height,
+			width: 0.8 * this.mercatorScale,
+			height: this.descriptor.height * this.mercatorScale,
 			textureId: params.textureId,
 			textureScaleX: params.uvScaleX,
 			textureScaleY: params.uvScaleY
