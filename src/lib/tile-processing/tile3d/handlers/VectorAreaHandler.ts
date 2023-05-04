@@ -46,6 +46,10 @@ export default class VectorAreaHandler implements Handler {
 	}
 
 	private simplify(): void {
+		if (this.descriptor.type === 'roadwayIntersection') {
+			return;
+		}
+
 		const multipolygon = this.getMultipolygon();
 		const initialArea = multipolygon.getArea();
 
