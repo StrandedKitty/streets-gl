@@ -99,7 +99,7 @@ export default class AreaQualifierFactory extends AbstractQualifierFactory<Vecto
 			}];
 		}
 		
-		if (tags.leisure === 'swimming_pool') {
+		if (tags.leisure === 'swimming_pool' && tags.location !== 'indoor' && tags.location !== 'roof') {
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
