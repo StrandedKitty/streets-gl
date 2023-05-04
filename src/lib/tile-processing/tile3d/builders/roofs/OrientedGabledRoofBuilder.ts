@@ -51,34 +51,32 @@ export default class OrientedGabledRoofBuilder implements RoofBuilder {
 			];
 			const result = this.splitTriangle(triangle, split);
 
-			for (const ring of [result.verticesTop, result.verticesBottom]) {
-				if (!ring.length) {
-					continue;
-				}
-
-				for (let j = 2; j < ring.length / 2; j++) {
-					const nodes = [
-						[ring[0], 0, ring[1]],
-						[ring[j * 2 - 2], 0, ring[j * 2 - 1]],
-						[ring[j * 2], 0, ring[j * 2 + 1]]
-					];
-
-					for (const node of nodes) {
-						const nodeVec = new Vec2(node[0], node[2]);
-						const nodeDst = signedDstToLine(nodeVec, split);
-
-						node[1] = minHeight + (1 - Math.abs(nodeDst) / faceDepth) * height;
-						positions.push(...node);
-
-						const uvXDst = signedDstToLine(nodeVec, verticalLine);
-						const uvYScale = Math.sin(Math.atan(faceDepth / height));
-						uvs.push(
-							uvXDst / params.scaleX,
-							nodeDst / uvYScale / params.scaleY
-						);
-					}
-				}
-			}
+			this.processRoofRing(
+				result.verticesBottom,
+				minHeight,
+				height,
+				faceDepth,
+				split,
+				verticalLine,
+				params.scaleX,
+				params.scaleY,
+				true,
+				positions,
+				uvs
+			);
+			this.processRoofRing(
+				result.verticesTop,
+				minHeight,
+				height,
+				faceDepth,
+				split,
+				verticalLine,
+				params.scaleX,
+				params.scaleY,
+				false,
+				positions,
+				uvs
+			);
 		}
 
 		const normals = this.calculateNormals(positions);
@@ -99,6 +97,53 @@ export default class OrientedGabledRoofBuilder implements RoofBuilder {
 		};
 	}
 
+	private processRoofRing(
+		ring: number[],
+		minHeight: number,
+		height: number,
+		faceDepth: number,
+		split: [Vec2, Vec2],
+		verticalLine: [Vec2, Vec2],
+		scaleX: number,
+		scaleY: number,
+		flipUV: boolean,
+		positionsOut: number[],
+		uvsOut: number[]
+	): void {
+		if (!ring.length) {
+			return;
+		}
+
+		for (let j = 2; j < ring.length / 2; j++) {
+			const nodes = [
+				[ring[0], 0, ring[1]],
+				[ring[j * 2 - 2], 0, ring[j * 2 - 1]],
+				[ring[j * 2], 0, ring[j * 2 + 1]]
+			];
+
+			for (const node of nodes) {
+				const nodeVec = new Vec2(node[0], node[2]);
+				const nodeDst = signedDstToLine(nodeVec, split);
+
+				node[1] = minHeight + (1 - Math.abs(nodeDst) / faceDepth) * height;
+				positionsOut.push(...node);
+
+				const uvXDst = signedDstToLine(nodeVec, verticalLine);
+				const uvYScale = Math.sin(Math.atan(faceDepth / height));
+
+				let uvX = uvXDst / scaleX;
+				let uvY = -nodeDst / uvYScale / scaleY;
+
+				if (flipUV) {
+					uvX *= -1;
+					uvY *= -1;
+				}
+
+				uvsOut.push(uvX, uvY);
+			}
+		}
+	}
+
 	private splitTriangle(triangle: [number, number][], line: [Vec2, Vec2]): {verticesTop: number[]; verticesBottom: number[]} {
 		const verticesToSplit: [number, number][] = triangle;
 
@@ -117,16 +162,37 @@ export default class OrientedGabledRoofBuilder implements RoofBuilder {
 		}
 
 		if (!split || split.length === 1) {
-			verticesBottom.push(...verticesToSplit.flat());
+			verticesTop.push(...verticesToSplit.flat());
 		} else if (split.length > 1) {
-			verticesBottom.push(...split[1].flat())
-			verticesTop.push(...split[0].flat());
+			verticesTop.push(...split[1].flat())
+			verticesBottom.push(...split[0].flat());
 		}
 
+		const bottomMaxDst = this.getSplitRingMaxDstToLine(verticesBottom, line);
+		const topMaxDst = this.getSplitRingMaxDstToLine(verticesTop, line);
+
+		const reverseRings = bottomMaxDst > topMaxDst;
+
 		return {
-			verticesTop,
-			verticesBottom
+			verticesTop: reverseRings ? verticesBottom : verticesTop,
+			verticesBottom: reverseRings ? verticesTop : verticesBottom
 		};
+	}
+
+	private getSplitRingMaxDstToLine(ring: number[], line: [Vec2, Vec2]): number {
+		let maxDst: number = -Infinity;
+
+		for (let j = 0; j < ring.length; j += 2) {
+			const x = ring[j];
+			const y = ring[j + 1];
+			const dst = signedDstToLine(new Vec2(x, y), line);
+
+			if (dst > maxDst) {
+				maxDst = dst;
+			}
+		}
+
+		return maxDst;
 	}
 
 	private calculateNormals(vertices: number[], flip: boolean = false): number[] {
