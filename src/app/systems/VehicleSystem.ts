@@ -363,6 +363,7 @@ export default class VehicleSystem extends System {
 			case 'H500':
 			case 'R22':
 			case 'AS65':
+			case 'EC30':
 				return AircraftType.Helicopter;
 		}
 
