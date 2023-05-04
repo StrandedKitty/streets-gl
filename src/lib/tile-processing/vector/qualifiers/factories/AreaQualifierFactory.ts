@@ -98,6 +98,15 @@ export default class AreaQualifierFactory extends AbstractQualifierFactory<Vecto
 				}
 			}];
 		}
+		
+		if (tags.leisure === 'swimming_pool') {
+			return [{
+				type: QualifierType.Descriptor,
+				data: {
+					type: 'water'
+				}
+			}];
+		}
 
 		if (tags.landuse === 'construction' || tags.landuse === 'brownfield') {
 			return [{
