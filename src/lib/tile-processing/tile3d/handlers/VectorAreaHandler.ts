@@ -23,6 +23,8 @@ import {
 	getTreeTextureScaling
 } from "~/lib/tile-processing/tile3d/utils";
 import {ExtrudedTextures, ProjectedTextures} from "~/lib/tile-processing/tile3d/textures";
+import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
+import * as Simplify from "simplify-js";
 
 const TileSize = 611.4962158203125;
 
@@ -39,11 +41,28 @@ export default class VectorAreaHandler implements Handler {
 		this.osmReference = feature.osmReference;
 		this.descriptor = feature.descriptor;
 		this.rings = feature.rings;
+
+		this.simplify();
+	}
+
+	private simplify(): void {
+		const multipolygon = this.getMultipolygon();
+		const initialArea = multipolygon.getArea();
+
+		if (initialArea < 5) {
+			return;
+		}
+
+		for (const ring of this.rings) {
+			ring.nodes = VectorAreaHandler.simplifyNodes(ring.nodes);
+		}
+
+		this.multipolygon = null;
 	}
 
 	public setRoadGraph(graph: RoadGraph): void {
 
-    }
+	}
 
 	public setMercatorScale(scale: number): void {
 		this.mercatorScale = scale;
@@ -353,9 +372,10 @@ export default class VectorAreaHandler implements Handler {
 	}
 
 	private handleBuilding(): Tile3DFeature[] {
-		const builder = new Tile3DExtrudedGeometryBuilder(this.osmReference, this.getMultipolygon());
+		const multipolygon = this.getMultipolygon();
+		const builder = new Tile3DExtrudedGeometryBuilder(this.osmReference, multipolygon);
 
-		const noDefaultRoof = builder.getAreaToOMBBRatio() < 0.75;
+		const noDefaultRoof = builder.getAreaToOMBBRatio() < 0.75 || multipolygon.getArea() < 10;
 		const roofParams = this.getRoofParams(noDefaultRoof);
 
 		const {skirt, facadeHeightOverride} = builder.addRoof({
@@ -653,5 +673,9 @@ export default class VectorAreaHandler implements Handler {
 			textureIdWall: params.wall,
 			textureIdWindow: hasWindows ? params.window : params.wall
 		};
+	}
+
+	private static simplifyNodes(nodes: VectorNode[]): VectorNode[] {
+		return <VectorNode[]>Simplify(nodes, 0.5, false);
 	}
 }

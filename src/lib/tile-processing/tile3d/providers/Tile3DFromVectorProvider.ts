@@ -5,11 +5,9 @@ import VectorNodeHandler from "~/lib/tile-processing/tile3d/handlers/VectorNodeH
 import VectorPolylineHandler from "~/lib/tile-processing/tile3d/handlers/VectorPolylineHandler";
 import VectorAreaHandler from "~/lib/tile-processing/tile3d/handlers/VectorAreaHandler";
 import VectorFeatureCollection from "~/lib/tile-processing/vector/features/VectorFeatureCollection";
-import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import Tile3DInstance from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
 import Tile3DProjectedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DProjectedGeometry";
 import Tile3DExtrudedGeometry from "~/lib/tile-processing/tile3d/features/Tile3DExtrudedGeometry";
-import * as Simplify from "simplify-js";
 import {applyMercatorFactorToExtrudedFeatures} from "~/lib/tile-processing/tile3d/utils";
 import Tile3DHuggingGeometry from "~/lib/tile-processing/tile3d/features/Tile3DHuggingGeometry";
 import RoadGraph from "~/lib/road-graph/RoadGraph";
@@ -79,9 +77,6 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 		}
 
 		for (const feature of collection.areas) {
-			for (const ring of feature.rings) {
-				ring.nodes = Tile3DFromVectorProvider.simplifyNodes(ring.nodes);
-			}
 			handlers.push(new VectorAreaHandler(feature));
 		}
 
@@ -156,9 +151,7 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 	private static getIntersectionMaterial(
 		intersection: Intersection,
 		materialsMap: Map<Road, VectorAreaDescriptor['intersectionMaterial']>
-	):
-		VectorAreaDescriptor['intersectionMaterial'] | null
-	{
+	): VectorAreaDescriptor['intersectionMaterial'] | null {
 		const frequencyTable: Record<VectorAreaDescriptor['intersectionMaterial'], number> = {
 			asphalt: 0,
 			concrete: 0,
@@ -186,10 +179,6 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 		}
 
 		return sorted[0][0] as VectorAreaDescriptor['intersectionMaterial'];
-	}
-
-	private static simplifyNodes(nodes: VectorNode[]): VectorNode[] {
-		return <VectorNode[]>Simplify(nodes, 0.5, false);
 	}
 
 	private static getFeaturesFromHandlers(handlers: Handler[]): Tile3DFeatureCollection {
