@@ -94,6 +94,7 @@ export default class VectorPolylineHandler implements Handler {
 		const params = VectorPolylineHandler.getPathParams(
 			this.descriptor.pathType,
 			this.descriptor.pathMaterial,
+			this.descriptor.isRoadwayMarked,
 			this.descriptor.lanesForward,
 			this.descriptor.lanesBackward,
 			this.descriptor.width,
@@ -256,6 +257,7 @@ export default class VectorPolylineHandler implements Handler {
 	private static getPathParams(
 		pathType: VectorPolylineDescriptor['pathType'],
 		pathMaterial: VectorPolylineDescriptor['pathMaterial'],
+		isRoadwayMarked: boolean,
 		lanesForward: number,
 		lanesBackward: number,
 		width: number,
@@ -309,13 +311,13 @@ export default class VectorPolylineHandler implements Handler {
 
 				switch (pathMaterial) {
 					case 'asphalt': {
-						params[0].textureId = ProjectedTextures.AsphaltRoad;
+						params[0].textureId = isRoadwayMarked ? ProjectedTextures.AsphaltRoad : ProjectedTextures.AsphaltUnmarkedRoad;
 						params[0].zIndex = ZIndexMap.AsphaltRoadway;
 						params[0].uvScaleY = 12;
 						break;
 					}
 					case 'concrete': {
-						params[0].textureId = ProjectedTextures.ConcreteRoad;
+						params[0].textureId = isRoadwayMarked ? ProjectedTextures.ConcreteRoad : ProjectedTextures.ConcreteUnmarkedRoad;
 						params[0].zIndex = ZIndexMap.ConcreteRoadway;
 						params[0].uvScaleY = 12;
 						break;

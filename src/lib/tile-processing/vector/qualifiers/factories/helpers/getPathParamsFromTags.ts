@@ -25,36 +25,124 @@ const highwayTable: Record<string, {
 	defaultMaterial: VectorPolylineDescriptor['pathMaterial'];
 	defaultLanes: number;
 	defaultWidth?: number;
+	defaultIsMarked?: boolean;
 }> = {
-	residential: {type: 'roadway', defaultMaterial: 'asphalt', defaultLanes: 2},
-	service: {type: 'roadway', defaultMaterial: 'asphalt', defaultLanes: 2},
-	track: {type: 'roadway', defaultMaterial: 'dirt', defaultLanes: 1},
-	unclassified: {type: 'roadway', defaultMaterial: 'asphalt', defaultLanes: 2},
-	tertiary: {type: 'roadway', defaultMaterial: 'asphalt', defaultLanes: 2},
-	secondary: {type: 'roadway', defaultMaterial: 'asphalt', defaultLanes: 2},
-	primary: {type: 'roadway', defaultMaterial: 'asphalt', defaultLanes: 2},
-	living_street: {type: 'roadway', defaultMaterial: 'asphalt', defaultLanes: 2},
-	trunk: {type: 'roadway', defaultMaterial: 'asphalt', defaultLanes: 2},
-	motorway: {type: 'roadway', defaultMaterial: 'asphalt', defaultLanes: 2},
-	motorway_link: {type: 'roadway', defaultMaterial: 'asphalt', defaultLanes: 1},
-	trunk_link: {type: 'roadway', defaultMaterial: 'asphalt', defaultLanes: 1},
-	primary_link: {type: 'roadway', defaultMaterial: 'asphalt', defaultLanes: 1},
-	secondary_link: {type: 'roadway', defaultMaterial: 'asphalt', defaultLanes: 1},
-	tertiary_link: {type: 'roadway', defaultMaterial: 'asphalt', defaultLanes: 1},
-	busway: {type: 'roadway', defaultMaterial: 'asphalt', defaultLanes: 2},
+	residential: {
+		type: 'roadway',
+		defaultMaterial: 'asphalt',
+		defaultLanes: 2,
+		defaultIsMarked: true
+	},
+	service: {
+		type: 'roadway',
+		defaultMaterial: 'asphalt',
+		defaultLanes: 2,
+		defaultIsMarked: false
+	},
+	track: {
+		type: 'roadway',
+		defaultMaterial: 'dirt',
+		defaultLanes: 1,
+		defaultIsMarked: false
+	},
+	unclassified: {
+		type: 'roadway',
+		defaultMaterial: 'asphalt',
+		defaultLanes: 2,
+		defaultIsMarked: true
+	},
+	tertiary: {
+		type: 'roadway',
+		defaultMaterial: 'asphalt',
+		defaultLanes: 2,
+		defaultIsMarked: true
+	},
+	secondary: {
+		type: 'roadway',
+		defaultMaterial: 'asphalt',
+		defaultLanes: 2,
+		defaultIsMarked: true
+	},
+	primary: {
+		type: 'roadway',
+		defaultMaterial: 'asphalt',
+		defaultLanes: 2,
+		defaultIsMarked: true
+	},
+	living_street: {
+		type: 'roadway',
+		defaultMaterial: 'asphalt',
+		defaultLanes: 2,
+		defaultIsMarked: false
+	},
+	trunk: {
+		type: 'roadway',
+		defaultMaterial: 'asphalt',
+		defaultLanes: 2,
+		defaultIsMarked: true
+	},
+	motorway: {
+		type: 'roadway',
+		defaultMaterial: 'asphalt',
+		defaultLanes: 2,
+		defaultIsMarked: true
+	},
+	motorway_link: {
+		type: 'roadway',
+		defaultMaterial: 'asphalt',
+		defaultLanes: 1,
+		defaultIsMarked: true
+	},
+	trunk_link: {
+		type: 'roadway',
+		defaultMaterial: 'asphalt',
+		defaultLanes: 1,
+		defaultIsMarked: true
+	},
+	primary_link: {
+		type: 'roadway',
+		defaultMaterial: 'asphalt',
+		defaultLanes: 1,
+		defaultIsMarked: true
+	},
+	secondary_link: {
+		type: 'roadway',
+		defaultMaterial: 'asphalt',
+		defaultLanes: 1,
+		defaultIsMarked: true
+	},
+	tertiary_link: {
+		type: 'roadway',
+		defaultMaterial: 'asphalt',
+		defaultLanes: 1,
+		defaultIsMarked: true
+	},
+	busway: {
+		type: 'roadway',
+		defaultMaterial: 'asphalt',
+		defaultLanes: 1,
+		defaultIsMarked: true
+	},
+	raceway: {
+		type: 'roadway',
+		defaultMaterial: 'asphalt',
+		defaultLanes: 1,
+		defaultWidth: 6,
+		defaultIsMarked: false
+	},
 	footway: {type: 'footway', defaultMaterial: 'dirt', defaultLanes: 1},
 	path: {type: 'footway', defaultMaterial: 'dirt', defaultLanes: 1},
 	steps: {type: 'footway', defaultMaterial: 'dirt', defaultLanes: 1},
 	pedestrian: {type: 'footway', defaultMaterial: 'dirt', defaultLanes: 1},
-	cycleway: {type: 'cycleway', defaultMaterial: 'dirt', defaultLanes: 1},
-	raceway: {type: 'roadway', defaultMaterial: 'asphalt', defaultLanes: 1, defaultWidth: 6}
-}
+	cycleway: {type: 'cycleway', defaultMaterial: 'dirt', defaultLanes: 1}
+};
 
 export default function getPathParamsFromTags(tags: Record<string, string>): {
 	type: VectorPolylineDescriptor['pathType'];
 	material: VectorPolylineDescriptor['pathMaterial'];
 	defaultLanes: number;
 	defaultWidth?: number;
+	defaultIsMarked: boolean;
 } {
 	const highwayParams = highwayTable[tags.highway];
 
@@ -68,6 +156,7 @@ export default function getPathParamsFromTags(tags: Record<string, string>): {
 		type: highwayParams.type,
 		material: material,
 		defaultLanes: highwayParams.defaultLanes,
-		defaultWidth: highwayParams.defaultWidth
+		defaultWidth: highwayParams.defaultWidth,
+		defaultIsMarked: highwayParams.defaultIsMarked ?? true
 	};
 }

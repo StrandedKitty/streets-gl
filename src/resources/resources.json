@@ -67,6 +67,7 @@
 
 	"pavementDiffuse": {"url": "/textures/surfaces/pavement_diffuse.png", "type": "image"},
 	"asphaltDiffuse": {"url": "/textures/surfaces/asphalt_diffuse.png", "type": "image"},
+	"asphaltNormal": {"url": "/textures/surfaces/asphalt_normal.png", "type": "image"},
 	"cyclewayDiffuse": {"url": "/textures/surfaces/cycleway_diffuse.png", "type": "image"},
 	"cobblestoneDiffuse": {"url": "/textures/surfaces/cobblestone_diffuse.png", "type": "image"},
 	"cobblestoneNormal": {"url": "/textures/surfaces/cobblestone_normal.png", "type": "image"},
@@ -98,8 +99,9 @@
 	"concreteFenceNormal": {"url": "/textures/surfaces/concrete_fence_normal.png", "type": "image"},
 	"concreteFenceMask": {"url": "/textures/surfaces/concrete_fence_mask.png", "type": "image"},
 	"asphaltRoadDiffuse": {"url": "/textures/surfaces/asphalt_road_diffuse.png", "type": "image"},
-	"asphaltIntersectionDiffuse": {"url": "/textures/surfaces/asphalt_intersection_diffuse.png", "type": "image"},
+	"asphaltUnmarkedRoadDiffuse": {"url": "/textures/surfaces/asphalt_unmarked_road_diffuse.png", "type": "image"},
 	"concreteRoadDiffuse": {"url": "/textures/surfaces/concrete_road_diffuse.png", "type": "image"},
+	"concreteUnmarkedRoadDiffuse": {"url": "/textures/surfaces/concrete_unmarked_road_diffuse.png", "type": "image"},
 	"concreteIntersectionDiffuse": {"url": "/textures/surfaces/concrete_intersection_diffuse.png", "type": "image"},
 	"woodRoadDiffuse": {"url": "/textures/surfaces/wood_road_diffuse.png", "type": "image"},
 	"woodRoadNormal": {"url": "/textures/surfaces/wood_road_normal.png", "type": "image"},

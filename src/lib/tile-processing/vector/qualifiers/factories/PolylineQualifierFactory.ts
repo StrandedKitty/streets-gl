@@ -18,6 +18,7 @@ import getFenceMaterialFromOSMType
 import getWallTypeAndHeight from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getWallTypeAndHeight";
 import getRailwayParamsFromTags
 	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getRailwayParamsFromTags";
+import isRoadUnmarked from "~/lib/tile-processing/vector/qualifiers/factories/helpers/isRoadUnmarked";
 
 export default class PolylineQualifierFactory extends AbstractQualifierFactory<VectorPolylineDescriptor> {
 	public fromTags(tags: Record<string, string>): Qualifier<VectorPolylineDescriptor>[] {
@@ -41,10 +42,12 @@ export default class PolylineQualifierFactory extends AbstractQualifierFactory<V
 				case 'roadway': {
 					descriptor.pathType = 'roadway';
 
-					const isOneWay = tags.oneway === 'yes';
+					const isOneWay = tags.oneway === 'yes' || tags.junction === 'roundabout';
 					let lanesForward = readTagAsUnsignedInt(tags, 'lanes:forward');
 					let lanesBackward = readTagAsUnsignedInt(tags, 'lanes:backward');
-					const lanesTotal = readTagAsUnsignedInt(tags, 'lanes') ?? params.defaultLanes;
+					const lanesTotal = readTagAsUnsignedInt(tags, 'lanes') ?? (
+						isOneWay ? Math.max(1, Math.floor(params.defaultLanes / 2)) : params.defaultLanes
+					);
 
 					if (isOneWay) {
 						lanesForward = lanesTotal;
@@ -64,12 +67,16 @@ export default class PolylineQualifierFactory extends AbstractQualifierFactory<V
 					descriptor.lanesBackward = lanesBackward;
 
 					const parsedWidth = parseMeters(tags.width);
+					const totalLanes = lanesForward + lanesBackward;
 
 					if (parsedWidth === undefined && params.defaultWidth !== undefined) {
 						descriptor.width = params.defaultWidth;
 					} else {
-						descriptor.width = (lanesForward + lanesBackward) * 3;
+						const laneWidth = totalLanes === 1 ? 4 : 3;
+						descriptor.width = totalLanes * laneWidth;
 					}
+
+					descriptor.isRoadwayMarked = isRoadUnmarked(tags, totalLanes, params.defaultIsMarked);
 					break;
 				}
 				case 'footway': {
@@ -159,15 +166,7 @@ export default class PolylineQualifierFactory extends AbstractQualifierFactory<V
 		}
 
 		if (tags.aeroway === 'runway' || tags.aeroway === 'taxiway') {
-			let width = parseMeters(tags.width);
-
-			if (width === undefined) {
-				if (tags.aeroway === 'runway') {
-					width = 45;
-				} else {
-					width = 20;
-				}
-			}
+			const width = parseMeters(tags.width) ?? (tags.aeroway === 'runway' ? 45 : 20);
 
 			return [{
 				type: QualifierType.Descriptor,

@@ -360,7 +360,7 @@ export default class VectorAreaHandler implements Handler {
 			VectorAreaDescriptor['intersectionMaterial'],
 			{textureId: number; scale: number}
 		> = {
-			asphalt: {textureId: ProjectedTextures.AsphaltIntersection, scale: 20},
+			asphalt: {textureId: ProjectedTextures.Asphalt, scale: 20},
 			concrete: {textureId: ProjectedTextures.ConcreteIntersection, scale: 20},
 			cobblestone: {textureId: ProjectedTextures.Cobblestone, scale: 6},
 		};
