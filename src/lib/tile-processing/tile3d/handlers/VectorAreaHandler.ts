@@ -33,7 +33,8 @@ export default class VectorAreaHandler implements Handler {
 	private readonly descriptor: VectorAreaDescriptor;
 	private readonly rings: VectorAreaRing[];
 	private mercatorScale: number = 1;
-	private terrainHeight: number = 0;
+	private terrainMinHeight: number = 0;
+	private terrainMaxHeight: number = 0;
 	private multipolygon: Tile3DMultipolygon = null;
 	private instances: Tile3DInstance[] = [];
 
@@ -100,7 +101,16 @@ export default class VectorAreaHandler implements Handler {
 			return {
 				positions: new Float64Array(positions),
 				callback: (heights: Float64Array): void => {
-					this.terrainHeight = Math.min.apply(null, Array.from(heights));
+					let minHeight = Infinity;
+					let maxHeight = -Infinity;
+
+					for (let i = 0; i < heights.length; i++) {
+						minHeight = Math.min(minHeight, heights[i]);
+						maxHeight = Math.max(maxHeight, heights[i]);
+					}
+
+					this.terrainMinHeight = minHeight;
+					this.terrainMaxHeight = maxHeight;
 				}
 			};
 		}
@@ -382,8 +392,11 @@ export default class VectorAreaHandler implements Handler {
 		const noDefaultRoof = builder.getAreaToOMBBRatio() < 0.75 || multipolygon.getArea() < 10;
 		const roofParams = this.getRoofParams(noDefaultRoof);
 
+		const facadeMinHeight = this.descriptor.buildingFoundation ? this.terrainMaxHeight : this.terrainMinHeight;
+		const foundationHeight = this.terrainMaxHeight - this.terrainMinHeight;
+
 		const {skirt, facadeHeightOverride} = builder.addRoof({
-			terrainHeight: this.terrainHeight,
+			terrainHeight: facadeMinHeight,
 			type: roofParams.type,
 			buildingHeight: this.descriptor.buildingHeight,
 			minHeight: this.descriptor.buildingHeight - this.descriptor.buildingRoofHeight,
@@ -402,7 +415,7 @@ export default class VectorAreaHandler implements Handler {
 		const facadeParams = this.getFacadeParams();
 
 		builder.addWalls({
-			terrainHeight: this.terrainHeight,
+			terrainHeight: facadeMinHeight,
 			levels: this.descriptor.buildingLevels,
 			windowWidth: facadeParams.windowWidth,
 			minHeight: this.descriptor.buildingMinHeight,
@@ -414,11 +427,26 @@ export default class VectorAreaHandler implements Handler {
 			windowSeed: this.osmReference.id
 		});
 
+		if (this.descriptor.buildingFoundation && foundationHeight > 0.5) {
+			builder.addWalls({
+				terrainHeight: this.terrainMinHeight,
+				levels: foundationHeight / 4,
+				windowWidth: facadeParams.windowWidth,
+				minHeight: 0,
+				height: this.terrainMaxHeight - this.terrainMinHeight,
+				skirt: skirt,
+				color: facadeParams.color,
+				textureIdWall: facadeParams.textureIdWall,
+				textureIdWindow: facadeParams.textureIdWall,
+				windowSeed: this.osmReference.id
+			});
+		}
+
 		const features: Tile3DFeature[] = [builder.getGeometry()];
 
 		if (this.descriptor.label) {
 			const pole = this.getMultipolygon().getPoleOfInaccessibility();
-			const height = this.terrainHeight + this.descriptor.buildingHeight + 5;
+			const height = facadeMinHeight + this.descriptor.buildingHeight + 5;
 			const labelFeature: Tile3DLabel = {
 				type: 'label',
 				position: [pole.x, height, pole.y],
