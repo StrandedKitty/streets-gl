@@ -96,6 +96,15 @@ export default class ShadowMappingPass extends Pass<{
 		}, true);
 	}
 
+	private updateMaterialsDefines(): void {
+		const useHeight = this.manager.settings.get('terrainHeight').statusValue === 'on' ? '1' : '0';
+
+		if (this.huggingMeshMaterial.defines.USE_HEIGHT !== useHeight) {
+			this.huggingMeshMaterial.defines.USE_HEIGHT = useHeight;
+			this.huggingMeshMaterial.recompile();
+		}
+	}
+
 	private updateShadowMapDescriptor(): void {
 		const csm = this.manager.sceneSystem.objects.csm;
 		this.getResource('ShadowMaps').descriptor.setSize(csm.resolution, csm.resolution, csm.cascades);
@@ -243,6 +252,8 @@ export default class ShadowMappingPass extends Pass<{
 	public render(): void {
 		const csm = this.manager.sceneSystem.objects.csm;
 		const pass = this.getPhysicalResource('ShadowMaps');
+
+		this.updateMaterialsDefines();
 
 		for (let i = 0; i < csm.cascadeCameras.length; i++) {
 			const camera = csm.cascadeCameras[i];

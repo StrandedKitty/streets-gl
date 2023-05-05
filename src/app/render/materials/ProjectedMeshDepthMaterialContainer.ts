@@ -49,7 +49,9 @@ export default class ProjectedMeshDepthMaterialContainer extends MaterialContain
 					value: new Float32Array(1)
 				}
 			],
-			defines: {},
+			defines: {
+				USE_HEIGHT: '1'
+			},
 			primitive: {
 				frontFace: RendererTypes.FrontFace.CCW,
 				cullMode: RendererTypes.CullMode.None
