@@ -12,11 +12,9 @@ export default function getPitchTypeFromTags(tags: Record<string, string>): Vect
 
 	for (const value of values) {
 		const type = lookup[value];
-		
-		if (type == 'basketball') {
-			if( getTagValues(tags, 'hoops')[0] == '1') {
-				return 'generic';
-			}
+
+		if (type === 'basketball' && getTagValues(tags, 'hoops')[0] == '1') {
+			return 'generic';
 		}
 
 		if (type !== undefined) {
