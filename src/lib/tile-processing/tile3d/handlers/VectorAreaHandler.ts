@@ -434,7 +434,7 @@ export default class VectorAreaHandler implements Handler {
 				windowWidth: facadeParams.windowWidth,
 				minHeight: 0,
 				height: this.terrainMaxHeight - this.terrainMinHeight,
-				skirt: skirt,
+				skirt: null,
 				color: facadeParams.color,
 				textureIdWall: facadeParams.textureIdWall,
 				textureIdWindow: facadeParams.textureIdWall,
