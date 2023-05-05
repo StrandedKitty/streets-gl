@@ -49,6 +49,9 @@ export default class VectorPolylineHandler implements Handler {
 			case 'wall': {
 				return [this.handleWall()];
 			}
+			case 'waterway': {
+				return [this.handleWaterway()];
+			}
 		}
 
 		return [];
@@ -236,6 +239,20 @@ export default class VectorPolylineHandler implements Handler {
 
 		const result = builder.getGeometry();
 		return {...result, type: 'hugging'};
+	}
+
+	private handleWaterway(): Tile3DProjectedGeometry {
+		const builder = new Tile3DProjectedGeometryBuilder();
+		builder.setZIndex(ZIndexMap.Water);
+		builder.addRing(Tile3DRingType.Outer, this.vertices);
+
+		builder.addPath({
+			width: this.descriptor.width * this.mercatorScale,
+			uvFollowRoad: false,
+			textureId: ProjectedTextures.Water
+		});
+
+		return builder.getGeometry();
 	}
 
 	public getIntersectionMaterial(): VectorAreaDescriptor['intersectionMaterial'] {

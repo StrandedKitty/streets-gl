@@ -19,6 +19,8 @@ import getWallTypeAndHeight from "~/lib/tile-processing/vector/qualifiers/factor
 import getRailwayParamsFromTags
 	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getRailwayParamsFromTags";
 import isRoadUnmarked from "~/lib/tile-processing/vector/qualifiers/factories/helpers/isRoadUnmarked";
+import getWaterwayParamsFromTags
+	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getWaterwayParamsFromTags";
 
 export default class PolylineQualifierFactory extends AbstractQualifierFactory<VectorPolylineDescriptor> {
 	public fromTags(tags: Record<string, string>): Qualifier<VectorPolylineDescriptor>[] {
@@ -265,6 +267,20 @@ export default class PolylineQualifierFactory extends AbstractQualifierFactory<V
 					}
 				}
 			}];
+		}
+
+		if (tags.waterway) {
+			const params = getWaterwayParamsFromTags(tags);
+
+			if (params) {
+				return [{
+					type: QualifierType.Descriptor,
+					data: {
+						type: 'waterway',
+						width: params.width
+					}
+				}];
+			}
 		}
 
 		return null;
