@@ -119,7 +119,8 @@ export default class ProjectedMeshMaterialContainer extends MaterialContainer {
 				TILE_SIZE: Config.TileSize.toFixed(10),
 				NORMAL_MIX_FROM: Config.TerrainNormalMixRange[0].toFixed(1),
 				NORMAL_MIX_TO: Config.TerrainNormalMixRange[1].toFixed(1),
-				IS_EXTRUDED: isExtruded ? '1' : '0'
+				IS_EXTRUDED: isExtruded ? '1' : '0',
+				USE_HEIGHT: '1'
 			},
 			primitive: {
 				frontFace: RendererTypes.FrontFace.CCW,

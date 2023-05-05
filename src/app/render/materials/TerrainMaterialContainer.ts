@@ -176,7 +176,8 @@ export default class TerrainMaterialContainer extends MaterialContainer {
 			],
 			defines: {
 				NORMAL_MIX_FROM: Config.TerrainNormalMixRange[0].toFixed(1),
-				NORMAL_MIX_TO: Config.TerrainNormalMixRange[1].toFixed(1)
+				NORMAL_MIX_TO: Config.TerrainNormalMixRange[1].toFixed(1),
+				USE_HEIGHT: '1'
 			},
 			primitive: {
 				frontFace: RendererTypes.FrontFace.CCW,

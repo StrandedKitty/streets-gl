@@ -69,53 +69,57 @@ void main() {
 	);
 	vNormalMixFactor = max(abs(cameraPosition.x - position.x), abs(cameraPosition.y - position.z));
 
-	int level = terrainLevelId;
-	vec2 positionUV = (terrainRingOffset.xy + terrainRingSize / 2. + position.xz) / terrainRingSize;
+	#if USE_HEIGHT == 1
+		int level = terrainLevelId;
+		vec2 positionUV = (terrainRingOffset.xy + terrainRingSize / 2. + position.xz) / terrainRingSize;
 
-	if (positionUV.x < 0. || positionUV.y < 0. || positionUV.x > 1. || positionUV.y > 1.) {
-		float nextSize = terrainRingSize * 2.;
-		positionUV = (terrainRingOffset.zw + nextSize / 2. + position.xz) / nextSize;
-		level++;
-	}
-
-	float segSize = 1. / segmentCount;
-	vec2 segment = floor(positionUV * segmentCount);
-	vec2 segmentUV = positionUV * segmentCount - segment;
-	vec2 originUV = segment * segSize;
-	vec2 segmentLocal = segmentUV;
-	float type = mod(segment.x + segment.y, 2.);
-
-	vec2 a, b, c;
-
-	if (type == 0.) {
-		if (segmentUV.x > segmentUV.y) {
-			a = originUV + segSize * vec2(1, 0);
-			b = originUV;
-			c = originUV + segSize * vec2(1, 1);
-			segmentLocal.x = 1. - segmentLocal.x;
-		} else {
-			a = originUV + segSize * vec2(0, 1);
-			b = originUV + segSize * vec2(1, 1);
-			c = originUV;
-			segmentLocal.y = 1. - segmentLocal.y;
+		if (positionUV.x < 0. || positionUV.y < 0. || positionUV.x > 1. || positionUV.y > 1.) {
+			float nextSize = terrainRingSize * 2.;
+			positionUV = (terrainRingOffset.zw + nextSize / 2. + position.xz) / nextSize;
+			level++;
 		}
-	} else {
-		if (segmentUV.x + segmentUV.y < 1.) {
-			a = originUV;
-			b = originUV + segSize * vec2(1, 0);
-			c = originUV + segSize * vec2(0, 1);
-		} else {
-			a = originUV + segSize * vec2(1, 1);
-			b = originUV + segSize * vec2(0, 1);
-			c = originUV + segSize * vec2(1, 0);
-			segmentLocal = 1. - segmentLocal;
-		}
-	}
 
-	float ah = sampleHeight(a, level);
-	float bh = sampleHeight(b, level);
-	float ch = sampleHeight(c, level);
-	float height = ah + (bh - ah) * segmentLocal.x + (ch - ah) * segmentLocal.y;
+		float segSize = 1. / segmentCount;
+		vec2 segment = floor(positionUV * segmentCount);
+		vec2 segmentUV = positionUV * segmentCount - segment;
+		vec2 originUV = segment * segSize;
+		vec2 segmentLocal = segmentUV;
+		float type = mod(segment.x + segment.y, 2.);
+
+		vec2 a, b, c;
+
+		if (type == 0.) {
+			if (segmentUV.x > segmentUV.y) {
+				a = originUV + segSize * vec2(1, 0);
+				b = originUV;
+				c = originUV + segSize * vec2(1, 1);
+				segmentLocal.x = 1. - segmentLocal.x;
+			} else {
+				a = originUV + segSize * vec2(0, 1);
+				b = originUV + segSize * vec2(1, 1);
+				c = originUV;
+				segmentLocal.y = 1. - segmentLocal.y;
+			}
+		} else {
+			if (segmentUV.x + segmentUV.y < 1.) {
+				a = originUV;
+				b = originUV + segSize * vec2(1, 0);
+				c = originUV + segSize * vec2(0, 1);
+			} else {
+				a = originUV + segSize * vec2(1, 1);
+				b = originUV + segSize * vec2(0, 1);
+				c = originUV + segSize * vec2(1, 0);
+				segmentLocal = 1. - segmentLocal;
+			}
+		}
+
+		float ah = sampleHeight(a, level);
+		float bh = sampleHeight(b, level);
+		float ch = sampleHeight(c, level);
+		float height = ah + (bh - ah) * segmentLocal.x + (ch - ah) * segmentLocal.y;
+	#else
+		float height = 0.;
+	#endif
 
 	vec3 transformedPosition = position + vec3(0, height, 0);
 	vec4 cameraSpacePosition = modelViewMatrix * vec4(transformedPosition, 1);

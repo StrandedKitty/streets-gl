@@ -13,6 +13,7 @@ import WaterTileSourceFactory from "~/app/terrain/tile-source/factory/WaterTileS
 import HeightReusedTileSourceFactory from "~/app/terrain/tile-source/factory/HeightReusedTileSourceFactory";
 import HeightTileSourceFactory from "~/app/terrain/tile-source/factory/HeightTileSourceFactory";
 import ControlsSystem, {NavigationMode} from "~/app/systems/ControlsSystem";
+import SettingsSystem from "~/app/systems/SettingsSystem";
 
 export interface TerrainAreaLoaders {
 	water0: TileAreaLoader<WaterTileSource>;
@@ -25,8 +26,14 @@ export default class TerrainSystem extends System {
 	public maskOrigin: Vec2 = new Vec2();
 	public areaLoaders: Readonly<TerrainAreaLoaders>;
 	public readonly terrainHeightProvider: TerrainHeightProvider = new TerrainHeightProvider(12, 13);
+	private loadTerrainHeight: boolean = true;
 
 	public postInit(): void {
+		this.createAreaLoaders();
+		this.listenToSettings();
+	}
+
+	private createAreaLoaders(): void {
 		this.areaLoaders = {
 			water0: new TileAreaLoader({
 				sourceFactory: new WaterTileSourceFactory(),
@@ -63,6 +70,17 @@ export default class TerrainSystem extends System {
 		};
 	}
 
+	private listenToSettings(): void {
+		const settings = this.systemManager.getSystem(SettingsSystem).settings;
+
+		settings.onChange('terrainHeight', ({statusValue}) => {
+			const isEnabled = statusValue === 'on';
+
+			this.loadTerrainHeight = isEnabled;
+			this.terrainHeightProvider.setFallbackState(!isEnabled);
+		}, true);
+	}
+
 	public update(deltaTime: number): void {
 		const terrain = this.systemManager.getSystem(SceneSystem).objects.terrain;
 		const camera = this.systemManager.getSystem(SceneSystem).objects.camera;
@@ -80,10 +98,25 @@ export default class TerrainSystem extends System {
 	}
 
 	private updateAreaLoaders(camera: Object3D): void {
-		const cameraPosition2D = new Vec2(camera.position.x, camera.position.z);
-		for (const areaLoader of Object.values(this.areaLoaders)) {
-			(<TileAreaLoader<any>>areaLoader).update(cameraPosition2D);
+		this.updateWaterLoaders(camera);
+
+		if (this.loadTerrainHeight) {
+			this.updateHeightLoaders(camera);
 		}
+	}
+
+	private updateHeightLoaders(camera: Object3D): void {
+		const cameraPosition2D = new Vec2(camera.position.x, camera.position.z);
+
+		this.areaLoaders.height0.update(cameraPosition2D);
+		this.areaLoaders.height1.update(cameraPosition2D);
+	}
+
+	private updateWaterLoaders(camera: Object3D): void {
+		const cameraPosition2D = new Vec2(camera.position.x, camera.position.z);
+
+		this.areaLoaders.water0.update(cameraPosition2D);
+		this.areaLoaders.water1.update(cameraPosition2D);
 	}
 
 	private updateRingPositions(terrain: Terrain, camera: Object3D): void {

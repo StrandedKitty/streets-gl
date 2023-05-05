@@ -94,13 +94,17 @@ void main() {
 		discard;
 	}
 
-	vec3 heightMapWorld = sampleNormalMap();
+	#if USE_HEIGHT == 1
+		vec3 heightMapWorldNormal = sampleNormalMap();
+	#else
+		vec3 heightMapWorldNormal = vec3(0, 1, 0);
+	#endif
 
 	mat3 tbn = getTBN(vNormal, vPosition, vec2(vUv.x, 1. - vUv.y));
 	vec3 normalMapWorld = normalize(tbn * normalMapUnpacked);
 	normalMapWorld *= float(gl_FrontFacing) * 2. - 1.;
 
-	vec3 reorientedNormalWorld = normalBlendUnpackedRNM(heightMapWorld.xzy, normalMapWorld.xzy).xzy;
+	vec3 reorientedNormalWorld = normalBlendUnpackedRNM(heightMapWorldNormal.xzy, normalMapWorld.xzy).xzy;
 
 	#if IS_EXTRUDED == 0
 		vec3 reorientedNormalView = vec3(modelViewMatrix * vec4(reorientedNormalWorld, 0));

@@ -8,6 +8,7 @@ export interface TileRequestParams {
 	mapboxEndpointTemplate: string;
 	mapboxAccessToken: string;
 	useCachedTiles: boolean;
+	isTerrainHeightEnabled: boolean;
 }
 
 export default class MapWorker {

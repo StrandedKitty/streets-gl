@@ -13,6 +13,7 @@ import TerrainSystem from "~/app/systems/TerrainSystem";
 import {HeightLoaderTile} from "~/app/terrain/TerrainHeightLoader";
 import ControlsSystem, {NavigationMode} from "~/app/systems/ControlsSystem";
 import Tile3DBuffers from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
+import SettingsSystem from "~/app/systems/SettingsSystem";
 
 interface QueueItem {
 	position: Vec2;
@@ -22,12 +23,37 @@ interface QueueItem {
 
 export default class TileSystem extends System {
 	public readonly tiles: Map<string, Tile> = new Map();
+	private readonly queue: QueueItem[] = [];
 	private cameraFrustum: Frustum;
 	private objectsManager: TileObjectsSystem;
-	private readonly queue: QueueItem[] = [];
+	public enableTerrainHeight: boolean = true;
 
 	public postInit(): void {
 		this.objectsManager = this.systemManager.getSystem(TileObjectsSystem);
+		this.listenToSettings();
+		this.listenToKeyPresses();
+	}
+
+	private listenToKeyPresses(): void {
+		window.addEventListener('keydown', (e) => {
+			if (e.code === 'KeyP' && (e.ctrlKey || e.metaKey)) {
+				e.preventDefault();
+				this.purgeTiles();
+			}
+		});
+	}
+
+	private listenToSettings(): void {
+		const settings = this.systemManager.getSystem(SettingsSystem).settings;
+
+		settings.onChange('terrainHeight', ({statusValue}) => {
+			const isEnabled = statusValue === 'on';
+
+			if (isEnabled !== this.enableTerrainHeight) {
+				this.purgeTiles();
+				this.enableTerrainHeight = isEnabled;
+			}
+		}, true);
 	}
 
 	public addTile(x: number, y: number): void {
@@ -39,7 +65,9 @@ export default class TileSystem extends System {
 				tile = new Tile(x, y);
 				this.tiles.set(`${x},${y}`, tile);
 
-				await this.claimHeightDataForTile(x, y, tile)
+				if (this.enableTerrainHeight) {
+					await this.claimHeightDataForTile(x, y, tile);
+				}
 			},
 			onLoad: async (tileData) => {
 				if (tile.disposed) {
@@ -321,6 +349,12 @@ export default class TileSystem extends System {
 
 		for (let i = 0; i < tilesToRemove; i++) {
 			this.removeTile(tileList[i].tile.x, tileList[i].tile.y);
+		}
+	}
+
+	private purgeTiles(): void {
+		for (const tile of this.tiles.values()) {
+			this.removeTile(tile.x, tile.y);
 		}
 	}
 }

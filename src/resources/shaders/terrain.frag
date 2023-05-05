@@ -60,7 +60,12 @@ vec3 sampleNormalMap() {
 }
 
 vec3 getNormal(vec3 normalTextureValue) {
-    vec3 heightMapNormal = sampleNormalMap();
+    #if USE_HEIGHT == 1
+        vec3 heightMapNormal = sampleNormalMap();
+    #else
+        vec3 heightMapNormal = vec3(0, 1, 0);
+    #endif
+
     vec3 normalMapUnpacked = normalTextureValue * 2. - 1.;
     vec3 reorientedNormal = normalBlendUnpackedRNM(heightMapNormal, normalMapUnpacked);
 

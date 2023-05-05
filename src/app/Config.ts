@@ -56,15 +56,22 @@ const Config = {
 			statusDefault: 'on',
 			category: 'general'
 		},
-		airTraffic: {
-			label: 'Real-time air traffic',
+		cachedTiles: {
+			label: 'Use cached tiles if available',
 			status: ['off', 'on'],
 			statusLabels: ['Disabled', 'Enabled'],
 			statusDefault: 'on',
 			category: 'general'
 		},
-		cachedTiles: {
-			label: 'Use cached tiles if available',
+		terrainHeight: {
+			label: 'Use terrain elevation data',
+			status: ['off', 'on'],
+			statusLabels: ['Disabled', 'Enabled'],
+			statusDefault: 'on',
+			category: 'general'
+		},
+		airTraffic: {
+			label: 'Real-time air traffic',
 			status: ['off', 'on'],
 			statusLabels: ['Disabled', 'Enabled'],
 			statusDefault: 'on',

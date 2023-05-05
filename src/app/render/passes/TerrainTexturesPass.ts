@@ -22,6 +22,7 @@ import TerrainHeightDownscaleMaterialContainer from "../materials/TerrainHeightD
 import AbstractTexture2DArray from "~/lib/renderer/abstract-renderer/AbstractTexture2DArray";
 import MathUtils from "~/lib/math/MathUtils";
 import {TileAreaLoaderCellStateType} from "~/app/terrain/TileAreaLoader";
+import SettingsSystem from "~/app/systems/SettingsSystem";
 
 function compareTypedArrays(a: TypedArray, b: TypedArray): boolean {
 	let i = a.length;
@@ -71,6 +72,8 @@ export default class TerrainTexturesPass extends Pass<{
 	private normalMaterial: AbstractMaterial;
 	private waterMaterial: AbstractMaterial;
 
+	private shouldRenderHeight: boolean = true;
+
 	public constructor(manager: PassManager) {
 		super('TerrainTexturesPass', manager, {
 			TerrainHeight: {type: RG.InternalResourceType.Local, resource: manager.getSharedResource('TerrainHeight')},
@@ -81,6 +84,7 @@ export default class TerrainTexturesPass extends Pass<{
 		});
 
 		this.init();
+		this.listenToSettings();
 	}
 
 	private init(): void {
@@ -98,7 +102,23 @@ export default class TerrainTexturesPass extends Pass<{
 		this.getResource('TerrainWater').descriptor.setSize(2048, 2048, 2);
 	}
 
+	private listenToSettings(): void {
+		this.manager.settings.onChange('terrainHeight', ({statusValue}) => {
+			this.shouldRenderHeight = statusValue === 'on';
+		}, true);
+	}
+
 	public render(): void {
+		if (this.shouldRenderHeight) {
+			this.renderTerrainHeightAndNormals();
+			this.renderTerrainRings();
+		}
+
+		this.updateWater();
+		this.updateTileMask();
+	}
+
+	private renderTerrainHeightAndNormals(): void {
 		const terrainSystem = this.manager.systemManager.getSystem(TerrainSystem);
 
 		const terrainHeightRenderPass = this.getPhysicalResource('TerrainHeight');
@@ -195,10 +215,6 @@ export default class TerrainTexturesPass extends Pass<{
 
 			this.quad.mesh.draw();
 		}
-
-		this.renderTerrainRings();
-		this.updateWater();
-		this.updateTileMask();
 	}
 
 	private updateTileMask(): void {

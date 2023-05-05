@@ -87,22 +87,33 @@ export default class TileLoadingSystem extends System {
 		const overpassEndpoint = this.getNextOverpassEndpoint();
 
 		if (queuedTile && worker && overpassEndpoint) {
-			this.loadTile(
-				queuedTile.position,
-				queuedTile.onBeforeLoad,
-				queuedTile.onLoad,
-				worker,
-				overpassEndpoint
-			);
+			this.loadTile({
+				tile: queuedTile.position,
+				onBeforeLoad: queuedTile.onBeforeLoad,
+				onLoad: queuedTile.onLoad,
+				worker: worker,
+				overpassEndpoint: overpassEndpoint,
+				isTerrainHeightEnabled: tileSystem.enableTerrainHeight
+			});
 		}
 	}
 
 	private async loadTile(
-		tile: Vec2,
-		onBeforeLoad: () => Promise<any>,
-		onLoad: (buffers: Tile3DBuffers) => void,
-		worker: MapWorker,
-		overpassEndpoint: string
+		{
+			tile,
+			onBeforeLoad,
+			onLoad,
+			worker,
+			overpassEndpoint,
+			isTerrainHeightEnabled
+		}: {
+			tile: Vec2;
+			onBeforeLoad: () => Promise<any>;
+			onLoad: (buffers: Tile3DBuffers) => void;
+			worker: MapWorker;
+			overpassEndpoint: string;
+			isTerrainHeightEnabled: boolean;
+		}
 	): Promise<void> {
 		await onBeforeLoad();
 
@@ -111,7 +122,8 @@ export default class TileLoadingSystem extends System {
 			tileServerEndpoint: Config.TileServerEndpoint,
 			mapboxEndpointTemplate: Config.MapboxStreetsEndpointTemplate,
 			mapboxAccessToken: Config.MapboxAccessToken,
-			useCachedTiles: this.useCachedTiles
+			useCachedTiles: this.useCachedTiles,
+			isTerrainHeightEnabled: isTerrainHeightEnabled
 		}).then(result => {
 			onLoad(result);
 		}, error => {

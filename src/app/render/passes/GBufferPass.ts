@@ -38,6 +38,7 @@ import AdvancedInstanceMaterialContainer from "~/app/render/materials/AdvancedIn
 import {InstanceTextureIdList} from "~/app/render/textures/createInstanceTexture";
 import MapTimeSystem from "~/app/systems/MapTimeSystem";
 import {AircraftPartTextures} from "~/app/render/textures/createAircraftTexture";
+import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 
 export default class GBufferPass extends Pass<{
 	GBufferRenderPass: {
@@ -127,6 +128,22 @@ export default class GBufferPass extends Pass<{
 		this.aircraftMaterial = new AircraftMaterialContainer(this.renderer).material;
 		this.aircraftMaterial.getUniform<UniformTexture2DArray>('tMap').value =
 			<AbstractTexture2DArray>this.manager.texturePool.get('aircraft');
+	}
+
+	private updateMaterialsDefines(): void {
+		const useHeight = this.manager.settings.get('terrainHeight').statusValue === 'on' ? '1' : '0';
+		const materials = [
+			this.huggingMeshMaterial,
+			this.projectedMeshMaterial,
+			this.terrainMaterial
+		];
+
+		for (const material of materials) {
+			if (material.defines.USE_HEIGHT !== useHeight) {
+				material.defines.USE_HEIGHT = useHeight;
+				material.recompile();
+			}
+		}
 	}
 
 	private getTileNormalTexturesTransforms(tile: Tile): [Float32Array, Float32Array] {
@@ -477,6 +494,8 @@ export default class GBufferPass extends Pass<{
 				pivotDelta.y
 			);
 		}
+
+		this.updateMaterialsDefines();
 
 		const mainRenderPass = this.getPhysicalResource('GBufferRenderPass');
 		this.renderer.beginRenderPass(mainRenderPass);

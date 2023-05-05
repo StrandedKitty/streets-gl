@@ -12,6 +12,7 @@ export namespace WorkerMessage {
 		mapboxEndpointTemplate?: string;
 		mapboxAccessToken?: string;
 		useCachedTiles?: boolean;
+		isTerrainHeightEnabled?: boolean;
 		height?: Float64Array;
 	}
 

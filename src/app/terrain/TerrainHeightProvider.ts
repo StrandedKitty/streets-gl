@@ -6,11 +6,17 @@ export default class TerrainHeightProvider {
 	public readonly heightLoader: TerrainHeightLoader;
 	private readonly requestZoom: number;
 	private readonly bitmapZoom: number;
+	private readonly fallbackValue: number = 0;
+	private fallbackEnabled: boolean = true;
 
 	public constructor(requestZoom: number, bitmapZoom: number) {
 		this.heightLoader = new TerrainHeightLoader();
 		this.requestZoom = requestZoom;
 		this.bitmapZoom = bitmapZoom;
+	}
+
+	public setFallbackState(value: boolean): void {
+		this.fallbackEnabled = value;
 	}
 
 	private getHeightTexel(tileX: number, tileY: number, texelX: number, texelY: number, applyMercatorScale: boolean): number {
@@ -50,6 +56,10 @@ export default class TerrainHeightProvider {
 	}
 
 	public getHeightGlobalInterpolated(x: number, y: number, applyMercatorScale: boolean): number {
+		if (this.fallbackEnabled) {
+			return this.fallbackValue;
+		}
+
 		const tilePosition = MathUtils.meters2tile(x, y, this.requestZoom);
 
 		const tileX = Math.floor(tilePosition.x);

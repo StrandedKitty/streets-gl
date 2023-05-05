@@ -9,6 +9,7 @@ const ctx: Worker = self as any;
 
 class WorkerInstance {
 	private static TileZoom: number = 16;
+	private requestTerrainHeight: boolean = true;
 
 	public constructor(private readonly ctx: Worker) {
 		this.addEventListeners();
@@ -21,6 +22,8 @@ class WorkerInstance {
 			const y = data.tile[1];
 
 			if (data.type === WorkerMessage.ToWorkerType.Start) {
+				this.requestTerrainHeight = data.isTerrainHeightEnabled;
+
 				this.fetchTile(
 					x,
 					y,
@@ -97,6 +100,16 @@ class WorkerInstance {
 
 	private async getTerrainHeight(x: number, y: number, positions: Float64Array): Promise<Float64Array> {
 		return new Promise((resolve) => {
+			if (!this.requestTerrainHeight) {
+				const heightArray = new Float64Array(positions.length / 2);
+
+				for (let i = 0; i < heightArray.length; i++) {
+					heightArray[i] = 0;
+				}
+
+				resolve(heightArray);
+			}
+
 			const handler = async (event: MessageEvent): Promise<void> => {
 				const data = event.data as WorkerMessage.ToWorker;
 
