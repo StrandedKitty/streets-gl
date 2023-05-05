@@ -32,9 +32,17 @@ export default function getBuildingParamsFromTags(
 	buildingRoofMaterial: VectorAreaDescriptor['buildingRoofMaterial'];
 	buildingRoofColor: number;
 	buildingWindows: boolean;
+	buildingFoundation: boolean;
 } {
 	const fallbackLevels = 1;
 	const levelHeight = 4;
+
+	const hasFoundation = !onlyRoof &&
+		tags['building:levels'] === undefined &&
+		tags['building:min_level'] === undefined &&
+		tags.height === undefined &&
+		tags.est_height === undefined &&
+		tags.min_height === undefined;
 
 	const roofParams = getRoofParamsFromTags(tags);
 	const roofOrientation = getRoofOrientationFromOSMOrientation(tags['roof:orientation']);
@@ -95,6 +103,7 @@ export default function getBuildingParamsFromTags(
 		buildingFacadeColor: facadeParams.color,
 		buildingRoofMaterial: roofParams.material,
 		buildingRoofColor: roofParams.color,
-		buildingWindows: windows
+		buildingWindows: windows,
+		buildingFoundation: hasFoundation
 	};
 }

@@ -43,6 +43,7 @@ export interface VectorAreaDescriptor {
 		'tar';
 	buildingRoofColor?: number;
 	buildingWindows?: boolean;
+	buildingFoundation?: boolean;
 }
 
 export type VectorDescriptor = VectorNodeDescriptor | VectorAreaDescriptor | VectorPolylineDescriptor;

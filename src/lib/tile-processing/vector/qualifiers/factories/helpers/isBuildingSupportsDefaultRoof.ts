@@ -3,6 +3,7 @@ const buildingExceptions: string[] = [
 	'stadium',
 	'houseboat',
 	'castle',
+	'greenhouse',
 	'storage_tank',
 	'silo',
 	'stadium',
