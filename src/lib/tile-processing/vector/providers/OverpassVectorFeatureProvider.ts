@@ -25,7 +25,7 @@ const getRequestBody = (x: number, y: number, zoom: number): string => {
 			node(${bbox});
 			way(${bbox});
 			rel["type"~"^(multipolygon|building)"](${bbox});
-			//rel(br); // this is SLOW
+			//rel["type"="building"](br); // this is SLOW
 			
 			// Make sure that each powerline node knows about all the powerline segments it is connected to
 			//way[power=line](${bbox})->.powerline;
@@ -218,9 +218,7 @@ export default class OverpassVectorFeatureProvider extends VectorFeatureProvider
 			method: 'POST',
 			body: getRequestBody(x, y, zoom)
 		});
-		const overpassData = await response.json() as OverpassDataObject;
-
-		return await OverpassVectorFeatureProvider.repairOverpassRelations(overpassData, overpassURL);
+		return await response.json() as OverpassDataObject;
 	}
 
 	// A hacky (but fast) way to get relations that include relations from OverpassDataObject as members.
