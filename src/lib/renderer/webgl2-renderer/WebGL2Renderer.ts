@@ -64,6 +64,7 @@ export default class WebGL2Renderer implements AbstractRenderer {
 		this.extensions = {
 			anisotropy: this.gl.getExtension("EXT_texture_filter_anisotropic"),
 			floatRenderable: this.gl.getExtension("EXT_color_buffer_float"),
+			floatBlend: this.gl.getExtension("EXT_float_blend"),
 			floatLinear: this.gl.getExtension("OES_texture_float_linear"),
 			timerQuery: this.gl.getExtension("EXT_disjoint_timer_query_webgl2"),
 			rendererInfo: this.gl.getExtension("WEBGL_debug_renderer_info")

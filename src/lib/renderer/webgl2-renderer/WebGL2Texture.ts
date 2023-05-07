@@ -145,7 +145,7 @@ export default abstract class WebGL2Texture implements AbstractTexture {
 		this.renderer.gl.bufferData(
 			this.renderer.gl.PIXEL_PACK_BUFFER,
 			WebGL2Texture.getFormatByteSize(this.format),
-			WebGL2Constants.STATIC_DRAW
+			WebGL2Constants.DYNAMIC_READ
 		);
 		this.renderer.gl.bindBuffer(this.renderer.gl.PIXEL_PACK_BUFFER, null);
 
