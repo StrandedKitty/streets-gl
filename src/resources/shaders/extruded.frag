@@ -72,6 +72,7 @@ void main() {
     }
 
     outColor = getColorValue(vTextureId, mask.b, vColor);
+    //outColor = vec4(fract(vUv), 0, 1);
     outGlow = getGlowColor(vTextureId) * WINDOW_GLOW_COLOR * glowFactor;
     outNormal = packNormal(getNormalValue(vTextureId));
     outRoughnessMetalnessF0 = vec3(mask.r, mask.g, 0.03);

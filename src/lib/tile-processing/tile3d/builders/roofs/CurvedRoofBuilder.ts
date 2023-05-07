@@ -5,6 +5,7 @@ import Vec2 from "~/lib/math/Vec2";
 import polylabel from "polylabel";
 import {Tile3DRingType} from "~/lib/tile-processing/tile3d/builders/Tile3DRing";
 import {signedDstToLine} from "~/lib/tile-processing/tile3d/builders/utils";
+import {calculateSplitsNormals} from "~/lib/tile-processing/tile3d/builders/roofs/RoofUtils";
 
 export default abstract class CurvedRoofBuilder implements RoofBuilder {
 	protected readonly abstract splits: Vec2[];
@@ -236,36 +237,6 @@ export default abstract class CurvedRoofBuilder implements RoofBuilder {
 	}
 
 	private calculateSplitsNormals(): void {
-		const points = this.splits;
-		const pointNormals: Vec2[] = [];
-		const edgeNormals: Vec2[] = [];
-
-		for (let i = 0; i < points.length - 1; i++) {
-			const p0 = points[i];
-			const p1 = points[i + 1];
-
-			const edge = Vec2.sub(p1, p0);
-			edgeNormals.push(Vec2.rotateLeft(edge));
-		}
-
-		for (let i = 0; i < points.length; i++) {
-			const edge0 = edgeNormals[i - 1];
-			const edge1 = edgeNormals[i];
-
-			if (!edge0) {
-				pointNormals.push(Vec2.normalize(edge1));
-				continue;
-			}
-
-			if (!edge1) {
-				pointNormals.push(Vec2.normalize(edge0));
-				continue;
-			}
-
-			const normal = Vec2.normalize(Vec2.add(edge0, edge1));
-			pointNormals.push(normal);
-		}
-
-		this.splitsNormals = pointNormals;
+		this.splitsNormals = calculateSplitsNormals(this.splits);
 	}
 }

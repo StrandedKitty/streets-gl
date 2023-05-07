@@ -176,8 +176,8 @@ export default class HippedRoofBuilder implements RoofBuilder {
 			position.push(x, vertexHeight, z);
 
 			const lineNormal: [Vec2, Vec2] = [
-				edgeLine[0],
-				Vec2.add(edgeLine[0], Vec2.rotateRight(Vec2.sub(edgeLine[1], edgeLine[0])))
+				edgeLine[1],
+				Vec2.add(edgeLine[1], Vec2.rotateRight(Vec2.sub(edgeLine[0], edgeLine[1])))
 			];
 			const uvX = signedDstToLine(vertex, lineNormal);
 			const uvYScale = Math.sin(Math.atan(maxSkeletonHeight / height));

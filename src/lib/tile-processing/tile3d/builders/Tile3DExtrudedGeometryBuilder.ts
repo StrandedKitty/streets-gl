@@ -26,6 +26,8 @@ import {ExtrudedTextures} from "~/lib/tile-processing/tile3d/textures";
 import SeededRandom from "~/lib/math/SeededRandom";
 import Vec2 from "~/lib/math/Vec2";
 import GambrelRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/GambrelRoofBuilder";
+import OrientedGambrelRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/OrientedGambrelRoofBuilder";
+import OrientedRoundRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/OrientedRoundRoofBuilder";
 
 export enum RoofType {
 	Flat,
@@ -218,8 +220,6 @@ export default class Tile3DExtrudedGeometryBuilder {
 	}): {skirt?: RoofSkirt; facadeHeightOverride?: number} {
 		let builder: RoofBuilder;
 
-		//type = RoofType.Gabled as RoofType;
-
 		switch (params.type) {
 			case RoofType.Skillion: {
 				builder = new SkillionRoofBuilder();
@@ -250,13 +250,25 @@ export default class Tile3DExtrudedGeometryBuilder {
 				break;
 			}
 			case RoofType.Gambrel: {
-				builder = new GambrelRoofBuilder();
+				if (params.orientation === 'along' || params.orientation === 'across') {
+					builder = new OrientedGambrelRoofBuilder();
+				} else {
+					builder = new GambrelRoofBuilder();
+				}
 				break;
 			}
 			case RoofType.Mansard: {
 				builder = new MansardRoofBuilder();
 				break;
 			}
+			case RoofType.Round:
+				if (!params.orientation) {
+					params.orientation = 'along';
+				}
+
+				builder = new OrientedRoundRoofBuilder();
+
+				break;
 			case RoofType.QuadrupleSaltbox: {
 				builder = new QuadrupleSaltboxRoofBuilder();
 				break;
