@@ -1,0 +1,17 @@
+{
+    "data_format": 1,
+    "data_url": "https://streets.gl/taginfo.json",
+    "data_updated": "20230507T000000Z",
+    "project": {
+        "name": "Streets GL",
+        "description": "Streets GL is a OpenStreetMap 3D renderer that allows to explore the whole world in great detail"
+        "project_url": "https://streets.gl",
+        "doc_url": "https://github.com/StrandedKitty/streets-gl",
+        "icon_url": "https://streets.gl/images/favicon.png",
+        "contact_name": "StrandedKitty",
+        "contact_email": "strandedkitty@gmail.com"
+    },
+    "tags": [
+        
+    ]
+}
