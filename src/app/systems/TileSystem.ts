@@ -124,18 +124,26 @@ export default class TileSystem extends System {
 		const heightZoom = 12;
 		const factor = 2 ** (dataZoom - heightZoom);
 
-		const tileX = Math.floor(x / factor);
-		const tileY = Math.floor(y / factor);
+		const tile2terrain = (x: number, y: number): Vec2 => {
+			return new Vec2(
+				Math.floor(x / factor),
+				Math.floor(y / factor)
+			);
+		}
 
 		const positions: Vec2[] = [];
 
 		// Load nearby tiles just in case we need to handle huge features (buildings, etc.)
 		for (let dx = -1; dx <= 1; dx++) {
 			for (let dy = -1; dy <= 1; dy++) {
-				positions.push(new Vec2(
-					tileX + dx,
-					tileY + dy
-				));
+				const tileX = x + dx;
+				const tileY = y + dy;
+
+				const terrainTile = tile2terrain(tileX, tileY);
+
+				if (!positions.some(pos => pos.equals(terrainTile))) {
+					positions.push(terrainTile);
+				}
 			}
 		}
 

@@ -15,6 +15,10 @@ export default class TerrainHeightProvider {
 		this.bitmapZoom = bitmapZoom;
 	}
 
+	public update(): void {
+		this.heightLoader.update();
+	}
+
 	public setFallbackState(value: boolean): void {
 		this.fallbackEnabled = value;
 	}

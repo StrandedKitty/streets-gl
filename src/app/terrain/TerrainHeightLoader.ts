@@ -39,17 +39,136 @@ export class HeightLoaderTile {
 	}
 }
 
+interface Request {
+	x: number;
+	y: number;
+	zoom: number;
+	waitingList: {resolve: () => void}[];
+}
+
+class RequestQueue {
+	private readonly queue: Request[] = [];
+	private readonly queueInProgress: Request[] = [];
+
+	public add(request: Request): void {
+		this.queue.push(request);
+	}
+
+	public get(): Request | undefined {
+		const request = this.queue.shift();
+
+		if (request) {
+			this.queueInProgress.push(request);
+		}
+
+		return request;
+	}
+
+	public remove(request: Request): void {
+		const index = this.queueInProgress.indexOf(request);
+
+		if (index !== -1) {
+			this.queueInProgress.splice(index, 1);
+		}
+	}
+
+	public find(x: number, y: number, zoom: number): Request | undefined {
+		const queueResult = this.queue.find((request) => request.x === x && request.y === y && request.zoom === zoom);
+
+		if (queueResult) {
+			return queueResult;
+		}
+
+		return this.queueInProgress.find((request) => request.x === x && request.y === y && request.zoom === zoom);
+	}
+
+	public get size(): number {
+		return this.queue.length;
+	}
+}
+
 export default class TerrainHeightLoader {
 	private readonly tiles: Map<string, HeightLoaderTile> = new Map();
+	private readonly maxConcurrentRequests: number = 2;
+	private readonly activeRequests: Set<Request> = new Set();
+	private readonly queue: RequestQueue = new RequestQueue();
+	private sus: Set<string> = new Set();
 
-	public async load(
+	public async getOrLoadTile(
 		x: number,
 		y: number,
 		zoom: number,
-		downscaleTimes: number,
 		owner: AnyObject
-	): Promise<void> {
+	): Promise<HeightLoaderTile> {
+		const tile = this.getTile(x, y, zoom);
+
+		if (tile) {
+			tile.tracker.use(owner);
+
+			return Promise.resolve(tile);
+		}
+
+		return new Promise((resolve) => {
+			const waitingListItem = {
+				resolve: (): void => {
+					const tile = this.getTile(x, y, zoom);
+
+					tile.tracker.use(owner);
+					resolve(tile);
+				}
+			};
+			const request = this.queue.find(x, y, zoom);
+
+			if (request) {
+				request.waitingList.push(waitingListItem);
+				return;
+			}
+
+			const newRequest: Request = {
+				x,
+				y,
+				zoom,
+				waitingList: [waitingListItem]
+			};
+
+			this.queue.add(newRequest);
+		});
+	}
+
+	private processQueue(): void {
+		while (this.queue.size > 0 && this.activeRequests.size < this.maxConcurrentRequests) {
+			const task = this.queue.get();
+
+			this.activeRequests.add(task);
+
+			this.load(task.x, task.y, task.zoom, 1).then(() => {
+				this.activeRequests.delete(task);
+				this.queue.remove(task);
+
+				for (const waitingListItem of task.waitingList) {
+					waitingListItem.resolve();
+				}
+			});
+		}
+	}
+
+	public update(): void {
 		this.removeUnusedTiles();
+		this.processQueue();
+	}
+
+	private async load(
+		x: number,
+		y: number,
+		zoom: number,
+		downscaleTimes: number
+	): Promise<void> {
+		const key = TerrainHeightLoader.getTileKey(x, y, zoom);
+		if (this.sus.has(key)) {
+			console.log('sus', key);
+		}
+
+		this.sus.add(key);
 
 		const url = TerrainHeightLoader.getURL(x, y, zoom);
 		const response = await fetch(url, {
@@ -74,7 +193,7 @@ export default class TerrainHeightLoader {
 			this.addBitmap(downscaled, tx, ty, zoom, i + 1);
 		}
 
-		this.getTile(x, y, zoom).tracker.use(owner);
+		//this.getTile(x, y, zoom).tracker.use(owner);
 	}
 
 	private removeUnusedTiles(): void {
@@ -126,24 +245,6 @@ export default class TerrainHeightLoader {
 		return tile.getLevel(level);
 	}
 
-	public async getOrLoadTile(
-		x: number,
-		y: number,
-		zoom: number,
-		owner: AnyObject
-	): Promise<HeightLoaderTile> {
-		const tile = this.getTile(x, y, zoom);
-
-		if (tile) {
-			tile.tracker.use(owner);
-
-			return Promise.resolve(tile);
-		}
-
-		await this.load(x, y, zoom, 1, owner);
-		return this.getTile(x, y, zoom);
-	}
-
 	private static decodeBitmap(bitmap: ImageBitmap): TerrainHeightLoaderBitmap {
 		const canvas = document.createElement('canvas');
 		canvas.width = bitmap.width;
@@ -175,5 +276,9 @@ export default class TerrainHeightLoader {
 				z: zoom
 			}
 		});
+	}
+
+	private static getTileKey(x: number, y: number, zoom: number): string {
+		return `${x},${y},${zoom}`;
 	}
 }
