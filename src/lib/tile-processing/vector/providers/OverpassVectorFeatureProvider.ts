@@ -199,11 +199,11 @@ export default class OverpassVectorFeatureProvider extends VectorFeatureProvider
 		useCached: boolean
 	): Promise<OverpassDataObject> {
 		if (useCached) {
-			const tileData = await fetch(`${tileServerEndpoint}/tile/${x}/${y}`, {
-				method: 'GET'
-			});
-
 			try {
+				const tileData = await fetch(`${tileServerEndpoint}/tile/${x}/${y}`, {
+					method: 'GET'
+				});
+
 				const data = await tileData.json();
 
 				if (!data.error) {
