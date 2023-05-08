@@ -6,6 +6,7 @@ import Pbf from 'pbf';
 import {FeatureProvider} from "~/lib/tile-processing/types";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
+import Utils from "~/app/Utils";
 
 const proto = require('./pbf/vector_tile.js').Tile;
 
@@ -126,10 +127,14 @@ export default class MapboxVectorFeatureProvider implements FeatureProvider<Vect
 	}
 
 	private buildRequestURL(x: number, y: number, zoom: number): string {
-		return this.endpointTemplate
-			.replace('{x}', x.toString())
-			.replace('{y}', y.toString())
-			.replace('{z}', zoom.toString())
-			.replace('{access_token}', this.accessToken);
+		return Utils.resolveEndpointTemplate({
+			template: this.endpointTemplate,
+			values: {
+				x: x,
+				y: y,
+				z: zoom,
+				accessToken: this.accessToken
+			}
+		});
 	}
 }

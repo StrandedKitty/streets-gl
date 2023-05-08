@@ -10,7 +10,8 @@ import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
 import MathUtils from "~/lib/math/MathUtils";
 import Vec3 from "~/lib/math/Vec3";
 import TerrainSystem from "~/app/systems/TerrainSystem";
-import ControlsSystem from "~/app/systems/ControlsSystem";
+import ControlsSystem, {NavigationMode} from "~/app/systems/ControlsSystem";
+import Utils from "~/app/Utils";
 
 export default class SlippyMapSystem extends System {
 	private readonly viewport: CameraViewport = new CameraViewport();
@@ -105,6 +106,13 @@ export default class SlippyMapSystem extends System {
 
 		this.deleteUnusedTiles(visibleTiles);
 
+		const slippyMode = this.systemManager.getSystem(ControlsSystem).mode === NavigationMode.Slippy;
+
+		if (!slippyMode) {
+			this.queue.length = 0;
+			return;
+		}
+
 		this.queue.length = 0;
 
 		for (const position of visibleTiles) {
@@ -168,8 +176,13 @@ export default class SlippyMapSystem extends System {
 	private async loadTile(item: Vec3): Promise<void> {
 		const {x, y, z} = item;
 
+		const url = Utils.resolveEndpointTemplate({
+			template: Config.SlippyEndpointTemplate,
+			values: {x, y, z}
+		});
+
 		const image = new Image();
-		image.src = `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
+		image.src = url;
 		image.crossOrigin = "";
 
 		return new Promise((resolve) => {

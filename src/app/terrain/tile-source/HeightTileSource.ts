@@ -3,6 +3,8 @@ import AbstractTexture2D from "~/lib/renderer/abstract-renderer/AbstractTexture2
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 import TerrainHeightLoader, {HeightLoaderTile} from "~/app/terrain/TerrainHeightLoader";
+import Utils from "~/app/Utils";
+import Config from "~/app/Config";
 
 export default class HeightTileSource extends TileSource<ImageBitmap> {
 	private texture: AbstractTexture2D = null;
@@ -82,6 +84,13 @@ export default class HeightTileSource extends TileSource<ImageBitmap> {
 	}
 
 	private static getURL(x: number, y: number, zoom: number): string {
-		return `https://api.mapbox.com/v4/mapbox.terrain-rgb/${zoom}/${x}/${y}@2x.png?access_token=pk.eyJ1Ijoidmhhd2siLCJhIjoiY2xmbWpqOXBoMGNmZDN2cjJwZXk0MXBzZiJ9.192VNPJG0VV9dGOCOX1gUw`;
+		return Utils.resolveEndpointTemplate({
+			template: Config.ElevationEndpointTemplate,
+			values: {
+				x: x,
+				y: y,
+				z: zoom
+			}
+		});
 	}
 }
