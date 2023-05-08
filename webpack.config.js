@@ -45,7 +45,8 @@ module.exports = (env, argv) => ([{
 			patterns: [
 				{from: './src/resources/textures', to: path.resolve(__dirname, 'build/textures')},
 				{from: './src/resources/models', to: path.resolve(__dirname, 'build/models')},
-				{from: './src/resources/images', to: path.resolve(__dirname, 'build/images')}
+				{from: './src/resources/images', to: path.resolve(__dirname, 'build/images')},
+				{from: './src/resources/taginfo.json', to: path.resolve(__dirname, 'build/taginfo.json')}
 			]
 		}),
 		new ESLintPlugin({
