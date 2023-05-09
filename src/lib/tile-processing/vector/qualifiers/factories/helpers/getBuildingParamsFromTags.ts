@@ -4,6 +4,7 @@ import getRoofOrientationFromOSMOrientation
 import {
 	parseDirection,
 	parseHeight,
+	parseRoofLevels,
 	readTagAsUnsignedFloat,
 	readTagAsUnsignedInt
 } from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
@@ -46,7 +47,7 @@ export default function getBuildingParamsFromTags(
 
 	const roofParams = getRoofParamsFromTags(tags);
 	const roofOrientation = getRoofOrientationFromOSMOrientation(tags['roof:orientation']);
-	const roofLevels = readTagAsUnsignedInt(tags, 'roof:levels') ?? getDefaultLevelsFromRoofType(roofParams.type);
+	const roofLevels = parseRoofLevels(tags, 'roof:levels') ?? getDefaultLevelsFromRoofType(roofParams.type);
 	const roofDirection = parseDirection(tags['roof:direction'], 0);
 	const roofAngle = readTagAsUnsignedFloat(tags, 'roof:angle');
 	let roofHeight = parseHeight(tags['roof:height'], roofLevels * levelHeight);
