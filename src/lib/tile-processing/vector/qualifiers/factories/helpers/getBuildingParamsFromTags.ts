@@ -62,7 +62,7 @@ export default function getBuildingParamsFromTags(
 	}
 
 	if (height === null && levels === null) {
-		levels = fallbackLevels;
+		levels = (minLevel !== null) ? minLevel: fallbackLevels;
 		height = levels * levelHeight + roofHeight
 	} else if (height === null) {
 		height = levels * levelHeight + roofHeight
