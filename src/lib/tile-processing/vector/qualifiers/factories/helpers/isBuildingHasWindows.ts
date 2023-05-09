@@ -11,16 +11,20 @@ const buildingsWithoutWindows: string[] = [
 	'service',
 	'digester',
 	'water_tower',
-	'shed'
+	'shed',
+	'ger',
+	'barn',
+	'slurry_tank',
+	'container'
 ];
 
 export default function isBuildingHasWindows(tags: Record<string, string>): boolean {
-	if (tags.window === 'yes') {
-		return true;
-	}
-
-	if (tags.window === 'no') {
+	if (tags.window === 'no' || tags.windows === 'no') {
 		return false;
+	}	
+	
+	if (tags.window === 'yes' || tags.windows === 'yes') {
+		return true;
 	}
 
 	if (
