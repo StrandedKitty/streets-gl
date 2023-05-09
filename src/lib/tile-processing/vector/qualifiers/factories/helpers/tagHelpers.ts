@@ -102,11 +102,12 @@ export function parseHeight(str: string = '', fallback?: number): number {
 
 export function parseRoofLevels(tags: Record<string, string>, key: string): number {
 	const levels = readTagAsUnsignedInt(tags, key);
-	if (levels <= 0) {
+
+	if (levels === undefined || levels <= 0) {
 		return undefined;
 	}
 	
-	return levels ?? undefined;
+	return levels;
 }
 
 export function parseDirection(str: string = '', fallback?: number): number {
