@@ -485,7 +485,7 @@
 		},
 		{
 			"key": "railway",
-			"value": "narrow_gage",
+			"value": "narrow_gauge",
 			"description": ""
 		},
 		{
@@ -667,7 +667,8 @@
 			"description": ""
 		},
 		{
-			"key": "tourism_artwork",
+		        "key": "tourism",
+                        "value": "artwork",
 			"description": ""
 		},
 		{
