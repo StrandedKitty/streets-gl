@@ -69,9 +69,11 @@ This repository includes several separable modules without any external dependen
 
 ## 💡 Contributing
 
-Please report any bugs you find by opening an issue (but first make sure it hasn't been reported yet). Suggestions and pull requests are also welcome.
+Please report any bugs you find by opening a new issue (but first make sure it hasn't been reported yet). Suggestions and pull requests are also welcome.
 
 If you want to make a significant change, please open an issue first to discuss it.
+
+More information about contributing can be found in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ### Development
 
