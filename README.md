@@ -50,7 +50,7 @@ In order to have smooth experience you also probably need a modern discrete GPU.
 Currently, Streets GL uses three sources of data to render the map:
 
 - Public Overpass API instances to query small portions of the OpenStreetMap database (specific endpoints can be configured in the settings).
-- Mapbox API elevation tiles to visualize terrain height.
+- Terrain 3D tileset by Esri to visualize terrain elevation.
 - Mapbox API vector tiles to access pre-sliced polygons for big features that can't be reliably queried using Overpass API (such as water bodies).
 
 Some small areas of the map are occasionally fetched and cached by the server for a faster and more reliable access. These areas include several major well-mapped cities (NYC, Berlin, Paris, etc). This feature can be turned off in the settings in case you want to see the most recent OSM data directly from Overpass API instances.
