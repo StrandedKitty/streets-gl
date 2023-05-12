@@ -156,7 +156,7 @@ export default class GeometryGroundProjector {
 			triangle,
 			segmentCount, segmentCount,
 			0, 0,
-			segmentCount, segmentCount
+			segmentCount - 1, segmentCount - 1
 		);
 
 		for (const tilePos of coveredTiles) {
