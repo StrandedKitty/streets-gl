@@ -22,7 +22,7 @@ export default class AreaQualifierFactory extends AbstractQualifierFactory<Vecto
 			}];
 		}
 
-		if (tags.building && tags.building !== 'construction') {
+		if (tags.building && tags.building !== 'no' && tags.building !== 'construction') {
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
