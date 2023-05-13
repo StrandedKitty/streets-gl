@@ -146,7 +146,7 @@
 	"pitchGenericNormal": {"url": "/textures/surfaces/pitch_generic_normal.png", "type": "image"},
 
 	"biomeMap": {
-		"url": "/textures/biomes_blurred.png",
+		"url": "/textures/data/biomes_blurred.png",
 		"type": "image"
 	},
 	"genericTerrainColor": {
@@ -158,15 +158,15 @@
 		"type": "image"
 	},
 	"noise": {
-		"url": "/textures/noise.png",
+		"url": "/textures/data/noise.png",
 		"type": "image"
 	},
 	"waterNormal": {
-		"url": "/textures/water_normal.png",
+		"url": "/textures/surfaces/water_normal.png",
 		"type": "image"
 	},
 	"blue_noise_rgba": {
-		"url": "/textures/blue_noise_rgba.png",
+		"url": "/textures/data/blue_noise_rgba.png",
 		"type": "image"
 	},
 
@@ -178,7 +178,7 @@
 	"starmap5": {"url": "/textures/starmap/nz.jpg", "type": "image"},
 
 	"fontSDF": {
-		"url": "/textures/Inter-Regular.png",
+		"url": "/textures/data/Inter-Regular.png",
 		"type": "image"
 	},
 	"treeVolumeNormal": {"url": "/models/tree/tree_volume_normal.png", "type": "image"},
