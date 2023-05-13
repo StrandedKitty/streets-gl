@@ -48,7 +48,7 @@ export default function getBuildingParamsFromTags(
 	const roofParams = getRoofParamsFromTags(tags);
 	const roofOrientation = getRoofOrientationFromOSMOrientation(tags['roof:orientation']);
 	const roofLevels = parseRoofLevels(tags, 'roof:levels') ?? getDefaultLevelsFromRoofType(roofParams.type);
-	const roofDirection = parseDirection(tags['roof:direction'], 0);
+	const roofDirection = parseDirection(tags['roof:direction'], null);
 	const roofAngle = readTagAsUnsignedFloat(tags, 'roof:angle');
 	let roofHeight = parseHeight(tags['roof:height'], roofLevels * levelHeight);
 

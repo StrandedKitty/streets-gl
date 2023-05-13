@@ -224,6 +224,10 @@ export default class Tile3DExtrudedGeometryBuilder {
 
 		switch (params.type) {
 			case RoofType.Skillion: {
+				if (params.direction === null) {
+					params.direction = 0;
+				}
+
 				builder = new SkillionRoofBuilder();
 				break;
 			}
@@ -276,6 +280,10 @@ export default class Tile3DExtrudedGeometryBuilder {
 				break;
 			}
 			case RoofType.Saltbox: {
+				if (params.direction === null) {
+					params.orientation = 'along';
+				}
+
 				builder = new OrientedSaltboxRoofBuilder();
 				break;
 			}
