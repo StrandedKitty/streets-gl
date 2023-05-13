@@ -24,4 +24,5 @@ export default class OrientedRoundRoofBuilder extends OrientedRoofBuilder {
 		new Vec2(1, 0),
 	];
 	protected isSmooth: boolean = true;
+	protected respectDirection: boolean = false;
 }

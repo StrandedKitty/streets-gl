@@ -11,7 +11,8 @@ const lookup: Record<string, VectorAreaDescriptor['buildingRoofType']> = {
 	round: 'round',
 	skillion: 'skillion',
 	mansard: 'mansard',
-	quadruple_saltbox: 'quadrupleSaltbox'
+	quadruple_saltbox: 'quadrupleSaltbox',
+	saltbox: 'saltbox',
 };
 
 export default function getRoofTypeFromOSMRoofShape(

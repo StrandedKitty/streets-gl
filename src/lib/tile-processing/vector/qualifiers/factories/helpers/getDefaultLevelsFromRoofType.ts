@@ -11,7 +11,8 @@ const lookup: Record<VectorAreaDescriptor['buildingRoofType'], number> = {
 	round: 2,
 	skillion: 1,
 	mansard: 1,
-	quadrupleSaltbox: 1
+	quadrupleSaltbox: 1,
+	saltbox: 1
 };
 
 export default function getDefaultLevelsFromRoofType(type: VectorAreaDescriptor['buildingRoofType']): number {

@@ -33,7 +33,7 @@ export interface VectorAreaDescriptor {
 	buildingMinHeight?: number;
 	buildingRoofHeight?: number;
 	buildingRoofType?: 'flat' | 'hipped' | 'gabled' | 'gambrel' | 'pyramidal' | 'onion' | 'dome' | 'round' |
-		'skillion' | 'mansard' | 'quadrupleSaltbox';
+		'skillion' | 'mansard' | 'quadrupleSaltbox' | 'saltbox';
 	buildingRoofOrientation?: 'along' | 'across';
 	buildingRoofDirection?: number;
 	buildingRoofAngle?: number;

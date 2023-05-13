@@ -27,6 +27,14 @@ const getRequestBody = (x: number, y: number, zoom: number): string => {
 			rel["type"~"^(multipolygon|building)"](${bbox});
 			//rel["type"="building"](br); // this is SLOW
 			
+			// Make sure that we have all parts of each building in the result
+			(
+				relation["building"](${bbox});
+				>;
+				way["building"](${bbox});
+			) ->.buildingOutlines;
+			way["building:part"](area.buildingOutlines);
+			
 			// Make sure that each powerline node knows about all the powerline segments it is connected to
 			//way[power=line](${bbox})->.powerline;
 			//way(around.powerline:0)[power=line];

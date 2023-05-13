@@ -1,8 +1,11 @@
-import * as martinez from "martinez-polygon-clipping";
 import VectorArea, {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
 import {GeoJSON} from "geojson";
 import AABB2D from "~/lib/math/AABB2D";
 import Vec2 from "~/lib/math/Vec2";
+// @ts-ignore
+import PolyBool from "polybooljs";
+
+const OutlineDiscardThreshold: number = 0.1;
 
 export default class VectorBuildingOutlinesCleaner {
 	private boundingBoxMap: Map<VectorArea, AABB2D> = new Map();
@@ -10,18 +13,24 @@ export default class VectorBuildingOutlinesCleaner {
 
 	public deleteBuildingOutlines(areas: VectorArea[]): VectorArea[] {
 		const {parts, outlines} = this.getPartsAndOutlinesFromAreas(areas);
-
 		const outlinesToDelete: Set<VectorArea> = new Set();
 
 		for (const outline of outlines) {
+			const outlineGeoJSON = this.getAreaGeoJSON(outline);
+			const area = VectorBuildingOutlinesCleaner.getMultiPolygonArea(outlineGeoJSON);
+
 			for (const part of parts) {
-				if (!this.intersectBoxes(outline, part)) {
+				if (!this.isBoundingBoxesIntersect(outline, part)) {
 					continue;
 				}
 
-				if (this.intersectPrecise(outline, part)) {
-					outlinesToDelete.add(outline);
-				}
+				this.subtractPartFromOutline(outline, part);
+			}
+
+			const newArea = VectorBuildingOutlinesCleaner.getMultiPolygonArea(outlineGeoJSON);
+
+			if (newArea / area < OutlineDiscardThreshold) {
+				outlinesToDelete.add(outline);
 			}
 		}
 
@@ -63,54 +72,110 @@ export default class VectorBuildingOutlinesCleaner {
 		return geoJSON;
 	}
 
-	private intersectBoxes(outline: VectorArea, part: VectorArea): boolean {
+	private isBoundingBoxesIntersect(outline: VectorArea, part: VectorArea): boolean {
 		const outlineBox = this.getAreaBoundingBox(outline);
 		const partBox = this.getAreaBoundingBox(part);
 
 		return outlineBox.intersectsAABB(partBox);
 	}
 
-	private intersectPrecise(outline: VectorArea, part: VectorArea): boolean {
+	private subtractPartFromOutline(outline: VectorArea, part: VectorArea): void {
 		const outlineGeoJSON = this.getAreaGeoJSON(outline);
 		const partGeoJSON = this.getAreaGeoJSON(part);
 
 		if (partGeoJSON.coordinates.length === 0 && outlineGeoJSON.coordinates.length === 0) {
-			return false;
+			return;
 		}
 
 		try {
-			const intersection = martinez.intersection(partGeoJSON.coordinates, outlineGeoJSON.coordinates);
+			const intersection = this.executePolygonDifference(outlineGeoJSON, partGeoJSON);
 
-			if (
-				intersection &&
-				intersection.length !== 0 &&
-				VectorBuildingOutlinesCleaner.getMartinezIntersectionArea(intersection) > 1
-			) {
-				return true;
+			if (intersection) {
+				outlineGeoJSON.coordinates = intersection.coordinates;
+				outlineGeoJSON.type = intersection.type;
 			}
 		} catch (e) {
 			VectorBuildingOutlinesCleaner.logError(part.osmReference.id, outline.osmReference.id);
+			console.error(e);
+		}
+	}
+
+	private executePolygonDifference(
+		outline: GeoJSON.MultiPolygon,
+		part: GeoJSON.MultiPolygon
+	): GeoJSON.MultiPolygon {
+		const outlinePolygon = PolyBool.polygonFromGeoJSON(outline);
+		const partPolygon = PolyBool.polygonFromGeoJSON(part);
+
+		let result = null
+
+		try {
+			result = PolyBool.difference(outlinePolygon, partPolygon);
+		} catch (e) {
+			console.error(e);
 		}
 
-		return false;
+		if (result) {
+			const geoJSON = PolyBool.polygonToGeoJSON(result);
+			const multipolygon: GeoJSON.MultiPolygon = {
+				type: "MultiPolygon",
+				coordinates: []
+			};
+
+			if (geoJSON.type === 'Polygon') {
+				multipolygon.coordinates.push(geoJSON.coordinates);
+			}
+
+			if (geoJSON.type === 'MultiPolygon') {
+				multipolygon.coordinates = geoJSON.coordinates;
+			}
+
+			return multipolygon;
+		}
+
+		return null;
 	}
 
 	private static logError(partId: number, outlineId: number): void {
 		console.error(`Building-building:part intersection test failed for part №${partId} and outline №${outlineId}`);
 	}
 
-	private static getMartinezIntersectionArea(geometry: martinez.Geometry): number {
-		let sum = 0;
+	private static getMultiPolygonArea(multiPolygon: GeoJSON.MultiPolygon): number {
+		let totalArea = 0;
 
-		const vertices = geometry[0][0].slice(0, -1) as martinez.Position[];
-
-		for (let i = 0; i < vertices.length; i++) {
-			const point1 = vertices[i];
-			const point2 = vertices[i + 1] || vertices[0];
-			sum += (point2[0] - point1[0]) * (point2[1] + point1[1]);
+		for (const polygon of multiPolygon.coordinates) {
+			totalArea += VectorBuildingOutlinesCleaner.getPolygonArea({type: "Polygon", coordinates: polygon});
 		}
 
-		return Math.abs(sum);
+		return totalArea;
+	}
+
+	private static getPolygonArea(polygon: GeoJSON.Polygon): number {
+		if (polygon.coordinates.length === 0) {
+			return 0;
+		}
+
+		const [outerRing, ...innerRings] = polygon.coordinates;
+
+		let area = VectorBuildingOutlinesCleaner.getRingArea(outerRing);
+
+		for (const innerRing of innerRings) {
+			area -= VectorBuildingOutlinesCleaner.getRingArea(innerRing);
+		}
+
+		return area;
+	}
+
+	private static getRingArea(ring: number[][]): number {
+		let area = 0;
+
+		for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+			const [xi, yi] = ring[i];
+			const [xj, yj] = ring[j];
+			area += xi * yj - xj * yi;
+		}
+
+		return Math.abs(area / 2);
 	}
 
 	private static getVectorAreaGeoJSON(area: VectorArea): GeoJSON.MultiPolygon {

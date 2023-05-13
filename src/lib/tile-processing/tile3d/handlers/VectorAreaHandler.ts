@@ -579,6 +579,8 @@ export default class VectorAreaHandler implements Handler {
 				return RoofType.Mansard;
 			case 'quadrupleSaltbox':
 				return RoofType.QuadrupleSaltbox;
+			case 'saltbox':
+				return RoofType.Saltbox;
 		}
 
 		console.error(`Roof type ${str} is not supported`);

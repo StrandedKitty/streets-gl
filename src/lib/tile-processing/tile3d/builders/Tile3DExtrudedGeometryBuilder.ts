@@ -28,6 +28,7 @@ import Vec2 from "~/lib/math/Vec2";
 import GambrelRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/GambrelRoofBuilder";
 import OrientedGambrelRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/OrientedGambrelRoofBuilder";
 import OrientedRoundRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/OrientedRoundRoofBuilder";
+import OrientedSaltboxRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/OrientedSaltboxRoofBuilder";
 
 export enum RoofType {
 	Flat,
@@ -41,6 +42,7 @@ export enum RoofType {
 	Skillion,
 	Mansard,
 	QuadrupleSaltbox,
+	Saltbox
 }
 
 export default class Tile3DExtrudedGeometryBuilder {
@@ -271,6 +273,10 @@ export default class Tile3DExtrudedGeometryBuilder {
 				break;
 			case RoofType.QuadrupleSaltbox: {
 				builder = new QuadrupleSaltboxRoofBuilder();
+				break;
+			}
+			case RoofType.Saltbox: {
+				builder = new OrientedSaltboxRoofBuilder();
 				break;
 			}
 			default: {

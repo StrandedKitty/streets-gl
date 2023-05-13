@@ -10,4 +10,5 @@ export default class OrientedGambrelRoofBuilder extends OrientedRoofBuilder {
 		new Vec2(1, 0),
     ];
 	protected isSmooth: boolean = false;
+	protected respectDirection: boolean = false;
 }

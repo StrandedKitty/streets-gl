@@ -13,7 +13,7 @@ interface EarcutInput {
 	holes: number[];
 }
 
-type OMBBResult = [Vec2, Vec2, Vec2, Vec2];
+export type OMBBResult = [Vec2, Vec2, Vec2, Vec2];
 
 export default class Tile3DMultipolygon {
 	public readonly rings: Tile3DRing[] = [];
