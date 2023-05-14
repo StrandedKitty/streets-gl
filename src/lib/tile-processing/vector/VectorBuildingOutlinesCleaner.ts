@@ -44,9 +44,7 @@ export default class VectorBuildingOutlinesCleaner {
 	private getPartsAndOutlinesFromAreas(areas: VectorArea[]): {parts: VectorArea[]; outlines: VectorArea[]} {
 		return {
 			outlines: areas.filter(area => area.descriptor.type === 'building'),
-			parts: areas.filter(area => {
-				return area.descriptor.type === 'buildingPart' && !area.isBuildingPartInRelation
-			})
+			parts: areas.filter(area => area.descriptor.type === 'buildingPart')
 		}
 	}
 
