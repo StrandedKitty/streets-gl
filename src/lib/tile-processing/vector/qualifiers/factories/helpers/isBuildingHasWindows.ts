@@ -15,7 +15,8 @@ const buildingsWithoutWindows: string[] = [
 	'ger',
 	'barn',
 	'slurry_tank',
-	'container'
+	'container',
+	'carport'
 ];
 
 export default function isBuildingHasWindows(tags: Record<string, string>): boolean {
