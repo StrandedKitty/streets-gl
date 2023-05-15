@@ -14,7 +14,7 @@ If you are making a sizable contribution, please open an issue first to discuss 
 
 ### Code
 
-If you are making any changes to the code, please make sure that your new/modified code fits the general style of the codebase. Use `npm run eslint` to check for linting errors.
+If you are making any changes to the code, please make sure that your new/modified code fits the general style of the codebase. Use `npm run lint` to check for linting errors.
 
 ### Textures
 
