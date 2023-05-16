@@ -153,6 +153,18 @@ export default class AreaQualifierFactory extends AbstractQualifierFactory<Vecto
 				}
 			}];
 		}
+		
+		if (
+			tags['area:highway'] === 'footway' ||
+			tags['area:highway'] === 'pedestrian'
+		) {
+			return [{
+				type: QualifierType.Descriptor,
+				data: {
+					type: 'pavement'
+				}
+			}];
+		}
 
 		if (tags.man_made === 'bridge') {
 			return [{
