@@ -24,7 +24,7 @@ import getWaterwayParamsFromTags
 
 export default class PolylineQualifierFactory extends AbstractQualifierFactory<VectorPolylineDescriptor> {
 	public fromTags(tags: Record<string, string>): Qualifier<VectorPolylineDescriptor>[] {
-		if (isUnderground(tags)) {
+		if (isUnderground(tags) || tags.area === 'yes') {
 			return null;
 		}
 
