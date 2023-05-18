@@ -442,7 +442,10 @@ export default class VectorAreaHandler implements Handler {
 			});
 		}
 
-		const features: Tile3DFeature[] = [builder.getGeometry()];
+		const features: Tile3DFeature[] = [
+			builder.getGeometry(),
+			builder.getTerrainMaskGeometry()
+		];
 
 		if (this.descriptor.label) {
 			const pole = this.getMultipolygon().getPoleOfInaccessibility();

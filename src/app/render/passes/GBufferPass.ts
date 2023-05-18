@@ -53,11 +53,19 @@ export default class GBufferPass extends Pass<{
 		type: InternalResourceType.Input;
 		resource: RenderPassResource;
 	};
-	TerrainTileMask: {
+	TerrainWaterTileMask: {
 		type: InternalResourceType.Input;
 		resource: RenderPassResource;
 	};
 	TerrainRingHeight: {
+		type: InternalResourceType.Input;
+		resource: RenderPassResource;
+	};
+	TerrainUsage: {
+		type: InternalResourceType.Input;
+		resource: RenderPassResource;
+	};
+	TerrainUsageTileMask: {
 		type: InternalResourceType.Input;
 		resource: RenderPassResource;
 	};
@@ -83,13 +91,30 @@ export default class GBufferPass extends Pass<{
 				type: InternalResourceType.Output,
 				resource: manager.getSharedResource('GBufferRenderPass')
 			},
-			TerrainNormal: {type: InternalResourceType.Input, resource: manager.getSharedResource('TerrainNormal')},
-			TerrainWater: {type: InternalResourceType.Input, resource: manager.getSharedResource('TerrainWater')},
-			TerrainTileMask: {type: InternalResourceType.Input, resource: manager.getSharedResource('TerrainTileMask')},
+			TerrainNormal: {
+				type: InternalResourceType.Input,
+				resource: manager.getSharedResource('TerrainNormal')
+			},
+			TerrainWater: {
+				type: InternalResourceType.Input,
+				resource: manager.getSharedResource('TerrainWater')
+			},
+			TerrainWaterTileMask: {
+				type: InternalResourceType.Input,
+				resource: manager.getSharedResource('TerrainWaterTileMask')
+			},
 			TerrainRingHeight: {
 				type: InternalResourceType.Input,
 				resource: manager.getSharedResource('TerrainRingHeight')
 			},
+			TerrainUsage: {
+				type: InternalResourceType.Input,
+				resource: manager.getSharedResource('TerrainUsage')
+			},
+			TerrainUsageTileMask: {
+				type: InternalResourceType.Input,
+				resource: manager.getSharedResource('TerrainUsageTileMask')
+			}
 		});
 
 		this.fullScreenTriangle = new FullScreenTriangle(this.renderer);
@@ -225,20 +250,28 @@ export default class GBufferPass extends Pass<{
 		const terrain = this.manager.sceneSystem.objects.terrain;
 		const terrainNormal = <AbstractTexture2DArray>this.getPhysicalResource('TerrainNormal').colorAttachments[0].texture;
 		const terrainWater = <AbstractTexture2DArray>this.getPhysicalResource('TerrainWater').colorAttachments[0].texture;
-		const terrainTileMask = <AbstractTexture2D>this.getPhysicalResource('TerrainTileMask').colorAttachments[0].texture;
+		const terrainWaterTileMask = <AbstractTexture2D>this.getPhysicalResource('TerrainWaterTileMask').colorAttachments[0].texture;
+		const terrainUsage = <AbstractTexture2DArray>this.getPhysicalResource('TerrainUsage').colorAttachments[0].texture;
+		const terrainUsageTileMask = <AbstractTexture2D>this.getPhysicalResource('TerrainUsageTileMask').colorAttachments[0].texture;
 		const terrainRingHeight = <AbstractTexture2DArray>this.getPhysicalResource('TerrainRingHeight').colorAttachments[0].texture;
 		const biomePos = MathUtils.meters2tile(camera.position.x, camera.position.z, 0);
 
 		this.terrainMaterial.getUniform('tRingHeight').value = terrainRingHeight;
 		this.terrainMaterial.getUniform('tNormal').value = terrainNormal;
 		this.terrainMaterial.getUniform('tWater').value = terrainWater;
-		this.terrainMaterial.getUniform('tWaterMask').value = terrainTileMask;
+		this.terrainMaterial.getUniform('tWaterMask').value = terrainWaterTileMask;
+		this.terrainMaterial.getUniform('tUsage').value = terrainUsage;
+		this.terrainMaterial.getUniform('tUsageMask').value = terrainUsageTileMask;
 		this.renderer.useMaterial(this.terrainMaterial);
 
 		this.terrainMaterial.getUniform<UniformMatrix4>('projectionMatrix', 'PerMaterial').value =
 			new Float32Array(camera.jitteredProjectionMatrix.values);
 		this.terrainMaterial.getUniform('biomeCoordinates', 'PerMaterial').value = new Float32Array([biomePos.x, biomePos.y]);
 		this.terrainMaterial.getUniform<UniformFloat1>('time', 'PerMaterial').value[0] = performance.now() * 0.001;
+		// @ts-ignore
+		this.terrainMaterial.getUniform<UniformFloat1>('usageRange', 'PerMaterial').value[0] = window.from ?? 0;
+		// @ts-ignore
+		this.terrainMaterial.getUniform<UniformFloat1>('usageRange', 'PerMaterial').value[1] = window.to ?? 0;
 		this.terrainMaterial.updateUniformBlock('PerMaterial');
 
 		for (let i = 0; i < terrain.children.length; i++) {

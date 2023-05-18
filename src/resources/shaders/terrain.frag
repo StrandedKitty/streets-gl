@@ -32,15 +32,23 @@ uniform PerMaterial {
     mat4 projectionMatrix;
     vec2 biomeCoordinates;
     float time;
+    vec2 usageRange;
 };
 
 uniform sampler2DArray tNormal;
+
 uniform sampler2DArray tWater;
 uniform sampler2D tWaterMask;
+
+uniform sampler2DArray tUsage;
+uniform sampler2D tUsageMask;
+
 uniform sampler2D tDetailColor;
 uniform sampler2D tDetailNormal;
 uniform sampler2D tDetailNoise;
 uniform sampler2D tWaterNormal;
+
+uniform sampler2D tUsageColor;
 
 #include <packNormal>
 #include <getMotionVector>
@@ -105,6 +113,21 @@ void main() {
         waterMask = 0.;
     }
 
+    float usageFactor = 0.;
+
+    if (vMaskUV.x >= 0. && vMaskUV.x <= 1. && vMaskUV.y >= 0. && vMaskUV.y <= 1.) {
+        vec2 size = vec2(textureSize(tUsageMask, 0));
+        vec2 maskTexelUV = vMaskUV * size;
+        float tileId = texelFetch(tUsageMask, ivec2(maskTexelUV), 0).r;
+
+        vec2 tileUV = fract(maskTexelUV);
+        float padding = 4.;
+        tileUV *= 512. / (512. + padding * 2.);
+        tileUV += padding / 512.;
+        usageFactor = texture(tUsage, vec3(tileUV, floor(tileId * 255.))).r;
+        //usageFactor = sampleCatmullRom(tUsage, vec3(tileUV, floor(tileId * 255.)), vec2(512)).r;
+    }
+
     vec2 normalizedTileUV = fract(vDetailUV / (611.4962158203125 * 256.));
     float detailScale = 8.;
     vec3 detailNormal = getNormal(textureNoTile(tDetailNoise, tDetailNormal, normalizedTileUV, 256. * detailScale, detailScale));
@@ -125,6 +148,13 @@ void main() {
     outGlow = vec3(0);
     outNormal = packNormal(detailNormal);
     outRoughnessMetalnessF0 = vec3(0.8, 0, 0.005);
+
+    //usageFactor = sqrt(usageFactor);
+    //usageFactor = smoothstep(usageRange.x, usageRange.y, usageFactor);
+    usageFactor = smoothstep(0.4, 0.1, usageFactor);
+
+    vec3 usedTerrainColor = texture(tUsageColor, normalizedTileUV * 20000.).rgb * 0.8;
+    outColor.rgb = mix(outColor.rgb, usedTerrainColor, usageFactor);
 
     if (waterFactor > 0.5) {
         vec2 normalizedTileUV = fract(vDetailUV / (611.4962158203125 * 256.));

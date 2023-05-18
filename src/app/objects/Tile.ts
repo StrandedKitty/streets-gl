@@ -21,6 +21,7 @@ import {
 import InstancedTree from "~/app/objects/InstancedTree";
 import GenericInstancedObject from "./GenericInstancedObject";
 import InstancedObject from "~/app/objects/InstancedObject";
+import TerrainMask from "~/app/objects/TerrainMask";
 
 // position.xyz, scale, rotation
 export type InstanceBufferInterleaved = Float32Array;
@@ -59,9 +60,11 @@ export default class Tile extends Object3D {
 	public extrudedMesh: TileExtrudedMesh;
 	public projectedMesh: TileProjectedMesh;
 	public huggingMesh: TileHuggingMesh;
+	public terrainMaskMesh: TerrainMask;
 
 	public usedHeightTiles: Vec2[] = [];
-	public isLoading: boolean = false;
+
+	public terrainMaskSliceIndex: number = null;
 
 	public constructor(x: number, y: number) {
 		super();
@@ -91,6 +94,7 @@ export default class Tile extends Object3D {
 		this.extrudedMesh = new TileExtrudedMesh(buffers.extruded);
 		this.projectedMesh = new TileProjectedMesh(buffers.projected);
 		this.huggingMesh = new TileHuggingMesh(buffers.hugging);
+		this.terrainMaskMesh = new TerrainMask(buffers.terrainMask.positionBuffer);
 
 		this.add(this.extrudedMesh, this.projectedMesh, this.huggingMesh);
 		this.updateLabelBufferList(buffers.labels);

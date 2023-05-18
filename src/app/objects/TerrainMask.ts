@@ -3,7 +3,7 @@ import AbstractMesh from "~/lib/renderer/abstract-renderer/AbstractMesh";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 
-export default class WaterMask extends RenderableObject3D {
+export default class TerrainMask extends RenderableObject3D {
 	public mesh: AbstractMesh = null;
 	private readonly verticesBuffer: Float32Array = null;
 
@@ -24,7 +24,7 @@ export default class WaterMask extends RenderableObject3D {
 						name: 'position',
 						type: RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
-						size: 2,
+						size: 3,
 						normalized: false,
 						buffer: renderer.createAttributeBuffer({
 							data: this.verticesBuffer

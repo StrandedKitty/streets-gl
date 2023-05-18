@@ -38,6 +38,11 @@ export default class TerrainMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Float1,
 					value: new Float32Array(1)
 				}, {
+					name: 'usageRange',
+					block: 'PerMaterial',
+					type: RendererTypes.UniformType.Float2,
+					value: new Float32Array(2)
+				}, {
 					name: 'transformNormal0',
 					block: 'PerMesh',
 					type: RendererTypes.UniformType.Float4,
@@ -107,6 +112,29 @@ export default class TerrainMaterialContainer extends MaterialContainer {
 					block: null,
 					type: RendererTypes.UniformType.Texture2D,
 					value: null
+				}, {
+					name: 'tUsage',
+					block: null,
+					type: RendererTypes.UniformType.Texture2DArray,
+					value: null
+				}, {
+					name: 'tUsageMask',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: null
+				}, {
+					name: 'tUsageColor',
+					block: null,
+					type: RendererTypes.UniformType.Texture2D,
+					value: this.renderer.createTexture2D({
+						anisotropy: 16,
+						data: ResourceLoader.get('sandDiffuse'),
+						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
+						magFilter: RendererTypes.MagFilter.Linear,
+						wrap: RendererTypes.TextureWrap.Repeat,
+						format: RendererTypes.TextureFormat.RGBA8Unorm,
+						mipmaps: true
+					})
 				}, {
 					name: 'tDetailColor',
 					block: null,

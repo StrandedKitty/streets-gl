@@ -29,6 +29,7 @@ import GambrelRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/Gamb
 import OrientedGambrelRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/OrientedGambrelRoofBuilder";
 import OrientedRoundRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/OrientedRoundRoofBuilder";
 import OrientedSaltboxRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/OrientedSaltboxRoofBuilder";
+import Tile3DTerrainMaskGeometry from "~/lib/tile-processing/tile3d/features/Tile3DTerrainMaskGeometry";
 
 export enum RoofType {
 	Flat,
@@ -60,6 +61,7 @@ export default class Tile3DExtrudedGeometryBuilder {
 		textureId: [],
 		color: []
 	};
+	private readonly terrainMaskPositions: number[] = [];
 	private readonly multipolygon: Tile3DMultipolygon;
 	private readonly boundingBox: AABB3D = new AABB3D();
 
@@ -201,6 +203,13 @@ export default class Tile3DExtrudedGeometryBuilder {
 				textureId: ExtrudedTextures.RoofConcrete,
 				heightOffset: terrainHeight
 			});
+		} else {
+			const footprint = this.multipolygon.getFootprint({
+				height: 0,
+				flip: false
+			});
+
+			this.addMaskGeometry(footprint.positions);
 		}
 	}
 
@@ -365,6 +374,10 @@ export default class Tile3DExtrudedGeometryBuilder {
 		}
 	}
 
+	private addMaskGeometry(position: number[]): void {
+		this.terrainMaskPositions.push(...position);
+	}
+
 	private addVerticesToBoundingBox(vertices: number[]): void {
 		const tempVec3 = new Vec3();
 
@@ -405,6 +418,13 @@ export default class Tile3DExtrudedGeometryBuilder {
 			textureIdBuffer: new Uint8Array(this.arrays.textureId),
 			colorBuffer: new Uint8Array(this.arrays.color),
 			idBuffer: this.getIDBuffer()
+		};
+	}
+
+	public getTerrainMaskGeometry(): Tile3DTerrainMaskGeometry {
+		return {
+			type: 'mask',
+			positionBuffer: new Float32Array(this.terrainMaskPositions)
 		};
 	}
 }

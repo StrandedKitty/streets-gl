@@ -91,8 +91,8 @@ export default class VectorPolylineHandler implements Handler {
 		return this.graphRoad;
 	}
 
-	private handlePath(): Tile3DProjectedGeometry[] {
-		const features: Tile3DProjectedGeometry[] = [];
+	private handlePath(): Tile3DFeature[] {
+		const features: Tile3DFeature[] = [];
 		const side = VectorPolylineHandler.getRoadSideFromDescriptor(this.descriptor.side);
 		const params = VectorPolylineHandler.getPathParams(
 			this.descriptor.pathType,
@@ -128,6 +128,7 @@ export default class VectorPolylineHandler implements Handler {
 			});
 
 			features.push(builder.getGeometry());
+			features.push(builder.getTerrainMaskGeometry());
 		}
 
 		return features;

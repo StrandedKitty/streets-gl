@@ -22,7 +22,13 @@ import TerrainHeightDownscaleMaterialContainer from "../materials/TerrainHeightD
 import AbstractTexture2DArray from "~/lib/renderer/abstract-renderer/AbstractTexture2DArray";
 import MathUtils from "~/lib/math/MathUtils";
 import {TileAreaLoaderCellStateType} from "~/app/terrain/TileAreaLoader";
-import SettingsSystem from "~/app/systems/SettingsSystem";
+import Texture2DArrayScalableStorage from "~/app/render/Texture2DArrayScalableStorage";
+import TerrainUsageMaterialContainer from "~/app/render/materials/TerrainUsageMaterialContainer";
+import TerrainUsageBlurMaterialContainer from "~/app/render/materials/TerrainUsageBlurMaterialContainer";
+import TerrainUsageSDFMaterialContainer from "~/app/render/materials/TerrainUsageSDFMaterialContainer";
+import AbstractRenderPass from "~/lib/renderer/abstract-renderer/AbstractRenderPass";
+import TerrainUsageSDFDownscaleMaterialContainer
+	from "~/app/render/materials/TerrainUsageSDFDownscaleMaterialContainer";
 
 function compareTypedArrays(a: TypedArray, b: TypedArray): boolean {
 	let i = a.length;
@@ -34,7 +40,7 @@ function compareTypedArrays(a: TypedArray, b: TypedArray): boolean {
 	return true;
 }
 
-const TerrainRingHeightConfig = [
+const TerrainRingHeightConfig: number[][] = [
 	[1, 0, 2, 0],
 	[2, 0, 3, 0],
 	[3, 0, 0, 1],
@@ -56,11 +62,31 @@ export default class TerrainTexturesPass extends Pass<{
 		type: RG.InternalResourceType.Output;
 		resource: RenderPassResource;
 	};
-	TerrainTileMask: {
+	TerrainWaterTileMask: {
 		type: RG.InternalResourceType.Output;
 		resource: RenderPassResource;
 	};
 	TerrainRingHeight: {
+		type: RG.InternalResourceType.Output;
+		resource: RenderPassResource;
+	};
+	TerrainUsage: {
+		type: RG.InternalResourceType.Output;
+		resource: RenderPassResource;
+	};
+	TerrainUsageTemp0: {
+		type: RG.InternalResourceType.Output;
+		resource: RenderPassResource;
+	};
+	TerrainUsageTemp1: {
+		type: RG.InternalResourceType.Output;
+		resource: RenderPassResource;
+	};
+	TerrainUsageTemp2: {
+		type: RG.InternalResourceType.Output;
+		resource: RenderPassResource;
+	};
+	TerrainUsageTileMask: {
 		type: RG.InternalResourceType.Output;
 		resource: RenderPassResource;
 	};
@@ -71,6 +97,12 @@ export default class TerrainTexturesPass extends Pass<{
 	private heightDownscaleMaterial: AbstractMaterial;
 	private normalMaterial: AbstractMaterial;
 	private waterMaterial: AbstractMaterial;
+	private usageMaterial: AbstractMaterial;
+	private usageBlurMaterial: AbstractMaterial;
+	private usageSDFMaterial: AbstractMaterial;
+	private usageSDFDownscaleMaterial0: AbstractMaterial;
+	private usageSDFDownscaleMaterial1: AbstractMaterial;
+	private tileMaskStorage: Texture2DArrayScalableStorage;
 
 	private shouldRenderHeight: boolean = true;
 
@@ -79,8 +111,13 @@ export default class TerrainTexturesPass extends Pass<{
 			TerrainHeight: {type: RG.InternalResourceType.Local, resource: manager.getSharedResource('TerrainHeight')},
 			TerrainNormal: {type: RG.InternalResourceType.Output, resource: manager.getSharedResource('TerrainNormal')},
 			TerrainWater: {type: RG.InternalResourceType.Output, resource: manager.getSharedResource('TerrainWater')},
-			TerrainTileMask: {type: RG.InternalResourceType.Output, resource: manager.getSharedResource('TerrainTileMask')},
-			TerrainRingHeight: {type: RG.InternalResourceType.Output, resource: manager.getSharedResource('TerrainRingHeight')}
+			TerrainWaterTileMask: {type: RG.InternalResourceType.Output, resource: manager.getSharedResource('TerrainWaterTileMask')},
+			TerrainRingHeight: {type: RG.InternalResourceType.Output, resource: manager.getSharedResource('TerrainRingHeight')},
+			TerrainUsage: {type: RG.InternalResourceType.Output, resource: manager.getSharedResource('TerrainUsage')},
+			TerrainUsageTemp0: {type: RG.InternalResourceType.Output, resource: manager.getSharedResource('TerrainUsageTemp0')},
+			TerrainUsageTemp1: {type: RG.InternalResourceType.Output, resource: manager.getSharedResource('TerrainUsageTemp1')},
+			TerrainUsageTemp2: {type: RG.InternalResourceType.Output, resource: manager.getSharedResource('TerrainUsageTemp2')},
+			TerrainUsageTileMask: {type: RG.InternalResourceType.Output, resource: manager.getSharedResource('TerrainUsageTileMask')},
 		});
 
 		this.init();
@@ -93,6 +130,11 @@ export default class TerrainTexturesPass extends Pass<{
 		this.heightDownscaleMaterial = new TerrainHeightDownscaleMaterialContainer(this.renderer).material;
 		this.normalMaterial = new TerrainNormalMaterialContainer(this.renderer).material;
 		this.waterMaterial = new TerrainWaterMaterialContainer(this.renderer).material;
+		this.usageMaterial = new TerrainUsageMaterialContainer(this.renderer).material;
+		this.usageBlurMaterial = new TerrainUsageBlurMaterialContainer(this.renderer).material;
+		this.usageSDFMaterial = new TerrainUsageSDFMaterialContainer(this.renderer).material;
+		this.usageSDFDownscaleMaterial0 = new TerrainUsageSDFDownscaleMaterialContainer(this.renderer, true).material;
+		this.usageSDFDownscaleMaterial1 = new TerrainUsageSDFDownscaleMaterialContainer(this.renderer, false).material;
 		this.quad = new FullScreenQuad(this.renderer);
 
 		const textureSize = 4 * 512;
@@ -100,6 +142,15 @@ export default class TerrainTexturesPass extends Pass<{
 		this.getResource('TerrainHeight').descriptor.setSize(textureSize, textureSize, 2);
 		this.getResource('TerrainNormal').descriptor.setSize(textureSize, textureSize, 2);
 		this.getResource('TerrainWater').descriptor.setSize(2048, 2048, 2);
+
+		this.tileMaskStorage = new Texture2DArrayScalableStorage(8);
+
+		const usageTileSize = 512;
+
+		this.getResource('TerrainUsage').descriptor.setSize(usageTileSize, usageTileSize, 256);
+		this.getResource('TerrainUsageTemp0').descriptor.setSize(usageTileSize * 4, usageTileSize * 4);
+		this.getResource('TerrainUsageTemp1').descriptor.setSize(usageTileSize * 4, usageTileSize * 4);
+		this.getResource('TerrainUsageTemp2').descriptor.setSize(usageTileSize * 2, usageTileSize * 2);
 	}
 
 	private listenToSettings(): void {
@@ -115,7 +166,10 @@ export default class TerrainTexturesPass extends Pass<{
 		}
 
 		this.updateWater();
-		this.updateTileMask();
+		this.updateWaterTileMask();
+
+		this.updateTerrainMask();
+		this.updateTerrainTileMask();
 	}
 
 	private renderTerrainHeightAndNormals(): void {
@@ -217,11 +271,11 @@ export default class TerrainTexturesPass extends Pass<{
 		}
 	}
 
-	private updateTileMask(): void {
+	private updateWaterTileMask(): void {
 		const terrainSystem = this.manager.systemManager.getSystem(TerrainSystem);
 		const tileSystem = this.manager.systemManager.getSystem(TileSystem);
 
-		const tileMaskTexture = <AbstractTexture2D>this.getPhysicalResource('TerrainTileMask').colorAttachments[0].texture;
+		const tileMaskTexture = <AbstractTexture2D>this.getPhysicalResource('TerrainWaterTileMask').colorAttachments[0].texture;
 		const buffer = new Uint8Array(tileMaskTexture.width * tileMaskTexture.height);
 		const start = terrainSystem.maskOrigin;
 
@@ -327,6 +381,117 @@ export default class TerrainTexturesPass extends Pass<{
 			this.ringHeightMaterial.updateUniformBlock('PerMesh');
 
 			this.quad.mesh.draw();
+		}
+	}
+
+	public updateTerrainMask(): void {
+		const tiles = this.manager.systemManager.getSystem(TileSystem).tiles;
+		const terrainUsageRenderPass = this.getPhysicalResource('TerrainUsage');
+		const terrainUsageTemp0RenderPass = this.getPhysicalResource('TerrainUsageTemp0');
+		const terrainUsageTemp1RenderPass = this.getPhysicalResource('TerrainUsageTemp1');
+		const terrainUsageTemp2RenderPass = this.getPhysicalResource('TerrainUsageTemp1');
+
+		for (const tile of tiles.values()) {
+			if (tile.terrainMaskMesh && tile.terrainMaskSliceIndex === null) {
+				tile.terrainMaskMesh.updateMesh(this.renderer);
+
+				const index = this.tileMaskStorage.addAttachment({
+					id: tile.id.toString(),
+				});
+
+				tile.terrainMaskSliceIndex = index;
+
+				const padding = 4;
+				const scale = 512 / (512 + padding * 2);
+				const transform = [
+					padding / 512,
+					padding / 512,
+					scale
+				];
+
+				this.renderer.startTimer();
+
+				terrainUsageTemp0RenderPass.clearAttachments([0], false);
+
+				this.renderer.beginRenderPass(terrainUsageTemp0RenderPass);
+				this.renderer.useMaterial(this.usageMaterial);
+
+				this.usageMaterial.getUniform('transform', 'MainBlock').value = new Float32Array(transform);
+				this.usageMaterial.getUniform('fillValue', 'MainBlock').value = new Float32Array([0]);
+				this.usageMaterial.updateUniformBlock('MainBlock');
+
+				tile.terrainMaskMesh.draw();
+
+				const sdfPasses: number = 8;
+				const sdfDirections: Float32Array[] = [
+					new Float32Array([1, 0]),
+					new Float32Array([0, 1]),
+				];
+				const targets: AbstractRenderPass[] = [
+					terrainUsageTemp1RenderPass,
+					terrainUsageTemp0RenderPass,
+				];
+
+				this.renderer.useMaterial(this.usageSDFMaterial);
+
+				for (const direction of sdfDirections) {
+					for (let i = 0; i < sdfPasses; i++) {
+						this.renderer.beginRenderPass(targets[0]);
+
+						this.usageSDFMaterial.getUniform('direction', 'MainBlock').value = direction;
+						this.usageSDFMaterial.getUniform('beta', 'MainBlock').value = new Float32Array([(i * 2 + 1) / 255]);
+						this.usageSDFMaterial.getUniform('tMap').value = <AbstractTexture2D>targets[1].colorAttachments[0].texture;
+						this.usageSDFMaterial.updateUniformBlock('MainBlock');
+						this.usageSDFMaterial.updateUniform('tMap');
+
+						this.renderer.useMaterial(this.usageSDFMaterial);
+						this.manager.renderSystem.fullScreenTriangle.mesh.draw();
+
+						targets.reverse();
+					}
+				}
+
+				this.renderer.beginRenderPass(terrainUsageTemp2RenderPass);
+				this.usageSDFDownscaleMaterial0.getUniform('tMap').value = <AbstractTexture2D>targets[1].colorAttachments[0].texture;
+				this.renderer.useMaterial(this.usageSDFDownscaleMaterial0);
+				this.manager.renderSystem.fullScreenTriangle.mesh.draw();
+
+				terrainUsageRenderPass.colorAttachments[0].slice = index;
+				this.renderer.beginRenderPass(terrainUsageRenderPass);
+				this.usageSDFDownscaleMaterial1.getUniform('tMap').value = <AbstractTexture2D>terrainUsageTemp2RenderPass.colorAttachments[0].texture;
+				this.renderer.useMaterial(this.usageSDFDownscaleMaterial1);
+				this.manager.renderSystem.fullScreenTriangle.mesh.draw();
+
+				//console.log(`draw ${tile.id} at ${index}`);
+
+				this.renderer.finishTimer().then((time) => {
+					console.log(`draw ${tile.id} at ${index} took ${time} ms`);
+				});
+			}
+		}
+	}
+
+	private updateTerrainTileMask(): void {
+		const terrainSystem = this.manager.systemManager.getSystem(TerrainSystem);
+		const tileSystem = this.manager.systemManager.getSystem(TileSystem);
+
+		const tileMaskTexture = <AbstractTexture2D>this.getPhysicalResource('TerrainUsageTileMask').colorAttachments[0].texture;
+		const buffer = new Uint8Array(tileMaskTexture.width * tileMaskTexture.height);
+		const start = terrainSystem.maskOrigin;
+
+		for (let x = 0; x < tileMaskTexture.width; x++) {
+			for (let y = 0; y < tileMaskTexture.height; y++) {
+				const tile = tileSystem.getTile(x + start.x, y + start.y);
+
+				if (tile) {
+					buffer[x + y * tileMaskTexture.width] = tile.terrainMaskSliceIndex === null ? 255 : tile.terrainMaskSliceIndex;
+				}
+			}
+		}
+
+		if (tileMaskTexture.data === null || !compareTypedArrays(tileMaskTexture.data as Uint8Array, buffer)) {
+			tileMaskTexture.data = buffer;
+			tileMaskTexture.updateFromData();
 		}
 	}
 
