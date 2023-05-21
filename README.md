@@ -2,10 +2,10 @@
 
 <div align="center">
     <h1>Streets GL</h1>
-    <a href="https://trello.com/b/WJ1D07lT"><img src="https://img.shields.io/static/v1?label=&message=Trello%20board&logo=trello&logoColor=ffffff&color=0052CC" alt="Trello board" /></a>
+    <!--<a href="https://trello.com/b/WJ1D07lT"><img src="https://img.shields.io/static/v1?label=&message=Trello%20board&logo=trello&logoColor=ffffff&color=0052CC" alt="Trello board" /></a>-->
     <a href="https://discord.gg/bewggJ3eMC"><img src="https://img.shields.io/discord/1098082266451820544.svg?label=&logo=discord&logoColor=ffffff&color=6A7EC2" alt="Discord" /></a>
     <img src="https://img.shields.io/github/commit-activity/m/strandedkitty/streets-gl?color=d77bdb" alt="GitHub commit activity">
-    
+    <img src="https://img.shields.io/github/license/strandedkitty/streets-gl?color=3975cf" alt="License" />
 </div>
 <br>
 
@@ -38,12 +38,7 @@ The goals of this project include providing a way to explore the feature-rich OS
 
 ## 💻 Minimum requirements
 
-To run this application you need a machine that supports WebGL2 with following extensions:
-- EXT_texture_filter_anisotropic
-- EXT_color_buffer_float
-- OES_texture_float_linear
-
-In order to have smooth experience you also probably need a modern discrete GPU.
+To run this application, you need a machine that supports WebGL2. It's recommended to use an up-to-date version of Google Chrome. Additionally, for a smooth experience, you will likely need a modern discrete GPU.
 
 ## 🗂️ Data sources
 
