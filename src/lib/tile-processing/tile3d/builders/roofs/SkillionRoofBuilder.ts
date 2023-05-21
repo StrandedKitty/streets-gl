@@ -3,16 +3,26 @@ import MathUtils from "~/lib/math/MathUtils";
 import Vec2 from "~/lib/math/Vec2";
 import Vec3 from "~/lib/math/Vec3";
 import AABB2D from "~/lib/math/AABB2D";
+import {getRotationVectorsFromOMBB} from "~/lib/tile-processing/tile3d/builders/utils";
+import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 
 export default class SkillionRoofBuilder implements RoofBuilder {
 	private getRoofHeightFromAngle(bbox: AABB2D, angle: number): number {
 		return (bbox.max.y - bbox.min.y) * Math.tan(MathUtils.toRad(angle));
 	}
 
-	public build(params: RoofParams): RoofGeometry {
-		const {multipolygon, direction} = params;
-		const skirt: RoofSkirt = [];
-		const rotation = -MathUtils.toRad(direction ?? 0) - Math.PI / 2;
+	private getRotation(params: RoofParams): number {
+		if (params.direction !== null) {
+			return -MathUtils.toRad(params.direction) - Math.PI / 2;
+		}
+
+		const ombb = params.multipolygon.getOMBB();
+		const ombbVectors = getRotationVectorsFromOMBB(ombb, params.orientation ?? 'along', null);
+
+		return -Vec2.normalize(ombbVectors.rotVector0).getAngle() - Math.PI / 2;
+	}
+
+	private getRotatedMultipolygonAABB(multipolygon: Tile3DMultipolygon, rotation: number): AABB2D {
 		const bbox = new AABB2D();
 
 		for (const ring of multipolygon.rings) {
@@ -20,6 +30,16 @@ export default class SkillionRoofBuilder implements RoofBuilder {
 				bbox.includePoint(Vec2.rotate(node, rotation));
 			}
 		}
+
+		return bbox;
+	}
+
+	public build(params: RoofParams): RoofGeometry {
+		const {multipolygon} = params;
+		const skirt: RoofSkirt = [];
+
+		const rotation = this.getRotation(params);
+		const bbox = this.getRotatedMultipolygonAABB(multipolygon, rotation);
 
 		let facadeHeightOverride: number = null;
 		let height = params.height;

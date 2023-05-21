@@ -5,11 +5,11 @@ import RoofBuilder, {
 	RoofSkirtPolyline
 } from "~/lib/tile-processing/tile3d/builders/roofs/RoofBuilder";
 import Vec2 from "~/lib/math/Vec2";
-import {signedDstToLine} from "~/lib/tile-processing/tile3d/builders/utils";
+import {getRotationVectorsFromOMBB, signedDstToLine} from "~/lib/tile-processing/tile3d/builders/utils";
 import MathUtils from "~/lib/math/MathUtils";
 import splitPolygon from "~/lib/tile-processing/tile3d/builders/roofs/splitPolygon";
 import Vec3 from "~/lib/math/Vec3";
-import Tile3DMultipolygon, { OMBBResult } from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
+import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 import {calculateRoofNormals, calculateSplitsNormals} from "~/lib/tile-processing/tile3d/builders/roofs/RoofUtils";
 
 interface RoofSlice {
@@ -37,7 +37,7 @@ export default abstract class OrientedRoofBuilder implements RoofBuilder {
 		const {orientation, multipolygon, minHeight, height} = params;
 		const ombb = params.multipolygon.getOMBB();
 
-		const {rotVector0, rotVector1, origin} = this.getRotationVectorsFromOMBB(
+		const {rotVector0, rotVector1, origin} = getRotationVectorsFromOMBB(
 			ombb,
 			orientation,
 			this.respectDirection ? params.direction : null
@@ -101,59 +101,6 @@ export default abstract class OrientedRoofBuilder implements RoofBuilder {
 			skirt: skirt,
 			addSkirt: true,
 			canExtendOutsideFootprint: true
-		};
-	}
-
-	private getRotationVectorsFromOMBB(
-		ombb: OMBBResult,
-		orientation: 'along' | 'across',
-		direction: number
-	): {
-		origin: Vec2;
-		rotVector0: Vec2;
-		rotVector1: Vec2;
-	} {
-		let ombbOrigin = ombb[0];
-		let rotVector0 = Vec2.sub(ombb[3], ombbOrigin);
-		let rotVector1 = Vec2.sub(ombb[1], ombbOrigin);
-
-		if (typeof direction === 'number') {
-			const currentAngle = Vec2.angleClockwise(new Vec2(1, 0), rotVector0);
-			const rotation = this.getNearestDirection(direction - MathUtils.toDeg(currentAngle));
-
-			if (rotation !== 0) {
-				let diff = rotation;
-
-				if (diff < 0) {
-					diff += 360;
-				}
-
-				const originIndex = Math.floor(diff / 90); // floor just to be sure
-				const rotVector0Index = (originIndex + 3) % 4;
-				const rotVector1Index = (originIndex + 1) % 4;
-
-				ombbOrigin = ombb[originIndex];
-				rotVector0 = Vec2.sub(ombb[rotVector0Index], ombbOrigin);
-				rotVector1 = Vec2.sub(ombb[rotVector1Index], ombbOrigin);
-			}
-		} else if (typeof orientation === 'string') {
-			const rotVector0Length = Vec2.getLength(rotVector0);
-			const rotVector1Length = Vec2.getLength(rotVector1);
-
-			if (
-				(rotVector0Length > rotVector1Length && orientation === 'along') ||
-				(rotVector0Length < rotVector1Length && orientation === 'across')
-			) {
-				ombbOrigin = ombb[1];
-				rotVector0 = Vec2.sub(ombb[0], ombbOrigin);
-				rotVector1 = Vec2.sub(ombb[2], ombbOrigin);
-			}
-		}
-
-		return {
-			origin: ombbOrigin,
-			rotVector0,
-			rotVector1,
 		};
 	}
 
@@ -486,23 +433,5 @@ export default abstract class OrientedRoofBuilder implements RoofBuilder {
 
 	private calculateSplitsNormals(): void {
 		this.splitsNormals = calculateSplitsNormals(this.splits);
-	}
-
-	private getNearestDirection(angle: number): number {
-		const normalizedAngle = MathUtils.toDeg(MathUtils.normalizeAngle(MathUtils.toRad(angle)));
-
-		if (normalizedAngle >= 45 && normalizedAngle < 135) {
-			return 90;
-		}
-
-		if (normalizedAngle >= 135 && normalizedAngle < 225) {
-			return 180;
-		}
-
-		if (normalizedAngle >= 225 && normalizedAngle < 315) {
-			return 270;
-		}
-
-		return 0;
 	}
 }

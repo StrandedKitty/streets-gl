@@ -233,10 +233,6 @@ export default class Tile3DExtrudedGeometryBuilder {
 
 		switch (params.type) {
 			case RoofType.Skillion: {
-				if (params.direction === null) {
-					params.direction = 0;
-				}
-
 				builder = new SkillionRoofBuilder();
 				break;
 			}

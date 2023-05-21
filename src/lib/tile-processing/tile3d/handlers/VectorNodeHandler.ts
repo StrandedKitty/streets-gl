@@ -13,7 +13,6 @@ import {
 } from "~/lib/tile-processing/tile3d/utils";
 import MathUtils from "~/lib/math/MathUtils";
 import Tile3DFeature from "~/lib/tile-processing/tile3d/features/Tile3DFeature";
-import Tile3DTerrainMaskGeometry from "~/lib/tile-processing/tile3d/features/Tile3DTerrainMaskGeometry";
 
 const TileSize = 611.4962158203125;
 
