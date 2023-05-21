@@ -4,7 +4,7 @@ import Tile3DBuffers, {
 	Tile3DBuffersHugging,
 	Tile3DBuffersInstance,
 	Tile3DBuffersLabels,
-	Tile3DBuffersProjected
+	Tile3DBuffersProjected, Tile3DTerrainMask
 } from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
 import Tile3DFeatureCollection from "~/lib/tile-processing/tile3d/features/Tile3DFeatureCollection";
 import Utils from "~/app/Utils";
@@ -20,6 +20,7 @@ import Tile3DInstance, {
 	Tile3DInstanceLODConfig,
 	Tile3DInstanceType
 } from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
+import Tile3DTerrainMaskGeometry from "~/lib/tile-processing/tile3d/features/Tile3DTerrainMaskGeometry";
 
 const getRandom = <T>(arr: T[], n: number): T[] => {
 	let result = new Array<T>(n),
@@ -41,6 +42,7 @@ export class Tile3DFeaturesToBuffersConverter {
 			extruded: this.getExtrudedBuffers(collection.extruded),
 			projected: this.getProjectedBuffers(collection.projected),
 			hugging: this.getHuggingBuffers(collection.hugging),
+			terrainMask: this.getTerrainMaskBuffers(collection.terrainMask, collection.zoom),
 			labels: this.getLabelsBuffers(collection.labels),
 			instances: this.getInstanceBuffers(collection.instances)
 		};
@@ -162,6 +164,23 @@ export class Tile3DFeaturesToBuffersConverter {
 			textureIdBuffer: textureIdBufferMerged,
 			boundingBox: this.boundingBoxToFlatObject(boundingBox)
 		};
+	}
+
+	private static getTerrainMaskBuffers(features: Tile3DTerrainMaskGeometry[], zoom: number): Tile3DTerrainMask {
+		const tileSize = 40075016.68 / (1 << zoom);
+		const positionBuffers: Float32Array[] = [];
+
+		for (const feature of features) {
+			positionBuffers.push(feature.positionBuffer);
+		}
+
+		const positionBufferMerged = Utils.mergeTypedArrays(Float32Array, positionBuffers);
+
+		for (let i = 0; i < positionBufferMerged.length; i += 1) {
+			positionBufferMerged[i] /= tileSize;
+		}
+
+		return {positionBuffer: positionBufferMerged};
 	}
 
 	private static getLabelsBuffers(features: Tile3DLabel[]): Tile3DBuffersLabels {

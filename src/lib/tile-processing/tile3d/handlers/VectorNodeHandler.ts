@@ -12,6 +12,8 @@ import {
 	getTreeTextureScaling
 } from "~/lib/tile-processing/tile3d/utils";
 import MathUtils from "~/lib/math/MathUtils";
+import Tile3DFeature from "~/lib/tile-processing/tile3d/features/Tile3DFeature";
+import Tile3DTerrainMaskGeometry from "~/lib/tile-processing/tile3d/features/Tile3DTerrainMaskGeometry";
 
 const TileSize = 611.4962158203125;
 
@@ -39,7 +41,7 @@ export default class VectorNodeHandler implements Handler {
 		this.mercatorScale = scale;
 	}
 
-	public getFeatures(): Tile3DInstance[] {
+	public getFeatures(): Tile3DFeature[] {
 		if (this.isOutOfBounds()) {
 			return [];
 		}

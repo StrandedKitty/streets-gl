@@ -20,6 +20,7 @@ import MathUtils from "~/lib/math/MathUtils";
 import Road from "~/lib/road-graph/Road";
 import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
 import PowerlineHandler from "~/lib/tile-processing/tile3d/handlers/PowerlineHandler";
+import Tile3DTerrainMaskGeometry from "~/lib/tile-processing/tile3d/features/Tile3DTerrainMaskGeometry";
 
 export interface Tile3DProviderParams {
 	overpassEndpoint: string;
@@ -58,7 +59,7 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 		await Tile3DFromVectorProvider.updateFeaturesHeight(handlers, this.params.heightPromise);
 		Tile3DFromVectorProvider.addRoadGraphToHandlers(handlers);
 
-		const collection = Tile3DFromVectorProvider.getFeaturesFromHandlers(handlers);
+		const collection = Tile3DFromVectorProvider.getCollectionFromHandlers(x, y, zoom, handlers);
 
 		applyMercatorFactorToExtrudedFeatures(collection.extruded, x, y, zoom);
 
@@ -181,11 +182,20 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 		return sorted[0][0] as VectorAreaDescriptor['intersectionMaterial'];
 	}
 
-	private static getFeaturesFromHandlers(handlers: Handler[]): Tile3DFeatureCollection {
+	private static getCollectionFromHandlers(
+		x: number,
+		y: number,
+		zoom: number,
+		handlers: Handler[]
+	): Tile3DFeatureCollection {
 		const collection: Tile3DFeatureCollection = {
+			x: x,
+			y: y,
+			zoom: zoom,
 			extruded: [],
 			projected: [],
 			hugging: [],
+			terrainMask: [],
 			labels: [],
 			instances: []
 		};
@@ -211,6 +221,9 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 							break;
 						case 'hugging':
 							collection.hugging.push(feature as Tile3DHuggingGeometry);
+							break;
+						case 'mask':
+							collection.terrainMask.push(feature as Tile3DTerrainMaskGeometry);
 							break;
 						case 'label':
 							collection.labels.push(feature as Tile3DLabel);

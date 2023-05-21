@@ -35,6 +35,10 @@ export interface Tile3DBuffersHugging {
 	boundingBox: BoundingBox;
 }
 
+export interface Tile3DTerrainMask {
+	positionBuffer: Float32Array;
+}
+
 export interface Tile3DBuffersLabels {
 	position: Float32Array;
 	priority: Float32Array;
@@ -51,6 +55,7 @@ export default interface Tile3DBuffers {
 	extruded: Tile3DBuffersExtruded;
 	projected: Tile3DBuffersProjected;
 	hugging: Tile3DBuffersHugging;
+	terrainMask: Tile3DTerrainMask;
 	labels: Tile3DBuffersLabels;
 	instances: Record<string, Tile3DBuffersInstance>;
 }

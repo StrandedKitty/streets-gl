@@ -38,6 +38,11 @@ export default class TerrainMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Float1,
 					value: new Float32Array(1)
 				}, {
+					name: 'usageRange',
+					block: 'PerMaterial',
+					type: RendererTypes.UniformType.Float2,
+					value: new Float32Array(2)
+				}, {
 					name: 'transformNormal0',
 					block: 'PerMesh',
 					type: RendererTypes.UniformType.Float4,
@@ -108,12 +113,26 @@ export default class TerrainMaterialContainer extends MaterialContainer {
 					type: RendererTypes.UniformType.Texture2D,
 					value: null
 				}, {
-					name: 'tDetailColor',
+					name: 'tUsage',
+					block: null,
+					type: RendererTypes.UniformType.Texture2DArray,
+					value: null
+				}, {
+					name: 'tUsageMask',
 					block: null,
 					type: RendererTypes.UniformType.Texture2D,
-					value: this.renderer.createTexture2D({
+					value: null
+				}, {
+					name: 'tUsageMaps',
+					block: null,
+					type: RendererTypes.UniformType.Texture2DArray,
+					value: this.renderer.createTexture2DArray({
+						depth: 2,
+						data: [
+							ResourceLoader.get('sandySoilDiffuse'),
+							ResourceLoader.get('sandySoilHeight')
+						],
 						anisotropy: 16,
-						data: ResourceLoader.get('genericTerrainColor'),
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,
 						wrap: RendererTypes.TextureWrap.Repeat,
@@ -121,12 +140,16 @@ export default class TerrainMaterialContainer extends MaterialContainer {
 						mipmaps: true
 					})
 				}, {
-					name: 'tDetailNormal',
+					name: 'tDetailMaps',
 					block: null,
-					type: RendererTypes.UniformType.Texture2D,
-					value: this.renderer.createTexture2D({
+					type: RendererTypes.UniformType.Texture2DArray,
+					value: this.renderer.createTexture2DArray({
+						depth: 2,
+						data: [
+							ResourceLoader.get('genericTerrainColor'),
+							ResourceLoader.get('genericTerrainNormal'),
+						],
 						anisotropy: 16,
-						data: ResourceLoader.get('genericTerrainNormal'),
 						minFilter: RendererTypes.MinFilter.LinearMipmapLinear,
 						magFilter: RendererTypes.MagFilter.Linear,
 						wrap: RendererTypes.TextureWrap.Repeat,
@@ -177,7 +200,10 @@ export default class TerrainMaterialContainer extends MaterialContainer {
 			defines: {
 				NORMAL_MIX_FROM: Config.TerrainNormalMixRange[0].toFixed(1),
 				NORMAL_MIX_TO: Config.TerrainNormalMixRange[1].toFixed(1),
-				USE_HEIGHT: '1'
+				USE_HEIGHT: '1',
+				USAGE_TEXTURE_PADDING: Config.TerrainUsageTexturePadding.toFixed(1),
+				TILE_SIZE: Config.TileSize.toFixed(10),
+				DETAIL_UV_SCALE: Config.TerrainDetailUVScale.toFixed(10),
 			},
 			primitive: {
 				frontFace: RendererTypes.FrontFace.CCW,

@@ -34,6 +34,7 @@ uniform PerMaterial {
 	mat4 projectionMatrix;
 	vec2 biomeCoordinates;
 	float time;
+	vec2 usageRange;
 };
 
 uniform sampler2DArray tRingHeight;

@@ -8,6 +8,7 @@ import SurfaceBuilder from "~/lib/tile-processing/tile3d/builders/SurfaceBuilder
 import RoadBuilder, {RoadSide} from "~/lib/tile-processing/tile3d/builders/RoadBuilder";
 import {projectGeometryOnTerrain, projectLineOnTerrain} from "~/lib/tile-processing/tile3d/builders/utils";
 import FenceBuilder from "~/lib/tile-processing/tile3d/builders/FenceBuilder";
+import Tile3DTerrainMaskGeometry from "~/lib/tile-processing/tile3d/features/Tile3DTerrainMaskGeometry";
 
 export default class Tile3DProjectedGeometryBuilder {
 	private readonly arrays: {
@@ -21,6 +22,7 @@ export default class Tile3DProjectedGeometryBuilder {
 		normal: [],
 		textureId: []
 	};
+	private readonly terrainMaskPositions: number[] = [];
 	private readonly boundingBox: AABB3D = new AABB3D();
 	private readonly multipolygon: Tile3DMultipolygon = new Tile3DMultipolygon();
 	private zIndex: number = 0;
@@ -42,12 +44,14 @@ export default class Tile3DProjectedGeometryBuilder {
 			textureId,
 			height,
 			uvScale = 1,
-			isOriented = false
+			isOriented = false,
+			addUsageMask
 		}: {
 			height: number;
 			textureId: number;
 			uvScale?: number;
 			isOriented?: boolean;
+			addUsageMask?: boolean;
 		}
 	): void {
 		const surface = SurfaceBuilder.build({
@@ -62,6 +66,10 @@ export default class Tile3DProjectedGeometryBuilder {
 			textureId: textureId,
 			height: height
 		});
+
+		if (addUsageMask) {
+			this.addMaskGeometry(surface.position);
+		}
 	}
 
 	public addPath(
@@ -110,6 +118,8 @@ export default class Tile3DProjectedGeometryBuilder {
 			textureId,
 			height
 		});
+
+		this.addMaskGeometry(road.position);
 	}
 
 	public addFence(
@@ -236,6 +246,12 @@ export default class Tile3DProjectedGeometryBuilder {
 		}
 	}
 
+	private addMaskGeometry(position: number[]): void {
+		for (let i = 0; i < position.length; i += 3) {
+			this.terrainMaskPositions.push(position[i], position[i + 2]);
+		}
+	}
+
 	private addVerticesToBoundingBox(vertices: number[]): void {
 		const tempVec3 = new Vec3();
 
@@ -254,6 +270,13 @@ export default class Tile3DProjectedGeometryBuilder {
 			normalBuffer: new Float32Array(this.arrays.normal),
 			uvBuffer: new Float32Array(this.arrays.uv),
 			textureIdBuffer: new Uint8Array(this.arrays.textureId)
+		};
+	}
+
+	public getTerrainMaskGeometry(): Tile3DTerrainMaskGeometry {
+		return {
+			type: 'mask',
+			positionBuffer: new Float32Array(this.terrainMaskPositions)
 		};
 	}
 }

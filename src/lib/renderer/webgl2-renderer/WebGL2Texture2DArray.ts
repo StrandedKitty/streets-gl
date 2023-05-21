@@ -117,4 +117,23 @@ export default class WebGL2Texture2DArray extends WebGL2Texture implements Abstr
 			data
 		);
 	}
+
+	public copyFromCurrentRenderPass(
+		x: number,
+		y: number,
+		width: number,
+		height: number,
+	): void {
+		this.gl.copyTexSubImage3D(
+			this.textureTypeConstant,
+			0,
+			0,
+			0,
+			0,
+			x,
+			y,
+			width,
+			height
+		);
+	}
 }

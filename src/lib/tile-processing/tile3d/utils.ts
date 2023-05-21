@@ -54,6 +54,7 @@ export function getTile3DBuffersTransferables(buffers: Tile3DBuffers): Transfera
 		buffers.hugging.normalBuffer.buffer,
 		buffers.hugging.uvBuffer.buffer,
 		buffers.hugging.textureIdBuffer.buffer,
+		buffers.terrainMask.positionBuffer.buffer,
 		buffers.labels.position.buffer,
 		buffers.labels.priority.buffer
 	];

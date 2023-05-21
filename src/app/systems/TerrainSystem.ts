@@ -183,14 +183,14 @@ export default class TerrainSystem extends System {
 
 	private updateRingMaskTransforms(terrain: Terrain, camera: Object3D): void {
 		const cameraTilePosition = MathUtils.meters2tile(camera.position.x, camera.position.z);
-		const startX = Math.floor(cameraTilePosition.x) - Math.floor(Config.TerrainWaterMaskResolution / 2);
-		const startY = Math.floor(cameraTilePosition.y) - Math.floor(Config.TerrainWaterMaskResolution / 2);
-		const startMeters = MathUtils.tile2meters(startX, startY + Config.TerrainWaterMaskResolution);
+		const startX = Math.floor(cameraTilePosition.x) - Math.floor(Config.TerrainMaskResolution / 2);
+		const startY = Math.floor(cameraTilePosition.y) - Math.floor(Config.TerrainMaskResolution / 2);
+		const startMeters = MathUtils.tile2meters(startX, startY + Config.TerrainMaskResolution);
 
 		this.maskOrigin.set(startX, startY);
 
 		for (const ring of terrain.children) {
-			const maskWorldSize = Config.TileSize * Config.TerrainWaterMaskResolution;
+			const maskWorldSize = Config.TileSize * Config.TerrainMaskResolution;
 			const maskScale = ring.size / maskWorldSize;
 			const maskOffsetX = (ring.position.x - ring.size / 2 - startMeters.x) / maskWorldSize;
 			const maskOffsetY = (ring.position.z - ring.size / 2 - startMeters.y) / maskWorldSize;

@@ -109,9 +109,9 @@ export default class OSMNodeHandler implements OSMHandler {
 
 	private static getCircleAreaRing(x: number, y: number, radius: number): VectorAreaRing {
 		const nodes: VectorNode[] = [];
-		const nodeCount = 16;
+		const nodeCount: number = 16;
 
-		for (let i = 0; i < 16; i++) {
+		for (let i = 0; i < nodeCount; i++) {
 			const progress = i / nodeCount;
 			const rotation = Math.PI * 2 * progress;
 			const pos = Vec2.rotate(new Vec2(radius, 0), rotation);

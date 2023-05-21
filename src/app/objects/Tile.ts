@@ -21,6 +21,8 @@ import {
 import InstancedTree from "~/app/objects/InstancedTree";
 import GenericInstancedObject from "./GenericInstancedObject";
 import InstancedObject from "~/app/objects/InstancedObject";
+import TerrainMask from "~/app/objects/TerrainMask";
+import EventEmitter from "~/app/EventEmitter";
 
 // position.xyz, scale, rotation
 export type InstanceBufferInterleaved = Float32Array;
@@ -43,6 +45,10 @@ export default class Tile extends Object3D {
 	public readonly y: number;
 	public readonly localId: number;
 
+	public readonly emitter: EventEmitter<{
+		delete: () => void;
+	}> = new EventEmitter();
+
 	public readonly buildingLocalToPackedMap: Map<number, number> = new Map();
 	public readonly buildingPackedToLocalMap: Map<number, number> = new Map();
 	public readonly buildingOffsetMap: Map<number, [number, number]> = new Map();
@@ -59,9 +65,11 @@ export default class Tile extends Object3D {
 	public extrudedMesh: TileExtrudedMesh;
 	public projectedMesh: TileProjectedMesh;
 	public huggingMesh: TileHuggingMesh;
+	public terrainMaskMesh: TerrainMask;
 
 	public usedHeightTiles: Vec2[] = [];
-	public isLoading: boolean = false;
+
+	public terrainMaskSliceIndex: number = null;
 
 	public constructor(x: number, y: number) {
 		super();
@@ -91,6 +99,7 @@ export default class Tile extends Object3D {
 		this.extrudedMesh = new TileExtrudedMesh(buffers.extruded);
 		this.projectedMesh = new TileProjectedMesh(buffers.projected);
 		this.huggingMesh = new TileHuggingMesh(buffers.hugging);
+		this.terrainMaskMesh = new TerrainMask(buffers.terrainMask.positionBuffer);
 
 		this.add(this.extrudedMesh, this.projectedMesh, this.huggingMesh);
 		this.updateLabelBufferList(buffers.labels);
@@ -264,6 +273,8 @@ export default class Tile extends Object3D {
 		if (this.parent) {
 			this.parent.remove(this);
 		}
+
+		this.emitter.emit('delete');
 	}
 
 	public static encodePosition(x: number, y: number): number {
