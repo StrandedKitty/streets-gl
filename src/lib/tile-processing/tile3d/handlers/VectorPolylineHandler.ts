@@ -128,7 +128,10 @@ export default class VectorPolylineHandler implements Handler {
 			});
 
 			features.push(builder.getGeometry());
-			features.push(builder.getTerrainMaskGeometry());
+
+			if (this.descriptor.pathType === 'roadway') {
+				features.push(builder.getTerrainMaskGeometry());
+			}
 		}
 
 		return features;

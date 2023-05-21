@@ -24,8 +24,13 @@ const mapShaderFiles = (context: __WebpackModuleApi.RequireContext): ShadersColl
 const Shaders: ShadersCollection = mapShaderFiles(require.context('../../../resources/shaders', true, /\.vert|.frag$/i));
 
 for (const collection of Object.values(Shaders)) {
-	collection.vertex = ShaderPrecompiler.resolveIncludes(collection.vertex);
-	collection.fragment = ShaderPrecompiler.resolveIncludes(collection.fragment);
+	if (collection.vertex) {
+		collection.vertex = ShaderPrecompiler.resolveIncludes(collection.vertex);
+	}
+
+	if (collection.fragment) {
+		collection.fragment = ShaderPrecompiler.resolveIncludes(collection.fragment);
+	}
 }
 
 export default Shaders;

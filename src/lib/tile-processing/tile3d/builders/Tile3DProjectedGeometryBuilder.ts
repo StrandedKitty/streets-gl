@@ -44,12 +44,14 @@ export default class Tile3DProjectedGeometryBuilder {
 			textureId,
 			height,
 			uvScale = 1,
-			isOriented = false
+			isOriented = false,
+			addUsageMask
 		}: {
 			height: number;
 			textureId: number;
 			uvScale?: number;
 			isOriented?: boolean;
+			addUsageMask?: boolean;
 		}
 	): void {
 		const surface = SurfaceBuilder.build({
@@ -65,7 +67,9 @@ export default class Tile3DProjectedGeometryBuilder {
 			height: height
 		});
 
-		this.addMaskGeometry(surface.position);
+		if (addUsageMask) {
+			this.addMaskGeometry(surface.position);
+		}
 	}
 
 	public addPath(

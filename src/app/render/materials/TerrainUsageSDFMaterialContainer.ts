@@ -10,12 +10,7 @@ export default class TerrainUsageSDFMaterialContainer extends MaterialContainer 
 		this.material = this.renderer.createMaterial({
 			name: 'Terrain usage SDF material',
 			uniforms: [{
-				name: 'direction',
-				block: 'MainBlock',
-				type: RendererTypes.UniformType.Float2,
-				value: new Float32Array(2)
-			}, {
-				name: 'beta',
+				name: 'step',
 				block: 'MainBlock',
 				type: RendererTypes.UniformType.Float1,
 				value: new Float32Array(1)
@@ -45,8 +40,8 @@ export default class TerrainUsageSDFMaterialContainer extends MaterialContainer 
 					dstFactor: RendererTypes.BlendFactor.Zero
 				}
 			},
-			vertexShaderSource: Shaders.minErosion.vertex,
-			fragmentShaderSource: Shaders.minErosion.fragment
+			vertexShaderSource: Shaders.jumpFlooding.vertex,
+			fragmentShaderSource: Shaders.jumpFlooding.fragment
 		});
 	}
 }

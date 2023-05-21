@@ -6,7 +6,6 @@ out vec2 vUv;
 
 uniform MainBlock {
     vec3 transform;
-    float fillValue;
 };
 
 void main() {

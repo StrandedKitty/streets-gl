@@ -49,6 +49,7 @@ uniform sampler2D tDetailNoise;
 uniform sampler2D tWaterNormal;
 
 uniform sampler2D tUsageColor;
+uniform sampler2D tUsageHeight;
 
 #include <packNormal>
 #include <getMotionVector>
@@ -99,6 +100,23 @@ bool isPointMasked(vec2 maskUV, sampler2D mask) {
     return texelFetch(mask, ivec2(maskUV * size), 0).r > 0.5;
 }
 
+float remap(float value, float from1, float to1, float from2, float to2) {
+    return (value - from1) / (to1 - from1) * (to2 - from2) + from2;
+}
+
+vec3 heightblend(vec3 input1, float height1, vec3 input2, float height2) {
+    float height_start = max(height1, height2) - 0.02;
+    float level1 = max(height1 - height_start, 0.);
+    float level2 = max(height2 - height_start, 0.);
+    return ((input1 * level1) + (input2 * level2)) / (level1 + level2);
+}
+
+// http://untitledgam.es/2017/01/height-blending-shader/
+vec3 heightlerp(vec3 input1, float height1, vec3 input2, float height2, float t) {
+    t = clamp(t, 0., 1.);
+    return heightblend(input1, height1 * (1. - t), input2, height2 * t);
+}
+
 void main() {
     if (edgeFactor() > 0.9) {
         //discard;
@@ -116,16 +134,22 @@ void main() {
     float usageFactor = 0.;
 
     if (vMaskUV.x >= 0. && vMaskUV.x <= 1. && vMaskUV.y >= 0. && vMaskUV.y <= 1.) {
-        vec2 size = vec2(textureSize(tUsageMask, 0));
-        vec2 maskTexelUV = vMaskUV * size;
+        vec2 usageMaskSize = vec2(textureSize(tUsageMask, 0));
+        vec2 usageTextureSize = vec2(textureSize(tUsage, 0));
+
+        vec2 maskTexelUV = vMaskUV * usageMaskSize;
         float tileId = texelFetch(tUsageMask, ivec2(maskTexelUV), 0).r;
 
         vec2 tileUV = fract(maskTexelUV);
-        float padding = 4.;
-        tileUV *= 512. / (512. + padding * 2.);
-        tileUV += padding / 512.;
-        usageFactor = texture(tUsage, vec3(tileUV, floor(tileId * 255.))).r;
-        //usageFactor = sampleCatmullRom(tUsage, vec3(tileUV, floor(tileId * 255.)), vec2(512)).r;
+
+        tileUV *= usageTextureSize / (usageTextureSize + USAGE_TEXTURE_PADDING * 2.);
+        tileUV += USAGE_TEXTURE_PADDING / usageTextureSize;
+
+        float layerIndex = floor(tileId * 255.);
+
+        if (layerIndex != 255.) {
+            usageFactor = 1. - texture(tUsage, vec3(tileUV, layerIndex)).r;
+        }
     }
 
     vec2 normalizedTileUV = fract(vDetailUV / (611.4962158203125 * 256.));
@@ -149,12 +173,16 @@ void main() {
     outNormal = packNormal(detailNormal);
     outRoughnessMetalnessF0 = vec3(0.8, 0, 0.005);
 
-    //usageFactor = sqrt(usageFactor);
     //usageFactor = smoothstep(usageRange.x, usageRange.y, usageFactor);
-    usageFactor = smoothstep(0.4, 0.1, usageFactor);
+    //usageFactor = smoothstep(0.4, 0.9, usageFactor);
+    usageFactor = remap(usageFactor, -0.2, 2., 0., 1.);
 
-    vec3 usedTerrainColor = texture(tUsageColor, normalizedTileUV * 20000.).rgb * 0.8;
-    outColor.rgb = mix(outColor.rgb, usedTerrainColor, usageFactor);
+    vec3 usedTerrainColor = texture(tUsageColor, normalizedTileUV * 20000.).rgb;
+    float usedTerrainHeight = texture(tUsageHeight, normalizedTileUV * 20000.).r;
+    vec3 baseColor = outColor.rgb;
+    float baseHeight = 1. - usageFactor;
+
+    outColor.rgb = heightblend(baseColor, baseHeight, usedTerrainColor, usedTerrainHeight);
 
     if (waterFactor > 0.5) {
         vec2 normalizedTileUV = fract(vDetailUV / (611.4962158203125 * 256.));

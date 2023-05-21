@@ -22,6 +22,7 @@ import InstancedTree from "~/app/objects/InstancedTree";
 import GenericInstancedObject from "./GenericInstancedObject";
 import InstancedObject from "~/app/objects/InstancedObject";
 import TerrainMask from "~/app/objects/TerrainMask";
+import EventEmitter from "~/app/EventEmitter";
 
 // position.xyz, scale, rotation
 export type InstanceBufferInterleaved = Float32Array;
@@ -43,6 +44,10 @@ export default class Tile extends Object3D {
 	public readonly x: number;
 	public readonly y: number;
 	public readonly localId: number;
+
+	public readonly emitter: EventEmitter<{
+		delete: () => void;
+	}> = new EventEmitter();
 
 	public readonly buildingLocalToPackedMap: Map<number, number> = new Map();
 	public readonly buildingPackedToLocalMap: Map<number, number> = new Map();
@@ -268,6 +273,8 @@ export default class Tile extends Object3D {
 		if (this.parent) {
 			this.parent.remove(this);
 		}
+
+		this.emitter.emit('delete');
 	}
 
 	public static encodePosition(x: number, y: number): number {

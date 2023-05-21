@@ -14,11 +14,6 @@ export default class TerrainUsageMaterialContainer extends MaterialContainer {
 				block: 'MainBlock',
 				type: RendererTypes.UniformType.Float3,
 				value: new Float32Array(3)
-			}, {
-				name: 'fillValue',
-				block: 'MainBlock',
-				type: RendererTypes.UniformType.Float1,
-				value: new Float32Array(1)
 			}],
 			primitive: {
 				frontFace: RendererTypes.FrontFace.CCW,

@@ -22,13 +22,16 @@ import TerrainHeightDownscaleMaterialContainer from "../materials/TerrainHeightD
 import AbstractTexture2DArray from "~/lib/renderer/abstract-renderer/AbstractTexture2DArray";
 import MathUtils from "~/lib/math/MathUtils";
 import {TileAreaLoaderCellStateType} from "~/app/terrain/TileAreaLoader";
-import Texture2DArrayScalableStorage from "~/app/render/Texture2DArrayScalableStorage";
+import Texture2DArrayScalableStorage, {BinaryTreeNodeAttachment} from "~/app/render/Texture2DArrayScalableStorage";
 import TerrainUsageMaterialContainer from "~/app/render/materials/TerrainUsageMaterialContainer";
 import TerrainUsageBlurMaterialContainer from "~/app/render/materials/TerrainUsageBlurMaterialContainer";
 import TerrainUsageSDFMaterialContainer from "~/app/render/materials/TerrainUsageSDFMaterialContainer";
 import AbstractRenderPass from "~/lib/renderer/abstract-renderer/AbstractRenderPass";
 import TerrainUsageSDFDownscaleMaterialContainer
 	from "~/app/render/materials/TerrainUsageSDFDownscaleMaterialContainer";
+import ClearUintMaterialContainer from "~/app/render/materials/ClearUintMaterialContainer";
+import Tile from "~/app/objects/Tile";
+import Config from "~/app/Config";
 
 function compareTypedArrays(a: TypedArray, b: TypedArray): boolean {
 	let i = a.length;
@@ -102,6 +105,7 @@ export default class TerrainTexturesPass extends Pass<{
 	private usageSDFMaterial: AbstractMaterial;
 	private usageSDFDownscaleMaterial0: AbstractMaterial;
 	private usageSDFDownscaleMaterial1: AbstractMaterial;
+	private uintClearMaterial: AbstractMaterial;
 	private tileMaskStorage: Texture2DArrayScalableStorage;
 
 	private shouldRenderHeight: boolean = true;
@@ -135,6 +139,7 @@ export default class TerrainTexturesPass extends Pass<{
 		this.usageSDFMaterial = new TerrainUsageSDFMaterialContainer(this.renderer).material;
 		this.usageSDFDownscaleMaterial0 = new TerrainUsageSDFDownscaleMaterialContainer(this.renderer, true).material;
 		this.usageSDFDownscaleMaterial1 = new TerrainUsageSDFDownscaleMaterialContainer(this.renderer, false).material;
+		this.uintClearMaterial = new ClearUintMaterialContainer(this.renderer).material;
 		this.quad = new FullScreenQuad(this.renderer);
 
 		const textureSize = 4 * 512;
@@ -384,89 +389,92 @@ export default class TerrainTexturesPass extends Pass<{
 		}
 	}
 
-	public updateTerrainMask(): void {
-		const tiles = this.manager.systemManager.getSystem(TileSystem).tiles;
+	private getTileUsageTransform(): Float32Array {
+		const size = Config.TerrainUsageTextureSize;
+		const padding = Config.TerrainUsageTexturePadding;
+		const scale = size / (size + padding * 2);
+
+		return new Float32Array([
+			padding / size,
+			padding / size,
+			scale
+		]);
+	}
+
+	private renderTileUsage(tile: Tile): void {
 		const terrainUsageRenderPass = this.getPhysicalResource('TerrainUsage');
 		const terrainUsageTemp0RenderPass = this.getPhysicalResource('TerrainUsageTemp0');
 		const terrainUsageTemp1RenderPass = this.getPhysicalResource('TerrainUsageTemp1');
-		const terrainUsageTemp2RenderPass = this.getPhysicalResource('TerrainUsageTemp1');
+		const terrainUsageTemp2RenderPass = this.getPhysicalResource('TerrainUsageTemp2');
+
+		tile.terrainMaskMesh.updateMesh(this.renderer);
+
+		const storageAttachment: BinaryTreeNodeAttachment = {
+			id: tile.id.toString(),
+		};
+		const index = this.tileMaskStorage.addAttachment(storageAttachment);
+
+		tile.terrainMaskSliceIndex = index;
+
+		this.renderer.beginRenderPass(terrainUsageTemp0RenderPass);
+
+		this.renderer.useMaterial(this.uintClearMaterial);
+		this.uintClearMaterial.getUniform('value', 'MainBlock').value = new Uint32Array([0]);
+		this.uintClearMaterial.updateUniformBlock('MainBlock');
+		this.manager.renderSystem.fullScreenTriangle.mesh.draw();
+
+		this.renderer.useMaterial(this.usageMaterial);
+		this.usageMaterial.getUniform('transform', 'MainBlock').value = this.getTileUsageTransform();
+		this.usageMaterial.updateUniformBlock('MainBlock');
+		tile.terrainMaskMesh.draw();
+
+		const sdfPassCount: number = Config.TerrainUsageSDFPasses;
+		const targets: AbstractRenderPass[] = [
+			terrainUsageTemp1RenderPass,
+			terrainUsageTemp0RenderPass,
+		];
+
+		this.renderer.useMaterial(this.usageSDFMaterial);
+
+		for (let i = 0; i < sdfPassCount; i++) {
+			this.renderer.beginRenderPass(targets[0]);
+
+			this.usageSDFMaterial.getUniform('step', 'MainBlock').value = new Float32Array([sdfPassCount - i - 1]);
+			this.usageSDFMaterial.getUniform('tMap').value = <AbstractTexture2D>targets[1].colorAttachments[0].texture;
+			this.usageSDFMaterial.updateUniformBlock('MainBlock');
+			this.usageSDFMaterial.updateUniform('tMap');
+
+			this.renderer.useMaterial(this.usageSDFMaterial);
+			this.manager.renderSystem.fullScreenTriangle.mesh.draw();
+
+			targets.reverse();
+		}
+
+		this.renderer.beginRenderPass(terrainUsageTemp2RenderPass);
+		this.usageSDFDownscaleMaterial0.getUniform('tMap').value = <AbstractTexture2D>targets[1].colorAttachments[0].texture;
+		this.renderer.useMaterial(this.usageSDFDownscaleMaterial0);
+		this.manager.renderSystem.fullScreenTriangle.mesh.draw();
+
+		terrainUsageRenderPass.colorAttachments[0].slice = index;
+		this.renderer.beginRenderPass(terrainUsageRenderPass);
+		this.usageSDFDownscaleMaterial1.getUniform('tMap').value = <AbstractTexture2D>terrainUsageTemp2RenderPass.colorAttachments[0].texture;
+		this.renderer.useMaterial(this.usageSDFDownscaleMaterial1);
+		this.manager.renderSystem.fullScreenTriangle.mesh.draw();
+
+		const onDeleted = (): void => {
+			this.tileMaskStorage.removeAttachment(storageAttachment);
+			tile.emitter.off('delete', onDeleted);
+		};
+
+		tile.emitter.on('delete', onDeleted);
+	}
+
+	public updateTerrainMask(): void {
+		const tiles = this.manager.systemManager.getSystem(TileSystem).tiles;
 
 		for (const tile of tiles.values()) {
 			if (tile.terrainMaskMesh && tile.terrainMaskSliceIndex === null) {
-				tile.terrainMaskMesh.updateMesh(this.renderer);
-
-				const index = this.tileMaskStorage.addAttachment({
-					id: tile.id.toString(),
-				});
-
-				tile.terrainMaskSliceIndex = index;
-
-				const padding = 4;
-				const scale = 512 / (512 + padding * 2);
-				const transform = [
-					padding / 512,
-					padding / 512,
-					scale
-				];
-
-				this.renderer.startTimer();
-
-				terrainUsageTemp0RenderPass.clearAttachments([0], false);
-
-				this.renderer.beginRenderPass(terrainUsageTemp0RenderPass);
-				this.renderer.useMaterial(this.usageMaterial);
-
-				this.usageMaterial.getUniform('transform', 'MainBlock').value = new Float32Array(transform);
-				this.usageMaterial.getUniform('fillValue', 'MainBlock').value = new Float32Array([0]);
-				this.usageMaterial.updateUniformBlock('MainBlock');
-
-				tile.terrainMaskMesh.draw();
-
-				const sdfPasses: number = 8;
-				const sdfDirections: Float32Array[] = [
-					new Float32Array([1, 0]),
-					new Float32Array([0, 1]),
-				];
-				const targets: AbstractRenderPass[] = [
-					terrainUsageTemp1RenderPass,
-					terrainUsageTemp0RenderPass,
-				];
-
-				this.renderer.useMaterial(this.usageSDFMaterial);
-
-				for (const direction of sdfDirections) {
-					for (let i = 0; i < sdfPasses; i++) {
-						this.renderer.beginRenderPass(targets[0]);
-
-						this.usageSDFMaterial.getUniform('direction', 'MainBlock').value = direction;
-						this.usageSDFMaterial.getUniform('beta', 'MainBlock').value = new Float32Array([(i * 2 + 1) / 255]);
-						this.usageSDFMaterial.getUniform('tMap').value = <AbstractTexture2D>targets[1].colorAttachments[0].texture;
-						this.usageSDFMaterial.updateUniformBlock('MainBlock');
-						this.usageSDFMaterial.updateUniform('tMap');
-
-						this.renderer.useMaterial(this.usageSDFMaterial);
-						this.manager.renderSystem.fullScreenTriangle.mesh.draw();
-
-						targets.reverse();
-					}
-				}
-
-				this.renderer.beginRenderPass(terrainUsageTemp2RenderPass);
-				this.usageSDFDownscaleMaterial0.getUniform('tMap').value = <AbstractTexture2D>targets[1].colorAttachments[0].texture;
-				this.renderer.useMaterial(this.usageSDFDownscaleMaterial0);
-				this.manager.renderSystem.fullScreenTriangle.mesh.draw();
-
-				terrainUsageRenderPass.colorAttachments[0].slice = index;
-				this.renderer.beginRenderPass(terrainUsageRenderPass);
-				this.usageSDFDownscaleMaterial1.getUniform('tMap').value = <AbstractTexture2D>terrainUsageTemp2RenderPass.colorAttachments[0].texture;
-				this.renderer.useMaterial(this.usageSDFDownscaleMaterial1);
-				this.manager.renderSystem.fullScreenTriangle.mesh.draw();
-
-				//console.log(`draw ${tile.id} at ${index}`);
-
-				this.renderer.finishTimer().then((time) => {
-					console.log(`draw ${tile.id} at ${index} took ${time} ms`);
-				});
+				this.renderTileUsage(tile);
 			}
 		}
 	}
@@ -482,10 +490,9 @@ export default class TerrainTexturesPass extends Pass<{
 		for (let x = 0; x < tileMaskTexture.width; x++) {
 			for (let y = 0; y < tileMaskTexture.height; y++) {
 				const tile = tileSystem.getTile(x + start.x, y + start.y);
+				const isEmpty = !tile || tile.terrainMaskSliceIndex === null;
 
-				if (tile) {
-					buffer[x + y * tileMaskTexture.width] = tile.terrainMaskSliceIndex === null ? 255 : tile.terrainMaskSliceIndex;
-				}
+				buffer[x + y * tileMaskTexture.width] = isEmpty ? 255 : tile.terrainMaskSliceIndex;
 			}
 		}
 

@@ -1065,8 +1065,8 @@ export default class PassManager {
 						{
 							texture: new TextureResourceDescriptor({
 								type: TextureResourceType.Texture2D,
-								width: Config.TerrainWaterMaskResolution,
-								height: Config.TerrainWaterMaskResolution,
+								width: Config.TerrainMaskResolution,
+								height: Config.TerrainMaskResolution,
 								format: RendererTypes.TextureFormat.R8Unorm,
 								minFilter: RendererTypes.MinFilter.Nearest,
 								magFilter: RendererTypes.MagFilter.Nearest,
@@ -1151,7 +1151,7 @@ export default class PassManager {
 							}),
 							slice: 0,
 							clearValue: {r: 0, g: 0, b: 0, a: 0},
-							loadOp: RendererTypes.AttachmentLoadOp.Clear,
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
 							storeOp: RendererTypes.AttachmentStoreOp.Store
 						}
 					]
@@ -1168,15 +1168,15 @@ export default class PassManager {
 								type: TextureResourceType.Texture2D,
 								width: 1,
 								height: 1,
-								format: RendererTypes.TextureFormat.R8Unorm,
+								format: RendererTypes.TextureFormat.R32Uint,
 								minFilter: RendererTypes.MinFilter.Nearest,
 								magFilter: RendererTypes.MagFilter.Nearest,
 								wrap: RendererTypes.TextureWrap.ClampToEdge,
 								mipmaps: false
 							}),
 							slice: 0,
-							clearValue: {r: 1, g: 0, b: 0, a: 0},
-							loadOp: RendererTypes.AttachmentLoadOp.Clear,
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
 							storeOp: RendererTypes.AttachmentStoreOp.Store
 						}
 					]
@@ -1193,15 +1193,15 @@ export default class PassManager {
 								type: TextureResourceType.Texture2D,
 								width: 1,
 								height: 1,
-								format: RendererTypes.TextureFormat.R8Unorm,
+								format: RendererTypes.TextureFormat.R32Uint,
 								minFilter: RendererTypes.MinFilter.Nearest,
 								magFilter: RendererTypes.MagFilter.Nearest,
 								wrap: RendererTypes.TextureWrap.ClampToEdge,
 								mipmaps: false
 							}),
 							slice: 0,
-							clearValue: {r: 1, g: 0, b: 0, a: 0},
-							loadOp: RendererTypes.AttachmentLoadOp.Clear,
+							clearValue: {r: 0, g: 0, b: 0, a: 0},
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
 							storeOp: RendererTypes.AttachmentStoreOp.Store
 						}
 					]
@@ -1226,7 +1226,7 @@ export default class PassManager {
 							}),
 							slice: 0,
 							clearValue: {r: 1, g: 0, b: 0, a: 0},
-							loadOp: RendererTypes.AttachmentLoadOp.Clear,
+							loadOp: RendererTypes.AttachmentLoadOp.Load,
 							storeOp: RendererTypes.AttachmentStoreOp.Store
 						}
 					]
@@ -1241,8 +1241,8 @@ export default class PassManager {
 						{
 							texture: new TextureResourceDescriptor({
 								type: TextureResourceType.Texture2D,
-								width: Config.TerrainWaterMaskResolution,
-								height: Config.TerrainWaterMaskResolution,
+								width: Config.TerrainMaskResolution,
+								height: Config.TerrainMaskResolution,
 								format: RendererTypes.TextureFormat.R8Unorm,
 								minFilter: RendererTypes.MinFilter.Nearest,
 								magFilter: RendererTypes.MagFilter.Nearest,

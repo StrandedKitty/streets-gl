@@ -1,14 +1,17 @@
 #include <versionPrecision>
 
-out vec4 FragColor;
+out uint FragColor;
 
 in vec2 vUv;
 
 uniform MainBlock {
     vec3 transform;
-    float fillValue;
 };
 
+uint encodePosition(ivec2 v) {
+    return uint(v.x) | (uint(v.y) << 16);
+}
+
 void main() {
-    FragColor = vec4(fillValue);
+    FragColor = encodePosition(ivec2(gl_FragCoord.xy));
 }

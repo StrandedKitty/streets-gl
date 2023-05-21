@@ -3,17 +3,17 @@ import MaterialContainer from "./MaterialContainer";
 import {RendererTypes} from "~/lib/renderer/RendererTypes";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 
-export default class TerrainUsageSDFDownscaleMaterialContainer extends MaterialContainer {
-	public constructor(renderer: AbstractRenderer, unpackPower: boolean) {
+export default class ClearUintMaterialContainer extends MaterialContainer {
+	public constructor(renderer: AbstractRenderer) {
 		super(renderer);
 
 		this.material = this.renderer.createMaterial({
-			name: 'Terrain usage SDF downscale material',
+			name: 'Uint texture clear material',
 			uniforms: [{
-				name: 'tMap',
-				block: null,
-				type: RendererTypes.UniformType.Texture2D,
-				value: null
+				name: 'value',
+				block: 'MainBlock',
+				type: RendererTypes.UniformType.Uint1,
+				value: new Uint32Array(1)
 			}],
 			primitive: {
 				frontFace: RendererTypes.FrontFace.CCW,
@@ -35,8 +35,8 @@ export default class TerrainUsageSDFDownscaleMaterialContainer extends MaterialC
 					dstFactor: RendererTypes.BlendFactor.Zero
 				}
 			},
-			vertexShaderSource: Shaders.sdfDownscale.vertex,
-			fragmentShaderSource: unpackPower ? Shaders.sdfDownscaleFromUint.fragment : Shaders.sdfDownscale.fragment
+			vertexShaderSource: Shaders.clearUint.vertex,
+			fragmentShaderSource: Shaders.clearUint.fragment
 		});
 	}
 }
