@@ -42,7 +42,7 @@ export class Tile3DFeaturesToBuffersConverter {
 			extruded: this.getExtrudedBuffers(collection.extruded),
 			projected: this.getProjectedBuffers(collection.projected),
 			hugging: this.getHuggingBuffers(collection.hugging),
-			terrainMask: this.getTerrainMaskBuffers(collection.terrainMask),
+			terrainMask: this.getTerrainMaskBuffers(collection.terrainMask, collection.zoom),
 			labels: this.getLabelsBuffers(collection.labels),
 			instances: this.getInstanceBuffers(collection.instances)
 		};
@@ -166,16 +166,21 @@ export class Tile3DFeaturesToBuffersConverter {
 		};
 	}
 
-	private static getTerrainMaskBuffers(features: Tile3DTerrainMaskGeometry[]): Tile3DTerrainMask {
+	private static getTerrainMaskBuffers(features: Tile3DTerrainMaskGeometry[], zoom: number): Tile3DTerrainMask {
+		const tileSize = 40075016.68 / (1 << zoom);
 		const positionBuffers: Float32Array[] = [];
 
 		for (const feature of features) {
 			positionBuffers.push(feature.positionBuffer);
 		}
 
-		return {
-			positionBuffer: Utils.mergeTypedArrays(Float32Array, positionBuffers)
-		};
+		const positionBufferMerged = Utils.mergeTypedArrays(Float32Array, positionBuffers);
+
+		for (let i = 0; i < positionBufferMerged.length; i += 1) {
+			positionBufferMerged[i] /= tileSize;
+		}
+
+		return {positionBuffer: positionBufferMerged};
 	}
 
 	private static getLabelsBuffers(features: Tile3DLabel[]): Tile3DBuffersLabels {

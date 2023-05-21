@@ -41,6 +41,7 @@ const Config = {
 	TerrainUsageTextureSize: 512,
 	TerrainUsageTexturePadding: 3,
 	TerrainUsageSDFPasses: 3,
+	TerrainDetailUVScale: 64,
 	SlippyMapMinZoom: 0,
 	SlippyMapMaxZoom: 16,
 	SlippyMapZoomFactor: 0.001,

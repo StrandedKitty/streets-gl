@@ -129,7 +129,7 @@ export default class VectorPolylineHandler implements Handler {
 
 			features.push(builder.getGeometry());
 
-			if (this.descriptor.pathType === 'roadway') {
+			if (path.needsUsageMask) {
 				features.push(builder.getTerrainMaskGeometry());
 			}
 		}
@@ -292,6 +292,7 @@ export default class VectorPolylineHandler implements Handler {
 		uvMaxX: number;
 		uvFollowRoad: boolean;
 		zIndex: number;
+		needsUsageMask: boolean;
 	}[] {
 		const params = [{
 			textureId: 0,
@@ -301,7 +302,8 @@ export default class VectorPolylineHandler implements Handler {
 			uvMinX: 0,
 			uvMaxX: 1,
 			zIndex: 0,
-			uvFollowRoad: false
+			uvFollowRoad: false,
+			needsUsageMask: false
 		}];
 
 		switch (pathType) {
@@ -335,12 +337,14 @@ export default class VectorPolylineHandler implements Handler {
 						params[0].textureId = isRoadwayMarked ? ProjectedTextures.AsphaltRoad : ProjectedTextures.AsphaltUnmarkedRoad;
 						params[0].zIndex = ZIndexMap.AsphaltRoadway;
 						params[0].uvScaleY = 12;
+						params[0].needsUsageMask = true;
 						break;
 					}
 					case 'concrete': {
 						params[0].textureId = isRoadwayMarked ? ProjectedTextures.ConcreteRoad : ProjectedTextures.ConcreteUnmarkedRoad;
 						params[0].zIndex = ZIndexMap.ConcreteRoadway;
 						params[0].uvScaleY = 12;
+						params[0].needsUsageMask = true;
 						break;
 					}
 					case 'wood': {
@@ -349,6 +353,7 @@ export default class VectorPolylineHandler implements Handler {
 						params[0].uvScaleY = 4;
 						params[0].uvMinX = 0;
 						params[0].uvMaxX = width * mercatorScale / 4;
+						params[0].needsUsageMask = true;
 						break;
 					}
 					case 'cobblestone': {
@@ -357,6 +362,7 @@ export default class VectorPolylineHandler implements Handler {
 						params[0].uvMinX = 0;
 						params[0].uvMaxX = width * mercatorScale / 6;
 						params[0].uvScaleY = 6;
+						params[0].needsUsageMask = true;
 						break;
 					}
 					case 'dirt': {
@@ -367,7 +373,6 @@ export default class VectorPolylineHandler implements Handler {
 						params[0].uvMinX = 0;
 						params[0].uvMaxX = 1;
 						params[0].uvScaleY = width * mercatorScale;
-
 						break;
 					}
 					case 'sand': {
@@ -417,7 +422,8 @@ export default class VectorPolylineHandler implements Handler {
 					uvMinX: 0,
 					uvMaxX: 1,
 					uvScaleY: width * mercatorScale * 4,
-					uvScale: 1
+					uvScale: 1,
+					needsUsageMask: false
 				});
 				params.push({
 					textureId: ProjectedTextures.Rail,
@@ -427,7 +433,8 @@ export default class VectorPolylineHandler implements Handler {
 					uvMinX: 0,
 					uvMaxX: 1,
 					uvScaleY: width * mercatorScale * 4,
-					uvScale: 1
+					uvScale: 1,
+					needsUsageMask: false
 				});
 				break;
 			}

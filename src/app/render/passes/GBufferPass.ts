@@ -276,7 +276,7 @@ export default class GBufferPass extends Pass<{
 
 		for (let i = 0; i < terrain.children.length; i++) {
 			const ring = terrain.children[i];
-			const offsetSize = Config.TileSize * 256;
+			const offsetSize = Config.TileSize * Config.TerrainDetailUVScale;
 			const detailOffsetX = ring.position.x % offsetSize - ring.size / 2;
 			const detailOffsetY = ring.position.z % offsetSize - ring.size / 2;
 
@@ -303,6 +303,14 @@ export default class GBufferPass extends Pass<{
 
 			ring.draw();
 		}
+	}
+
+	private getTileDetailTextureOffset(tile: Tile): Float32Array {
+		const offsetSize = Config.TileSize * Config.TerrainDetailUVScale;
+		const detailOffsetX = tile.position.x % offsetSize;
+		const detailOffsetY = tile.position.z % offsetSize;
+
+		return new Float32Array([detailOffsetX, detailOffsetY]);
 	}
 
 	private renderProjectedMeshes(): void {
@@ -334,10 +342,7 @@ export default class GBufferPass extends Pass<{
 
 			const {ring0, levelId, ring0Offset, ring1Offset} = tileParams;
 			const normalTextureTransforms = this.getTileNormalTexturesTransforms(tile);
-
-			const offsetSize = Config.TileSize * 256;
-			const detailOffsetX = tile.position.x % offsetSize;
-			const detailOffsetY = tile.position.z % offsetSize;
+			const detailTextureOffset = this.getTileDetailTextureOffset(tile);
 
 			const mvMatrix = Mat4.multiply(camera.matrixWorldInverse, tile.matrixWorld);
 			const mvMatrixPrev = Mat4.multiply(this.cameraMatrixWorldInversePrev, tile.matrixWorld);
@@ -354,7 +359,7 @@ export default class GBufferPass extends Pass<{
 			this.projectedMeshMaterial.getUniform<UniformFloat1>('terrainLevelId', 'PerMesh').value[0] = levelId;
 			this.projectedMeshMaterial.getUniform<UniformFloat1>('segmentCount', 'PerMesh').value[0] = ring0.segmentCount * 2;
 			this.projectedMeshMaterial.getUniform('cameraPosition', 'PerMesh').value = new Float32Array(relativeCameraPosition);
-			this.projectedMeshMaterial.getUniform('detailTextureOffset', 'PerMesh').value = new Float32Array([detailOffsetX, detailOffsetY]);
+			this.projectedMeshMaterial.getUniform('detailTextureOffset', 'PerMesh').value = detailTextureOffset;
 			this.projectedMeshMaterial.getUniform<UniformFloat1>('time', 'PerMaterial').value[0] = performance.now() * 0.001;
 
 			this.projectedMeshMaterial.updateUniformBlock('PerMesh');

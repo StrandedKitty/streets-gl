@@ -375,7 +375,9 @@ export default class Tile3DExtrudedGeometryBuilder {
 	}
 
 	private addMaskGeometry(position: number[]): void {
-		this.terrainMaskPositions.push(...position);
+		for (let i = 0; i < position.length; i += 3) {
+			this.terrainMaskPositions.push(position[i], position[i + 2]);
+		}
 	}
 
 	private addVerticesToBoundingBox(vertices: number[]): void {

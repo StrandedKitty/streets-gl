@@ -24,7 +24,7 @@ export default class TerrainMask extends RenderableObject3D {
 						name: 'position',
 						type: RendererTypes.AttributeType.Float32,
 						format: RendererTypes.AttributeFormat.Float,
-						size: 3,
+						size: 2,
 						normalized: false,
 						buffer: renderer.createAttributeBuffer({
 							data: this.verticesBuffer

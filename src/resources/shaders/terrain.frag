@@ -1,6 +1,9 @@
 #include <versionPrecision>
 #include <gBufferOut>
 
+#define USED_TEXTURE_SCALE 8000.
+#define GRASS_SCALE 8.
+
 in vec4 vNormalUV;
 in vec2 vDetailUV;
 in vec2 vWaterUV;
@@ -43,13 +46,10 @@ uniform sampler2D tWaterMask;
 uniform sampler2DArray tUsage;
 uniform sampler2D tUsageMask;
 
-uniform sampler2D tDetailColor;
-uniform sampler2D tDetailNormal;
+uniform sampler2DArray tUsageMaps;
+uniform sampler2DArray tDetailMaps;
 uniform sampler2D tDetailNoise;
 uniform sampler2D tWaterNormal;
-
-uniform sampler2D tUsageColor;
-uniform sampler2D tUsageHeight;
 
 #include <packNormal>
 #include <getMotionVector>
@@ -104,17 +104,12 @@ float remap(float value, float from1, float to1, float from2, float to2) {
     return (value - from1) / (to1 - from1) * (to2 - from2) + from2;
 }
 
+// http://untitledgam.es/2017/01/height-blending-shader/
 vec3 heightblend(vec3 input1, float height1, vec3 input2, float height2) {
     float height_start = max(height1, height2) - 0.02;
     float level1 = max(height1 - height_start, 0.);
     float level2 = max(height2 - height_start, 0.);
     return ((input1 * level1) + (input2 * level2)) / (level1 + level2);
-}
-
-// http://untitledgam.es/2017/01/height-blending-shader/
-vec3 heightlerp(vec3 input1, float height1, vec3 input2, float height2, float t) {
-    t = clamp(t, 0., 1.);
-    return heightblend(input1, height1 * (1. - t), input2, height2 * t);
 }
 
 void main() {
@@ -152,10 +147,9 @@ void main() {
         }
     }
 
-    vec2 normalizedTileUV = fract(vDetailUV / (611.4962158203125 * 256.));
-    float detailScale = 8.;
-    vec3 detailNormal = getNormal(textureNoTile(tDetailNoise, tDetailNormal, normalizedTileUV, 256. * detailScale, detailScale));
-    vec3 detailColor = textureNoTile(tDetailNoise, tDetailColor, normalizedTileUV, 256. * detailScale, detailScale) * vBiomeColor;
+    vec2 normalizedTileUV = fract(vDetailUV / (TILE_SIZE * DETAIL_UV_SCALE));
+    vec3 detailNormal = textureNoTile(tDetailNoise, tDetailMaps, 1., normalizedTileUV, DETAIL_UV_SCALE * GRASS_SCALE, GRASS_SCALE);
+    vec3 detailColor = textureNoTile(tDetailNoise, tDetailMaps, 0., normalizedTileUV, DETAIL_UV_SCALE * GRASS_SCALE, GRASS_SCALE) * vBiomeColor;
 
     vec3 waterUV = vec3(0);
     waterUV.xy = transformWater0.xy + vWaterUV * transformWater0.zw;
@@ -170,22 +164,18 @@ void main() {
 
     outColor = vec4(detailColor, 1);
     outGlow = vec3(0);
-    outNormal = packNormal(detailNormal);
+    outNormal = packNormal(getNormal(detailNormal));
     outRoughnessMetalnessF0 = vec3(0.8, 0, 0.005);
 
-    //usageFactor = smoothstep(usageRange.x, usageRange.y, usageFactor);
-    //usageFactor = smoothstep(0.4, 0.9, usageFactor);
     usageFactor = remap(usageFactor, -0.2, 2., 0., 1.);
 
-    vec3 usedTerrainColor = texture(tUsageColor, normalizedTileUV * 20000.).rgb;
-    float usedTerrainHeight = texture(tUsageHeight, normalizedTileUV * 20000.).r;
-    vec3 baseColor = outColor.rgb;
-    float baseHeight = 1. - usageFactor;
+    vec3 usedTerrainColor = texture(tUsageMaps, vec3(normalizedTileUV * USED_TEXTURE_SCALE, 0)).rgb;
+    float usedTerrainHeight = texture(tUsageMaps, vec3(normalizedTileUV * USED_TEXTURE_SCALE, 1)).r;
 
-    outColor.rgb = heightblend(baseColor, baseHeight, usedTerrainColor, usedTerrainHeight);
+    outColor.rgb = heightblend(outColor.rgb, 1. - usageFactor, usedTerrainColor, usedTerrainHeight);
 
     if (waterFactor > 0.5) {
-        vec2 normalizedTileUV = fract(vDetailUV / (611.4962158203125 * 256.));
+        vec2 normalizedTileUV = fract(vDetailUV / (TILE_SIZE * DETAIL_UV_SCALE));
         normalizedTileUV = vec2(normalizedTileUV.y, 1. - normalizedTileUV.x);
 
         vec3 waterNormal = sampleWaterNormal(tWaterNormal, tDetailNoise, normalizedTileUV, time);

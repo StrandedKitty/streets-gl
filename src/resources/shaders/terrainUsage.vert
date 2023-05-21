@@ -1,6 +1,6 @@
 #include <versionPrecision>
 
-in vec3 position;
+in vec2 position;
 
 out vec2 vUv;
 
@@ -9,7 +9,7 @@ uniform MainBlock {
 };
 
 void main() {
-    vec2 pos = vec2(position.z / 611.49, 1. - position.x / 611.49);
+    vec2 pos = vec2(position.y, 1. - position.x);
 
     vUv = pos;
 

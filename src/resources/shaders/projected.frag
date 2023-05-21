@@ -69,7 +69,7 @@ void main() {
 	}
 
 	if (vTextureId == 0) {
-		vec2 normalizedUV = fract((vUv + detailTextureOffset) / (611.4962158203125 * 256.));
+		vec2 normalizedUV = fract((vUv + detailTextureOffset) / (TILE_SIZE * DETAIL_UV_SCALE));
 		normalizedUV = vec2(normalizedUV.y, 1. - normalizedUV.x);
 
 		vec3 waterNormal = sampleWaterNormal(tWaterNormal, tWaterNoise, normalizedUV, time);

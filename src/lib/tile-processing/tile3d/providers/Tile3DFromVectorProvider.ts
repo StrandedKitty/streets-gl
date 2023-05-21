@@ -59,7 +59,7 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 		await Tile3DFromVectorProvider.updateFeaturesHeight(handlers, this.params.heightPromise);
 		Tile3DFromVectorProvider.addRoadGraphToHandlers(handlers);
 
-		const collection = Tile3DFromVectorProvider.getFeaturesFromHandlers(handlers);
+		const collection = Tile3DFromVectorProvider.getCollectionFromHandlers(x, y, zoom, handlers);
 
 		applyMercatorFactorToExtrudedFeatures(collection.extruded, x, y, zoom);
 
@@ -182,8 +182,16 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 		return sorted[0][0] as VectorAreaDescriptor['intersectionMaterial'];
 	}
 
-	private static getFeaturesFromHandlers(handlers: Handler[]): Tile3DFeatureCollection {
+	private static getCollectionFromHandlers(
+		x: number,
+		y: number,
+		zoom: number,
+		handlers: Handler[]
+	): Tile3DFeatureCollection {
 		const collection: Tile3DFeatureCollection = {
+			x: x,
+			y: y,
+			zoom: zoom,
 			extruded: [],
 			projected: [],
 			hugging: [],

@@ -6,6 +6,9 @@ import Tile3DLabel from "~/lib/tile-processing/tile3d/features/Tile3DLabel";
 import Tile3DTerrainMaskGeometry from "~/lib/tile-processing/tile3d/features/Tile3DTerrainMaskGeometry";
 
 export default interface Tile3DFeatureCollection {
+	x: number;
+	y: number;
+	zoom: number;
 	extruded: Tile3DExtrudedGeometry[];
 	projected: Tile3DProjectedGeometry[];
 	hugging: Tile3DHuggingGeometry[];
