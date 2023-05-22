@@ -15,7 +15,7 @@ const VERSION = require('./package.json').version;
 module.exports = (env, argv) => ([{
 	entry: './src/app/App.ts',
 	output: {
-		filename: './js/main.[chunkhash].js',
+		filename: './js/index.js',
 		path: path.resolve(__dirname, 'build')
 	},
 	performance: {
@@ -89,11 +89,13 @@ module.exports = (env, argv) => ([{
 				],
 				sideEffects: true
 			}, {
-				test: /\.ts|.tsx$/,
-				loader: 'ts-loader',
-				options: {configFile: argv.mode === 'production' ? 'tsconfig.prod.json' : 'tsconfig.json'},
-				exclude: /node_modules/
-			}
+				test: /\.[jt]sx?$/,
+				loader: 'esbuild-loader',
+				options: {
+					target: 'es2020',
+					tsconfig: argv.mode === 'production' ? 'tsconfig.prod.json' : 'tsconfig.json'
+				}
+			},
 		]
 	},
 	resolve: {

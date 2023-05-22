@@ -18,6 +18,7 @@
 		"allowSyntheticDefaultImports": true,
 		"noImplicitOverride": true,
 		"noImplicitReturns": true,
+		"skipLibCheck": true,
 		"jsx": "react",
 		"baseUrl": "./src",
 		"paths": {
@@ -26,5 +27,5 @@
 	},
 	"include": [
 		"src"
-	],
+	]
 }
