@@ -321,6 +321,15 @@ export default class VectorAreaHandler implements Handler {
 					addUsageMask: true,
 				});
 			}
+			case 'roadArea': {
+				return this.handleGenericSurface({
+					textureId: ProjectedTextures.Asphalt,
+					isOriented: false,
+					zIndex: ZIndexMap.RoadArea,
+					uvScale: 20,
+					addUsageMask: true,
+				});
+			}
 			case 'roadwayIntersection': {
 				return this.handleRoadIntersection();
 			}

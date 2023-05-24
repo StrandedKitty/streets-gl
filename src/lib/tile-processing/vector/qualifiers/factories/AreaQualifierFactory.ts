@@ -145,7 +145,7 @@ export default class AreaQualifierFactory extends AbstractQualifierFactory<Vecto
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
-					type: 'asphalt'
+					type: 'roadArea'
 				}
 			}];
 		}
