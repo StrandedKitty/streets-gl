@@ -128,10 +128,19 @@ export default class AreaQualifierFactory extends AbstractQualifierFactory<Vecto
 
 		if (
 			tags.amenity === 'parking' && (tags.parking === 'surface' || tags.parking === undefined) ||
-			tags.amenity === 'bicycle_parking' ||
-			tags['area:highway'] === 'yes' || tags['area:highway'] === 'motorway' || tags['area:highway'] === 'unclassified' ||
-			tags['area:highway'] === 'primary' || tags['area:highway'] === 'secondary' || tags['area:highway'] === 'tertiary' ||
-			tags['area:highway'] === 'residential' || tags['area:highway'] === 'service' || tags['area:highway'] === 'emergency'
+			tags.amenity === 'bicycle_parking'
+		) {
+			return [{
+				type: QualifierType.Descriptor,
+				data: {
+					type: 'asphalt'
+				}
+			}];
+		}
+
+		const highwayAreas = ["yes", "primary", "secondary", "tertiary", "motorway", "trunk", "unclassified", "residential", "service", "emergency"];
+		if (
+			highwayAreas.indexOf(tags['area:highway']) > -1
 		) {
 			return [{
 				type: QualifierType.Descriptor,
