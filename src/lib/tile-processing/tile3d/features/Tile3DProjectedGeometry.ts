@@ -16,7 +16,7 @@ export const ZIndexMap = {
 	RailwayOverlay: 11,
 	DirtRoadway: 12,
 	SandRoadway: 13,
-	RoadArea: 14,
+	RoadwayArea: 14,
 	Footway: 15,
 	WoodFootway: 16,
 	FootwayArea: 17,
