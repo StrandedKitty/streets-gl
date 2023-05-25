@@ -138,6 +138,18 @@ export default class AreaQualifierFactory extends AbstractQualifierFactory<Vecto
 			}];
 		}
 
+		const highwayAreas = ["yes", "primary", "secondary", "tertiary", "motorway", "trunk", "unclassified", "residential", "service", "emergency"];
+		if (
+			highwayAreas.indexOf(tags['area:highway']) > -1
+		) {
+			return [{
+				type: QualifierType.Descriptor,
+				data: {
+					type: 'roadwayArea'
+				}
+			}];
+		}
+
 		if (
 			(tags.area === 'yes' || tags.type === 'multipolygon') &&
 			(
