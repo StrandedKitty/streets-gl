@@ -44,7 +44,7 @@
 		{
 			"key": "amenity",
 			"value": "bicycle_parking",
-			"description": ""
+			"description": "Bicycle parkings areas are mapped as paved areas."
 		},
 		{
 			"key": "amenity",
@@ -53,6 +53,66 @@
 		},
 		{
 			"key": "area",
+			"value": "yes",
+			"description": ""
+		},
+		{
+			"key": "area:highway",
+			"value": "emergency",
+			"description": ""
+		},
+		{
+			"key": "area:highway",
+			"value": "footway",
+			"description": ""
+		},
+		{
+			"key": "area:highway",
+			"value": "motorway",
+			"description": ""
+		},
+		{
+			"key": "area:highway",
+			"value": "pedestrian",
+			"description": ""
+		},
+		{
+			"key": "area:highway",
+			"value": "primary",
+			"description": ""
+		},
+		{
+			"key": "area:highway",
+			"value": "residential",
+			"description": ""
+		},
+		{
+			"key": "area:highway",
+			"value": "secondary",
+			"description": ""
+		},
+		{
+			"key": "area:highway",
+			"value": "service",
+			"description": ""
+		},
+		{
+			"key": "area:highway",
+			"value": "tertiary",
+			"description": ""
+		},
+		{
+			"key": "area:highway",
+			"value": "trunk",
+			"description": ""
+		},
+		{
+			"key": "area:highway",
+			"value": "unclassified",
+			"description": ""
+		},
+		{
+			"key": "area:highway",
 			"value": "yes",
 			"description": ""
 		},
