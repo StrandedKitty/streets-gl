@@ -44,7 +44,7 @@
 		{
 			"key": "amenity",
 			"value": "bicycle_parking",
-			"description": ""
+			"description": "Bicycle parkings areas are mapped as paved areas."
 		},
 		{
 			"key": "amenity",
