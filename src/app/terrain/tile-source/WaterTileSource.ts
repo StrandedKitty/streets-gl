@@ -32,7 +32,7 @@ export default class WaterTileSource extends TileSource<Float32Array> {
 		for (const layer of obj.layers) {
 			if (layer.name === 'water') {
 				for (const feature of layer.features) {
-					const polygon = PBFPolygonParser.convertCommandsToPolygons(feature.geometry, scale);
+					const polygon = PBFPolygonParser.convertCommandsToPolygons(feature.geometry, layer.extent, scale);
 
 					polygons.push(polygon);
 				}

@@ -3,7 +3,7 @@ export type PBFRing = PBFPoint[];
 export type PBFPolygon = PBFRing[];
 
 export default class PBFPolygonParser {
-	public static convertCommandsToPolygons(arr: number[], tileSize: number): PBFPolygon {
+	public static convertCommandsToPolygons(arr: number[], extent: number, tileSize: number): PBFPolygon {
 		const polygon: PBFPolygon = [];
 		let currentRing: PBFRing = [];
 		let start: PBFPoint = [0, 0];
@@ -19,7 +19,7 @@ export default class PBFPolygonParser {
 
 				for(let j = 0; j < param; j++) {
 					i += 2;
-					const rel = this.parseCoordinates(arr[i - 1], arr[i], tileSize);
+					const rel = this.parseCoordinates(arr[i - 1], arr[i], extent, tileSize);
 					rel[0] += last[0];
 					rel[1] += last[1];
 					start = [rel[0], rel[1]];
@@ -29,7 +29,7 @@ export default class PBFPolygonParser {
 			} else if(command === 2) { // LineTo
 				for(let j = 0; j < param; j++) {
 					i += 2;
-					const rel = this.parseCoordinates(arr[i - 1], arr[i], tileSize);
+					const rel = this.parseCoordinates(arr[i - 1], arr[i], extent, tileSize);
 					rel[0] += last[0];
 					rel[1] += last[1];
 					last = rel;
@@ -49,9 +49,9 @@ export default class PBFPolygonParser {
 		return polygon;
 	}
 
-	private static parseCoordinates(x: number, y: number, tileSize: number): PBFPoint {
-		const px = this.zigzagDecode(y) / 4095;
-		const pz = this.zigzagDecode(x) / 4095;
+	private static parseCoordinates(x: number, y: number, extent: number, tileSize: number): PBFPoint {
+		const px = this.zigzagDecode(y) / (extent - 1);
+		const pz = this.zigzagDecode(x) / (extent - 1);
 		return [px * tileSize, pz * tileSize];
 	}
 

@@ -88,7 +88,7 @@ export default class MapboxVectorFeatureProvider implements FeatureProvider<Vect
 
 			if (name === 'water') {
 				for (const feature of layer.features) {
-					const polygon = PBFPolygonParser.convertCommandsToPolygons(feature.geometry, size);
+					const polygon = PBFPolygonParser.convertCommandsToPolygons(feature.geometry, layer.extent, size);
 
 					polygons.water.push(polygon);
 				}
@@ -106,17 +106,17 @@ export default class MapboxVectorFeatureProvider implements FeatureProvider<Vect
 					}
 
 					if (tagsMap.type === 'wood' || tagsMap.type === 'forest') {
-						const polygon = PBFPolygonParser.convertCommandsToPolygons(geometry, size);
+						const polygon = PBFPolygonParser.convertCommandsToPolygons(geometry, layer.extent, size);
 						polygons.forest.push(polygon);
 					}
 
 					if (tagsMap.type === 'scrub') {
-						const polygon = PBFPolygonParser.convertCommandsToPolygons(geometry, size);
+						const polygon = PBFPolygonParser.convertCommandsToPolygons(geometry, layer.extent, size);
 						polygons.shrubbery.push(polygon);
 					}
 
 					if (tagsMap.type === 'farmland') {
-						const polygon = PBFPolygonParser.convertCommandsToPolygons(geometry, size);
+						const polygon = PBFPolygonParser.convertCommandsToPolygons(geometry, layer.extent, size);
 						polygons.farmland.push(polygon);
 					}
 				}
