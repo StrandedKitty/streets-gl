@@ -127,7 +127,7 @@ export default class TileLoadingSystem extends System {
 		}).then(result => {
 			onLoad(result);
 		}, error => {
-			console.error(`Failed to load tile ${tile.x},${tile.y}. Retrying...`, error);
+			//console.error(`Failed to load tile ${tile.x},${tile.y}. Retrying...`, error);
 			onLoad(null);
 		});
 	}

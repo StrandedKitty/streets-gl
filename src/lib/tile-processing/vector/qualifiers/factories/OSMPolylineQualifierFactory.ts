@@ -22,7 +22,7 @@ import isRoadUnmarked from "~/lib/tile-processing/vector/qualifiers/factories/he
 import getWaterwayParamsFromTags
 	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getWaterwayParamsFromTags";
 
-export default class PolylineQualifierFactory extends AbstractQualifierFactory<VectorPolylineDescriptor> {
+export default class OSMPolylineQualifierFactory extends AbstractQualifierFactory<VectorPolylineDescriptor, Record<string, string>> {
 	public fromTags(tags: Record<string, string>): Qualifier<VectorPolylineDescriptor>[] {
 		if (isUnderground(tags) || tags.area === 'yes') {
 			return null;

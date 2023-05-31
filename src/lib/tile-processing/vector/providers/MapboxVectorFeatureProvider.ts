@@ -1,6 +1,6 @@
 import VectorFeatureCollection from "~/lib/tile-processing/vector/features/VectorFeatureCollection";
 import VectorArea from "~/lib/tile-processing/vector/features/VectorArea";
-import PBFPolygonParser, {PBFPolygon} from "~/lib/tile-processing/vector/providers/pbf/PBFPolygonParser";
+import PBFGeometryParser, {PBFPolygon} from "~/lib/tile-processing/vector/providers/pbf/PBFGeometryParser";
 import MapboxAreaHandler from "~/lib/tile-processing/vector/handlers/MapboxAreaHandler";
 import Pbf from 'pbf';
 import {FeatureProvider} from "~/lib/tile-processing/types";
@@ -88,7 +88,7 @@ export default class MapboxVectorFeatureProvider implements FeatureProvider<Vect
 
 			if (name === 'water') {
 				for (const feature of layer.features) {
-					const polygon = PBFPolygonParser.convertCommandsToPolygons(feature.geometry, layer.extent, size);
+					const polygon = PBFGeometryParser.convertCommandsToPolygon(feature.geometry, layer.extent, size);
 
 					polygons.water.push(polygon);
 				}
@@ -106,17 +106,17 @@ export default class MapboxVectorFeatureProvider implements FeatureProvider<Vect
 					}
 
 					if (tagsMap.type === 'wood' || tagsMap.type === 'forest') {
-						const polygon = PBFPolygonParser.convertCommandsToPolygons(geometry, layer.extent, size);
+						const polygon = PBFGeometryParser.convertCommandsToPolygon(geometry, layer.extent, size);
 						polygons.forest.push(polygon);
 					}
 
 					if (tagsMap.type === 'scrub') {
-						const polygon = PBFPolygonParser.convertCommandsToPolygons(geometry, layer.extent, size);
+						const polygon = PBFGeometryParser.convertCommandsToPolygon(geometry, layer.extent, size);
 						polygons.shrubbery.push(polygon);
 					}
 
 					if (tagsMap.type === 'farmland') {
-						const polygon = PBFPolygonParser.convertCommandsToPolygons(geometry, layer.extent, size);
+						const polygon = PBFGeometryParser.convertCommandsToPolygon(geometry, layer.extent, size);
 						polygons.farmland.push(polygon);
 					}
 				}

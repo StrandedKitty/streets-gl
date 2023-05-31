@@ -6,12 +6,12 @@ import OSMHandler from "~/lib/tile-processing/vector/handlers/OSMHandler";
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
 import {cleanupTags} from "~/lib/tile-processing/vector/utils";
 import Ring from "~/lib/tile-processing/vector/handlers/Ring";
-import PolylineQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/PolylineQualifierFactory";
+import OSMPolylineQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/OSMPolylineQualifierFactory";
 import {QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
 import {ModifierType} from "~/lib/tile-processing/vector/qualifiers/modifiers";
 import {VectorPolylineDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
 import {VectorFeature} from "~/lib/tile-processing/vector/features/VectorFeature";
-import AreaQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/AreaQualifierFactory";
+import OSMAreaQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/OSMAreaQualifierFactory";
 
 export default class OSMWayHandler implements OSMHandler {
 	private readonly osmElement: WayElement;
@@ -43,7 +43,7 @@ export default class OSMWayHandler implements OSMHandler {
 
 	private getFeaturesFromPolylineTags(): VectorFeature[] {
 		const features: VectorFeature[] = [];
-		const qualifiers = new PolylineQualifierFactory().fromTags(this.tags);
+		const qualifiers = new OSMPolylineQualifierFactory().fromTags(this.tags);
 
 		if (!qualifiers) {
 			return features;
@@ -55,7 +55,7 @@ export default class OSMWayHandler implements OSMHandler {
 					features.push({
 						type: 'polyline',
 						osmReference: this.getOSMReference(),
-						descriptor: qualifier.data as VectorPolylineDescriptor,
+						descriptor: qualifier.data,
 						nodes: this.nodes.map(n => n.getStructuralFeature())
 					});
 					break;
@@ -90,7 +90,7 @@ export default class OSMWayHandler implements OSMHandler {
 			return features;
 		}
 
-		const qualifiers = new AreaQualifierFactory().fromTags(this.tags);
+		const qualifiers = new OSMAreaQualifierFactory().fromTags(this.tags);
 
 		if (!qualifiers) {
 			return features;

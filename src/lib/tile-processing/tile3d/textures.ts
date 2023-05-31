@@ -36,7 +36,7 @@ export const ProjectedTextures = {
 	RailwayTop: 34,
 	Rail: 35,
 	GenericPitch: 36
-} satisfies Record<string, number>;
+} as const satisfies Record<string, number>;
 
 export const ExtrudedTextures = {
 	RoofGeneric1: 0,
@@ -60,4 +60,4 @@ export const ExtrudedTextures = {
 	FacadeWoodWindow: 18,
 	FacadeBlockWall: 19,
 	FacadeBlockWindow: 20,
-} satisfies Record<string, number>;
+} as const satisfies Record<string, number>;

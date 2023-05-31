@@ -3,7 +3,7 @@ import TileSource from "./TileSource";
 import AbstractMesh from "~/lib/renderer/abstract-renderer/AbstractMesh";
 import WaterMask from "../../objects/WaterMask";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
-import PBFPolygonParser, {PBFPolygon, PBFRing} from "~/lib/tile-processing/vector/providers/pbf/PBFPolygonParser";
+import PBFGeometryParser, {PBFPolygon, PBFRing} from "~/lib/tile-processing/vector/providers/pbf/PBFGeometryParser";
 import {Tile as proto} from "~/lib/tile-processing/vector/providers/pbf/vector_tile";
 
 const Pbf = require('pbf');
@@ -32,7 +32,7 @@ export default class WaterTileSource extends TileSource<Float32Array> {
 		for (const layer of obj.layers) {
 			if (layer.name === 'water') {
 				for (const feature of layer.features) {
-					const polygon = PBFPolygonParser.convertCommandsToPolygons(feature.geometry, layer.extent, scale);
+					const polygon = PBFGeometryParser.convertCommandsToPolygon(feature.geometry, layer.extent, scale);
 
 					polygons.push(polygon);
 				}

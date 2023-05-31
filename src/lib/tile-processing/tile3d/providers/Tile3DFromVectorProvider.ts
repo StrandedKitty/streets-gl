@@ -21,6 +21,7 @@ import Road from "~/lib/road-graph/Road";
 import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
 import PowerlineHandler from "~/lib/tile-processing/tile3d/handlers/PowerlineHandler";
 import Tile3DTerrainMaskGeometry from "~/lib/tile-processing/tile3d/features/Tile3DTerrainMaskGeometry";
+import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 
 export interface Tile3DProviderParams {
 	overpassEndpoint: string;
@@ -53,6 +54,8 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 	): Promise<Tile3DFeatureCollection> {
 		const vectorTile = await this.vectorProvider.getCollection({x, y, zoom});
 
+		Tile3DFromVectorProvider.transformVectorFeaturesToWorldSpace(vectorTile, zoom);
+
 		const handlers = Tile3DFromVectorProvider.createHandlersFromVectorFeatureCollection(vectorTile);
 
 		Tile3DFromVectorProvider.updateFeaturesMercatorScale(handlers, x, y, zoom);
@@ -84,6 +87,36 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 		handlers.push(new PowerlineHandler(collection));
 
 		return handlers;
+	}
+
+	private static transformVectorFeaturesToWorldSpace(collection: VectorFeatureCollection, zoom: number): void {
+		const tileSize = 40075016.68 / (1 << zoom);
+
+		for (const node of collection.nodes) {
+			this.transformVectorNodeToWorldSpace(node, tileSize);
+		}
+
+		for (const polyline of collection.polylines) {
+			for (const node of polyline.nodes) {
+				this.transformVectorNodeToWorldSpace(node, tileSize);
+			}
+		}
+
+		for (const area of collection.areas) {
+			for (const ring of area.rings) {
+				for (const node of ring.nodes) {
+					this.transformVectorNodeToWorldSpace(node, tileSize);
+				}
+			}
+		}
+	}
+
+	private static transformVectorNodeToWorldSpace(node: VectorNode, tileSize: number): void {
+		const x = node.x;
+		const y = node.y;
+
+		node.x = tileSize - y;
+		node.y = x;
 	}
 
 	private static addRoadGraphToHandlers(handlers: Handler[]): void {

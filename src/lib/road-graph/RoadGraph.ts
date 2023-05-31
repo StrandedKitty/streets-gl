@@ -3,6 +3,7 @@ import Road from "~/lib/road-graph/Road";
 import Intersection from "~/lib/road-graph/Intersection";
 import LinkedVertex from "~/lib/road-graph/LinkedVertex";
 import SegmentGroup from "~/lib/road-graph/SegmentGroup";
+import RBush from 'rbush';
 
 interface Group {
 	roads: Road[];
@@ -47,21 +48,42 @@ export default class RoadGraph {
 
 	public initIntersections(): void {
 		for (const group of this.groups.values()) {
-			const intersectionPoints: Map<string, [LinkedVertex, Road][]> = new Map();
+			const tree: RBush<{
+				minX: number;
+				minY: number;
+				maxX: number;
+				maxY: number;
+				data: [LinkedVertex, Road][];
+			}> = new RBush();
 
 			for (const road of group.roads) {
 				for (const vertex of road.vertices) {
-					const key = vertex.getDeserializedVector();
+					const pos = vertex.vector;
+					const query = tree.search({
+						minX: pos.x - 0.01,
+						minY: pos.y - 0.01,
+						maxX: pos.x + 0.01,
+						maxY: pos.y + 0.01
+					});
 
-					if (!intersectionPoints.has(key)) {
-						intersectionPoints.set(key, []);
+					if (query.length > 0) {
+						const data = query[0].data;
+						data.push([vertex, road]);
+					} else {
+						tree.insert({
+							minX: pos.x,
+							minY: pos.y,
+							maxX: pos.x,
+							maxY: pos.y,
+							data: [[vertex, road]]
+						});
 					}
-
-					intersectionPoints.get(key).push([vertex, road]);
 				}
 			}
 
-			for (const point of intersectionPoints.values()) {
+			for (const treeNode of tree.all()) {
+				const point = treeNode.data;
+
 				if (point.length < 2) {
 					continue;
 				}

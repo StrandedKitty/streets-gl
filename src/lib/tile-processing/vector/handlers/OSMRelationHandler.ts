@@ -5,7 +5,7 @@ import VectorArea, {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-process
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
 import {cleanupTags} from "~/lib/tile-processing/vector/utils";
 import Ring from "~/lib/tile-processing/vector/handlers/Ring";
-import AreaQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/AreaQualifierFactory";
+import OSMAreaQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/OSMAreaQualifierFactory";
 import {VectorFeature} from "~/lib/tile-processing/vector/features/VectorFeature";
 import {QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
 
@@ -73,7 +73,7 @@ export default class OSMRelationHandler implements OSMHandler {
 
 	private getFeaturesFromAreaTags(): VectorArea[] {
 		const features: VectorArea[] = [];
-		const qualifiers = new AreaQualifierFactory().fromTags(this.tags);
+		const qualifiers = new OSMAreaQualifierFactory().fromTags(this.tags);
 
 		if (!qualifiers) {
 			return [];

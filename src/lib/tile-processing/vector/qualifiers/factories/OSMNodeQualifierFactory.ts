@@ -10,7 +10,7 @@ import {
 } from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
 import getTreeTypeFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getTreeTypeFromTags";
 
-export default class NodeQualifierFactory extends AbstractQualifierFactory<VectorNodeDescriptor> {
+export default class OSMNodeQualifierFactory extends AbstractQualifierFactory<VectorNodeDescriptor, Record<string, string>> {
 	public fromTags(tags: Record<string, string>): Qualifier<VectorNodeDescriptor>[] {
 		if (isUnderground(tags)) {
 			return null;

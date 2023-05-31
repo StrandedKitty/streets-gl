@@ -214,8 +214,8 @@ export default class WallsBuilder {
 
 			const normal = MathUtils.calculateNormal(
 				new Vec3(nextVertex.x, 0, nextVertex.y),
+				new Vec3(vertex.x, 0, vertex.y),
 				new Vec3(vertex.x, 1, vertex.y),
-				new Vec3(vertex.x, 0, vertex.y)
 			);
 
 			normals.push(Vec3.multiplyScalar(normal, segmentLength));
@@ -267,7 +267,7 @@ export default class WallsBuilder {
 				i === edgeSmoothness.length - 1 ? edgeSmoothness[0] : edgeSmoothness[i + 1]
 			];
 
-			const vertexSides: number[] = [1, 0, 0, 1, 1, 0];
+			const vertexSides: number[] = [1, 0, 0, 1, 0, 1];
 
 			for (let j = 0; j < 6; j++) {
 				const side = vertexSides[j];
@@ -310,12 +310,12 @@ export default class WallsBuilder {
 			}
 
 			positions.push(nextVertex.x, minHeight, nextVertex.y);
-			positions.push(vertex.x, vertexHeight, vertex.y);
 			positions.push(vertex.x, minHeight, vertex.y);
+			positions.push(vertex.x, vertexHeight, vertex.y);
 
 			positions.push(nextVertex.x, minHeight, nextVertex.y);
-			positions.push(nextVertex.x, nextVertexHeight, nextVertex.y);
 			positions.push(vertex.x, vertexHeight, vertex.y);
+			positions.push(nextVertex.x, nextVertexHeight, nextVertex.y);
 		}
 
 		return positions;
@@ -382,13 +382,13 @@ export default class WallsBuilder {
 
 			uvs.push(
 				uvOffset.x + uvXMax, uvOffset.y,
-				uvOffset.x + uvXMin, uvOffset.y + uvMax0,
-				uvOffset.x + uvXMin, uvOffset.y
+				uvOffset.x + uvXMin, uvOffset.y,
+				uvOffset.x + uvXMin, uvOffset.y + uvMax0
 			);
 			uvs.push(
 				uvOffset.x + uvXMax, uvOffset.y,
-				uvOffset.x + uvXMax, uvOffset.y + uvMax1,
-				uvOffset.x + uvXMin, uvOffset.y + uvMax0
+				uvOffset.x + uvXMin, uvOffset.y + uvMax0,
+				uvOffset.x + uvXMax, uvOffset.y + uvMax1
 			);
 
 			const textureId = hasWindow ? textureIdWindow : textureIdWall;

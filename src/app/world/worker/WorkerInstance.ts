@@ -58,6 +58,7 @@ class WorkerInstance {
 
 		collectionPromise.then(collection => {
 			const buffers = Tile3DFeaturesToBuffersConverter.convert(collection);
+			//Tile3DFeaturesToBuffersConverter.tileToWorld(buffers, WorkerInstance.TileZoom);
 
 			this.sendBuffers(x, y, buffers);
 		}).catch(error => {

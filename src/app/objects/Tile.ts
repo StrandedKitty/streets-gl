@@ -14,12 +14,9 @@ import AABB3D from "~/lib/math/AABB3D";
 import Vec3 from "~/lib/math/Vec3";
 import {
 	InstanceStructureSchemas,
-	LODConfig,
 	Tile3DInstanceLODConfig,
 	Tile3DInstanceType
 } from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
-import InstancedTree from "~/app/objects/InstancedTree";
-import GenericInstancedObject from "./GenericInstancedObject";
 import InstancedObject from "~/app/objects/InstancedObject";
 import TerrainMask from "~/app/objects/TerrainMask";
 import EventEmitter from "~/app/EventEmitter";

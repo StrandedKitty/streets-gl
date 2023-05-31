@@ -6,7 +6,7 @@ import getBuildingParamsFromTags
 	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getBuildingParamsFromTags";
 import getPitchTypeFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getPitchTypeFromTags";
 
-export default class AreaQualifierFactory extends AbstractQualifierFactory<VectorAreaDescriptor> {
+export default class OSMAreaQualifierFactory extends AbstractQualifierFactory<VectorAreaDescriptor, Record<string, string>> {
 	public fromTags(tags: Record<string, string>): Qualifier<VectorAreaDescriptor>[] {
 		if (isUnderground(tags)) {
 			return null;

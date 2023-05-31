@@ -75,7 +75,7 @@ export default class TileSystem extends System {
 				}
 
 				if (!tileData) {
-					this.removeTile(x, y);
+					//this.removeTile(x, y);
 					return;
 				}
 
