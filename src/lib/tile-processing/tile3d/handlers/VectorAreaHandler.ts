@@ -10,7 +10,7 @@ import Tile3DRing, {Tile3DRingType} from "~/lib/tile-processing/tile3d/builders/
 import Tile3DProjectedGeometryBuilder from "~/lib/tile-processing/tile3d/builders/Tile3DProjectedGeometryBuilder";
 import Tile3DProjectedGeometry, {ZIndexMap} from "~/lib/tile-processing/tile3d/features/Tile3DProjectedGeometry";
 import Tile3DLabel from "~/lib/tile-processing/tile3d/features/Tile3DLabel";
-import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
+import Tile3DMultipolygon, {OMBBResult} from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 import Config from "~/app/Config";
 import Tile3DInstance, {Tile3DInstanceType} from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
 import Vec3 from "~/lib/math/Vec3";
@@ -25,6 +25,7 @@ import {
 import {ExtrudedTextures, ProjectedTextures} from "~/lib/tile-processing/tile3d/textures";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import * as Simplify from "simplify-js";
+import MathUtils from "~/lib/math/MathUtils";
 
 const TileSize = 611.4962158203125;
 
@@ -82,6 +83,10 @@ export default class VectorAreaHandler implements Handler {
 				const nodes = ring.nodes.map(node => new Vec2(node.x, node.y));
 
 				this.multipolygon.addRing(new Tile3DRing(type, nodes));
+			}
+
+			if (this.descriptor.ombb) {
+				this.multipolygon.setOMBB(this.descriptor.ombb);
 			}
 		}
 

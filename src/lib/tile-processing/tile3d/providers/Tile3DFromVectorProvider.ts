@@ -11,7 +11,7 @@ import Tile3DExtrudedGeometry from "~/lib/tile-processing/tile3d/features/Tile3D
 import {applyMercatorFactorToExtrudedFeatures} from "~/lib/tile-processing/tile3d/utils";
 import Tile3DHuggingGeometry from "~/lib/tile-processing/tile3d/features/Tile3DHuggingGeometry";
 import RoadGraph from "~/lib/road-graph/RoadGraph";
-import {VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
+import VectorArea, {VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
 import Intersection from "~/lib/road-graph/Intersection";
 import {FeatureProvider} from "~/lib/tile-processing/types";
 import Utils from "~/app/Utils";
@@ -22,6 +22,8 @@ import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/desc
 import PowerlineHandler from "~/lib/tile-processing/tile3d/handlers/PowerlineHandler";
 import Tile3DTerrainMaskGeometry from "~/lib/tile-processing/tile3d/features/Tile3DTerrainMaskGeometry";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
+import {OMBBResult} from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
+import Vec2 from "~/lib/math/Vec2";
 
 export interface Tile3DProviderParams {
 	overpassEndpoint: string;
@@ -54,7 +56,7 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 	): Promise<Tile3DFeatureCollection> {
 		const vectorTile = await this.vectorProvider.getCollection({x, y, zoom});
 
-		Tile3DFromVectorProvider.transformVectorFeaturesToWorldSpace(vectorTile, zoom);
+		Tile3DFromVectorProvider.transformVectorFeaturesToWorldSpace(vectorTile, x, y, zoom);
 
 		const handlers = Tile3DFromVectorProvider.createHandlersFromVectorFeatureCollection(vectorTile);
 
@@ -89,7 +91,12 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 		return handlers;
 	}
 
-	private static transformVectorFeaturesToWorldSpace(collection: VectorFeatureCollection, zoom: number): void {
+	private static transformVectorFeaturesToWorldSpace(
+		collection: VectorFeatureCollection,
+		x: number,
+		y: number,
+		zoom: number
+	): void {
 		const tileSize = 40075016.68 / (1 << zoom);
 
 		for (const node of collection.nodes) {
@@ -103,12 +110,42 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 		}
 
 		for (const area of collection.areas) {
+			if (area.descriptor.ombb) {
+				this.transformOMBBToWorldSpace(area, x, y, zoom);
+			}
+
 			for (const ring of area.rings) {
 				for (const node of ring.nodes) {
 					this.transformVectorNodeToWorldSpace(node, tileSize);
 				}
 			}
 		}
+	}
+
+	private static transformOMBBToWorldSpace(
+		vectorArea: VectorArea,
+		x: number,
+		y: number,
+		zoom: number
+	): void {
+		const source: OMBBResult = vectorArea.descriptor.ombb;
+		const target: OMBBResult = [new Vec2(), new Vec2(), new Vec2(), new Vec2()];
+
+		const worldSize = 40075016.68;
+		const tileSize = worldSize / (1 << zoom);
+		const originX = tileSize * x;
+		const originY = tileSize * y;
+
+		for (let i = 0; i < source.length; i++) {
+			const x = tileSize - (source[i].y * worldSize - originY);
+			const y = (source[i].x * worldSize - originX);
+
+			target[i].set(x, y);
+		}
+
+		[target[1], target[3]] = [target[3], target[1]];
+
+		vectorArea.descriptor.ombb = target;
 	}
 
 	private static transformVectorNodeToWorldSpace(node: VectorNode, tileSize: number): void {

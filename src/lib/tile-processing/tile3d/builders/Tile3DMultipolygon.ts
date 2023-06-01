@@ -26,6 +26,10 @@ export default class Tile3DMultipolygon {
 
 	}
 
+	public setOMBB(ombb: OMBBResult): void {
+		this.cachedOMBB = ombb;
+	}
+
 	public addRing(ring: Tile3DRing): void {
 		this.rings.push(ring);
 	}

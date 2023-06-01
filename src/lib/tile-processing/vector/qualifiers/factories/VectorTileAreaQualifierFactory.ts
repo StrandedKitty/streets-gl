@@ -6,8 +6,19 @@ import getBuildingParamsFromTags
 	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getBuildingParamsFromTags";
 import getPitchTypeFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getPitchTypeFromTags";
 import {VectorTile} from "~/lib/tile-processing/vector/providers/pbf/VectorTile";
+import {OMBBResult} from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
+import Vec2 from "~/lib/math/Vec2";
 
 export default class VectorTileAreaQualifierFactory extends AbstractQualifierFactory<VectorAreaDescriptor, VectorTile.FeatureTags> {
+	private static getOMBB(tags: VectorTile.FeatureTags): OMBBResult {
+		return [
+			new Vec2(<number>tags['@ombb00'], <number>tags['@ombb01']),
+			new Vec2(<number>tags['@ombb10'], <number>tags['@ombb11']),
+			new Vec2(<number>tags['@ombb20'], <number>tags['@ombb21']),
+			new Vec2(<number>tags['@ombb30'], <number>tags['@ombb31'])
+		];
+	}
+
 	public fromTags(tags: VectorTile.FeatureTags): Qualifier<VectorAreaDescriptor>[] {
 		if (tags.type === 'building') {
 			if (tags.buildingType === 'construction') {
@@ -45,7 +56,8 @@ export default class VectorTileAreaQualifierFactory extends AbstractQualifierFac
 					buildingRoofMaterial: 'default',
 					buildingRoofColor: 0xffffff,
 					buildingWindows: tags.noWindows !== true,
-					buildingFoundation: false
+					buildingFoundation: false,
+					ombb: VectorTileAreaQualifierFactory.getOMBB(tags)
 				}
 			}];
 		}

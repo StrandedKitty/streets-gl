@@ -14,6 +14,14 @@ import {getCollectionFromVectorFeatures} from "~/lib/tile-processing/vector/util
 const proto = require('./pbf/vector_tile.js').Tile;
 
 const PBFTagTypesMap: TagTypesMap = {
+	"@ombb00": TagTypes.Double,
+	"@ombb01": TagTypes.Double,
+	"@ombb10": TagTypes.Double,
+	"@ombb11": TagTypes.Double,
+	"@ombb20": TagTypes.Double,
+	"@ombb21": TagTypes.Double,
+	"@ombb30": TagTypes.Double,
+	"@ombb31": TagTypes.Double,
 	type: TagTypes.String,
 	osmId: TagTypes.SInt,
 	osmType: TagTypes.SInt,

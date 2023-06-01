@@ -1,3 +1,5 @@
+import {OMBBResult} from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
+
 export interface VectorNodeDescriptor {
 	type?: 'tree' | 'rock' | 'hydrant' | 'transmissionTower' | 'utilityPole' | 'artwork' | 'adColumn' | 'windTurbine' |
 	'bench' | 'picnicTable' | 'busStop' | 'memorial' | 'statue' | 'sculpture';
@@ -45,6 +47,7 @@ export interface VectorAreaDescriptor {
 	buildingRoofColor?: number;
 	buildingWindows?: boolean;
 	buildingFoundation?: boolean;
+	ombb?: OMBBResult;
 }
 
 export type VectorDescriptor = VectorNodeDescriptor | VectorAreaDescriptor | VectorPolylineDescriptor;
