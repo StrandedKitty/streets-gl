@@ -19,24 +19,32 @@ export default class VectorTileAreaQualifierFactory extends AbstractQualifierFac
 				}];
 			}
 
+			if (tags.levels === undefined) {
+				tags.levels = tags.height === undefined ? 1 : Math.round(<number>tags.height / 4);
+			}
+
+			if (tags.height === undefined) {
+				tags.height = <number>tags.levels * 4;
+			}
+
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'building',
 					label: null,
-					buildingLevels: 1,
-					buildingHeight: 10,
-					buildingMinHeight: 0,
-					buildingRoofHeight: 0,
+					buildingLevels: <number>tags.levels,
+					buildingHeight: <number>tags.height,
+					buildingMinHeight: <number>tags.minHeight ?? 0,
+					buildingRoofHeight: <number>tags.roofHeight ?? 0,
 					buildingRoofType: "flat",
 					buildingRoofOrientation: null,
-					buildingRoofDirection: 0,
-					buildingRoofAngle: 0,
+					buildingRoofDirection: <number>tags.roofDirection,
+					buildingRoofAngle: <number>tags.roofAngle,
 					buildingFacadeMaterial: "plaster",
 					buildingFacadeColor: 0xffffff,
 					buildingRoofMaterial: 'default',
 					buildingRoofColor: 0xffffff,
-					buildingWindows: true,
+					buildingWindows: tags.noWindows !== true,
 					buildingFoundation: false
 				}
 			}];
@@ -88,6 +96,16 @@ export default class VectorTileAreaQualifierFactory extends AbstractQualifierFac
 			}];
 		}
 
+		if (tags.type === 'pitch') {
+			return [{
+				type: QualifierType.Descriptor,
+				data: {
+					type: 'pitch',
+					pitchType: 'generic'
+				}
+			}];
+		}
+
 		if (tags.type === 'fairway') {
 			return [{
 				type: QualifierType.Descriptor,
@@ -115,6 +133,24 @@ export default class VectorTileAreaQualifierFactory extends AbstractQualifierFac
 			}];
 		}
 
+		if (tags.type === 'farmland') {
+			return [{
+				type: QualifierType.Descriptor,
+				data: {
+					type: 'farmland'
+				}
+			}];
+		}
+
+		if (tags.type === 'scrub') {
+			return [{
+				type: QualifierType.Descriptor,
+				data: {
+					type: 'shrubbery'
+				}
+			}];
+		}
+
 		if (tags.type === 'construction' || tags.type === 'brownfield') {
 			return [{
 				type: QualifierType.Descriptor,
@@ -129,6 +165,24 @@ export default class VectorTileAreaQualifierFactory extends AbstractQualifierFac
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'asphalt'
+				}
+			}];
+		}
+
+		if (tags.type === 'bridge' || tags.type === 'apron') {
+			return [{
+				type: QualifierType.Descriptor,
+				data: {
+					type: 'pavement'
+				}
+			}];
+		}
+
+		if (tags.type === 'helipad') {
+			return [{
+				type: QualifierType.Descriptor,
+				data: {
+					type: 'helipad'
 				}
 			}];
 		}

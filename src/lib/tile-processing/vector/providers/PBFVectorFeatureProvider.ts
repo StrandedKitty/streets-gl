@@ -30,7 +30,7 @@ const PBFTagTypesMap: TagTypesMap = {
 	lanesForward: TagTypes.SInt,
 	lanesBackward: TagTypes.SInt,
 	isOneway: TagTypes.Bool,
-	buildingLevels: TagTypes.SInt,
+	levels: TagTypes.SInt,
 	roofLevels: TagTypes.SInt,
 	roofShape: TagTypes.String,
 	noWindows: TagTypes.Bool,

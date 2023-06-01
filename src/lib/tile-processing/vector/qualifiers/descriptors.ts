@@ -4,6 +4,7 @@ export interface VectorNodeDescriptor {
 	treeType?: 'genericBroadleaved' | 'genericNeedleleaved' | 'beech' | 'fir' | 'linden' | 'oak';
 	direction?: number;
 	height?: number;
+	minHeight?: number;
 }
 
 export interface VectorPolylineDescriptor {

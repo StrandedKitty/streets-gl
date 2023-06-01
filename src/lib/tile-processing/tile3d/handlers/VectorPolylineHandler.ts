@@ -217,7 +217,7 @@ export default class VectorPolylineHandler implements Handler {
 		);
 
 		builder.addFence({
-			minHeight: this.descriptor.minHeight * this.mercatorScale,
+			minHeight: (this.descriptor.minHeight ?? 0) * this.mercatorScale,
 			height: this.descriptor.height * this.mercatorScale,
 			width: width,
 			textureId: textureId
