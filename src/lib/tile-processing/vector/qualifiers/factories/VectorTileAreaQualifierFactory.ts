@@ -10,7 +10,15 @@ import {OMBBResult} from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolyg
 import Vec2 from "~/lib/math/Vec2";
 
 export default class VectorTileAreaQualifierFactory extends AbstractQualifierFactory<VectorAreaDescriptor, VectorTile.FeatureTags> {
+	private static isTagsContainOMBB(tags: VectorTile.FeatureTags): boolean {
+		return tags['@ombb00'] !== undefined;
+	}
+
 	private static getOMBB(tags: VectorTile.FeatureTags): OMBBResult {
+		if (!this.isTagsContainOMBB(tags)) {
+			return null;
+		}
+
 		return [
 			new Vec2(<number>tags['@ombb00'], <number>tags['@ombb01']),
 			new Vec2(<number>tags['@ombb10'], <number>tags['@ombb11']),
@@ -47,14 +55,14 @@ export default class VectorTileAreaQualifierFactory extends AbstractQualifierFac
 					buildingHeight: <number>tags.height,
 					buildingMinHeight: <number>tags.minHeight ?? 0,
 					buildingRoofHeight: <number>tags.roofHeight ?? 0,
-					buildingRoofType: "flat",
+					buildingRoofType: tags.roofType as VectorAreaDescriptor['buildingRoofType'] ?? 'flat',
 					buildingRoofOrientation: null,
 					buildingRoofDirection: <number>tags.roofDirection,
 					buildingRoofAngle: <number>tags.roofAngle,
 					buildingFacadeMaterial: "plaster",
-					buildingFacadeColor: 0xffffff,
+					buildingFacadeColor: <number>tags.color ?? 0xffffff,
 					buildingRoofMaterial: 'default',
-					buildingRoofColor: 0xffffff,
+					buildingRoofColor: <number>tags.roofColor ?? 0xffffff,
 					buildingWindows: tags.noWindows !== true,
 					buildingFoundation: false,
 					ombb: VectorTileAreaQualifierFactory.getOMBB(tags)

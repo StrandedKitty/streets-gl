@@ -28,12 +28,12 @@ export default class VectorTilePolylineQualifierFactory extends AbstractQualifie
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'path',
-					width: 5,
+					width: 6,
 					pathType: 'roadway',
 					pathMaterial: 'asphalt',
-					lanesForward: 1,
-					lanesBackward: 1,
-					isRoadwayMarked: true,
+					lanesForward: 2,
+					lanesBackward: 2,
+					isRoadwayMarked: true
 				}
 			}];
 		}
