@@ -75,6 +75,7 @@
 	"commonMask": {"url": "/textures/surfaces/common_mask.png", "type": "image"},
 	"footballPitchDiffuse": {"url": "/textures/surfaces/football_pitch_diffuse.png", "type": "image"},
 	"basketballPitchDiffuse": {"url": "/textures/surfaces/basketball_pitch_diffuse.png", "type": "image"},
+	"basketballPitchNormal": {"url": "/textures/surfaces/basketball_pitch_normal.png", "type": "image"},
 	"tennisPitchDiffuse": {"url": "/textures/surfaces/tennis_pitch_diffuse.png", "type": "image"},
 	"tennisPitchNormal": {"url": "/textures/surfaces/tennis_pitch_diffuse.png", "type": "image"},
 	"manicuredGrassDiffuse": {"url": "/textures/surfaces/manicured_grass_diffuse.png", "type": "image"},

@@ -27,7 +27,7 @@ export default function createProjectedMeshTexture(renderer: AbstractRenderer): 
 			ResourceLoader.get('commonMask'),
 
 			ResourceLoader.get('basketballPitchDiffuse'),
-			ResourceLoader.get('commonNormal'),
+			ResourceLoader.get('basketballPitchNormal'),
 			ResourceLoader.get('commonMask'),
 
 			ResourceLoader.get('tennisPitchDiffuse'),
