@@ -1,4 +1,4 @@
-import {Point} from "~/lib/tile-processing/vector/providers/pbf/types";
+import {VectorTile} from "~/lib/tile-processing/vector/providers/pbf/VectorTile";
 
 export type PBFPoint = [number, number];
 export type PBFRing = PBFPoint[];
@@ -9,9 +9,9 @@ const LineToCommand = 2;
 const ClosePathCommand = 7;
 
 export default class PBFGeometryParser {
-	public static convertCommandsToPoints(arr: number[], extent: number, tileSize: number): Point[] {
-		const points: Point[] = [];
-		let last: Point = [0, 0];
+	public static convertCommandsToPoints(arr: number[], extent: number, tileSize: number): VectorTile.Point[] {
+		const points: VectorTile.Point[] = [];
+		let last: VectorTile.Point = [0, 0];
 
 		for (let i = 0; i < arr.length; i++) {
 			const command = arr[i] & 0b111;
@@ -34,10 +34,10 @@ export default class PBFGeometryParser {
 		return points;
 	}
 
-	public static convertCommandsToLineString(arr: number[], extent: number, tileSize: number): Point[][] {
-		const lines: Point[][] = [];
-		let currentLine: Point[] = [];
-		let last: Point = [0, 0];
+	public static convertCommandsToLineString(arr: number[], extent: number, tileSize: number): VectorTile.Point[][] {
+		const lines: VectorTile.Point[][] = [];
+		let currentLine: VectorTile.Point[] = [];
+		let last: VectorTile.Point = [0, 0];
 
 		for (let i = 0; i < arr.length; i++) {
 			const command = arr[i] & 0b111;
@@ -61,6 +61,18 @@ export default class PBFGeometryParser {
 					const point = this.parseCoordinates(arr[i - 1], arr[i], extent, tileSize);
 					point[0] += last[0];
 					point[1] += last[1];
+
+					// Detect closed lines and connect their ends.
+					if (
+						currentLine.length > 0 &&
+						this.distance(currentLine[0], point) < 0.001
+					) {
+						const start = currentLine[0];
+
+						point[0] = start[0];
+						point[1] = start[1];
+					}
+
 					last = point;
 					currentLine.push(point);
 				}
@@ -70,11 +82,11 @@ export default class PBFGeometryParser {
 		return lines;
 	}
 
-	public static convertCommandsToPolygon(arr: number[], extent: number, tileSize: number): Point[][] {
-		const polygon: Point[][] = [];
-		let currentRing: Point[] = [];
-		let start: Point = [0, 0];
-		let last: Point = [0, 0];
+	public static convertCommandsToPolygon(arr: number[], extent: number, tileSize: number): VectorTile.Point[][] {
+		const polygon: VectorTile.Point[][] = [];
+		let currentRing: VectorTile.Point[] = [];
+		let start: VectorTile.Point = [0, 0];
+		let last: VectorTile.Point = [0, 0];
 
 		for (let i = 0; i < arr.length; i++) {
 			const command = arr[i] & 0b111;
@@ -115,7 +127,7 @@ export default class PBFGeometryParser {
 		return polygon;
 	}
 
-	private static parseCoordinates(x: number, y: number, extent: number, tileSize: number): Point {
+	private static parseCoordinates(x: number, y: number, extent: number, tileSize: number): VectorTile.Point {
 		const px = this.zigzagDecode(x) / (extent - 1);
 		const py = this.zigzagDecode(y) / (extent - 1);
 		return [px * tileSize, py * tileSize];
@@ -123,5 +135,11 @@ export default class PBFGeometryParser {
 
 	private static zigzagDecode(n: number): number {
 		return (n >>> 1) ^ -(n & 1);
+	}
+
+	private static distance(a: VectorTile.Point, b: VectorTile.Point): number {
+		const dx = a[0] - b[0];
+		const dy = a[1] - b[1];
+		return Math.sqrt(dx * dx + dy * dy);
 	}
 }
