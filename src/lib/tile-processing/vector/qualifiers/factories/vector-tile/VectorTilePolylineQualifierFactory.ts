@@ -1,9 +1,11 @@
 import AbstractQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/AbstractQualifierFactory";
-import {VectorNodeDescriptor, VectorPolylineDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
+import {VectorPolylineDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
 import {Qualifier, QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
 import {VectorTile} from "~/lib/tile-processing/vector/providers/pbf/VectorTile";
 import {ModifierType} from "~/lib/tile-processing/vector/qualifiers/modifiers";
-import {parseHeight, parseMeters} from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/tagHelpers";
+import getPathParams from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getPathParams";
+import getPathLanes from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getPathLanes";
+import getPathWidth from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getPathWidth";
 
 export default class VectorTilePolylineQualifierFactory extends AbstractQualifierFactory<VectorPolylineDescriptor, VectorTile.FeatureTags> {
 	public fromTags(tags: VectorTile.FeatureTags): Qualifier<VectorPolylineDescriptor>[] {
@@ -24,18 +26,55 @@ export default class VectorTilePolylineQualifierFactory extends AbstractQualifie
 				}
 			}
 
-			return [{
-				type: QualifierType.Descriptor,
-				data: {
-					type: 'path',
-					width: 6,
-					pathType: 'roadway',
-					pathMaterial: 'asphalt',
-					lanesForward: 2,
-					lanesBackward: 2,
-					isRoadwayMarked: true
+			const params = getPathParams(tags);
+
+			if (!params) {
+				return null;
+			}
+
+			switch (params.type) {
+				case "roadway": {
+					const qualifiers: Qualifier<VectorPolylineDescriptor>[] = [];
+					const lanes = getPathLanes(tags, params.defaultLanes);
+					const width = getPathWidth(tags, lanes.forward, lanes.backward, params.defaultWidth);
+					const isMarked = <boolean>tags.laneMarkings ?? params.defaultIsMarked;
+
+					qualifiers.push({
+						type: QualifierType.Descriptor,
+						data: {
+							type: 'path',
+							pathType: 'roadway',
+							pathMaterial: params.material,
+							lanesForward: lanes.forward,
+							lanesBackward: lanes.backward,
+							width: width,
+							isRoadwayMarked: isMarked
+						}
+					});
+
+					return qualifiers;
 				}
-			}];
+				case 'footway': {
+					return [{
+						type: QualifierType.Descriptor,
+						data: {
+							type: 'path',
+							pathType: 'footway',
+							width: <number>tags.width ?? 2
+						}
+					}];
+				}
+				case 'cycleway': {
+					return [{
+						type: QualifierType.Descriptor,
+						data: {
+							type: 'path',
+							pathType: 'cycleway',
+							width: <number>tags.width ?? 3
+						}
+					}];
+				}
+			}
 		}
 
 		if (tags.type === 'treeRow') {
@@ -47,7 +86,8 @@ export default class VectorTilePolylineQualifierFactory extends AbstractQualifie
 					randomness: 1,
 					descriptor: {
 						type: 'tree',
-						height: +tags.height ?? undefined,
+						height: <number>tags.height ?? undefined,
+						minHeight: <number>tags.minHeight ?? undefined,
 						treeType: 'genericBroadleaved'
 					}
 				}

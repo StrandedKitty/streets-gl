@@ -9,6 +9,9 @@ import {QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
 import {VectorPolylineDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import VectorPolyline from "~/lib/tile-processing/vector/features/VectorPolyline";
+import {ModifierType} from "~/lib/tile-processing/vector/qualifiers/modifiers";
+import Ring from "~/lib/tile-processing/vector/handlers/Ring";
+import {VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
 
 export default class VectorTileLineStringHandler implements VectorTileHandler {
 	private readonly tags: VectorTile.FeatureTags;
@@ -35,7 +38,23 @@ export default class VectorTileLineStringHandler implements VectorTileHandler {
 					features.push(this.getVectorPolylineFromGeometry(i, qualifier.data));
 				}
 			} else if (qualifier.type === QualifierType.Modifier) {
+				const modifier = qualifier.data;
 
+				if (modifier.type === ModifierType.NodeRow) {
+					for (let i = 0; i < this.geometry.length; i++) {
+						const ring = new Ring(
+							this.getVectorNodesFromGeometry(i),
+							VectorAreaRingType.Outer
+						);
+
+						const nodes = ring.distributeNodes(modifier.spacing, modifier.randomness, modifier.descriptor);
+
+						features.push(...nodes);
+					}
+				} else {
+					console.error(`Unexpected modifier ${modifier.type}`);
+				}
+				break;
 			}
 		}
 
@@ -46,8 +65,20 @@ export default class VectorTileLineStringHandler implements VectorTileHandler {
 		geometryIndex: number,
 		descriptor: VectorPolylineDescriptor
 	): VectorPolyline {
+		const nodes = this.getVectorNodesFromGeometry(geometryIndex);
+
+		return {
+			type: 'polyline',
+			osmReference: this.osmReference,
+			descriptor: descriptor,
+			nodes: nodes
+		};
+	}
+
+	private getVectorNodesFromGeometry(geometryIndex: number): VectorNode[] {
 		const points = this.geometry[geometryIndex];
-		const nodes: VectorNode[] = points.map(([x, y]) => {
+
+		return points.map(([x, y]) => {
 			return {
 				type: 'node',
 				x,
@@ -57,12 +88,5 @@ export default class VectorTileLineStringHandler implements VectorTileHandler {
 				descriptor: null
 			};
 		});
-
-		return {
-			type: 'polyline',
-			osmReference: this.osmReference,
-			descriptor: descriptor,
-			nodes: nodes
-		};
 	}
 }
