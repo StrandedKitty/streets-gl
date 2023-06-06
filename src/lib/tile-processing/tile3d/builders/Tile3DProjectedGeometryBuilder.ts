@@ -9,6 +9,7 @@ import RoadBuilder, {RoadSide} from "~/lib/tile-processing/tile3d/builders/RoadB
 import {projectGeometryOnTerrain, projectLineOnTerrain} from "~/lib/tile-processing/tile3d/builders/utils";
 import FenceBuilder from "~/lib/tile-processing/tile3d/builders/FenceBuilder";
 import Tile3DTerrainMaskGeometry from "~/lib/tile-processing/tile3d/features/Tile3DTerrainMaskGeometry";
+import {appendArrayInPlace} from "~/lib/tile-processing/utils";
 
 export default class Tile3DProjectedGeometryBuilder {
 	private readonly arrays: {
@@ -148,17 +149,12 @@ export default class Tile3DProjectedGeometryBuilder {
 				uvHorizontalOffset: polyline.startProgress
 			});
 
-			this.arrays.position.push(...fence.position);
-			this.arrays.uv.push(...fence.uv);
-			this.arrays.normal.push(...fence.normal);
-
-			const vertexCount = fence.position.length / 3;
-
-			for (let i = 0; i < vertexCount; i++) {
-				this.arrays.textureId.push(textureId);
-			}
-
-			this.addVerticesToBoundingBox(fence.position);
+			this.addGeometry({
+				position: fence.position,
+				normal: fence.normal,
+				uv: fence.uv,
+				textureId: textureId,
+			});
 		}
 	}
 
@@ -205,17 +201,12 @@ export default class Tile3DProjectedGeometryBuilder {
 				uvHorizontalOffset: polyline.startProgress
 			});
 
-			this.arrays.position.push(...fence.position);
-			this.arrays.uv.push(...fence.uv);
-			this.arrays.normal.push(...fence.normal);
-
-			const vertexCount = fence.position.length / 3;
-
-			for (let i = 0; i < vertexCount; i++) {
-				this.arrays.textureId.push(textureId);
-			}
-
-			this.addVerticesToBoundingBox(fence.position);
+			this.addGeometry({
+				position: fence.position,
+				normal: fence.normal,
+				uv: fence.uv,
+				textureId: textureId,
+			});
 		}
 	}
 
@@ -234,14 +225,39 @@ export default class Tile3DProjectedGeometryBuilder {
 	): void {
 		const projected = projectGeometryOnTerrain({position, uv, height});
 
-		this.arrays.position.push(...projected.position);
-		this.arrays.uv.push(...projected.uv);
+		appendArrayInPlace(this.arrays.position, projected.position);
+		appendArrayInPlace(this.arrays.uv, projected.uv);
 		this.addVerticesToBoundingBox(projected.position);
 
 		const vertexCount = projected.position.length / 3;
 
 		for (let i = 0; i < vertexCount; i++) {
 			this.arrays.normal.push(0, 1, 0);
+			this.arrays.textureId.push(textureId);
+		}
+	}
+
+	private addGeometry(
+		{
+			position,
+			normal,
+			uv,
+			textureId
+		}: {
+			position: number[];
+			normal: number[];
+			uv: number[];
+			textureId: number;
+		}
+	): void {
+		appendArrayInPlace(this.arrays.position, position);
+		appendArrayInPlace(this.arrays.normal, normal);
+		appendArrayInPlace(this.arrays.uv, uv);
+		this.addVerticesToBoundingBox(position);
+
+		const vertexCount = position.length / 3;
+
+		for (let i = 0; i < vertexCount; i++) {
 			this.arrays.textureId.push(textureId);
 		}
 	}

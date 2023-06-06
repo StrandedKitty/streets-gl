@@ -30,6 +30,7 @@ import OrientedGambrelRoofBuilder from "~/lib/tile-processing/tile3d/builders/ro
 import OrientedRoundRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/OrientedRoundRoofBuilder";
 import OrientedSaltboxRoofBuilder from "~/lib/tile-processing/tile3d/builders/roofs/OrientedSaltboxRoofBuilder";
 import Tile3DTerrainMaskGeometry from "~/lib/tile-processing/tile3d/features/Tile3DTerrainMaskGeometry";
+import {appendArrayInPlace} from "~/lib/tile-processing/utils";
 
 export enum RoofType {
 	Flat,
@@ -349,9 +350,9 @@ export default class Tile3DExtrudedGeometryBuilder {
 
 		let shouldPushTextureId = true;
 
-		this.arrays.position.push(...position);
-		this.arrays.normal.push(...normal);
-		this.arrays.uv.push(...uv);
+		appendArrayInPlace(this.arrays.position, position);
+		appendArrayInPlace(this.arrays.normal, normal);
+		appendArrayInPlace(this.arrays.uv, uv);
 
 		if (typeof textureId !== 'number') {
 			this.arrays.textureId.push(...textureId);
