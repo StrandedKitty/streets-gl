@@ -1,4 +1,4 @@
-import {parseHeight} from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
+import {parseHeight} from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/tagHelpers";
 
 const lookup: Record<string, number> = {
 	river: 10,

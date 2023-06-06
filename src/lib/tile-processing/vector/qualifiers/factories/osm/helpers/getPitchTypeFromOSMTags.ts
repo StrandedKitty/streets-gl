@@ -1,5 +1,5 @@
 import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
-import {getTagValues} from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
+import {getTagValues} from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/tagHelpers";
 
 const lookup: Record<string, VectorAreaDescriptor['pitchType']> = {
 	soccer: 'football',
@@ -7,7 +7,7 @@ const lookup: Record<string, VectorAreaDescriptor['pitchType']> = {
 	basketball: 'basketball'
 }
 
-export default function getPitchTypeFromTags(tags: Record<string, string>): VectorAreaDescriptor['pitchType'] {
+export default function getPitchTypeFromOSMTags(tags: Record<string, string>): VectorAreaDescriptor['pitchType'] {
 	const values = getTagValues(tags, 'sport');
 
 	for (const value of values) {

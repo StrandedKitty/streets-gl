@@ -6,12 +6,12 @@ import OSMHandler from "~/lib/tile-processing/vector/handlers/OSMHandler";
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
 import {cleanupTags} from "~/lib/tile-processing/vector/utils";
 import Ring from "~/lib/tile-processing/vector/handlers/Ring";
-import OSMPolylineQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/OSMPolylineQualifierFactory";
+import OSMPolylineQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/osm/OSMPolylineQualifierFactory";
 import {QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
 import {ModifierType} from "~/lib/tile-processing/vector/qualifiers/modifiers";
 import {VectorPolylineDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
 import {VectorFeature} from "~/lib/tile-processing/vector/features/VectorFeature";
-import OSMAreaQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/OSMAreaQualifierFactory";
+import OSMAreaQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/osm/OSMAreaQualifierFactory";
 
 export default class OSMWayHandler implements OSMHandler {
 	private readonly osmElement: WayElement;

@@ -1,25 +1,23 @@
 import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
-import getRoofTypeFromOSMRoofShape
-	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getRoofTypeFromOSMRoofShape";
-import getRoofMaterialFromOSMMaterial
-	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getRoofMaterialFromOSMMaterial";
-import {parseColor} from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
+import {VectorTile} from "~/lib/tile-processing/vector/providers/pbf/VectorTile";
+import getRoofType from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getRoofType";
 import isBuildingSupportsDefaultRoof
-	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/isBuildingSupportsDefaultRoof";
+	from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/isBuildingSupportsDefaultRoof";
+import getRoofMaterial from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getRoofMaterial";
 
-export default function getRoofParamsFromTags(tags: Record<string, string>): {
+export default function getRoofParams(tags: VectorTile.FeatureTags): {
 	type: VectorAreaDescriptor['buildingRoofType'];
 	material: VectorAreaDescriptor['buildingRoofMaterial'];
 	color: number;
 } {
-	const type = getRoofTypeFromOSMRoofShape(tags['roof:shape'], 'flat');
+	const type = getRoofType(<string>tags.roofType, 'flat');
 	const noDefault = !isBuildingSupportsDefaultRoof(tags) || type !== 'flat';
 
-	const materialTagValue = tags['roof:material'];
-	const colorTagValue = tags['roof:colour'];
+	const materialTagValue = <string>tags.roofMaterial;
+	const colorTagValue = <number>tags.roofColor;
 
-	let material = getRoofMaterialFromOSMMaterial(materialTagValue, 'default');
-	let color = parseColor(colorTagValue, null);
+	let material = getRoofMaterial(materialTagValue, 'default');
+	let color = colorTagValue ?? null;
 
 	if ((color !== null || noDefault) && material === 'default') {
 		material = 'concrete';

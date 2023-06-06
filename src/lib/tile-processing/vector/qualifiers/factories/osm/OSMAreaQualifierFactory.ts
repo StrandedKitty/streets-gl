@@ -1,10 +1,10 @@
 import AbstractQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/AbstractQualifierFactory";
 import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
 import {Qualifier, QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
-import isUnderground from "~/lib/tile-processing/vector/qualifiers/factories/helpers/isUnderground";
-import getBuildingParamsFromTags
-	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getBuildingParamsFromTags";
-import getPitchTypeFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getPitchTypeFromTags";
+import isUnderground from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/isUnderground";
+import getBuildingParamsFromOSMTags
+	from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/getBuildingParamsFromOSMTags";
+import getPitchTypeFromOSMTags from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/getPitchTypeFromOSMTags";
 
 export default class OSMAreaQualifierFactory extends AbstractQualifierFactory<VectorAreaDescriptor, Record<string, string>> {
 	public fromTags(tags: Record<string, string>): Qualifier<VectorAreaDescriptor>[] {
@@ -17,7 +17,7 @@ export default class OSMAreaQualifierFactory extends AbstractQualifierFactory<Ve
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'buildingPart',
-					...getBuildingParamsFromTags(tags, tags['building:part'] === 'roof'),
+					...getBuildingParamsFromOSMTags(tags, tags['building:part'] === 'roof'),
 				}
 			}];
 		}
@@ -27,7 +27,7 @@ export default class OSMAreaQualifierFactory extends AbstractQualifierFactory<Ve
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'building',
-					...getBuildingParamsFromTags(tags, tags.building === 'roof')
+					...getBuildingParamsFromOSMTags(tags, tags.building === 'roof')
 				}
 			}];
 		}
@@ -51,7 +51,7 @@ export default class OSMAreaQualifierFactory extends AbstractQualifierFactory<Ve
 		}
 
 		if (tags.leisure === 'pitch') {
-			const type = getPitchTypeFromTags(tags);
+			const type = getPitchTypeFromOSMTags(tags);
 
 			return [{
 				type: QualifierType.Descriptor,

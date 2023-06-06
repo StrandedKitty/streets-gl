@@ -1,5 +1,5 @@
 import {VectorPolylineDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
-import {getTagValues} from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
+import {getTagValues} from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/tagHelpers";
 
 const lookup: Record<string, {
 	type: VectorPolylineDescriptor['pathType'];

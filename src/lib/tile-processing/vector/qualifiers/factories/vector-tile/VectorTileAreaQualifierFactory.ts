@@ -1,13 +1,15 @@
 import AbstractQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/AbstractQualifierFactory";
 import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
 import {Qualifier, QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
-import isUnderground from "~/lib/tile-processing/vector/qualifiers/factories/helpers/isUnderground";
-import getBuildingParamsFromTags
-	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getBuildingParamsFromTags";
-import getPitchTypeFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getPitchTypeFromTags";
+import isUnderground from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/isUnderground";
+import getBuildingParamsFromOSMTags
+	from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/getBuildingParamsFromOSMTags";
+import getPitchTypeFromOSMTags from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/getPitchTypeFromOSMTags";
 import {VectorTile} from "~/lib/tile-processing/vector/providers/pbf/VectorTile";
 import {OMBBResult} from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 import Vec2 from "~/lib/math/Vec2";
+import getPitchType from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getPitchType";
+import getBuildingParams from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getBuildingParams";
 
 export default class VectorTileAreaQualifierFactory extends AbstractQualifierFactory<VectorAreaDescriptor, VectorTile.FeatureTags> {
 	private static isTagsContainOMBB(tags: VectorTile.FeatureTags): boolean {
@@ -38,34 +40,30 @@ export default class VectorTileAreaQualifierFactory extends AbstractQualifierFac
 				}];
 			}
 
-			if (tags.levels === undefined) {
-				tags.levels = tags.height === undefined ? 1 : Math.round(<number>tags.height / 4);
-			}
+			return [{
+				type: QualifierType.Descriptor,
+				data: {
+					type: 'building',
+					...getBuildingParams(tags),
+					ombb: VectorTileAreaQualifierFactory.getOMBB(tags)
+				}
+			}];
+		}
 
-			if (tags.height === undefined) {
-				tags.height = <number>tags.levels * 4;
+		if (tags.type === 'path') {
+			if (tags.pathType === 'pedestrian' || tags.pathType === 'footway') {
+				return [{
+					type: QualifierType.Descriptor,
+					data: {
+						type: 'pavement'
+					}
+				}];
 			}
 
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
-					type: 'building',
-					label: null,
-					buildingLevels: <number>tags.levels,
-					buildingHeight: <number>tags.height,
-					buildingMinHeight: <number>tags.minHeight ?? 0,
-					buildingRoofHeight: <number>tags.roofHeight ?? 0,
-					buildingRoofType: tags.roofType as VectorAreaDescriptor['buildingRoofType'] ?? 'flat',
-					buildingRoofOrientation: null,
-					buildingRoofDirection: <number>tags.roofDirection,
-					buildingRoofAngle: <number>tags.roofAngle,
-					buildingFacadeMaterial: "plaster",
-					buildingFacadeColor: <number>tags.color ?? 0xffffff,
-					buildingRoofMaterial: 'default',
-					buildingRoofColor: <number>tags.roofColor ?? 0xffffff,
-					buildingWindows: tags.noWindows !== true,
-					buildingFoundation: false,
-					ombb: VectorTileAreaQualifierFactory.getOMBB(tags)
+					type: 'asphalt'
 				}
 			}];
 		}
@@ -121,7 +119,8 @@ export default class VectorTileAreaQualifierFactory extends AbstractQualifierFac
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'pitch',
-					pitchType: 'generic'
+					pitchType: getPitchType(<string>tags.sport, <number>tags.hoops),
+					ombb: VectorTileAreaQualifierFactory.getOMBB(tags)
 				}
 			}];
 		}

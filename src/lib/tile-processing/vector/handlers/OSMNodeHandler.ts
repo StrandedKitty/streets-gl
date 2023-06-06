@@ -5,7 +5,7 @@ import OSMHandler from './OSMHandler';
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
 import {cleanupTags} from "~/lib/tile-processing/vector/utils";
 import Vec2 from "~/lib/math/Vec2";
-import OSMNodeQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/OSMNodeQualifierFactory";
+import OSMNodeQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/osm/OSMNodeQualifierFactory";
 import {VectorFeature} from "~/lib/tile-processing/vector/features/VectorFeature";
 import {QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
 import {ModifierType} from "~/lib/tile-processing/vector/qualifiers/modifiers";

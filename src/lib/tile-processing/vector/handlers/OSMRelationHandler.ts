@@ -5,7 +5,7 @@ import VectorArea, {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-process
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
 import {cleanupTags} from "~/lib/tile-processing/vector/utils";
 import Ring from "~/lib/tile-processing/vector/handlers/Ring";
-import OSMAreaQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/OSMAreaQualifierFactory";
+import OSMAreaQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/osm/OSMAreaQualifierFactory";
 import {VectorFeature} from "~/lib/tile-processing/vector/features/VectorFeature";
 import {QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
 

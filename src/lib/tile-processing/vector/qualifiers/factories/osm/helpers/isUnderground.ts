@@ -1,4 +1,4 @@
-import {readTagAsFloat} from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
+import {readTagAsFloat} from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/tagHelpers";
 
 export default function isUnderground(tags: Record<string, string>): boolean {
 	return (

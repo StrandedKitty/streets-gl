@@ -4,7 +4,7 @@ const Config = {
 	TileSize: /*40075016.68 / (1 << 16)*/ 611.4962158203125,
 	MaxConcurrentTiles: 150,
 	MaxTilesPerWorker: 1,
-	WorkersCount: Math.min(6, navigator.hardwareConcurrency),
+	WorkersCount: Math.min(4, navigator.hardwareConcurrency),
 	StartPosition: {lat: 40.76494, lon: -73.97860, pitch: 45, yaw: 0, distance: 2000},
 	MinCameraDistance: 10,
 	MaxCameraDistance: 4000,

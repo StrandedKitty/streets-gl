@@ -3,7 +3,7 @@ import {VectorNodeDescriptor, VectorPolylineDescriptor} from "~/lib/tile-process
 import {Qualifier, QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
 import {VectorTile} from "~/lib/tile-processing/vector/providers/pbf/VectorTile";
 import {ModifierType} from "~/lib/tile-processing/vector/qualifiers/modifiers";
-import {parseHeight, parseMeters} from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
+import {parseHeight, parseMeters} from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/tagHelpers";
 
 export default class VectorTilePolylineQualifierFactory extends AbstractQualifierFactory<VectorPolylineDescriptor, VectorTile.FeatureTags> {
 	public fromTags(tags: VectorTile.FeatureTags): Qualifier<VectorPolylineDescriptor>[] {

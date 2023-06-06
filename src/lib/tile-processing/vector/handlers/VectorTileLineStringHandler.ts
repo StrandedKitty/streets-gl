@@ -4,7 +4,7 @@ import OSMReference from "~/lib/tile-processing/vector/features/OSMReference";
 import {getOSMReferenceFromVectorTileFeatureTags} from "~/lib/tile-processing/vector/utils";
 import {VectorFeature} from "~/lib/tile-processing/vector/features/VectorFeature";
 import VectorTilePolylineQualifierFactory
-	from "~/lib/tile-processing/vector/qualifiers/factories/VectorTilePolylineQualifierFactory";
+	from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/VectorTilePolylineQualifierFactory";
 import {QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
 import {VectorPolylineDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";

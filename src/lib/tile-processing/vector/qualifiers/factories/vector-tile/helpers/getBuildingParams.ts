@@ -1,23 +1,15 @@
+import {VectorTile} from "~/lib/tile-processing/vector/providers/pbf/VectorTile";
 import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
-import getRoofOrientationFromOSMOrientation
-	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getRoofOrientationFromOSMOrientation";
-import {
-	parseDirection,
-	parseHeight,
-	parseRoofLevels,
-	readTagAsUnsignedFloat,
-	readTagAsUnsignedInt
-} from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
-import getDefaultLevelsFromRoofType
-	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getDefaultLevelsFromRoofType";
-import getFacadeParamsFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getFacadeParamsFromTags";
-import isBuildingHasWindows from "~/lib/tile-processing/vector/qualifiers/factories/helpers/isBuildingHasWindows";
-import getRoofParamsFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getRoofParamsFromTags";
-import MathUtils from "~/lib/math/MathUtils";
+import getRoofParams from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getRoofParams";
+import getRoofOrientation
+	from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getRoofOrientation";
+import isBuildingHasWindows
+	from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/isBuildingHasWindows";
+import getFacadeParamsFromTags
+	from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getFacadeParams";
 
-export default function getBuildingParamsFromTags(
-	tags: Record<string, string>,
-	onlyRoof: boolean = false
+export default function getBuildingParams(
+	tags: VectorTile.FeatureTags
 ): {
 	label: string;
 	buildingLevels: number;
@@ -38,31 +30,32 @@ export default function getBuildingParamsFromTags(
 	const fallbackLevels = 1;
 	const levelHeight = 4;
 
-	const hasFoundation = !onlyRoof &&
-		tags['building:levels'] === undefined &&
-		tags['building:min_level'] === undefined &&
+	const isRoof = tags.buildingType === 'roof';
+
+	const hasFoundation = !isRoof &&
+		tags.levels === undefined &&
+		tags.minLevel === undefined &&
 		tags.height === undefined &&
-		tags.est_height === undefined &&
-		tags.min_height === undefined;
+		tags.minHeight === undefined;
 
-	const roofParams = getRoofParamsFromTags(tags);
-	const roofOrientation = getRoofOrientationFromOSMOrientation(tags['roof:orientation']);
-	const roofLevels = parseRoofLevels(tags, 'roof:levels') ?? getDefaultLevelsFromRoofType(roofParams.type);
-	const roofDirection = parseDirection(tags['roof:direction'], null);
-	const roofAngle = readTagAsUnsignedFloat(tags, 'roof:angle');
-	let roofHeight = parseHeight(tags['roof:height'], roofLevels * levelHeight);
+	const roofParams = getRoofParams(tags);
+	const roofOrientation = getRoofOrientation(<string>tags['roofOrientation']);
+	const roofLevels = <number>tags.roofLevels ?? (roofParams.type === 'flat' ? 0 : 1);
+	const roofDirection = <number>tags.roofDirection ?? null;
+	const roofAngle = <number>tags.roofAngle ?? null;
+	let roofHeight = <number>tags.roofHeight ?? (roofLevels * levelHeight);
 
-	let minLevel = readTagAsUnsignedInt(tags, 'building:min_level') ?? null;
-	let height = parseHeight(tags.height, parseHeight(tags.est_height, null));
-	let levels = readTagAsUnsignedInt(tags, 'building:levels') ?? null;
-	let minHeight = parseHeight(tags.min_height, null);
+	let minLevel = <number>tags.minLevel ?? null;
+	let height = <number>tags.height ?? null;
+	let levels = <number>tags.levels ?? null;
+	let minHeight = <number>tags.minHeight ?? null;
 
 	if (height !== null) {
 		roofHeight = Math.min(roofHeight, height - (minHeight ?? 0));
 	}
 
 	if (height === null && levels === null) {
-		levels = (minLevel !== null) ? minLevel: fallbackLevels;
+		levels = (minLevel !== null) ? minLevel : fallbackLevels;
 		height = levels * levelHeight + roofHeight
 	} else if (height === null) {
 		height = levels * levelHeight + roofHeight
@@ -83,7 +76,7 @@ export default function getBuildingParamsFromTags(
 	}
 
 	const facadeParams = getFacadeParamsFromTags(tags);
-	const label = tags.name ?? null;
+	const label = <string>tags.name ?? null;
 
 	let windows = isBuildingHasWindows(tags);
 	if (height - minHeight - roofHeight < 2) {
@@ -94,7 +87,7 @@ export default function getBuildingParamsFromTags(
 		label: label,
 		buildingLevels: levels - minLevel,
 		buildingHeight: height,
-		buildingMinHeight: onlyRoof ? (height - roofHeight) : minHeight,
+		buildingMinHeight: isRoof ? (height - roofHeight) : minHeight,
 		buildingRoofHeight: roofHeight,
 		buildingRoofType: roofParams.type,
 		buildingRoofOrientation: roofOrientation,

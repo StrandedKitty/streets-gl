@@ -6,7 +6,7 @@ import VectorTileHandler from "~/lib/tile-processing/vector/handlers/VectorTileH
 import {getOSMReferenceFromVectorTileFeatureTags} from "~/lib/tile-processing/vector/utils";
 import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
 import VectorTileAreaQualifierFactory
-	from "~/lib/tile-processing/vector/qualifiers/factories/VectorTileAreaQualifierFactory";
+	from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/VectorTileAreaQualifierFactory";
 import {QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
 import {VectorFeature} from "~/lib/tile-processing/vector/features/VectorFeature";
 

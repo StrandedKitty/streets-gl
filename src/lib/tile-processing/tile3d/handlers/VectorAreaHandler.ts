@@ -494,15 +494,8 @@ export default class VectorAreaHandler implements Handler {
 			addUsageMask?: boolean;
 		}
 	): Tile3DFeature[] {
-		const builder = new Tile3DProjectedGeometryBuilder();
+		const builder = new Tile3DProjectedGeometryBuilder(this.getMultipolygon());
 		builder.setZIndex(zIndex);
-
-		for (const ring of this.rings) {
-			const type = ring.type === VectorAreaRingType.Inner ? Tile3DRingType.Inner : Tile3DRingType.Outer;
-			const nodes = ring.nodes.map(node => new Vec2(node.x, node.y));
-
-			builder.addRing(type, nodes);
-		}
 
 		builder.addPolygon({
 			height: 0,

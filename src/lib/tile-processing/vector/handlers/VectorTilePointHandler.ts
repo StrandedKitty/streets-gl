@@ -5,7 +5,7 @@ import {getOSMReferenceFromVectorTileFeatureTags} from "~/lib/tile-processing/ve
 import {QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
 import {VectorFeature} from "~/lib/tile-processing/vector/features/VectorFeature";
 import VectorTileNodeQualifierFactory
-	from "~/lib/tile-processing/vector/qualifiers/factories/VectorTileNodeQualifierFactory";
+	from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/VectorTileNodeQualifierFactory";
 
 export default class VectorTilePointHandler implements VectorTileHandler {
 	private readonly x: number;

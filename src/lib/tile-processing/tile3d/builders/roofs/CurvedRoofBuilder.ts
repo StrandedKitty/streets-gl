@@ -74,11 +74,11 @@ export default abstract class CurvedRoofBuilder implements RoofBuilder {
 
 			if (!isClosed && i === 0) {
 				const vertexNext = polyline[i + 1];
-				const segment = Vec2.sub(vertexNext, vertex);
+				const segment = Vec2.sub(vertex, vertexNext);
 				angle = Vec2.angleClockwise(new Vec2(1, 0), segment);
 			} else if (!isClosed && i === polyline.length - 1) {
 				const vertexPrev = polyline[i - 1];
-				const segment = Vec2.sub(vertex, vertexPrev);
+				const segment = Vec2.sub(vertexPrev, vertex);
 				angle = Vec2.angleClockwise(new Vec2(1, 0), segment);
 			} else {
 				angle = Vec2.angleClockwise(new Vec2(0, 1), Vec2.sub(vertex, center));
@@ -141,12 +141,12 @@ export default abstract class CurvedRoofBuilder implements RoofBuilder {
 				const p2 = arr1[j];
 				const p3 = arr1[j + 1];
 
-				let triPoints = [p0, p2, p1, p1, p2, p3];
-				let triUVs = [0, 0, 1, 1, 0, 1];
+				const triPoints = [p0, p1, p2, p1, p3, p2];
+				const triUVs = [0, 1, 0, 1, 1, 0];
 
 				if (p1.position.equals(p3.position)) {
-					triPoints = [p0, p2, p1];
-					triUVs = [0, 0, 1];
+					triPoints.splice(3);
+					triUVs.splice(3);
 				}
 
 				const quadUvYSize = Vec3.distance(p0.position, p1.position);

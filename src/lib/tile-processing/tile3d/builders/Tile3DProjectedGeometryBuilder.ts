@@ -27,7 +27,10 @@ export default class Tile3DProjectedGeometryBuilder {
 	private readonly multipolygon: Tile3DMultipolygon = new Tile3DMultipolygon();
 	private zIndex: number = 0;
 
-	public constructor() {
+	public constructor(multipolygon?: Tile3DMultipolygon) {
+		if (multipolygon) {
+			this.multipolygon = multipolygon;
+		}
 	}
 
 	public addRing(type: Tile3DRingType, nodes: Vec2[]): void {
