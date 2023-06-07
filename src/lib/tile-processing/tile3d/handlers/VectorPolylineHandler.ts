@@ -247,7 +247,7 @@ export default class VectorPolylineHandler implements Handler {
 
 	private handleWaterway(): Tile3DProjectedGeometry {
 		const builder = new Tile3DProjectedGeometryBuilder();
-		builder.setZIndex(ZIndexMap.Water);
+		builder.setZIndex(ZIndexMap.Waterway);
 		builder.addRing(Tile3DRingType.Outer, this.vertices);
 
 		builder.addPath({

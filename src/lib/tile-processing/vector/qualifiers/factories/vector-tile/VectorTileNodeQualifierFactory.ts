@@ -3,6 +3,7 @@ import {VectorNodeDescriptor} from "~/lib/tile-processing/vector/qualifiers/desc
 import {Qualifier, QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
 import {VectorTile} from "~/lib/tile-processing/vector/providers/pbf/VectorTile";
 import {ModifierType} from "~/lib/tile-processing/vector/qualifiers/modifiers";
+import getTreeType from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getTreeType";
 
 export default class VectorTileNodeQualifierFactory extends AbstractQualifierFactory<VectorNodeDescriptor, VectorTile.FeatureTags> {
 	public fromTags(tags: VectorTile.FeatureTags): Qualifier<VectorNodeDescriptor>[] {
@@ -13,7 +14,7 @@ export default class VectorTileNodeQualifierFactory extends AbstractQualifierFac
 					type: 'tree',
 					height: <number>tags.height ?? undefined,
 					minHeight: <number>tags.minHeight ?? undefined,
-					treeType: 'genericBroadleaved'
+					treeType: getTreeType(tags)
 				}
 			}];
 		}

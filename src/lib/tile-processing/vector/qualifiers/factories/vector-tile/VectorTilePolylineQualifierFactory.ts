@@ -6,6 +6,8 @@ import {ModifierType} from "~/lib/tile-processing/vector/qualifiers/modifiers";
 import getPathParams from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getPathParams";
 import getPathLanes from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getPathLanes";
 import getPathWidth from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getPathWidth";
+import getTreeType from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getTreeType";
+import getWaterwayParams from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getWaterwayParams";
 
 export default class VectorTilePolylineQualifierFactory extends AbstractQualifierFactory<VectorPolylineDescriptor, VectorTile.FeatureTags> {
 	public fromTags(tags: VectorTile.FeatureTags): Qualifier<VectorPolylineDescriptor>[] {
@@ -88,18 +90,24 @@ export default class VectorTilePolylineQualifierFactory extends AbstractQualifie
 						type: 'tree',
 						height: <number>tags.height ?? undefined,
 						minHeight: <number>tags.minHeight ?? undefined,
-						treeType: 'genericBroadleaved'
+						treeType: getTreeType(tags)
 					}
 				}
 			}];
 		}
 
 		if (tags.type === 'waterway') {
+			const params = getWaterwayParams(tags);
+
+			if (!params) {
+				return null;
+			}
+
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'waterway',
-					width: 10
+					width: params.width,
 				}
 			}];
 		}

@@ -1,9 +1,11 @@
 import {OMBBResult} from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 
+type TreeType = 'genericBroadleaved' | 'genericNeedleleaved' | 'beech' | 'fir' | 'linden' | 'oak';
+
 export interface VectorNodeDescriptor {
 	type?: 'tree' | 'rock' | 'hydrant' | 'transmissionTower' | 'utilityPole' | 'artwork' | 'adColumn' | 'windTurbine' |
 	'bench' | 'picnicTable' | 'busStop' | 'memorial' | 'statue' | 'sculpture';
-	treeType?: 'genericBroadleaved' | 'genericNeedleleaved' | 'beech' | 'fir' | 'linden' | 'oak';
+	treeType?: TreeType;
 	direction?: number;
 	height?: number;
 	minHeight?: number;
@@ -31,6 +33,7 @@ export interface VectorAreaDescriptor {
 		'buildingConstruction' | 'shrubbery' | 'roadwayArea';
 	intersectionMaterial?: 'asphalt' | 'concrete' | 'cobblestone';
 	pitchType?: 'generic' | 'football' | 'basketball' | 'tennis';
+	treeType?: TreeType;
 	buildingLevels?: number;
 	buildingHeight?: number;
 	buildingMinHeight?: number;

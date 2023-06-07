@@ -534,7 +534,7 @@ export default class VectorAreaHandler implements Handler {
 
 		const rotation = rnd.generate() * Math.PI * 2;
 
-		const textureIdList = getTreeTextureIdFromType('genericBroadleaved');
+		const textureIdList = getTreeTextureIdFromType(this.descriptor.treeType);
 		const textureId = textureIdList[Math.floor(rnd.generate() * textureIdList.length)];
 		const textureScale = getTreeTextureScaling(textureId);
 
