@@ -4,7 +4,7 @@ import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMult
 import Tile3DRing, {Tile3DRingType} from "~/lib/tile-processing/tile3d/builders/Tile3DRing";
 import AABB3D from "~/lib/math/AABB3D";
 import Vec3 from "~/lib/math/Vec3";
-import SurfaceBuilder from "~/lib/tile-processing/tile3d/builders/SurfaceBuilder";
+import SurfaceBuilder, {SurfaceBuilderOrientation} from "~/lib/tile-processing/tile3d/builders/SurfaceBuilder";
 import RoadBuilder, {RoadSide} from "~/lib/tile-processing/tile3d/builders/RoadBuilder";
 import {projectGeometryOnTerrain, projectLineOnTerrain} from "~/lib/tile-processing/tile3d/builders/utils";
 import FenceBuilder from "~/lib/tile-processing/tile3d/builders/FenceBuilder";
@@ -48,18 +48,24 @@ export default class Tile3DProjectedGeometryBuilder {
 			height,
 			uvScale = 1,
 			isOriented = false,
+			stretch = false,
+			orientation = SurfaceBuilderOrientation.Along,
 			addUsageMask
 		}: {
 			height: number;
 			textureId: number;
 			uvScale?: number;
 			isOriented?: boolean;
+			stretch?: boolean;
+			orientation?: SurfaceBuilderOrientation;
 			addUsageMask?: boolean;
 		}
 	): void {
 		const surface = SurfaceBuilder.build({
 			multipolygon: this.multipolygon,
 			isOriented: isOriented,
+			orientation: orientation,
+			stretch: stretch,
 			uvScale: uvScale
 		});
 

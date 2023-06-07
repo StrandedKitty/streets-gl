@@ -7,7 +7,7 @@ export default function createProjectedMeshTexture(renderer: AbstractRenderer): 
 	return renderer.createTexture2DArray({
 		width: 512,
 		height: 512,
-		depth: 37 * 3,
+		depth: 39 * 3,
 		anisotropy: 16,
 		data: [
 			ResourceLoader.get('pavementDiffuse'),
@@ -126,8 +126,16 @@ export default function createProjectedMeshTexture(renderer: AbstractRenderer): 
 			ResourceLoader.get('concreteWallNormal'),
 			ResourceLoader.get('concreteWallMask'),
 
-			ResourceLoader.get('farmlandDiffuse'),
-			ResourceLoader.get('farmlandNormal'),
+			ResourceLoader.get('farmland0Diffuse'),
+			ResourceLoader.get('farmland0Normal'),
+			ResourceLoader.get('farmlandMask'),
+
+			ResourceLoader.get('farmland1Diffuse'),
+			ResourceLoader.get('farmland1Normal'),
+			ResourceLoader.get('farmlandMask'),
+
+			ResourceLoader.get('farmland2Diffuse'),
+			ResourceLoader.get('farmland2Normal'),
 			ResourceLoader.get('farmlandMask'),
 
 			ResourceLoader.get('gravelDiffuse'),

@@ -60,7 +60,7 @@ export default class VectorTilePolygonHandler implements VectorTileHandler {
 					type: 'area',
 					rings: [ring],
 					osmReference: this.osmReference,
-					descriptor: descriptor
+					descriptor: {...descriptor}
 				});
 			} else {
 				if (!areas[areas.length - 1]) {

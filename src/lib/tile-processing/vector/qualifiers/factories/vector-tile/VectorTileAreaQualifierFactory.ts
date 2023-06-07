@@ -1,10 +1,6 @@
 import AbstractQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/AbstractQualifierFactory";
 import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
 import {Qualifier, QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
-import isUnderground from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/isUnderground";
-import getBuildingParamsFromOSMTags
-	from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/getBuildingParamsFromOSMTags";
-import getPitchTypeFromOSMTags from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/getPitchTypeFromOSMTags";
 import {VectorTile} from "~/lib/tile-processing/vector/providers/pbf/VectorTile";
 import {OMBBResult} from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 import Vec2 from "~/lib/math/Vec2";
@@ -156,7 +152,8 @@ export default class VectorTileAreaQualifierFactory extends AbstractQualifierFac
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
-					type: 'farmland'
+					type: 'farmland',
+					ombb: VectorTileAreaQualifierFactory.getOMBB(tags)
 				}
 			}];
 		}

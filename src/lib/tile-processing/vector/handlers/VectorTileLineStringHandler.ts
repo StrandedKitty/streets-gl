@@ -70,7 +70,7 @@ export default class VectorTileLineStringHandler implements VectorTileHandler {
 		return {
 			type: 'polyline',
 			osmReference: this.osmReference,
-			descriptor: descriptor,
+			descriptor: {...descriptor},
 			nodes: nodes
 		};
 	}

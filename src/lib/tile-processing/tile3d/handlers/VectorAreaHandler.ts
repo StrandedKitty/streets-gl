@@ -25,7 +25,7 @@ import {
 import {ExtrudedTextures, ProjectedTextures} from "~/lib/tile-processing/tile3d/textures";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import * as Simplify from "simplify-js";
-import MathUtils from "~/lib/math/MathUtils";
+import {SurfaceBuilderOrientation} from "~/lib/tile-processing/tile3d/builders/SurfaceBuilder";
 
 const TileSize = 611.4962158203125;
 
@@ -246,6 +246,7 @@ export default class VectorAreaHandler implements Handler {
 				return this.handleGenericSurface({
 					textureId,
 					isOriented: true,
+					stretch: true,
 					zIndex: ZIndexMap.Pitch
 				});
 			}
@@ -310,11 +311,17 @@ export default class VectorAreaHandler implements Handler {
 				});
 			}
 			case 'farmland': {
+				const rnd = new SeededRandom(this.osmReference.id);
+				const textureCount = 3;
+				const texture = Math.floor(rnd.generate() * textureCount);
+
 				return this.handleGenericSurface({
-					textureId: ProjectedTextures.Farmland,
-					isOriented: false,
+					textureId: ProjectedTextures.Farmland0 + texture,
+					isOriented: true,
+					stretch: false,
+					orientation: SurfaceBuilderOrientation.Across,
 					zIndex: ZIndexMap.Farmland,
-					uvScale: 60,
+					uvScale: 50
 				});
 			}
 			case 'asphalt': {
@@ -351,6 +358,7 @@ export default class VectorAreaHandler implements Handler {
 					...this.handleGenericSurface({
 						textureId: ProjectedTextures.Helipad,
 						isOriented: true,
+						stretch: true,
 						zIndex: ZIndexMap.Helipad
 					}),
 					...this.handleGenericSurface({
@@ -484,12 +492,16 @@ export default class VectorAreaHandler implements Handler {
 			textureId,
 			isOriented,
 			uvScale = 1,
+			stretch = false,
+			orientation = SurfaceBuilderOrientation.Along,
 			zIndex,
 			addUsageMask = false
 		}: {
 			textureId: number;
 			isOriented: boolean;
 			uvScale?: number;
+			stretch?: boolean;
+			orientation?: SurfaceBuilderOrientation;
 			zIndex: number;
 			addUsageMask?: boolean;
 		}
@@ -501,6 +513,8 @@ export default class VectorAreaHandler implements Handler {
 			height: 0,
 			textureId: textureId,
 			isOriented: isOriented,
+			orientation: orientation,
+			stretch: stretch,
 			uvScale: uvScale,
 			addUsageMask: addUsageMask
 		});

@@ -29,13 +29,15 @@ export const ProjectedTextures = {
 	MetalFence: 27,
 	StoneWall: 28,
 	ConcreteWall: 29,
-	Farmland: 30,
-	Gravel: 31,
-	DirtRoad: 32,
-	SandRoad: 33,
-	RailwayTop: 34,
-	Rail: 35,
-	GenericPitch: 36
+	Farmland0: 30,
+	Farmland1: 31,
+	Farmland2: 32,
+	Gravel: 33,
+	DirtRoad: 34,
+	SandRoad: 35,
+	RailwayTop: 36,
+	Rail: 37,
+	GenericPitch: 38
 } as const satisfies Record<string, number>;
 
 export const ExtrudedTextures = {
