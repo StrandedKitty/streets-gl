@@ -8,7 +8,6 @@ import RBush from 'rbush';
 interface Group {
 	roads: Road[];
 	intersections: Intersection[];
-	intersectionMap: Map<string, Intersection>;
 }
 
 export default class RoadGraph {
@@ -30,8 +29,7 @@ export default class RoadGraph {
 		if (!this.groups.has(id)) {
 			this.groups.set(id, {
 				roads: [],
-				intersections: [],
-				intersectionMap: new Map()
+				intersections: []
 			});
 		}
 
@@ -101,14 +99,12 @@ export default class RoadGraph {
 					if (prev) {
 						intersection.addDirection(road, prev);
 					}
+
+					vertex.setIntersection(intersection);
 				}
 
 				if (intersection.directions.length > 1) {
 					group.intersections.push(intersection);
-					group.intersectionMap.set(
-						point[0][0].getDeserializedVector(),
-						intersection
-					);
 				}
 			}
 		}
@@ -128,12 +124,6 @@ export default class RoadGraph {
 		}
 
 		return polygons;
-	}
-
-	public getIntersectionByPoint(point: Vec2, groupId: number): Intersection {
-		const group = this.getGroup(groupId);
-
-		return group.intersectionMap.get(`${point.x} ${point.y}`);
 	}
 
 	private getClosestProjectionGlobal(point: Vec2): Vec2 {

@@ -150,8 +150,8 @@ export default class VectorPolylineHandler implements Handler {
 		let vertexAdjacentToEnd: Vec2 = null;
 
 		if (!pointStart.equals(pointEnd) && this.graphRoad) {
-			const intersectionStart = this.graph.getIntersectionByPoint(pointStart, this.graphGroup);
-			const intersectionEnd = this.graph.getIntersectionByPoint(pointEnd, this.graphGroup);
+			const intersectionStart = this.graphRoad.start.getIntersection();
+			const intersectionEnd = this.graphRoad.end.getIntersection();
 
 			if (intersectionStart && vertices.length > 1) {
 				vertexAdjacentToStart = this.processPathEnd(vertices, intersectionStart, 'first');
