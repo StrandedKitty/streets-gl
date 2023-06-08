@@ -17,5 +17,11 @@ const buildingExceptions: string[] = [
 ];
 
 export default function isBuildingSupportsDefaultRoof(tags: VectorTile.FeatureTags): boolean {
+	const defaultRoofTag = <boolean>tags.defaultRoof;
+
+	if (defaultRoofTag !== undefined) {
+		return defaultRoofTag;
+	}
+
 	return !buildingExceptions.includes(<string>tags.buildingType);
 }
