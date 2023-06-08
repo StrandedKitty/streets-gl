@@ -7,6 +7,7 @@ import Vec2 from "~/lib/math/Vec2";
 import getPitchType from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getPitchType";
 import getBuildingParams from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getBuildingParams";
 import getTreeType from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getTreeType";
+import Vec3 from "~/lib/math/Vec3";
 
 export default class VectorTileAreaQualifierFactory extends AbstractQualifierFactory<VectorAreaDescriptor, VectorTile.FeatureTags> {
 	private static isTagsContainOMBB(tags: VectorTile.FeatureTags): boolean {
@@ -25,6 +26,16 @@ export default class VectorTileAreaQualifierFactory extends AbstractQualifierFac
 			new Vec2(<number>tags['@ombb30'], <number>tags['@ombb31'])
 		];
 	}
+
+	private static isTagsContainPOI(tags: VectorTile.FeatureTags): boolean {
+		return tags['@poiX'] !== undefined;
+	}
+
+
+	private static getPOI(tags: VectorTile.FeatureTags): Vec3 {
+		return new Vec3(<number>tags['@poiX'], <number>tags['@poiY'], <number>tags['@poiR']);
+	}
+
 
 	public fromTags(tags: VectorTile.FeatureTags): Qualifier<VectorAreaDescriptor>[] {
 		if (tags.type === 'building') {
@@ -173,7 +184,8 @@ export default class VectorTileAreaQualifierFactory extends AbstractQualifierFac
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
-					type: 'construction'
+					type: 'construction',
+					poi: VectorTileAreaQualifierFactory.getPOI(tags)
 				}
 			}];
 		}
@@ -201,6 +213,15 @@ export default class VectorTileAreaQualifierFactory extends AbstractQualifierFac
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'helipad'
+				}
+			}];
+		}
+
+		if (tags.type === 'pier') {
+			return [{
+				type: QualifierType.Descriptor,
+				data: {
+					type: 'pavement'
 				}
 			}];
 		}

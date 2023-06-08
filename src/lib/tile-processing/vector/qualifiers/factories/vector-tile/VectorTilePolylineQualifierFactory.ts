@@ -10,6 +10,9 @@ import getTreeType from "~/lib/tile-processing/vector/qualifiers/factories/vecto
 import getWaterwayParams from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getWaterwayParams";
 import getRoadExtensionSide
 	from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getRoadExtensionSide";
+import getWallParams from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getWallParams";
+import getFenceParams from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getFenceParams";
+import getRailwayParams from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getRailwayParams";
 
 export default class VectorTilePolylineQualifierFactory extends AbstractQualifierFactory<VectorPolylineDescriptor, VectorTile.FeatureTags> {
 	public fromTags(tags: VectorTile.FeatureTags): Qualifier<VectorPolylineDescriptor>[] {
@@ -142,6 +145,19 @@ export default class VectorTilePolylineQualifierFactory extends AbstractQualifie
 			}
 		}
 
+		if (tags.type === 'railway') {
+			const {type, width} = getRailwayParams(tags);
+
+			return [{
+				type: QualifierType.Descriptor,
+				data: {
+					type: 'path',
+					pathType: type,
+					width: width
+				}
+			}];
+		}
+
 		if (tags.type === 'treeRow') {
 			return [{
 				type: QualifierType.Modifier,
@@ -176,37 +192,29 @@ export default class VectorTilePolylineQualifierFactory extends AbstractQualifie
 		}
 
 		if (tags.type === 'wall') {
-			if (tags.wallType === 'hedge') {
-				return [{
-					type: QualifierType.Descriptor,
-					data: {
-						type: 'wall',
-						wallType: 'hedge',
-						height: <number>tags.height ?? 1,
-						minHeight: <number>tags.minHeight ?? undefined
-					}
-				}];
-			}
+			const params = getWallParams(tags);
 
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'wall',
-					wallType: 'stone',
-					height: <number>tags.height ?? 3,
-					minHeight: <number>tags.minHeight ?? undefined
+					wallType: params.material,
+					height: params.height,
+					minHeight: params.minHeight
 				}
 			}];
 		}
 
 		if (tags.type === 'fence') {
+			const params = getFenceParams(tags);
+
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'fence',
-					fenceMaterial: 'wood',
-					height: <number>tags.height ?? 3,
-					minHeight: <number>tags.minHeight ?? undefined
+					fenceMaterial: params.material,
+					height: params.height,
+					minHeight: params.minHeight
 				}
 			}];
 		}

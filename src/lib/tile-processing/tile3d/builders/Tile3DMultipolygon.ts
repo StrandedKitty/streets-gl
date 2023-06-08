@@ -23,15 +23,18 @@ export default class Tile3DMultipolygon {
 	private cachedPoleOfInaccessibility: Vec3 = null;
 
 	public constructor() {
+	}
 
+	public addRing(ring: Tile3DRing): void {
+		this.rings.push(ring);
 	}
 
 	public setOMBB(ombb: OMBBResult): void {
 		this.cachedOMBB = ombb;
 	}
 
-	public addRing(ring: Tile3DRing): void {
-		this.rings.push(ring);
+	public setPoleOfInaccessibility(poi: Vec3): void {
+		this.cachedPoleOfInaccessibility = poi;
 	}
 
 	public getFootprint(

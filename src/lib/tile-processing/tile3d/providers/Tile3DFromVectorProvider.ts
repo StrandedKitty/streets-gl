@@ -24,6 +24,7 @@ import Tile3DTerrainMaskGeometry from "~/lib/tile-processing/tile3d/features/Til
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import {OMBBResult} from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 import Vec2 from "~/lib/math/Vec2";
+import Vec3 from "~/lib/math/Vec3";
 
 export interface Tile3DProviderParams {
 	overpassEndpoint: string;
@@ -114,6 +115,10 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 				this.transformOMBBToWorldSpace(area, x, y, zoom);
 			}
 
+			if (area.descriptor.poi) {
+				this.transformPOIToWorldSpace(area, x, y, zoom);
+			}
+
 			for (const ring of area.rings) {
 				for (const node of ring.nodes) {
 					this.transformVectorNodeToWorldSpace(node, tileSize);
@@ -146,6 +151,26 @@ export default class Tile3DFromVectorProvider implements FeatureProvider<Tile3DF
 		[target[1], target[3]] = [target[3], target[1]];
 
 		vectorArea.descriptor.ombb = target;
+	}
+
+	private static transformPOIToWorldSpace(
+		vectorArea: VectorArea,
+		x: number,
+		y: number,
+		zoom: number
+	): void {
+		const source = vectorArea.descriptor.poi;
+
+		const worldSize = 40075016.68;
+		const tileSize = worldSize / (1 << zoom);
+		const originX = tileSize * x;
+		const originY = tileSize * y;
+
+		const poiX = tileSize - (source.y * worldSize - originY);
+		const poiY = (source.x * worldSize - originX);
+		const poiRadius = source.z * worldSize;
+
+		vectorArea.descriptor.poi = new Vec3(poiX, poiY, poiRadius);
 	}
 
 	private static transformVectorNodeToWorldSpace(node: VectorNode, tileSize: number): void {

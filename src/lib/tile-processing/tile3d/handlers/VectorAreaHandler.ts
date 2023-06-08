@@ -88,6 +88,10 @@ export default class VectorAreaHandler implements Handler {
 			if (this.descriptor.ombb) {
 				this.multipolygon.setOMBB(this.descriptor.ombb);
 			}
+
+			if (this.descriptor.poi) {
+				this.multipolygon.setPoleOfInaccessibility(this.descriptor.poi);
+			}
 		}
 
 		return this.multipolygon;

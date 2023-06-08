@@ -21,7 +21,6 @@ import InstancedObject from "~/app/objects/InstancedObject";
 import TerrainMask from "~/app/objects/TerrainMask";
 import EventEmitter from "~/app/EventEmitter";
 
-// position.xyz, scale, rotation
 export type InstanceBufferInterleaved = Float32Array;
 
 export type TileInstanceBuffers = Map<Tile3DInstanceType, {
@@ -54,17 +53,16 @@ export default class Tile extends Object3D {
 	public inFrustum: boolean = true;
 	public distanceToCamera: number = null;
 	public disposed = false;
-	public labelBuffersList: TileLabelBuffers[] = [];
+	public readonly labelBuffersList: TileLabelBuffers[] = [];
 	public labelsAABB: AABB3D = null;
-	public buildingsNeedFiltering: boolean = true;
-	public instanceBuffers: TileInstanceBuffers = new Map();
+	public readonly instanceBuffers: TileInstanceBuffers = new Map();
 
 	public extrudedMesh: TileExtrudedMesh;
 	public projectedMesh: TileProjectedMesh;
 	public huggingMesh: TileHuggingMesh;
 	public terrainMaskMesh: TerrainMask;
 
-	public usedHeightTiles: Vec2[] = [];
+	public readonly usedHeightTiles: Vec2[] = [];
 
 	public terrainMaskSliceIndex: number = null;
 

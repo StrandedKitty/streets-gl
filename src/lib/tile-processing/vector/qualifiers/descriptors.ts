@@ -1,4 +1,5 @@
 import {OMBBResult} from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
+import Vec3 from "~/lib/math/Vec3";
 
 type TreeType = 'genericBroadleaved' | 'genericNeedleleaved' | 'beech' | 'fir' | 'linden' | 'oak';
 
@@ -51,6 +52,7 @@ export interface VectorAreaDescriptor {
 	buildingWindows?: boolean;
 	buildingFoundation?: boolean;
 	ombb?: OMBBResult;
+	poi?: Vec3;
 }
 
 export type VectorDescriptor = VectorNodeDescriptor | VectorAreaDescriptor | VectorPolylineDescriptor;
