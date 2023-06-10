@@ -272,14 +272,6 @@ export default class Tile extends Object3D {
 		this.emitter.emit('delete');
 	}
 
-	public static encodePosition(x: number, y: number): number {
-		return x << 16 + y;
-	}
-
-	public static decodePosition(encoded: number): Vec2 {
-		return new Vec2(encoded >> 16, encoded & 0xffff);
-	}
-
 	public static packFeatureId(id: number, type: number): number {
 		return MathUtils.shiftLeft(type, 51) + id;
 	}

@@ -134,7 +134,7 @@ const highwayTable: Record<string, {
 	footway: {type: 'footway', defaultMaterial: 'dirt', defaultLanes: 1},
 	path: {type: 'footway', defaultMaterial: 'dirt', defaultLanes: 1},
 	steps: {type: 'footway', defaultMaterial: 'dirt', defaultLanes: 1},
-	pedestrian: {type: 'footway', defaultMaterial: 'dirt', defaultLanes: 1},
+	pedestrian: {type: 'footway', defaultMaterial: 'dirt', defaultLanes: 1, defaultWidth: 8},
 	cycleway: {type: 'cycleway', defaultMaterial: 'dirt', defaultLanes: 1}
 };
 

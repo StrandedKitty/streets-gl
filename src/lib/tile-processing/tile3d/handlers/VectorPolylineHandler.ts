@@ -317,11 +317,16 @@ export default class VectorPolylineHandler implements Handler {
 						params[0].uvMaxX = width / 4;
 						break;
 					}
+					case 'asphalt': {
+						params[0].textureId = ProjectedTextures.Asphalt;
+						params[0].zIndex = ZIndexMap.AsphaltFootway;
+						params[0].uvScale = 20;
+						break;
+					}
 					default: {
 						params[0].textureId = ProjectedTextures.Pavement;
 						params[0].zIndex = ZIndexMap.Footway;
-						params[0].uvFollowRoad = false;
-						params[0].uvScale = 8;
+						params[0].uvScale = 5;
 					}
 				}
 				break;

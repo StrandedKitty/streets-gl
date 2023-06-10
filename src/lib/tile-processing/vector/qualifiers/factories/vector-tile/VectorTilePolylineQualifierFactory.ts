@@ -128,7 +128,7 @@ export default class VectorTilePolylineQualifierFactory extends AbstractQualifie
 						data: {
 							type: 'path',
 							pathType: 'footway',
-							width: <number>tags.width ?? 2
+							width: <number>tags.width ?? params.defaultWidth ?? 2
 						}
 					}];
 				}
@@ -138,7 +138,7 @@ export default class VectorTilePolylineQualifierFactory extends AbstractQualifie
 						data: {
 							type: 'path',
 							pathType: 'cycleway',
-							width: <number>tags.width ?? 3
+							width: <number>tags.width ?? params.defaultWidth ?? 3
 						}
 					}];
 				}

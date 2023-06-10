@@ -20,6 +20,7 @@ export const ZIndexMap = {
 	RoadwayArea: 15,
 	Footway: 16,
 	WoodFootway: 17,
+	AsphaltFootway: 17,
 	FootwayArea: 18,
 	Cycleway: 19,
 	AsphaltRoadway: 20,

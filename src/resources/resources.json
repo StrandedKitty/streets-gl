@@ -66,6 +66,8 @@
 	"noGlow": {"url": "/textures/buildings/facades/no_glow.png", "type": "image"},
 
 	"pavementDiffuse": {"url": "/textures/surfaces/pavement_diffuse.png", "type": "image"},
+	"pavementNormal": {"url": "/textures/surfaces/pavement_normal.png", "type": "image"},
+	"pavementMask": {"url": "/textures/surfaces/pavement_mask.png", "type": "image"},
 	"asphaltDiffuse": {"url": "/textures/surfaces/asphalt_diffuse.png", "type": "image"},
 	"asphaltNormal": {"url": "/textures/surfaces/asphalt_normal.png", "type": "image"},
 	"cyclewayDiffuse": {"url": "/textures/surfaces/cycleway_diffuse.png", "type": "image"},
