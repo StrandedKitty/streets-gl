@@ -27,12 +27,13 @@ uniform sampler2DArray tRingHeight;
 float sampleHeight(vec2 uv, int level) {
 	uv.y = 1. - uv.y;
 
-	return texture(
+	return texelFetch(
 		tRingHeight,
-		vec3(
-			uv * segmentCount / (segmentCount + 1.),
+		ivec3(
+			uv * segmentCount + 0.5 / segmentCount,
 			level
-		)
+		),
+		0
 	).r;
 }
 
