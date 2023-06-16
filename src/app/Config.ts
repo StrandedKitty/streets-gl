@@ -149,7 +149,7 @@ const Config = {
 	],
 	TileServerEndpoint: 'https://tiles.streets.gl',
 	MapboxStreetsEndpointTemplate: 'https://api.mapbox.com/v4/mapbox.mapbox-streets-v8/{z}/{x}/{y}.vector.pbf?access_token={accessToken}',
-	MapboxAccessToken: 'pk.eyJ1Ijoidmhhd2siLCJhIjoiY2xmbWpqOXBoMGNmZDN2cjJwZXk0MXBzZiJ9.192VNPJG0VV9dGOCOX1gUw',
+	MapboxAccessToken: 'pk.eyJ1IjoidGFtaWQyMTA2OCIsImEiOiJjbGlicGN2bWEwOWNvM2huejBwa2V1cGV0In0._dykOL_KbMkzWw8EXdclFw',
 	SlippyEndpointTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
 	ElevationEndpointTemplate: 'https://tiles.streets.gl/elevation/{z}/{x}/{y}'
 	//ElevationEndpointTemplate: 'https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}@2x.png?access_token=pk.eyJ1Ijoidmhhd2siLCJhIjoiY2xmbWpqOXBoMGNmZDN2cjJwZXk0MXBzZiJ9.192VNPJG0VV9dGOCOX1gUw'
