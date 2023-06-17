@@ -5,6 +5,8 @@ import WaterMask from "../../objects/WaterMask";
 import AbstractRenderer from "~/lib/renderer/abstract-renderer/AbstractRenderer";
 import PBFGeometryParser, {PBFPolygon, PBFRing} from "~/lib/tile-processing/vector/providers/pbf/PBFGeometryParser";
 import {Tile as proto} from "~/lib/tile-processing/vector/providers/pbf/vector_tile";
+import Utils from "~/app/Utils";
+import Config from "~/app/Config";
 
 const Pbf = require('pbf');
 
@@ -124,6 +126,13 @@ export default class WaterTileSource extends TileSource<Float32Array> {
 	}
 
 	private static getURL(x: number, y: number, zoom: number): string {
-		return `https://api.mapbox.com/v4/mapbox.mapbox-streets-v8/${zoom}/${x}/${y}.vector.pbf?access_token=pk.eyJ1Ijoidmhhd2siLCJhIjoiY2xmbWpqOXBoMGNmZDN2cjJwZXk0MXBzZiJ9.192VNPJG0VV9dGOCOX1gUw`;
+		return Utils.resolveEndpointTemplate({
+			template: Config.TilesEndpointTemplate,
+			values: {
+				x: x,
+				y: y,
+				z: zoom
+			}
+		});
 	}
 }

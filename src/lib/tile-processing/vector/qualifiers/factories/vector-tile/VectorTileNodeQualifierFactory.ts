@@ -159,7 +159,7 @@ export default class VectorTileNodeQualifierFactory extends AbstractQualifierFac
 			}];
 		}
 
-		if (tags.power === 'utilityPole') {
+		/*if (tags.type === 'utilityPole') {
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
@@ -169,7 +169,7 @@ export default class VectorTileNodeQualifierFactory extends AbstractQualifierFac
 			}];
 		}
 
-		if (tags.power === 'transmissionTower') {
+		if (tags.type === 'transmissionTower') {
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
@@ -177,7 +177,7 @@ export default class VectorTileNodeQualifierFactory extends AbstractQualifierFac
 					minHeight: <number>tags.minHeight ?? undefined
 				}
 			}];
-		}
+		}*/
 
 		return null;
 	}

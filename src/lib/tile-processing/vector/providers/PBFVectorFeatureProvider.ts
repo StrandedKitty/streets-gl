@@ -10,6 +10,8 @@ import VectorTileLineStringHandler from "~/lib/tile-processing/vector/handlers/V
 import VectorTilePointHandler from "~/lib/tile-processing/vector/handlers/VectorTilePointHandler";
 import {VectorFeature} from "~/lib/tile-processing/vector/features/VectorFeature";
 import {getCollectionFromVectorFeatures} from "~/lib/tile-processing/vector/utils";
+import Utils from "~/app/Utils";
+import Config from "~/app/Config";
 
 const proto = require('./pbf/vector_tile.js').Tile;
 
@@ -67,6 +69,9 @@ const PBFTagTypesMap: TagTypesMap = {
 	hoops: TagTypes.SInt,
 	railwayType: TagTypes.String,
 	crop: TagTypes.String,
+	country: TagTypes.String,
+	wikidata: TagTypes.String,
+	isPart: TagTypes.Bool,
 } as const;
 
 export default class PBFVectorFeatureProvider implements FeatureProvider<VectorFeatureCollection> {
@@ -110,7 +115,14 @@ export default class PBFVectorFeatureProvider implements FeatureProvider<VectorF
 	}
 
 	private static getTileURL(x: number, y: number, zoom: number): string {
-		return `http://localhost:8083/data/test/${zoom}/${x}/${y}.pbf`
+		return Utils.resolveEndpointTemplate({
+			template: Config.TilesEndpointTemplate,
+			values: {
+				x: x,
+				y: y,
+				z: zoom
+			}
+		});
 	}
 
 	private static getVectorTileHandlers(vectorTile: VectorTile.Tile): VectorTileHandler[] {

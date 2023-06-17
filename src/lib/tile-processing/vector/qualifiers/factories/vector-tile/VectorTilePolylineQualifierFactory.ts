@@ -219,14 +219,14 @@ export default class VectorTilePolylineQualifierFactory extends AbstractQualifie
 			}];
 		}
 
-		if (tags.type === 'powerLine') {
+		/*if (tags.type === 'powerLine') {
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'powerLine'
 				}
 			}];
-		}
+		}*/
 
 		return null;
 	}

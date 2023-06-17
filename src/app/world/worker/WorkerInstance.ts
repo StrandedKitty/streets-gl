@@ -29,8 +29,7 @@ class WorkerInstance {
 					y,
 					data.overpassEndpoint,
 					data.tileServerEndpoint,
-					data.mapboxEndpointTemplate,
-					data.mapboxAccessToken,
+					data.vectorTilesEndpointTemplate,
 					data.useCachedTiles,
 				);
 			}
@@ -42,15 +41,13 @@ class WorkerInstance {
 		y: number,
 		overpassEndpoint: string,
 		tileServerEndpoint: string,
-		mapboxEndpointTemplate: string,
-		mapboxAccessToken: string,
+		vectorTilesEndpointTemplate: string,
 		useCachedTiles: boolean
 	): void {
 		const provider = new Tile3DFromVectorProvider({
 			overpassEndpoint,
 			tileServerEndpoint,
-			mapboxEndpointTemplate,
-			mapboxAccessToken,
+			vectorTilesEndpointTemplate,
 			useCachedTiles,
 			heightPromise: (positions: Float64Array): Promise<Float64Array> => this.getTerrainHeight(x, y, positions)
 		});

@@ -189,11 +189,4 @@ void main() {
 
     outMotion = getMotionVector(vClipPos, vClipPosPrev);
     outObjectId = 0u;
-
-    vec2 maskTexelUV = vMaskUV * vec2(textureSize(tUsageMask, 0));
-    vec2 tileUV = fract(maskTexelUV);
-
-    if (tileUV.x < 0.001 || tileUV.x > 0.999 || tileUV.y < 0.001 || tileUV.y > 0.999) {
-        outColor = vec4(1, 0, 0, 1);
-    }
 }

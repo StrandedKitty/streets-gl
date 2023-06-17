@@ -12,11 +12,9 @@ const proto = require('./pbf/vector_tile.js').Tile;
 
 export default class MapboxVectorFeatureProvider implements FeatureProvider<VectorFeatureCollection> {
 	private readonly endpointTemplate: string;
-	private readonly accessToken: string;
 
-	public constructor(endpointTemplate: string, accessToken: string) {
+	public constructor(endpointTemplate: string) {
 		this.endpointTemplate = endpointTemplate;
-		this.accessToken = accessToken;
 	}
 
 	public async getCollection(
@@ -132,8 +130,7 @@ export default class MapboxVectorFeatureProvider implements FeatureProvider<Vect
 			values: {
 				x: x,
 				y: y,
-				z: zoom,
-				accessToken: this.accessToken
+				z: zoom
 			}
 		});
 	}
