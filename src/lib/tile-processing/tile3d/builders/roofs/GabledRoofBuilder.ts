@@ -171,13 +171,13 @@ export default class GabledRoofBuilder extends HippedRoofBuilder {
 		return {
 			points: [
 				{
-					position: edgeEnd,
+					position: edgeStart,
 					height: minHeight
 				}, {
 					position: edgeCenter,
 					height: minHeight + height * centerHeight
 				}, {
-					position: edgeStart,
+					position: edgeEnd,
 					height: minHeight
 				}
 			],
