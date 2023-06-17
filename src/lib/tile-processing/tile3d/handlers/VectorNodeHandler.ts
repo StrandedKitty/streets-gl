@@ -47,7 +47,8 @@ export default class VectorNodeHandler implements Handler {
 
 		if (this.descriptor.type === 'tree') {
 			return [this.getTreeInstanceFeature({
-				height: this.descriptor.height
+				height: this.descriptor.height,
+				minHeight: this.descriptor.minHeight
 			})];
 		}
 
@@ -61,6 +62,7 @@ export default class VectorNodeHandler implements Handler {
 		if (this.descriptor.type === 'hydrant') {
 			return [this.getGenericInstanceFeature({
 				type: 'hydrant',
+				minHeight: this.descriptor.minHeight,
 				rotateToNearestPath: false
 			})];
 		}
@@ -70,6 +72,7 @@ export default class VectorNodeHandler implements Handler {
 				type: 'windTurbine',
 				rotateToNearestPath: false,
 				height: this.descriptor.height,
+				minHeight: this.descriptor.minHeight,
 				rotation: 0
 			})];
 		}
@@ -100,6 +103,7 @@ export default class VectorNodeHandler implements Handler {
 		if (this.descriptor.type === 'memorial') {
 			return [this.getGenericInstanceFeature({
 				type: 'memorial',
+				minHeight: this.descriptor.minHeight,
 				rotateToNearestPath: true
 			})];
 		}
@@ -108,6 +112,7 @@ export default class VectorNodeHandler implements Handler {
 			const rnd = new SeededRandom(Math.floor(this.x + this.y));
 			return [this.getGenericInstanceFeature({
 				type: rnd.generate() > 0.5 ? 'statueSmall' : 'statueBig',
+				minHeight: this.descriptor.minHeight,
 				rotateToNearestPath: true
 			})];
 		}
@@ -115,6 +120,7 @@ export default class VectorNodeHandler implements Handler {
 		if (this.descriptor.type === 'sculpture') {
 			return [this.getGenericInstanceFeature({
 				type: 'sculpture',
+				minHeight: this.descriptor.minHeight,
 				rotateToNearestPath: true
 			})];
 		}
@@ -128,12 +134,14 @@ export default class VectorNodeHandler implements Handler {
 			rotateToNearestPath = false,
 			pathGroupId,
 			height = 1,
+			minHeight,
 			rotation,
 		}: {
 			type: Tile3DInstanceType;
 			rotateToNearestPath?: boolean;
 			pathGroupId?: number;
 			height?: number;
+			minHeight?: number;
 			rotation?: number;
 		}
 	): Tile3DInstance {
@@ -153,11 +161,13 @@ export default class VectorNodeHandler implements Handler {
 			rotationAngle = rnd.generate() * Math.PI * 2;
 		}
 
+		const verticalOffset = minHeight ?? 0;
+
 		return {
 			type: 'instance',
 			instanceType: type,
 			x: this.x,
-			y: this.terrainHeight,
+			y: this.terrainHeight + verticalOffset * this.mercatorScale,
 			z: this.y,
 			scale: height * this.mercatorScale,
 			rotation: rotationAngle
@@ -167,8 +177,10 @@ export default class VectorNodeHandler implements Handler {
 	private getTreeInstanceFeature(
 		{
 			height,
+			minHeight,
 		}: {
 			height?: number;
+			minHeight?: number;
 		}
 	): Tile3DInstance {
 		const rnd = new SeededRandom(Math.floor(this.x + this.y));
@@ -183,11 +195,13 @@ export default class VectorNodeHandler implements Handler {
 			height = range[0] + rnd.generate() * (range[1] - range[0]);
 		}
 
+		const verticalOffset = minHeight ?? 0;
+
 		return {
 			type: 'instance',
 			instanceType: 'tree',
 			x: this.x,
-			y: this.terrainHeight,
+			y: this.terrainHeight + verticalOffset * this.mercatorScale,
 			z: this.y,
 			scale: height * textureScale * this.mercatorScale,
 			rotation: rotationAngle,

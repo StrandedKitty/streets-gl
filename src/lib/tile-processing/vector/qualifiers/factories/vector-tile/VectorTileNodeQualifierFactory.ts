@@ -4,16 +4,20 @@ import {Qualifier, QualifierType} from "~/lib/tile-processing/vector/qualifiers/
 import {VectorTile} from "~/lib/tile-processing/vector/providers/pbf/VectorTile";
 import {ModifierType} from "~/lib/tile-processing/vector/qualifiers/modifiers";
 import getTreeType from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getTreeType";
+import getFeatureHeightAndMinHeight
+	from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getHeightAndMinHeight";
 
 export default class VectorTileNodeQualifierFactory extends AbstractQualifierFactory<VectorNodeDescriptor, VectorTile.FeatureTags> {
 	public fromTags(tags: VectorTile.FeatureTags): Qualifier<VectorNodeDescriptor>[] {
 		if (tags.type === 'tree') {
+			const [height, minHeight] = getFeatureHeightAndMinHeight(tags);
+
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'tree',
-					height: <number>tags.height ?? undefined,
-					minHeight: <number>tags.minHeight ?? undefined,
+					height: height,
+					minHeight: minHeight,
 					treeType: getTreeType(tags)
 				}
 			}];
@@ -42,48 +46,56 @@ export default class VectorTileNodeQualifierFactory extends AbstractQualifierFac
 		}
 
 		if (tags.type === 'memorial') {
+			const [height, minHeight] = getFeatureHeightAndMinHeight(tags);
+
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'memorial',
-					height: <number>tags.height ?? undefined,
-					minHeight: <number>tags.minHeight ?? undefined,
+					height: height,
+					minHeight: minHeight,
 					direction: <number>tags.direction ?? undefined
 				}
 			}];
 		}
 
 		if (tags.type === 'statue') {
+			const [height, minHeight] = getFeatureHeightAndMinHeight(tags);
+
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'statue',
-					height: <number>tags.height ?? undefined,
-					minHeight: <number>tags.minHeight ?? undefined,
+					height: height,
+					minHeight: minHeight,
 					direction: <number>tags.direction ?? undefined
 				}
 			}];
 		}
 
 		if (tags.type === 'sculpture') {
+			const [height, minHeight] = getFeatureHeightAndMinHeight(tags);
+
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'sculpture',
-					height: <number>tags.height ?? undefined,
-					minHeight: <number>tags.minHeight ?? undefined,
+					height: height,
+					minHeight: minHeight,
 					direction: <number>tags.direction ?? undefined
 				}
 			}];
 		}
 
 		if (tags.type === 'windTurbine') {
+			const [height, minHeight] = getFeatureHeightAndMinHeight(tags);
+
 			return [{
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'windTurbine',
-					height: <number>tags.height ?? undefined,
-					minHeight: <number>tags.minHeight ?? undefined
+					height: height,
+					minHeight: minHeight,
 				}
 			}];
 		}

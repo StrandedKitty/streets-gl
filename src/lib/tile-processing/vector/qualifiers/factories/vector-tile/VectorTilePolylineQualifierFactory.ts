@@ -13,6 +13,8 @@ import getRoadExtensionSide
 import getWallParams from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getWallParams";
 import getFenceParams from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getFenceParams";
 import getRailwayParams from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getRailwayParams";
+import getFeatureHeightAndMinHeight
+	from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/getHeightAndMinHeight";
 
 export default class VectorTilePolylineQualifierFactory extends AbstractQualifierFactory<VectorPolylineDescriptor, VectorTile.FeatureTags> {
 	public fromTags(tags: VectorTile.FeatureTags): Qualifier<VectorPolylineDescriptor>[] {
@@ -159,6 +161,8 @@ export default class VectorTilePolylineQualifierFactory extends AbstractQualifie
 		}
 
 		if (tags.type === 'treeRow') {
+			const [height, minHeight] = getFeatureHeightAndMinHeight(tags);
+
 			return [{
 				type: QualifierType.Modifier,
 				data: {
@@ -167,8 +171,8 @@ export default class VectorTilePolylineQualifierFactory extends AbstractQualifie
 					randomness: 1,
 					descriptor: {
 						type: 'tree',
-						height: <number>tags.height ?? undefined,
-						minHeight: <number>tags.minHeight ?? undefined,
+						height: height,
+						minHeight: minHeight,
 						treeType: getTreeType(tags)
 					}
 				}
