@@ -42,15 +42,14 @@ To run this application, you need a machine that supports WebGL2. It's recommend
 
 ## 🗂️ Data sources
 
-Currently, Streets GL uses three sources of data to render the map:
+Streets GL uses two sources of data to render the map:
 
-- Public Overpass API instances to query small portions of the OpenStreetMap database (specific endpoints can be configured in the settings).
-- Terrain 3D tileset by Esri to visualize terrain elevation.
-- Mapbox API vector tiles to access pre-sliced polygons for big features that can't be reliably queried using Overpass API (such as water bodies).
+- Vector tiles generated from OpenStreetMap data using [modified Planetiler](https://github.com/strandedkitty/planetiler).
+- [Terrain 3D](https://www.arcgis.com/home/item.html?id=7029fb60158543ad845c7e1527af11e4) tileset by Esri to visualize terrain elevation.
 
-Some small areas of the map are occasionally fetched and cached by the server for a faster and more reliable access. These areas include several major well-mapped cities (NYC, Berlin, Paris, etc). This feature can be turned off in the settings in case you want to see the most recent OSM data directly from Overpass API instances.
+Vector tiles are generated from the latest OSM data pulled from [Planet.osm](https://planet.openstreetmap.org/) or its mirrors. Water bodies formed by coastlines are filled using Shapefiles from [osmdata.openstreetmap.de](https://osmdata.openstreetmap.de/data/water-polygons.html). Currently, there's no automated pipeline to update the vector tiles, so they are updated manually 2-4 times a month.
 
-Read more about issues regarding the data on [this wikipage](https://github.com/StrandedKitty/streets-gl/wiki/Data-sources).
+Map tiles are served from a small Node.js server located at [tiles.streets.gl](https://tiles.streets.gl/).
 
 ## 📦 Modules
 
