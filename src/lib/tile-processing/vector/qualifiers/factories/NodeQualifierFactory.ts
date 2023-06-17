@@ -9,6 +9,7 @@ import {
 	parseHeight
 } from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
 import getTreeTypeFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getTreeTypeFromTags";
+import getTreeHeight from "./helpers/getTreeHeight";
 
 export default class NodeQualifierFactory extends AbstractQualifierFactory<VectorNodeDescriptor> {
 	public fromTags(tags: Record<string, string>): Qualifier<VectorNodeDescriptor>[] {
@@ -21,7 +22,7 @@ export default class NodeQualifierFactory extends AbstractQualifierFactory<Vecto
 				type: QualifierType.Descriptor,
 				data: {
 					type: 'tree',
-					height: parseHeight(tags.height, undefined),
+					height: getTreeHeight(tags),
 					treeType: getTreeTypeFromTags(tags)
 				}
 			}];
