@@ -72,6 +72,7 @@ const PBFTagTypesMap: TagTypesMap = {
 	country: TagTypes.String,
 	wikidata: TagTypes.String,
 	isPart: TagTypes.Bool,
+	lampSupport: TagTypes.String
 } as const;
 
 export default class PBFVectorFeatureProvider implements FeatureProvider<VectorFeatureCollection> {
