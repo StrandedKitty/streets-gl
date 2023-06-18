@@ -11,8 +11,8 @@ export default function createProjectedMeshTexture(renderer: AbstractRenderer): 
 		anisotropy: 16,
 		data: [
 			ResourceLoader.get('pavementDiffuse'),
-			ResourceLoader.get('pavementNormal'),
-			ResourceLoader.get('pavementMask'),
+			ResourceLoader.get('commonNormal'),
+			ResourceLoader.get('commonMask'),
 
 			ResourceLoader.get('asphaltDiffuse'),
 			ResourceLoader.get('asphaltNormal'),

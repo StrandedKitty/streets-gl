@@ -326,7 +326,7 @@ export default class VectorPolylineHandler implements Handler {
 					default: {
 						params[0].textureId = ProjectedTextures.Pavement;
 						params[0].zIndex = ZIndexMap.Footway;
-						params[0].uvScale = 5;
+						params[0].uvScale = 10;
 					}
 				}
 				break;
