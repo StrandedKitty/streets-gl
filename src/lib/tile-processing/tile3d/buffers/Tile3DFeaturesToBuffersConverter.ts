@@ -48,7 +48,66 @@ export class Tile3DFeaturesToBuffersConverter {
 		};
 	}
 
+	// If multiple extruded geometries (buildings) have the same OSM ref, merge them into one geometry.
+	// This is required for the ownership system to work properly. Unless we do this, multipolygons with multiple
+	// outlines are not going to be treated as single buildings when doing GPU picking or hiding/showing buildings using
+	// the ownership system.
+	private static mergeExtrudedGeometriesWithSameOsmRef(features: Tile3DExtrudedGeometry[]): void {
+		const featureMap = new Map<number, Tile3DExtrudedGeometry[]>();
+
+		for (const feature of features) {
+			const key = feature.idBuffer[0];
+
+			if (!featureMap.has(key)) {
+				featureMap.set(key, []);
+			}
+
+			featureMap.get(key).push(feature);
+		}
+
+		const featuresToRemove: Tile3DExtrudedGeometry[] = [];
+
+		for (const feature of features) {
+			const key = feature.idBuffer[0];
+			const featuresWithSameId = featureMap.get(key);
+
+			if (!featuresWithSameId.includes(feature)) {
+				continue;
+			}
+
+			const featuresToMerge = featuresWithSameId
+				.filter(f => f !== feature)
+				.filter(f => f.idBuffer[1] === feature.idBuffer[1])
+
+			if (featuresToMerge.length === 0) {
+				continue;
+			}
+
+			for (const other of featuresToMerge) {
+				this.mergeExtrudedGeometries(feature, other);
+
+				featuresWithSameId.splice(featuresWithSameId.indexOf(other), 1);
+				featuresToRemove.push(other);
+			}
+		}
+
+		for (const feature of featuresToRemove) {
+			features.splice(features.indexOf(feature), 1);
+		}
+	}
+
+	private static mergeExtrudedGeometries(geom0: Tile3DExtrudedGeometry, geom1: Tile3DExtrudedGeometry): void {
+		geom0.boundingBox.includeAABB(geom1.boundingBox);
+		geom0.positionBuffer = Utils.mergeTypedArrays(Float32Array, [geom0.positionBuffer, geom1.positionBuffer]);
+		geom0.uvBuffer = Utils.mergeTypedArrays(Float32Array, [geom0.uvBuffer, geom1.uvBuffer]);
+		geom0.normalBuffer = Utils.mergeTypedArrays(Float32Array, [geom0.normalBuffer, geom1.normalBuffer]);
+		geom0.textureIdBuffer = Utils.mergeTypedArrays(Uint8Array, [geom0.textureIdBuffer, geom1.textureIdBuffer]);
+		geom0.colorBuffer = Utils.mergeTypedArrays(Uint8Array, [geom0.colorBuffer, geom1.colorBuffer]);
+	}
+
 	private static getExtrudedBuffers(features: Tile3DExtrudedGeometry[]): Tile3DBuffersExtruded {
+		this.mergeExtrudedGeometriesWithSameOsmRef(features);
+
 		const positionBuffers: Float32Array[] = [];
 		const uvBuffers: Float32Array[] = [];
 		const normalBuffers: Float32Array[] = [];
