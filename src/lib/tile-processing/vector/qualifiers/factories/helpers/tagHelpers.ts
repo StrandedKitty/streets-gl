@@ -81,7 +81,9 @@ export function parseMeters(str: string = ''): number {
 		.replace(/ft/g, '\'')
 		.replace(/feet/g, '\'');
 
-	if (str.search(/m/) !== -1) {
+	if (str.search(/cm/) !== -1) {
+		return parseFloat(str.replace(/cm/g, '')) * 0.01;
+	} else if (str.search(/m/) !== -1) {
 		return parseFloat(str.replace(/m/g, ''));
 	} else if (str.search(/'/) !== -1) {
 		const [feet, inches] = str.split('\'').map(v => parseFloat(v));
