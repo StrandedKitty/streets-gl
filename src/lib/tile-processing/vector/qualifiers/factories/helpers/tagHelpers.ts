@@ -74,7 +74,7 @@ export function readTagAsUnsignedInt(tags: Record<string, string>, key: string):
 	return Math.max(parsed, 0);
 }
 
-export function parseMeters(str: string = ''): number {
+export function parseMeters(str: string = '', defaultUnitsFactor: number = 1): number {
 	str = str
 		.replace(/,/g, '.')
 		.replace(/ /g, '')
@@ -95,7 +95,7 @@ export function parseMeters(str: string = ''): number {
 
 	const parsedFloat = parseFloat(str);
 
-	return isNaN(parsedFloat) ? undefined : parsedFloat;
+	return isNaN(parsedFloat) ? undefined : parsedFloat * defaultUnitsFactor;
 }
 
 export function parseHeight(str: string = '', fallback?: number): number {
