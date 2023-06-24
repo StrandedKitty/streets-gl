@@ -1,11 +1,11 @@
 import {NodeElement} from "~/lib/tile-processing/vector/providers/OverpassDataObject";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
-import VectorArea, {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
+import {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
 import OSMHandler from './OSMHandler';
 import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
 import {cleanupTags} from "~/lib/tile-processing/vector/utils";
 import Vec2 from "~/lib/math/Vec2";
-import NodeQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/NodeQualifierFactory";
+import OSMNodeQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/osm/OSMNodeQualifierFactory";
 import {VectorFeature} from "~/lib/tile-processing/vector/features/VectorFeature";
 import {QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
 import {ModifierType} from "~/lib/tile-processing/vector/qualifiers/modifiers";
@@ -29,7 +29,7 @@ export default class OSMNodeHandler implements OSMHandler {
 
 	private getFeaturesFromTags(): VectorFeature[] {
 		const features: VectorFeature[] = [];
-		const qualifiers = new NodeQualifierFactory().fromTags(this.tags);
+		const qualifiers = new OSMNodeQualifierFactory().fromTags(this.tags);
 
 		if (!qualifiers) {
 			return features;

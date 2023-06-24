@@ -120,14 +120,13 @@ export default class TileLoadingSystem extends System {
 		worker.requestTile(tile.x, tile.y, {
 			overpassEndpoint: overpassEndpoint,
 			tileServerEndpoint: Config.TileServerEndpoint,
-			mapboxEndpointTemplate: Config.MapboxStreetsEndpointTemplate,
-			mapboxAccessToken: Config.MapboxAccessToken,
+			vectorTilesEndpointTemplate: Config.TilesEndpointTemplate,
 			useCachedTiles: this.useCachedTiles,
 			isTerrainHeightEnabled: isTerrainHeightEnabled
 		}).then(result => {
 			onLoad(result);
 		}, error => {
-			console.error(`Failed to load tile ${tile.x},${tile.y}. Retrying...`, error);
+			//console.error(`Failed to load tile ${tile.x},${tile.y}. Retrying...`, error);
 			onLoad(null);
 		});
 	}

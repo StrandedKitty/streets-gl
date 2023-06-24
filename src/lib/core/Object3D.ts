@@ -2,32 +2,47 @@ import Mat4 from "../math/Mat4";
 import Vec3 from "../math/Vec3";
 
 export default class Object3D {
+	private static EmptyPosition: Vec3 = new Vec3(0, 0, 0);
+	private static EmptyScale: Vec3 = new Vec3(1, 1, 1);
+	private static IDCounter: number = 0;
+
+	public id: number = Object3D.IDCounter++;
 	public children: Object3D[] = [];
 	public parent: Object3D = null;
-	public data = {};
-	public matrix: Mat4;
-	public matrixWorld: Mat4;
-	public id: number;
-	public matrixOverwrite: boolean;
+	public matrix: Mat4 = Mat4.identity();
+	public matrixWorld: Mat4 = Mat4.identity();
+	public matrixOverwrite: boolean = true;
 
 	public position: Vec3 = new Vec3();
 	public rotation: Vec3 = new Vec3();
 	public scale: Vec3 = new Vec3(1, 1, 1);
 
 	public constructor() {
-		this.matrix = Mat4.identity();
-		this.matrixWorld = Mat4.identity();
-		this.id = Math.floor(Math.random() * 1e9);
-		this.matrixOverwrite = true;
 	}
 
 	public updateMatrix(): Mat4 {
 		this.matrix = Mat4.identity();
-		this.matrix = Mat4.translate(this.matrix, this.position.x, this.position.y, this.position.z);
-		this.matrix = Mat4.scale(this.matrix, this.scale.x, this.scale.y, this.scale.z);
-		this.matrix = Mat4.xRotate(this.matrix, this.rotation.x);
-		this.matrix = Mat4.yRotate(this.matrix, this.rotation.y);
-		this.matrix = Mat4.zRotate(this.matrix, this.rotation.z);
+
+		if (!this.position.equals(Object3D.EmptyPosition)) {
+			this.matrix = Mat4.translate(this.matrix, this.position.x, this.position.y, this.position.z);
+		}
+
+		if (!this.scale.equals(Object3D.EmptyScale)) {
+			this.matrix = Mat4.scale(this.matrix, this.scale.x, this.scale.y, this.scale.z);
+		}
+
+		if (this.rotation.x !== 0) {
+			this.matrix = Mat4.xRotate(this.matrix, this.rotation.x);
+		}
+
+		if (this.rotation.y !== 0) {
+			this.matrix = Mat4.yRotate(this.matrix, this.rotation.y);
+		}
+
+		if (this.rotation.z !== 0) {
+			this.matrix = Mat4.zRotate(this.matrix, this.rotation.z);
+		}
+
 
 		return this.matrix;
 	}

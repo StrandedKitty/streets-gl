@@ -10,7 +10,7 @@ import Tile3DRing, {Tile3DRingType} from "~/lib/tile-processing/tile3d/builders/
 import Tile3DProjectedGeometryBuilder from "~/lib/tile-processing/tile3d/builders/Tile3DProjectedGeometryBuilder";
 import Tile3DProjectedGeometry, {ZIndexMap} from "~/lib/tile-processing/tile3d/features/Tile3DProjectedGeometry";
 import Tile3DLabel from "~/lib/tile-processing/tile3d/features/Tile3DLabel";
-import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
+import Tile3DMultipolygon, {OMBBResult} from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 import Config from "~/app/Config";
 import Tile3DInstance, {Tile3DInstanceType} from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
 import Vec3 from "~/lib/math/Vec3";
@@ -25,6 +25,7 @@ import {
 import {ExtrudedTextures, ProjectedTextures} from "~/lib/tile-processing/tile3d/textures";
 import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
 import * as Simplify from "simplify-js";
+import {SurfaceBuilderOrientation} from "~/lib/tile-processing/tile3d/builders/SurfaceBuilder";
 
 const TileSize = 611.4962158203125;
 
@@ -82,6 +83,14 @@ export default class VectorAreaHandler implements Handler {
 				const nodes = ring.nodes.map(node => new Vec2(node.x, node.y));
 
 				this.multipolygon.addRing(new Tile3DRing(type, nodes));
+			}
+
+			if (this.descriptor.ombb) {
+				this.multipolygon.setOMBB(this.descriptor.ombb);
+			}
+
+			if (this.descriptor.poi) {
+				this.multipolygon.setPoleOfInaccessibility(this.descriptor.poi);
 			}
 		}
 
@@ -241,6 +250,7 @@ export default class VectorAreaHandler implements Handler {
 				return this.handleGenericSurface({
 					textureId,
 					isOriented: true,
+					stretch: true,
 					zIndex: ZIndexMap.Pitch
 				});
 			}
@@ -305,11 +315,17 @@ export default class VectorAreaHandler implements Handler {
 				});
 			}
 			case 'farmland': {
+				const rnd = new SeededRandom(this.osmReference.id);
+				const textureCount = 3;
+				const texture = Math.floor(rnd.generate() * textureCount);
+
 				return this.handleGenericSurface({
-					textureId: ProjectedTextures.Farmland,
-					isOriented: false,
+					textureId: ProjectedTextures.Farmland0 + texture,
+					isOriented: true,
+					stretch: false,
+					orientation: SurfaceBuilderOrientation.Across,
 					zIndex: ZIndexMap.Farmland,
-					uvScale: 60,
+					uvScale: 50
 				});
 			}
 			case 'asphalt': {
@@ -346,6 +362,7 @@ export default class VectorAreaHandler implements Handler {
 					...this.handleGenericSurface({
 						textureId: ProjectedTextures.Helipad,
 						isOriented: true,
+						stretch: true,
 						zIndex: ZIndexMap.Helipad
 					}),
 					...this.handleGenericSurface({
@@ -479,30 +496,29 @@ export default class VectorAreaHandler implements Handler {
 			textureId,
 			isOriented,
 			uvScale = 1,
+			stretch = false,
+			orientation = SurfaceBuilderOrientation.Along,
 			zIndex,
 			addUsageMask = false
 		}: {
 			textureId: number;
 			isOriented: boolean;
 			uvScale?: number;
+			stretch?: boolean;
+			orientation?: SurfaceBuilderOrientation;
 			zIndex: number;
 			addUsageMask?: boolean;
 		}
 	): Tile3DFeature[] {
-		const builder = new Tile3DProjectedGeometryBuilder();
+		const builder = new Tile3DProjectedGeometryBuilder(this.getMultipolygon());
 		builder.setZIndex(zIndex);
-
-		for (const ring of this.rings) {
-			const type = ring.type === VectorAreaRingType.Inner ? Tile3DRingType.Inner : Tile3DRingType.Outer;
-			const nodes = ring.nodes.map(node => new Vec2(node.x, node.y));
-
-			builder.addRing(type, nodes);
-		}
 
 		builder.addPolygon({
 			height: 0,
 			textureId: textureId,
 			isOriented: isOriented,
+			orientation: orientation,
+			stretch: stretch,
 			uvScale: uvScale,
 			addUsageMask: addUsageMask
 		});
@@ -522,7 +538,7 @@ export default class VectorAreaHandler implements Handler {
 
 		const rotation = rnd.generate() * Math.PI * 2;
 
-		const textureIdList = getTreeTextureIdFromType('genericBroadleaved');
+		const textureIdList = getTreeTextureIdFromType(this.descriptor.treeType);
 		const textureId = textureIdList[Math.floor(rnd.generate() * textureIdList.length)];
 		const textureScale = getTreeTextureScaling(textureId);
 

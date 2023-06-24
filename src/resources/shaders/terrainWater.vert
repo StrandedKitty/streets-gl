@@ -13,6 +13,6 @@ void main() {
     vec2 pos = vec2(position.y, 1. - position.x);
 
     gl_Position = vec4(
-        vec3(transform.xy + position.xy * transform.z, 0) * 2. - 1.,
+        vec3(transform.xy + pos * transform.z, 0) * 2. - 1.,
     1);
 }

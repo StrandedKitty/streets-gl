@@ -3,11 +3,11 @@ import Road from "~/lib/road-graph/Road";
 import Intersection from "~/lib/road-graph/Intersection";
 import LinkedVertex from "~/lib/road-graph/LinkedVertex";
 import SegmentGroup from "~/lib/road-graph/SegmentGroup";
+import RBush from 'rbush';
 
 interface Group {
 	roads: Road[];
 	intersections: Intersection[];
-	intersectionMap: Map<string, Intersection>;
 }
 
 export default class RoadGraph {
@@ -29,8 +29,7 @@ export default class RoadGraph {
 		if (!this.groups.has(id)) {
 			this.groups.set(id, {
 				roads: [],
-				intersections: [],
-				intersectionMap: new Map()
+				intersections: []
 			});
 		}
 
@@ -47,21 +46,42 @@ export default class RoadGraph {
 
 	public initIntersections(): void {
 		for (const group of this.groups.values()) {
-			const intersectionPoints: Map<string, [LinkedVertex, Road][]> = new Map();
+			const tree: RBush<{
+				minX: number;
+				minY: number;
+				maxX: number;
+				maxY: number;
+				data: [LinkedVertex, Road][];
+			}> = new RBush();
 
 			for (const road of group.roads) {
 				for (const vertex of road.vertices) {
-					const key = vertex.getDeserializedVector();
+					const pos = vertex.vector;
+					const query = tree.search({
+						minX: pos.x - 0.01,
+						minY: pos.y - 0.01,
+						maxX: pos.x + 0.01,
+						maxY: pos.y + 0.01
+					});
 
-					if (!intersectionPoints.has(key)) {
-						intersectionPoints.set(key, []);
+					if (query.length > 0) {
+						const data = query[0].data;
+						data.push([vertex, road]);
+					} else {
+						tree.insert({
+							minX: pos.x,
+							minY: pos.y,
+							maxX: pos.x,
+							maxY: pos.y,
+							data: [[vertex, road]]
+						});
 					}
-
-					intersectionPoints.get(key).push([vertex, road]);
 				}
 			}
 
-			for (const point of intersectionPoints.values()) {
+			for (const treeNode of tree.all()) {
+				const point = treeNode.data;
+
 				if (point.length < 2) {
 					continue;
 				}
@@ -79,14 +99,12 @@ export default class RoadGraph {
 					if (prev) {
 						intersection.addDirection(road, prev);
 					}
+
+					vertex.setIntersection(intersection);
 				}
 
 				if (intersection.directions.length > 1) {
 					group.intersections.push(intersection);
-					group.intersectionMap.set(
-						point[0][0].getDeserializedVector(),
-						intersection
-					);
 				}
 			}
 		}
@@ -106,12 +124,6 @@ export default class RoadGraph {
 		}
 
 		return polygons;
-	}
-
-	public getIntersectionByPoint(point: Vec2, groupId: number): Intersection {
-		const group = this.getGroup(groupId);
-
-		return group.intersectionMap.get(`${point.x} ${point.y}`);
 	}
 
 	private getClosestProjectionGlobal(point: Vec2): Vec2 {

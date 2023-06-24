@@ -1,5 +1,5 @@
 import {VectorPolylineDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
-import {parseHeight} from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
+import {parseHeight} from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/tagHelpers";
 
 const lookup: Record<string, [VectorPolylineDescriptor['wallType'], number]> = {
 	dry_stone: ['stone', 3],

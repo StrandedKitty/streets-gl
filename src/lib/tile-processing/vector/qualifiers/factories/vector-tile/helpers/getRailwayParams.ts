@@ -1,5 +1,6 @@
 import {VectorPolylineDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
-import {getTagValues} from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
+import {VectorTile} from "~/lib/tile-processing/vector/providers/pbf/VectorTile";
+import {getTagValues} from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/helpers/tagHelpers";
 
 const lookup: Record<string, {
 	type: VectorPolylineDescriptor['pathType'];
@@ -19,8 +20,8 @@ const gaugeStringValues: Record<string, number> = {
 	narrow: 1000
 };
 
-function getGaugeWidthFromTags(tags: Record<string, string>, fallback: number): number {
-	const gaugeValues = getTagValues(tags, 'gauge');
+function getGaugeWidthFromTags(gaugeTagValue: string, fallback: number): number {
+	const gaugeValues = getTagValues(gaugeTagValue);
 	let width: number = fallback;
 
 	if (gaugeValues.length > 0) {
@@ -40,12 +41,12 @@ function getGaugeWidthFromTags(tags: Record<string, string>, fallback: number): 
 	return width;
 }
 
-export default function getRailwayParamsFromTags(tags: Record<string, string>): {
+export default function getRailwayParams(tags: VectorTile.FeatureTags): {
 	type: VectorPolylineDescriptor['pathType'];
 	width: number;
 } {
-	const params = lookup[tags.railway] ?? lookup[tags.rail];
-	const gauge = getGaugeWidthFromTags(tags, params.gauge);
+	const params = lookup[<string>tags.railwayType] ?? lookup.rail;
+	const gauge = getGaugeWidthFromTags(<string>tags.gauge, params.gauge);
 
 	return {
 		type: params.type,

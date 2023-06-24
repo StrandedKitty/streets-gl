@@ -1,17 +1,17 @@
 import AbstractQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/AbstractQualifierFactory";
 import {VectorNodeDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
 import {Qualifier, QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
-import isUnderground from "~/lib/tile-processing/vector/qualifiers/factories/helpers/isUnderground";
+import isUnderground from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/isUnderground";
 import {ModifierType} from "~/lib/tile-processing/vector/qualifiers/modifiers";
 import {
 	isTagIncludesString,
 	parseDirection,
 	parseHeight
-} from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
-import getTreeTypeFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getTreeTypeFromTags";
+} from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/tagHelpers";
+import getTreeTypeFromTags from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/getTreeTypeFromTags";
 import getTreeHeight from "./helpers/getTreeHeight";
 
-export default class NodeQualifierFactory extends AbstractQualifierFactory<VectorNodeDescriptor> {
+export default class OSMNodeQualifierFactory extends AbstractQualifierFactory<VectorNodeDescriptor, Record<string, string>> {
 	public fromTags(tags: Record<string, string>): Qualifier<VectorNodeDescriptor>[] {
 		if (isUnderground(tags)) {
 			return null;

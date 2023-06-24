@@ -9,8 +9,7 @@ export namespace WorkerMessage {
 		tile: [number, number];
 		overpassEndpoint?: string;
 		tileServerEndpoint?: string;
-		mapboxEndpointTemplate?: string;
-		mapboxAccessToken?: string;
+		vectorTilesEndpointTemplate?: string;
 		useCachedTiles?: boolean;
 		isTerrainHeightEnabled?: boolean;
 		height?: Float64Array;

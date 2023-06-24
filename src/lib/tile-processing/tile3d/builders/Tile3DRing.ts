@@ -83,7 +83,7 @@ export default class Tile3DRing {
 
 	public getArea(): number {
 		if (!this.cachedArea) {
-			this.cachedArea = -MathUtils.getPolygonAreaSigned(this.nodes);
+			this.cachedArea = MathUtils.getPolygonAreaSigned(this.nodes);
 		}
 
 		return this.cachedArea;

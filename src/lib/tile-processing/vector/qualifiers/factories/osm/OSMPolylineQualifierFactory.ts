@@ -1,28 +1,28 @@
 import AbstractQualifierFactory from "~/lib/tile-processing/vector/qualifiers/factories/AbstractQualifierFactory";
 import {VectorPolylineDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
 import {Qualifier, QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
-import isUnderground from "~/lib/tile-processing/vector/qualifiers/factories/helpers/isUnderground";
+import isUnderground from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/isUnderground";
 import {
 	parseHeight,
 	parseMeters,
 	readTagAsUnsignedInt
-} from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
+} from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/tagHelpers";
 import getPathParamsFromTags
-	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getPathParamsFromTags";
-import getSidewalkSideFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getSidewalkSideFromTags";
-import getCyclewaySideFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getCyclwaySideFromTags";
+	from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/getPathParamsFromTags";
+import getSidewalkSideFromTags from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/getSidewalkSideFromTags";
+import getCyclewaySideFromTags from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/getCyclwaySideFromTags";
 import {ModifierType} from "~/lib/tile-processing/vector/qualifiers/modifiers";
-import getTreeTypeFromTags from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getTreeTypeFromTags";
+import getTreeTypeFromTags from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/getTreeTypeFromTags";
 import getFenceMaterialFromOSMType
-	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getFenceMaterialFromOSMType";
-import getWallTypeAndHeight from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getWallTypeAndHeight";
+	from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/getFenceMaterialFromOSMType";
+import getWallTypeAndHeight from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/getWallTypeAndHeight";
 import getRailwayParamsFromTags
-	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getRailwayParamsFromTags";
-import isRoadUnmarked from "~/lib/tile-processing/vector/qualifiers/factories/helpers/isRoadUnmarked";
+	from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/getRailwayParamsFromTags";
+import isRoadUnmarked from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/isRoadUnmarked";
 import getWaterwayParamsFromTags
-	from "~/lib/tile-processing/vector/qualifiers/factories/helpers/getWaterwayParamsFromTags";
+	from "~/lib/tile-processing/vector/qualifiers/factories/osm/helpers/getWaterwayParamsFromTags";
 
-export default class PolylineQualifierFactory extends AbstractQualifierFactory<VectorPolylineDescriptor> {
+export default class OSMPolylineQualifierFactory extends AbstractQualifierFactory<VectorPolylineDescriptor, Record<string, string>> {
 	public fromTags(tags: Record<string, string>): Qualifier<VectorPolylineDescriptor>[] {
 		if (isUnderground(tags) || tags.area === 'yes') {
 			return null;

@@ -1,5 +1,5 @@
 import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
-import {parseColor} from "~/lib/tile-processing/vector/qualifiers/factories/helpers/tagHelpers";
+import {VectorTile} from "~/lib/tile-processing/vector/providers/pbf/VectorTile";
 
 const lookup: Record<string, {
 	type: VectorAreaDescriptor['buildingFacadeMaterial'];
@@ -17,16 +17,15 @@ const lookup: Record<string, {
 	mirror: {type: 'glass', defaultColor: 0xffffff},
 };
 
-export default function getFacadeParamsFromTags(
-	tags: Record<string, string>
-): {
+export default function getFacadeParamsFromTags(tags: VectorTile.FeatureTags): {
 	material: VectorAreaDescriptor['buildingFacadeMaterial'];
 	color: number;
 } {
-	const materialTagValue = tags['building:material'];
-	const colorTagValue = tags['building:colour'];
+	const materialTagValue = <string>tags.material
+	const colorTagValue = <number>tags.color;
+
 	const config = lookup[materialTagValue] ?? lookup.plaster;
-	const color = parseColor(colorTagValue, config.defaultColor);
+	const color = colorTagValue ?? config.defaultColor;
 
 	return {
 		material: config.type,

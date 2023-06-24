@@ -2,14 +2,14 @@ import MathUtils from "~/lib/math/MathUtils";
 import OverpassDataObject, {NodeElement, RelationElement, RelationMember, WayElement} from "./OverpassDataObject";
 import VectorFeatureProvider from "~/lib/tile-processing/vector/providers/VectorFeatureProvider";
 import VectorFeatureCollection from "~/lib/tile-processing/vector/features/VectorFeatureCollection";
-import VectorArea from "~/lib/tile-processing/vector/features/VectorArea";
 import Vec2 from "~/lib/math/Vec2";
 import OSMNodeHandler from "~/lib/tile-processing/vector/handlers/OSMNodeHandler";
 import OSMWayHandler from "~/lib/tile-processing/vector/handlers/OSMWayHandler";
 import OSMRelationHandler from "~/lib/tile-processing/vector/handlers/OSMRelationHandler";
-import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
-import VectorPolyline from "~/lib/tile-processing/vector/features/VectorPolyline";
 import VectorBuildingOutlinesCleaner from "~/lib/tile-processing/vector/VectorBuildingOutlinesCleaner";
+import {VectorFeature} from "~/lib/tile-processing/vector/features/VectorFeature";
+import OSMHandler from "~/lib/tile-processing/vector/handlers/OSMHandler";
+import {getCollectionFromVectorFeatures} from "~/lib/tile-processing/vector/utils";
 
 const TileRequestMargin = 0.05;
 
@@ -44,19 +44,6 @@ const getRequestBody = (x: number, y: number, zoom: number): string => {
 		>>;
 		out body qt;
 	`;
-};
-const getRelationsRequestBody = (relations: number[]): string => {
-	return `
-		[out:json][timeout:30];
-		(
-		  rel(id:${relations.join(',')});
-		  >>;
-		);
-		out body;
-	`;
-};
-const getRelationRequestURL = (relation: number): string => {
-	return `https://www.openstreetmap.org/api/0.6/relation/${relation}/relations.json`
 };
 
 export default class OverpassVectorFeatureProvider extends VectorFeatureProvider {
@@ -157,45 +144,26 @@ export default class OverpassVectorFeatureProvider extends VectorFeatureProvider
 			}
 		}
 
-		const collection = OverpassVectorFeatureProvider.getFeaturesFromHandlers([
+		const features = OverpassVectorFeatureProvider.getFeaturesFromHandlers([
 			...nodeHandlersMap.values(),
 			...wayHandlersMap.values(),
 			...relationHandlersMap.values()
 		]);
+		const collection = getCollectionFromVectorFeatures(features);
 
 		collection.areas = new VectorBuildingOutlinesCleaner().deleteBuildingOutlines(collection.areas);
 
 		return collection;
 	}
 
-	private static getFeaturesFromHandlers(handlers: (OSMNodeHandler | OSMWayHandler | OSMRelationHandler)[]): VectorFeatureCollection {
-		const collection: VectorFeatureCollection = {
-			nodes: [],
-			polylines: [],
-			areas: []
-		};
+	private static getFeaturesFromHandlers(handlers: OSMHandler[]): VectorFeature[] {
+		const features: VectorFeature[] = [];
 
 		for (const handler of handlers) {
-			const output = handler.getFeatures();
-
-			if (output) {
-				for (const feature of output) {
-					switch (feature.type) {
-						case 'node':
-							collection.nodes.push(feature as VectorNode);
-							break;
-						case 'polyline':
-							collection.polylines.push(feature as VectorPolyline);
-							break;
-						case 'area':
-							collection.areas.push(feature as VectorArea);
-							break;
-					}
-				}
-			}
+			features.push(...handler.getFeatures());
 		}
 
-		return collection;
+		return features;
 	}
 
 	private static async fetchOverpassTile(
@@ -227,100 +195,6 @@ export default class OverpassVectorFeatureProvider extends VectorFeatureProvider
 			body: getRequestBody(x, y, zoom)
 		});
 		return await response.json() as OverpassDataObject;
-	}
-
-	// A hacky (but fast) way to get relations that include relations from OverpassDataObject as members.
-	// This is much faster than fetching these relations in the main Overpass query.
-	private static async repairOverpassRelations(data: OverpassDataObject, overpassURL: string): Promise<OverpassDataObject> {
-		const relationIds: Set<number> = new Set();
-		const relationRequests: Promise<any>[] = [];
-
-		for (const el of data.elements) {
-			if (el.type === 'relation') {
-				const url = getRelationRequestURL(el.id);
-
-				relationRequests.push(fetch(url, {
-					method: 'GET'
-				}).then(r => r.json()));
-			}
-		}
-
-		if (relationRequests.length === 0) {
-			return data;
-		}
-
-		const results: OverpassDataObject[] = await Promise.all(relationRequests);
-
-		for (const result of results) {
-			if (!result.elements || !result.elements.length) {
-				continue;
-			}
-
-			const ids = result.elements.filter(el => {
-				return el.type === 'relation' && el.tags && (
-					el.tags.type === 'multipolygon' || el.tags.type === 'building'
-				);
-			}).map(el => el.id);
-
-			for (const id of ids) {
-				relationIds.add(id);
-			}
-		}
-
-		if (relationIds.size === 0) {
-			return data;
-		}
-
-		const requestBody = getRelationsRequestBody(Array.from(relationIds.values()));
-		const response = await fetch(overpassURL, {
-			method: 'POST',
-			body: requestBody
-		});
-		const patch: OverpassDataObject = await response.json();
-
-		return OverpassVectorFeatureProvider.mergeOverpassDataObjects(data, patch);
-	}
-
-	private static mergeOverpassDataObjects(obj0: OverpassDataObject, obj1: OverpassDataObject): OverpassDataObject {
-		const nodes: Set<number> = new Set();
-		const ways: Set<number> = new Set();
-		const relations: Set<number> = new Set();
-
-		for (const el of obj0.elements) {
-			switch (el.type) {
-				case 'node':
-					nodes.add(el.id);
-					break;
-				case 'way':
-					ways.add(el.id);
-					break;
-				case 'relation':
-					relations.add(el.id);
-					break;
-			}
-		}
-
-		for (const el of obj1.elements) {
-			let isNewElement: boolean = false;
-
-			switch (el.type) {
-				case 'node':
-					isNewElement = !nodes.has(el.id);
-					break;
-				case 'way':
-					isNewElement = !ways.has(el.id);
-					break;
-				case 'relation':
-					isNewElement = !relations.has(el.id);
-					break;
-			}
-
-			if (isNewElement) {
-				obj0.elements.push(el);
-			}
-		}
-
-		return obj0;
 	}
 
 	private static classifyElements(elements: (NodeElement | WayElement | RelationElement)[]): {

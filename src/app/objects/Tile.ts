@@ -14,17 +14,13 @@ import AABB3D from "~/lib/math/AABB3D";
 import Vec3 from "~/lib/math/Vec3";
 import {
 	InstanceStructureSchemas,
-	LODConfig,
 	Tile3DInstanceLODConfig,
 	Tile3DInstanceType
 } from "~/lib/tile-processing/tile3d/features/Tile3DInstance";
-import InstancedTree from "~/app/objects/InstancedTree";
-import GenericInstancedObject from "./GenericInstancedObject";
 import InstancedObject from "~/app/objects/InstancedObject";
 import TerrainMask from "~/app/objects/TerrainMask";
 import EventEmitter from "~/app/EventEmitter";
 
-// position.xyz, scale, rotation
 export type InstanceBufferInterleaved = Float32Array;
 
 export type TileInstanceBuffers = Map<Tile3DInstanceType, {
@@ -57,17 +53,16 @@ export default class Tile extends Object3D {
 	public inFrustum: boolean = true;
 	public distanceToCamera: number = null;
 	public disposed = false;
-	public labelBuffersList: TileLabelBuffers[] = [];
+	public readonly labelBuffersList: TileLabelBuffers[] = [];
 	public labelsAABB: AABB3D = null;
-	public buildingsNeedFiltering: boolean = true;
-	public instanceBuffers: TileInstanceBuffers = new Map();
+	public readonly instanceBuffers: TileInstanceBuffers = new Map();
 
 	public extrudedMesh: TileExtrudedMesh;
 	public projectedMesh: TileProjectedMesh;
 	public huggingMesh: TileHuggingMesh;
 	public terrainMaskMesh: TerrainMask;
 
-	public usedHeightTiles: Vec2[] = [];
+	public readonly usedHeightTiles: Vec2[] = [];
 
 	public terrainMaskSliceIndex: number = null;
 
@@ -275,14 +270,6 @@ export default class Tile extends Object3D {
 		}
 
 		this.emitter.emit('delete');
-	}
-
-	public static encodePosition(x: number, y: number): number {
-		return x << 16 + y;
-	}
-
-	public static decodePosition(encoded: number): Vec2 {
-		return new Vec2(encoded >> 16, encoded & 0xffff);
 	}
 
 	public static packFeatureId(id: number, type: number): number {

@@ -150,8 +150,8 @@ export default class VectorPolylineHandler implements Handler {
 		let vertexAdjacentToEnd: Vec2 = null;
 
 		if (!pointStart.equals(pointEnd) && this.graphRoad) {
-			const intersectionStart = this.graph.getIntersectionByPoint(pointStart, this.graphGroup);
-			const intersectionEnd = this.graph.getIntersectionByPoint(pointEnd, this.graphGroup);
+			const intersectionStart = this.graphRoad.start.getIntersection();
+			const intersectionEnd = this.graphRoad.end.getIntersection();
 
 			if (intersectionStart && vertices.length > 1) {
 				vertexAdjacentToStart = this.processPathEnd(vertices, intersectionStart, 'first');
@@ -217,7 +217,7 @@ export default class VectorPolylineHandler implements Handler {
 		);
 
 		builder.addFence({
-			minHeight: this.descriptor.minHeight * this.mercatorScale,
+			minHeight: (this.descriptor.minHeight ?? 0) * this.mercatorScale,
 			height: this.descriptor.height * this.mercatorScale,
 			width: width,
 			textureId: textureId
@@ -247,7 +247,7 @@ export default class VectorPolylineHandler implements Handler {
 
 	private handleWaterway(): Tile3DProjectedGeometry {
 		const builder = new Tile3DProjectedGeometryBuilder();
-		builder.setZIndex(ZIndexMap.Water);
+		builder.setZIndex(ZIndexMap.Waterway);
 		builder.addRing(Tile3DRingType.Outer, this.vertices);
 
 		builder.addPath({
@@ -317,11 +317,16 @@ export default class VectorPolylineHandler implements Handler {
 						params[0].uvMaxX = width / 4;
 						break;
 					}
+					case 'asphalt': {
+						params[0].textureId = ProjectedTextures.Asphalt;
+						params[0].zIndex = ZIndexMap.AsphaltFootway;
+						params[0].uvScale = 20;
+						break;
+					}
 					default: {
 						params[0].textureId = ProjectedTextures.Pavement;
 						params[0].zIndex = ZIndexMap.Footway;
-						params[0].uvFollowRoad = false;
-						params[0].uvScale = 8;
+						params[0].uvScale = 10;
 					}
 				}
 				break;
