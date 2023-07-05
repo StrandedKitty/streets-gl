@@ -13,6 +13,9 @@ export interface SavedPlaceParams {
 	name: string;
 	lat: number;
 	lon: number;
+	pitch: number;
+	yaw: number;
+	distance: number;
 	link: string;
 	countryCode: string;
 	address: string;
@@ -106,7 +109,7 @@ const SavedPlace: React.FC<{
 			<button
 				className={styles.container__controls__button}
 				onClick={(): void => {
-					actions.goToLatLon(params.lat, params.lon);
+					actions.goToState(params.lat, params.lon, params.pitch, params.yaw, params.distance);
 				}}
 			>
 				Go

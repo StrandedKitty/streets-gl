@@ -122,6 +122,18 @@ export default class ControlsSystem extends System {
 		this.updatePositionFromState(this.state);
 	}
 
+	public setState(lat: number, lon: number, pitch: number, yaw: number, distance: number): void {
+		const position = MathUtils.degrees2meters(lat, lon);
+
+		this.state.x = position.x;
+		this.state.z = position.y;
+		this.state.pitch = MathUtils.toRad(pitch);
+		this.state.yaw = MathUtils.toRad(yaw);
+		this.state.distance = distance;
+
+		this.updatePositionFromState(this.state);
+	}
+
 	private updateStateFromPosition(): void {
 		if (this.activeNavigator) {
 			this.state = this.activeNavigator.getCurrentState();
