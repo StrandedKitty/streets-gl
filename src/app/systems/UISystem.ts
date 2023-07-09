@@ -87,6 +87,9 @@ export default class UISystem extends System {
 			goToLatLon: (lat: number, lon: number): void => {
 				this.systemManager.getSystem(ControlsSystem).setLatLon(lat, lon);
 			},
+			goToState: (lat: number, lon: number, pitch: number, yaw: number, distance: number): void => {
+				this.systemManager.getSystem(ControlsSystem).setState(lat, lon, pitch, yaw, distance);
+			},
 			lookAtNorth: () => {
 				this.systemManager.getSystem(ControlsSystem).lookAtNorth();
 			},

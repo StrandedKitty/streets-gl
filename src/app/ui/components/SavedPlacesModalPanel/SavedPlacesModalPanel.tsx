@@ -32,11 +32,20 @@ const SavedPlacesModalPanel: React.FC<{
 
 				if (Array.isArray(parsedData)) {
 					for (const item of parsedData) {
+						const components = item.link.split(',');
+						const lat = +components[0];
+						const lon = +components[1];
+						const pitch = +components[2];
+						const yaw = +components[3];
+						const distance = +components[4];
 						data.push({
 							id: item.id,
 							name: item.name,
-							lat: item.lat,
-							lon: item.lon,
+							lat: lat,
+							lon: lon,
+							pitch: pitch,
+							yaw: yaw,
+							distance: distance,
 							link: item.link,
 							countryCode: item.countryCode,
 							address: item.address
@@ -98,6 +107,9 @@ const SavedPlacesModalPanel: React.FC<{
 				name: data.display_name,
 				lat: +components[0],
 				lon: +components[1],
+				pitch: +components[2],
+				yaw: +components[3],
+				distance: +components[4],
 				link: hash,
 				countryCode: data.address.country_code,
 				address: address
