@@ -71,10 +71,15 @@ const SavedPlacesModalPanel: React.FC<{
 		setIsLoading(true);
 
 		const hash = actions.getControlsStateHash();
+		const components = hash.split(',');
+		const lat = +components[0];
+		const lon = +components[1];
 
 		const urlParams = new URLSearchParams({
 			format: 'json',
-			addressdetails: '1'
+			addressdetails: '1',
+			lat: lat.toString(),
+			lon: lon.toString()
 		});
 
 		fetch('https://nominatim.openstreetmap.org/reverse?' + urlParams.toString(), {
@@ -97,7 +102,6 @@ const SavedPlacesModalPanel: React.FC<{
 				address = data.address.country;
 			}
 
-			const components = hash.split(',');
 			const newPlaces = [...savedPlaces, {
 				id: Date.now().toString() + Math.random().toString().slice(2, 10),
 				name: data.display_name,
