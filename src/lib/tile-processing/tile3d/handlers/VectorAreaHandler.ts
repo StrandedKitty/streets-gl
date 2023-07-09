@@ -48,14 +48,14 @@ export default class VectorAreaHandler implements Handler {
 	}
 
 	private simplify(): void {
-		if (this.descriptor.type === 'roadwayIntersection') {
+		if (this.descriptor.type === 'roadwayIntersection' || this.descriptor.type === 'building') {
 			return;
 		}
 
 		const multipolygon = this.getMultipolygon();
 		const initialArea = multipolygon.getArea();
 
-		if (initialArea < 5 || this.descriptor.type === 'building') {
+		if (initialArea < 5) {
 			return;
 		}
 
