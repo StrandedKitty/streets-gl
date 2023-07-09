@@ -55,7 +55,7 @@ export default class VectorAreaHandler implements Handler {
 		const multipolygon = this.getMultipolygon();
 		const initialArea = multipolygon.getArea();
 
-		if (initialArea < 5) {
+		if (initialArea < 5 || this.descriptor.type === 'building') {
 			return;
 		}
 
