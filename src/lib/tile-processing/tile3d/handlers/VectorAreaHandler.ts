@@ -48,7 +48,7 @@ export default class VectorAreaHandler implements Handler {
 	}
 
 	private simplify(): void {
-		if (this.descriptor.type === 'roadwayIntersection') {
+		if (this.descriptor.type === 'roadwayIntersection' || this.descriptor.type === 'building') {
 			return;
 		}
 
