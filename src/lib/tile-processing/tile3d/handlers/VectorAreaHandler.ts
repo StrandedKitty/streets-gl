@@ -126,8 +126,9 @@ export default class VectorAreaHandler implements Handler {
 
 		if (this.descriptor.type === 'forest') {
 			const points2D = this.getMultipolygon().populateWithPoints(
-				Math.floor(40 / this.mercatorScale),
-				Config.TileSize
+				Math.floor(Config.ThreeTiles / this.mercatorScale),
+				Config.TreesPerTile,
+				this.osmReference.id
 			);
 			const points3D: Vec3[] = [];
 			const positions: number[] = [];
@@ -157,8 +158,9 @@ export default class VectorAreaHandler implements Handler {
 
 		if (this.descriptor.type === 'shrubbery') {
 			const points2D = this.getMultipolygon().populateWithPoints(
-				Math.floor(80 / this.mercatorScale),
-				Config.TileSize
+				Math.floor(Config.BushTiles / this.mercatorScale),
+				Config.BushesPerTile,
+				this.osmReference.id
 			);
 			const points3D: Vec3[] = [];
 			const positions: number[] = [];

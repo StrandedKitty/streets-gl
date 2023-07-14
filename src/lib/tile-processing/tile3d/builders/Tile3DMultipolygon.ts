@@ -7,6 +7,8 @@ import * as OMBB from "~/lib/math/OMBB";
 import polylabel from "polylabel";
 import Vec3 from "~/lib/math/Vec3";
 import MathUtils from "~/lib/math/MathUtils";
+import SeededRandom from "~/lib/math/SeededRandom";
+import Config from "~/app/Config";
 
 interface EarcutInput {
 	vertices: number[];
@@ -199,34 +201,54 @@ export default class Tile3DMultipolygon {
 		return this.cachedPoleOfInaccessibility;
 	}
 
-	public populateWithPoints(resolution: number, tileSize: number): Vec2[] {
-		const tiles = this.getCoveredTiles(resolution, tileSize);
+	public populateWithPoints(resolution: number, pointsPerBox: number, seed: number): Vec2[] {
+		const tiles = this.getCoveredTiles(resolution, Config.TileSize);
 		const points: Vec2[] = [];
+		const rnd = new SeededRandom(seed);
 
 		for (const tile of tiles) {
 			const [x, y] = tile.split(' ').map(v => +v);
-			const point = new Vec2(
-				(x + 0.75 - Math.random() * 0.5) / resolution * tileSize,
-				(y + 0.75 - Math.random() * 0.5) / resolution * tileSize,
-			);
 
-			let isInMultipolygon = true;
+			for (let i = 0; i < pointsPerBox; ++i) {
+				const offset = 0.5;
+				const factor = 1.0;
+				const point = new Vec2( // 0.75 - Math.random() * 0.5
+					(x + offset - rnd.generate() * factor) / resolution * Config.TileSize,
+					(y + offset - rnd.generate() * factor) / resolution * Config.TileSize,
+				);
 
-			for (const ring of this.rings) {
-				if (ring.type === Tile3DRingType.Outer) {
-					if (!ring.isContainsPoints(point)) {
-						isInMultipolygon = false;
-					}
-				} else {
-					if (ring.isContainsPoints(point)) {
+				let isInMultipolygon = true;
+
+				// check if to close to the other points
+				for (const other of points) {
+					if (
+						Math.abs(point.x - other.x) < Config.PlantDistance &&
+						Math.abs(point.y - other.y) < Config.PlantDistance
+					) {
+						i = i - 1;
 						isInMultipolygon = false;
 					}
 				}
+
+
+				for (const ring of this.rings) {
+					if (ring.type === Tile3DRingType.Outer) {
+						if (!ring.isContainsPoints(point)) {
+							isInMultipolygon = false;
+						}
+					} else {
+						if (ring.isContainsPoints(point)) {
+							isInMultipolygon = false;
+						}
+					}
+				}
+
+				if (isInMultipolygon) {
+					points.push(point);
+				}
+
 			}
 
-			if (isInMultipolygon) {
-				points.push(point);
-			}
 		}
 
 		return points;
