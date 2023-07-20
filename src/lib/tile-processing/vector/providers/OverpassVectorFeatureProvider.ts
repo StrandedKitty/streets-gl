@@ -47,11 +47,7 @@ const getRequestBody = (x: number, y: number, zoom: number): string => {
 };
 
 export default class OverpassVectorFeatureProvider extends VectorFeatureProvider {
-	public constructor(
-		private readonly overpassURL: string,
-		private readonly tileServerEndpoint: string,
-		private readonly useCachedTiles: boolean
-	) {
+	public constructor(private readonly overpassURL: string) {
 		super();
 	}
 
@@ -67,10 +63,7 @@ export default class OverpassVectorFeatureProvider extends VectorFeatureProvider
 		}
 	): Promise<VectorFeatureCollection> {
 		const tileOrigin = MathUtils.tile2meters(x, y + 1, zoom);
-		const overpassData = await OverpassVectorFeatureProvider.fetchOverpassTile(
-			x, y, zoom,
-			this.overpassURL, this.tileServerEndpoint, this.useCachedTiles
-		);
+		const overpassData = await OverpassVectorFeatureProvider.fetchOverpassTile(x, y, zoom, this.overpassURL);
 
 		const nodeHandlersMap: Map<number, OSMNodeHandler> = new Map();
 		const wayHandlersMap: Map<number, OSMWayHandler> = new Map();
@@ -170,26 +163,8 @@ export default class OverpassVectorFeatureProvider extends VectorFeatureProvider
 		x: number,
 		y: number,
 		zoom: number,
-		overpassURL: string,
-		tileServerEndpoint: string,
-		useCached: boolean
+		overpassURL: string
 	): Promise<OverpassDataObject> {
-		if (useCached) {
-			try {
-				const tileData = await fetch(`${tileServerEndpoint}/tile/${x}/${y}`, {
-					method: 'GET'
-				});
-
-				const data = await tileData.json();
-
-				if (!data.error) {
-					return data;
-				}
-			} catch (e) {
-				console.error(e);
-			}
-		}
-
 		const response = await fetch(overpassURL, {
 			method: 'POST',
 			body: getRequestBody(x, y, zoom)

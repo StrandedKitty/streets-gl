@@ -10,7 +10,6 @@ export namespace WorkerMessage {
 		overpassEndpoint?: string;
 		tileServerEndpoint?: string;
 		vectorTilesEndpointTemplate?: string;
-		useCachedTiles?: boolean;
 		isTerrainHeightEnabled?: boolean;
 		height?: Float64Array;
 	}

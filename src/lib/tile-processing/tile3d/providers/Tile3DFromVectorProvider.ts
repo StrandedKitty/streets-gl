@@ -30,7 +30,6 @@ export interface Tile3DProviderParams {
 	overpassEndpoint: string;
 	tileServerEndpoint: string;
 	vectorTilesEndpointTemplate: string;
-	useCachedTiles: boolean;
 	heightPromise: (positions: Float64Array) => Promise<Float64Array>;
 }
 

@@ -121,7 +121,6 @@ export default class TileLoadingSystem extends System {
 			overpassEndpoint: overpassEndpoint,
 			tileServerEndpoint: Config.TileServerEndpoint,
 			vectorTilesEndpointTemplate: Config.TilesEndpointTemplate,
-			useCachedTiles: this.useCachedTiles,
 			isTerrainHeightEnabled: isTerrainHeightEnabled
 		}).then(result => {
 			onLoad(result);
@@ -129,10 +128,5 @@ export default class TileLoadingSystem extends System {
 			//console.error(`Failed to load tile ${tile.x},${tile.y}. Retrying...`, error);
 			onLoad(null);
 		});
-	}
-
-	private get useCachedTiles(): boolean {
-		const settingsSystem = this.systemManager.getSystem(SettingsSystem);
-		return settingsSystem.settings.get('cachedTiles').statusValue === 'on';
 	}
 }
