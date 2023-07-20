@@ -14,7 +14,7 @@ export default class TexturePool {
 		this.textures.set('tree', createTreeTexture(renderer));
 		this.textures.set('projectedMesh', createProjectedMeshTexture(renderer));
 		this.textures.set('extrudedMesh', createExtrudedMeshTexture(renderer));
-		this.textures.set('aircraft', createAircraftTexture(renderer));
+		//this.textures.set('aircraft', createAircraftTexture(renderer));
 	}
 
 	public get(name: string): AbstractTexture {
