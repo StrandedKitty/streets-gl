@@ -97,6 +97,20 @@ export default class VectorAreaHandler implements Handler {
 		return this.multipolygon;
 	}
 
+	// https://en.wikipedia.org/wiki/Halton_sequence
+	// https://codesandbox.io/s/halton-sequence-positioning-80tnv?file=/src/App.js:183-189
+	// https://en.wikipedia.org/wiki/Halton_sequence 
+	private halton(index: number, base: number) {
+		let fraction = 1;
+		let result = 0;
+		while (index > 0) {
+			fraction /= base;
+			result += fraction * (index % base);
+			index = ~~(index / base); // floor division
+		}
+		return result;
+	}
+
 	public getRequestedHeightPositions(): RequestedHeightParams {
 		if (this.descriptor.type === 'building' || this.descriptor.type === 'buildingPart') {
 			const positions: number[] = [];
