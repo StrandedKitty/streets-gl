@@ -26,6 +26,11 @@ export default new class ResourceLoader {
 		for (const [name, record] of Object.entries(resources)) {
 			const type = ResourceLoader.getResourceTypeFromString(record.type);
 
+			if (name.startsWith('aircraft')) {
+				// Skip aircraft models as they are unused for now
+				continue;
+			}
+
 			this.add(name, record.url, type);
 		}
 	}

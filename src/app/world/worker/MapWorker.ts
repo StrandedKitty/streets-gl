@@ -6,7 +6,6 @@ export interface TileRequestParams {
 	overpassEndpoint: string;
 	tileServerEndpoint: string;
 	vectorTilesEndpointTemplate: string;
-	useCachedTiles: boolean;
 	isTerrainHeightEnabled: boolean;
 }
 

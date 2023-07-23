@@ -15,11 +15,7 @@ export default class CombinedVectorFeatureProvider extends VectorFeatureProvider
 	public constructor(params: Tile3DProviderParams) {
 		super();
 
-		this.overpassProvider = new OverpassVectorFeatureProvider(
-			params.overpassEndpoint,
-			params.tileServerEndpoint,
-			params.useCachedTiles
-		);
+		this.overpassProvider = new OverpassVectorFeatureProvider(params.overpassEndpoint);
 		this.mapboxProvider = new MapboxVectorFeatureProvider(params.vectorTilesEndpointTemplate);
 		this.pbfProvider = new PBFVectorFeatureProvider();
 	}

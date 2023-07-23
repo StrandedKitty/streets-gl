@@ -82,7 +82,7 @@ export default class SceneSystem extends System {
 			instancedAircraftParts: new Map()
 		};
 
-		this.objects.instancedAircraftParts.set(
+		/*this.objects.instancedAircraftParts.set(
 			AircraftPartType.B777Body,
 			new InstancedAircraftPart(ModelManager.getGLTFModel('aircraftB777'))
 		);
@@ -117,7 +117,7 @@ export default class SceneSystem extends System {
 		this.objects.instancedAircraftParts.set(
 			AircraftPartType.HelicopterTailRotorStatic,
 			new InstancedAircraftPart(ModelManager.getGLTFModel('aircraftHeliRotorTailStatic'))
-		);
+		);*/
 
 		this.objects.instancedObjects.set('tree', new InstancedTree(ModelManager.getGLTFModel('tree')));
 		this.objects.instancedObjects.set('adColumn', new GenericInstancedObject(ModelManager.getGLTFModel('adColumn')));

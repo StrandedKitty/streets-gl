@@ -55,7 +55,7 @@ export default class VehicleSystem extends System {
 	public readonly aircraftMap: Map<string, Aircraft> = new Map();
 	private lastUpdateTimestamp: number = 0;
 	private serverTimeOffset: number = null;
-	private enabled: boolean = true;
+	private enabled: boolean = false;
 	private lockAircraftPositions: boolean = false;
 	public aircraftPartsBuffers: Map<AircraftPartType, Float32Array> = new Map();
 
@@ -78,9 +78,9 @@ export default class VehicleSystem extends System {
 	private listenToSettings(): void {
 		const settings = this.systemManager.getSystem(SettingsSystem).settings;
 
-		settings.onChange('airTraffic', ({statusValue}) => {
+		/*settings.onChange('airTraffic', ({statusValue}) => {
 			this.enabled = statusValue === 'on';
-		}, true);
+		}, true);*/
 	}
 
 	private startTimer(): void {

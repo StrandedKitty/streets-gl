@@ -65,13 +65,6 @@ const Config = {
 			statusDefault: 'on',
 			category: 'general'
 		},
-		cachedTiles: {
-			label: 'Use cached tiles if available',
-			status: ['off', 'on'],
-			statusLabels: ['Disabled', 'Enabled'],
-			statusDefault: 'on',
-			category: 'general'
-		},
 		terrainHeight: {
 			label: 'Use terrain elevation data',
 			status: ['off', 'on'],
@@ -79,13 +72,13 @@ const Config = {
 			statusDefault: 'on',
 			category: 'general'
 		},
-		airTraffic: {
+		/*airTraffic: {
 			label: 'Real-time air traffic',
 			status: ['off', 'on'],
 			statusLabels: ['Disabled', 'Enabled'],
 			statusDefault: 'on',
 			category: 'general'
-		},
+		},*/
 		shadows: {
 			label: 'Shadows',
 			status: ['off', 'low', 'medium', 'high'],
