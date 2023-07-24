@@ -97,20 +97,6 @@ export default class VectorAreaHandler implements Handler {
 		return this.multipolygon;
 	}
 
-	// https://en.wikipedia.org/wiki/Halton_sequence
-	// https://codesandbox.io/s/halton-sequence-positioning-80tnv?file=/src/App.js:183-189
-	// https://en.wikipedia.org/wiki/Halton_sequence 
-	private halton(index: number, base: number) {
-		let fraction = 1;
-		let result = 0;
-		while (index > 0) {
-			fraction /= base;
-			result += fraction * (index % base);
-			index = ~~(index / base); // floor division
-		}
-		return result;
-	}
-
 	public getRequestedHeightPositions(): RequestedHeightParams {
 		if (this.descriptor.type === 'building' || this.descriptor.type === 'buildingPart') {
 			const positions: number[] = [];
@@ -139,8 +125,10 @@ export default class VectorAreaHandler implements Handler {
 		}
 
 		if (this.descriptor.type === 'forest') {
+			const resolution = Math.ceil(Config.ThreeTiles / this.mercatorScale)
+			const plantTileSize = Config.TileSize / resolution;
 			const points2D = this.getMultipolygon().populateWithPoints(
-				Math.floor(Config.ThreeTiles / this.mercatorScale),
+				plantTileSize,
 				Config.TreesPerTile,
 				this.osmReference.id
 			);
@@ -171,8 +159,10 @@ export default class VectorAreaHandler implements Handler {
 		}
 
 		if (this.descriptor.type === 'shrubbery') {
+			const resolution = Math.ceil(Config.ThreeTiles / this.mercatorScale)
+			const plantTileSize = Config.TileSize / resolution;
 			const points2D = this.getMultipolygon().populateWithPoints(
-				Math.floor(Config.BushTiles / this.mercatorScale),
+				plantTileSize,
 				Config.BushesPerTile,
 				this.osmReference.id
 			);
@@ -565,7 +555,7 @@ export default class VectorAreaHandler implements Handler {
 			type: 'instance',
 			instanceType: 'tree',
 			x: x,
-			y: y * this.mercatorScale,
+			y: y * this.mercatorScale, // doe it at z ???
 			z: z,
 			scale: height * textureScale * this.mercatorScale,
 			rotation: rotation,
