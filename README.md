@@ -74,3 +74,7 @@ More information about contributing can be found in [CONTRIBUTING.md](CONTRIBUTI
 1. Clone this repository
 2. Install dependencies with `npm i`
 3. Run `npm run dev` to start a local development server
+
+## ⭐ Sponsors
+
+- **[ONEGEO](https://onegeo.co/)**
