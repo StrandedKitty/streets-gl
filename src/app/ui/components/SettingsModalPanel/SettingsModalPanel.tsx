@@ -73,7 +73,7 @@ const SettingsModalPanel: React.FC<{
 					]}
 				/>
 			</ModalCategoryContainer>
-			<ModalCategoryContainer>
+			{/*<ModalCategoryContainer>
 				<ModalCategory label={'Overpass endpoints'}>
 					<Endpoints
 						ref={endpointsRef}
@@ -95,7 +95,7 @@ const SettingsModalPanel: React.FC<{
 						}
 					]}
 				/>
-			</ModalCategoryContainer>
+			</ModalCategoryContainer>*/}
 		</div>
 	</ModalPanel>;
 }
