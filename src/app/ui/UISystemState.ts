@@ -17,4 +17,5 @@ export default interface UISystemState {
 	northDirection: number;
 	settingsSchema: SettingsSchema;
 	overpassEndpoints: OverpassEndpoint[];
+	dataTimestamp: Date;
 }

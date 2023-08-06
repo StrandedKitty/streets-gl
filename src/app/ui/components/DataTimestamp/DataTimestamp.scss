@@ -1,0 +1,11 @@
+@import "../../styles/common.scss";
+
+.timestamp {
+	position: absolute;
+	bottom: 22px;
+	right: 4px;
+	font-size: 11px;
+	color: #fff;
+	text-align: right;
+	opacity: 0.8;
+}

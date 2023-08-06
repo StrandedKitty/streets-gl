@@ -14,6 +14,7 @@ import SettingsModalPanel from "~/app/ui/components/SettingsModalPanel";
 import GeolocationButton from "~/app/ui/components/GeolocationButton";
 import styles from './MainScreen.scss';
 import SavedPlacesModalPanel from "~/app/ui/components/SavedPlacesModalPanel";
+import DataTimestamp from "~/app/ui/components/DataTimestamp";
 
 const MainScreen: React.FC = () => {
 	const atoms = useContext(AtomsContext);
@@ -70,6 +71,7 @@ const MainScreen: React.FC = () => {
 				activeModalWindow === 'savedPlaces' && <SavedPlacesModalPanel onClose={closeModal}/>
 			}
 			<DebugInfo showRenderGraph={showRenderGraph}/>
+			<DataTimestamp/>
 			<TimePanel/>
 			<SelectionPanel/>
 			<LegalAttributionPanel/>

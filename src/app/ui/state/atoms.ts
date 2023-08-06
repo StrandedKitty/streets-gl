@@ -19,6 +19,7 @@ export interface AtomsCollection {
 	settingsObject: (param: string) => RecoilState<SettingsObjectEntry>;
 	settingsSchema: RecoilState<SettingsSchema>;
 	overpassEndpoints: RecoilState<OverpassEndpoint[]>;
+	dataTimestamp: RecoilState<Date>;
 }
 
 export const getAtoms = (
@@ -77,6 +78,10 @@ export const getAtoms = (
 		overpassEndpoints: atom({
 			key: 'overpassEndpoints',
 			effects: [bidirectionalSyncEffect('overpassEndpoints', commonStorage)]
+		}),
+		dataTimestamp: atom({
+			key: 'dataTimestamp',
+			effects: [bidirectionalSyncEffect('dataTimestamp', commonStorage)]
 		}),
 	};
 }

@@ -33,7 +33,8 @@ export default class UISystem extends System {
 		resourceInProgressPath: '',
 		northDirection: 0,
 		settingsSchema: {},
-		overpassEndpoints: []
+		overpassEndpoints: [],
+		dataTimestamp: null
 	};
 	private fpsUpdateTimer = 0;
 
@@ -61,6 +62,10 @@ export default class UISystem extends System {
 				if (value.length > 0) {
 					system.setOverpassEndpoints(value);
 				}
+			});
+
+			system.fetchTilesTimestamp().then(timestamp => {
+				this.ui.setStateFieldValue('dataTimestamp', timestamp);
 			});
 		});
 
