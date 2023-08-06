@@ -65,7 +65,7 @@ export default class TileLoadingSystem extends System {
 
 			if (response.status === 200) {
 				const text = await response.text();
-				timestamp = new Date(text);
+				timestamp = new Date(text.replace(/\n/g, ''));
 			} else {
 				console.error(`Failed to fetch vector tiles timestamp. Status: ${response.status}`);
 			}
