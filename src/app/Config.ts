@@ -143,7 +143,8 @@ const Config = {
 	TileServerEndpoint: 'https://tiles.streets.gl',
 	SlippyEndpointTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
 	ElevationEndpointTemplate: 'https://tiles.streets.gl/elevation/{z}/{x}/{y}',
-	TilesEndpointTemplate: 'https://tiles.streets.gl/vector/{z}/{x}/{y}'
+	TilesEndpointTemplate: 'https://tiles.streets.gl/vector/{z}/{x}/{y}',
+	OnegeoEndpointTemplate: 'https://data.onegeo.co/maps/tiles/{z}/{x}/{y}.pbf?token=3yqtghj8k3bdbpr9'
 };
 
 export default Config;

@@ -6,18 +6,21 @@ import {Tile3DProviderParams} from "~/lib/tile-processing/tile3d/providers/Tile3
 import MathUtils from "~/lib/math/MathUtils";
 import VectorArea from "~/lib/tile-processing/vector/features/VectorArea";
 import PBFVectorFeatureProvider from "~/lib/tile-processing/vector/providers/PBFVectorFeatureProvider";
+import OnegeoVectorFeatureProvider from "~/lib/tile-processing/vector/providers/OnegeoVectorFeatureProvider";
 
 export default class CombinedVectorFeatureProvider extends VectorFeatureProvider {
 	private readonly overpassProvider: OverpassVectorFeatureProvider;
 	private readonly mapboxProvider: MapboxVectorFeatureProvider;
 	private readonly pbfProvider: PBFVectorFeatureProvider;
+	private readonly onegeoProvider: OnegeoVectorFeatureProvider;
 
 	public constructor(params: Tile3DProviderParams) {
 		super();
 
-		this.overpassProvider = new OverpassVectorFeatureProvider(params.overpassEndpoint);
-		this.mapboxProvider = new MapboxVectorFeatureProvider(params.vectorTilesEndpointTemplate);
-		this.pbfProvider = new PBFVectorFeatureProvider();
+		//this.overpassProvider = new OverpassVectorFeatureProvider(params.overpassEndpoint);
+		//this.mapboxProvider = new MapboxVectorFeatureProvider(params.vectorTilesEndpointTemplate);
+		//this.pbfProvider = new PBFVectorFeatureProvider();
+		this.onegeoProvider = new OnegeoVectorFeatureProvider();
 	}
 
 	public async getCollection(
@@ -31,7 +34,7 @@ export default class CombinedVectorFeatureProvider extends VectorFeatureProvider
 			zoom: number;
 		}
 	): Promise<VectorFeatureCollection> {
-		const pbfRequest = this.pbfProvider.getCollection({x, y, zoom});
+		const pbfRequest = this.onegeoProvider.getCollection({x, y, zoom});
 
 		return new Promise((resolve, reject) => {
 			pbfRequest.then((data) => {

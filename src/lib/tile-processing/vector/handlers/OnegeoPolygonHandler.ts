@@ -1,23 +1,25 @@
-import VectorArea, {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
-import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
-import OSMReference from "~/lib/tile-processing/vector/features/OSMReference";
-import {VectorTile} from "~/lib/tile-processing/vector/providers/pbf/VectorTile";
-import VectorTileHandler from "~/lib/tile-processing/vector/handlers/VectorTileHandler";
-import {getOSMReferenceFromVectorTileFeatureTags} from "~/lib/tile-processing/vector/utils";
-import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
-import VectorTileAreaQualifierFactory
-	from "~/lib/tile-processing/vector/qualifiers/factories/vector-tile/VectorTileAreaQualifierFactory";
-import {QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
+import OnegeoHandler from "~/lib/tile-processing/vector/handlers/OnegeoHandler";
 import {VectorFeature} from "~/lib/tile-processing/vector/features/VectorFeature";
+import {VectorTile} from "~/lib/tile-processing/vector/providers/pbf/VectorTile";
+import VectorArea, {VectorAreaRing, VectorAreaRingType} from "~/lib/tile-processing/vector/features/VectorArea";
+import OSMReference, {OSMReferenceType} from "~/lib/tile-processing/vector/features/OSMReference";
+import VectorNode from "~/lib/tile-processing/vector/features/VectorNode";
+import {QualifierType} from "~/lib/tile-processing/vector/qualifiers/Qualifier";
+import {VectorAreaDescriptor} from "~/lib/tile-processing/vector/qualifiers/descriptors";
+import OnegeoAreaQualifierFactory
+	from "~/lib/tile-processing/vector/qualifiers/factories/onegeo/OnegeoAreaQualifierFactory";
+import getOSMReferenceFromOnegeoID from "~/lib/tile-processing/vector/handlers/getOSMReferenceFromOnegeoID";
 
-export default class VectorTilePolygonHandler implements VectorTileHandler {
+export default class OnegeoPolygonHandler implements OnegeoHandler {
 	private readonly rings: VectorAreaRing[] = [];
 	private readonly tags: VectorTile.FeatureTags;
+	private readonly layer: string;
 	private readonly osmReference: OSMReference;
 
-	public constructor(feature: VectorTile.PolygonFeature) {
+	public constructor(feature: VectorTile.PolygonFeature, layer: string) {
 		this.tags = feature.tags;
-		this.osmReference = getOSMReferenceFromVectorTileFeatureTags(this.tags);
+		this.layer = layer;
+		this.osmReference = getOSMReferenceFromOnegeoID(<string>this.tags.partId ?? <string>this.tags.id);
 
 		for (const ring of feature.geometry) {
 			this.addRing(ring);
@@ -25,18 +27,18 @@ export default class VectorTilePolygonHandler implements VectorTileHandler {
 	}
 
 	public addRing(ring: VectorTile.PolygonRingGeometry): void {
-		if (!VectorTilePolygonHandler.validateRing(ring)) {
+		if (!OnegeoPolygonHandler.validateRing(ring)) {
 			throw new Error('Invalid PBF ring');
 		}
 
-		const vectorRing = VectorTilePolygonHandler.inputRingToVectorRing(ring);
+		const vectorRing = OnegeoPolygonHandler.inputRingToVectorRing(ring);
 
 		this.rings.push(vectorRing);
 	}
 
 	public getFeatures(): VectorFeature[] {
 		const features: VectorFeature[] = [];
-		const qualifiers = new VectorTileAreaQualifierFactory().fromTags(this.tags);
+		const qualifiers = new OnegeoAreaQualifierFactory().fromTags(this.tags, this.layer);
 
 		if (!qualifiers) {
 			return [];
@@ -64,7 +66,16 @@ export default class VectorTilePolygonHandler implements VectorTileHandler {
 				});
 			} else {
 				if (!areas[areas.length - 1]) {
-					throw new Error('Invalid ring order');
+					//console.error('Invalid ring order');
+					ring.type = VectorAreaRingType.Outer;
+					ring.nodes.reverse();
+					areas.push({
+						type: 'area',
+						rings: [ring],
+						osmReference: this.osmReference,
+						descriptor: {...descriptor}
+					});
+					continue;
 				}
 
 				areas[areas.length - 1].rings.push(ring);
@@ -72,18 +83,6 @@ export default class VectorTilePolygonHandler implements VectorTileHandler {
 		}
 
 		return areas;
-	}
-
-	private static isRingClockwise(ring: VectorTile.PolygonRingGeometry): boolean {
-		let sum = 0;
-
-		for (let i = 0; i < ring.length; i++) {
-			const point1 = ring[i];
-			const point2 = ring[i + 1] ?? ring[0];
-			sum += (point2[0] - point1[0]) * (point2[1] + point1[1]);
-		}
-
-		return sum < 0;
 	}
 
 	private static validateRing(ring: VectorTile.PolygonRingGeometry): boolean {
@@ -108,5 +107,17 @@ export default class VectorTilePolygonHandler implements VectorTileHandler {
 		});
 
 		return {type, nodes};
+	}
+
+	private static isRingClockwise(ring: VectorTile.PolygonRingGeometry): boolean {
+		let sum = 0;
+
+		for (let i = 0; i < ring.length; i++) {
+			const point1 = ring[i];
+			const point2 = ring[i + 1] ?? ring[0];
+			sum += (point2[0] - point1[0]) * (point2[1] + point1[1]);
+		}
+
+		return sum < 0;
 	}
 }

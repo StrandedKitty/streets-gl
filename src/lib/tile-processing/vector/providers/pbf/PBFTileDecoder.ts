@@ -9,7 +9,8 @@ export enum TagTypes {
 	Int,
 	UInt,
 	SInt,
-	Bool
+	Bool,
+	Number // Generic number
 }
 
 export type TagTypesMap = Record<string, TagTypes>;
@@ -102,14 +103,17 @@ export default class PBFTileDecoder {
 			const tagType = tagTypes[key];
 
 			if (tagType === undefined) {
-				console.warn(`Unknown tag key: ${key}`, value);
+				if (!key.startsWith('name')) {
+					//console.log(`Unknown tag key: ${key}`, JSON.stringify(value));
+				}
+				decodedTags[key] = JSON.stringify(value);
 				continue;
 			}
 
 			decodedTags[key] = this.decodeTagValue(value, tagType);
 		}
 
-		return decodedTags; 
+		return decodedTags;
 	}
 
 	private static decodeTagValue(value: PBFTagValue, type: TagTypes): string | number | boolean {
@@ -128,6 +132,24 @@ export default class PBFTileDecoder {
 				return value.sint_value;
 			case TagTypes.Bool:
 				return value.bool_value;
+			case TagTypes.Number: {
+				if (value.float_value !== 0) {
+					return value.float_value;
+				}
+				if (value.double_value !== 0) {
+					return value.double_value;
+				}
+				if (value.int_value !== 0) {
+					return value.int_value;
+				}
+				if (value.uint_value !== 0) {
+					return value.uint_value;
+				}
+				if (value.sint_value !== 0) {
+					return value.sint_value;
+				}
+				return 0;
+			}
 		}
 
 		throw new Error(`Unknown tag type: ${type}`);

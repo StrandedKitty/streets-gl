@@ -5,77 +5,56 @@ import PBFTile from "~/lib/tile-processing/vector/providers/pbf/PBFTile";
 import PBFTileDecoder, {TagTypes, TagTypesMap} from "~/lib/tile-processing/vector/providers/pbf/PBFTileDecoder";
 import {VectorTile} from "~/lib/tile-processing/vector/providers/pbf/VectorTile";
 import VectorTileHandler from "~/lib/tile-processing/vector/handlers/VectorTileHandler";
-import VectorTilePolygonHandler from "~/lib/tile-processing/vector/handlers/VectorTilePolygonHandler";
-import VectorTileLineStringHandler from "~/lib/tile-processing/vector/handlers/VectorTileLineStringHandler";
-import VectorTilePointHandler from "~/lib/tile-processing/vector/handlers/VectorTilePointHandler";
 import {VectorFeature} from "~/lib/tile-processing/vector/features/VectorFeature";
 import {getCollectionFromVectorFeatures} from "~/lib/tile-processing/vector/utils";
 import Utils from "~/app/Utils";
 import Config from "~/app/Config";
+import OnegeoPolygonHandler from "~/lib/tile-processing/vector/handlers/OnegeoPolygonHandler";
+import OnegeoLineStringHandler from "~/lib/tile-processing/vector/handlers/OnegeoLineStringHandler";
+import OnegeoPointHandler from "~/lib/tile-processing/vector/handlers/OnegeoPointHandler";
 
 const proto = require('./pbf/vector_tile.js').Tile;
 
 const PBFTagTypesMap: TagTypesMap = {
-	"@ombb00": TagTypes.Double,
-	"@ombb01": TagTypes.Double,
-	"@ombb10": TagTypes.Double,
-	"@ombb11": TagTypes.Double,
-	"@ombb20": TagTypes.Double,
-	"@ombb21": TagTypes.Double,
-	"@ombb30": TagTypes.Double,
-	"@ombb31": TagTypes.Double,
-	"@poiX": TagTypes.Double,
-	"@poiY": TagTypes.Double,
-	"@poiR": TagTypes.Double,
-	type: TagTypes.String,
-	osmId: TagTypes.SInt,
-	osmType: TagTypes.SInt,
-	name: TagTypes.String,
-	width: TagTypes.Double,
-	height: TagTypes.Double,
-	minHeight: TagTypes.Double,
-	roofHeight: TagTypes.Double,
-	buildingType: TagTypes.String,
-	wallType: TagTypes.String,
-	pathType: TagTypes.String,
-	cyclewaySide: TagTypes.SInt,
-	sidewalkSide: TagTypes.SInt,
-	surface: TagTypes.String,
-	lanes: TagTypes.SInt,
-	lanesForward: TagTypes.SInt,
-	lanesBackward: TagTypes.SInt,
-	oneway: TagTypes.Bool,
-	levels: TagTypes.SInt,
-	roofLevels: TagTypes.SInt,
-	roofShape: TagTypes.String,
-	windows: TagTypes.Bool,
-	defaultRoof: TagTypes.Bool,
-	color: TagTypes.SInt,
+	height: TagTypes.Number,
+	minHeight: TagTypes.Number,
 	material: TagTypes.String,
+	color: TagTypes.String,
 	roofMaterial: TagTypes.String,
-	roofColor: TagTypes.SInt,
-	roofType: TagTypes.String,
-	roofAngle: TagTypes.Double,
-	roofOrientation: TagTypes.String,
-	roofDirection: TagTypes.Double,
-	laneMarkings: TagTypes.String,
-	gauge: TagTypes.String,
-	fenceType: TagTypes.String,
-	leafType: TagTypes.String,
-	genus: TagTypes.String,
-	direction: TagTypes.Double,
-	waterwayType: TagTypes.String,
-	sport: TagTypes.String,
-	hoops: TagTypes.SInt,
-	railwayType: TagTypes.String,
-	crop: TagTypes.String,
-	country: TagTypes.String,
-	wikidata: TagTypes.String,
-	isPart: TagTypes.Bool,
-	lampSupport: TagTypes.String
+	roofShape: TagTypes.String,
+	roofColor: TagTypes.String,
+	id: TagTypes.String,
+	partId: TagTypes.String,
+	date: TagTypes.UInt,
+	orient: TagTypes.Double,
+	ele: TagTypes.Double,
+	class: TagTypes.String,
+	subclass: TagTypes.String,
+	surface: TagTypes.String,
+	name: TagTypes.String,
+	type: TagTypes.String,
+	levels: TagTypes.UInt,
+	minLevel: TagTypes.UInt,
+	origId: TagTypes.UInt,
+	rank: TagTypes.UInt,
+	roofHeight: TagTypes.Number,
+	roofDirection: TagTypes.Number,
+	oneway: TagTypes.UInt,
+	housenumber: TagTypes.String,
+	layer: TagTypes.Number,
+	roofLevels: TagTypes.UInt,
+	foot: TagTypes.String,
+	level: TagTypes.Number,
+	brunnel: TagTypes.String,
+	ref: TagTypes.String,
+	service: TagTypes.String,
+	bicycle: TagTypes.String,
+	network: TagTypes.String,
+	access: TagTypes.String,
 } as const;
 
-export default class PBFVectorFeatureProvider implements FeatureProvider<VectorFeatureCollection> {
+// TODO: Reuse code from PBFVectorFeatureProvider
+export default class OnegeoVectorFeatureProvider implements FeatureProvider<VectorFeatureCollection> {
 	public constructor() {
 	}
 
@@ -90,10 +69,10 @@ export default class PBFVectorFeatureProvider implements FeatureProvider<VectorF
 			zoom: number;
 		}
 	): Promise<VectorFeatureCollection> {
-		const vectorTile = await PBFVectorFeatureProvider.fetchTile(x, y, zoom);
+		const vectorTile = await OnegeoVectorFeatureProvider.fetchTile(x, y, zoom);
 
-		const handlers = PBFVectorFeatureProvider.getVectorTileHandlers(vectorTile);
-		const features = PBFVectorFeatureProvider.getFeaturesFromHandlers(handlers);
+		const handlers = OnegeoVectorFeatureProvider.getVectorTileHandlers(vectorTile);
+		const features = OnegeoVectorFeatureProvider.getFeaturesFromHandlers(handlers);
 
 		return getCollectionFromVectorFeatures(features);
 	}
@@ -117,7 +96,7 @@ export default class PBFVectorFeatureProvider implements FeatureProvider<VectorF
 
 	private static getTileURL(x: number, y: number, zoom: number): string {
 		return Utils.resolveEndpointTemplate({
-			template: Config.TilesEndpointTemplate,
+			template: Config.OnegeoEndpointTemplate,
 			values: {
 				x: x,
 				y: y,
@@ -129,19 +108,19 @@ export default class PBFVectorFeatureProvider implements FeatureProvider<VectorF
 	private static getVectorTileHandlers(vectorTile: VectorTile.Tile): VectorTileHandler[] {
 		const handlers: VectorTileHandler[] = [];
 
-		for (const layer of vectorTile.layers.values()) {
+		for (const [layerName, layer] of vectorTile.layers.entries()) {
 			for (const feature of layer.features) {
 				switch (feature.type) {
 					case VectorTile.FeatureType.Polygon: {
-						handlers.push(new VectorTilePolygonHandler(feature));
+						handlers.push(new OnegeoPolygonHandler(feature, layerName));
 						break;
 					}
 					case VectorTile.FeatureType.LineString: {
-						handlers.push(new VectorTileLineStringHandler(feature));
+						handlers.push(new OnegeoLineStringHandler(feature, layerName));
 						break;
 					}
 					case VectorTile.FeatureType.Point: {
-						handlers.push(new VectorTilePointHandler(feature));
+						handlers.push(new OnegeoPointHandler(feature, layerName));
 						break;
 					}
 				}
