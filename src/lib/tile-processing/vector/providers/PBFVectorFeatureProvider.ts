@@ -46,6 +46,7 @@ const PBFTagTypesMap: TagTypesMap = {
 	lanesBackward: TagTypes.SInt,
 	oneway: TagTypes.Bool,
 	levels: TagTypes.SInt,
+	minLevel: TagTypes.SInt,
 	roofLevels: TagTypes.SInt,
 	roofShape: TagTypes.String,
 	windows: TagTypes.Bool,
