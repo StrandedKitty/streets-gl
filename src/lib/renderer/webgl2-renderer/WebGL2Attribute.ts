@@ -70,8 +70,6 @@ export default class WebGL2Attribute implements AbstractAttribute {
 				this.gl.vertexAttribDivisor(location, this.divisor);
 			}
 
-			this.gl.enableVertexAttribArray(location);
-
 			this.buffer.unbind();
 		}
 	}

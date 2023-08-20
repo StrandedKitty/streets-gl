@@ -22,9 +22,9 @@ async function searchByText(text: string): Promise<SearchResult[]> {
 		return results;
 	}
 
-	const nominatimURL = `https://nominatim.openstreetmap.org/search.php?q=${text}&format=jsonv2`;
+	const nominatimURL = `https://nominatim.openstreetmap.org/search?q=${text}&format=jsonv2`;
 	const response = await fetch(nominatimURL, {
-		method: 'POST'
+		method: 'GET'
 	});
 	const jsonResponse = await response.json();
 	const latLonMatch = parseLatLon(text);

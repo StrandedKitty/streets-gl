@@ -11,9 +11,6 @@ uniform MainBlock {
     float heightMapWorldSize;
 };
 
-const vec2 size = vec2(2.0,0.0);
-const ivec3 off = ivec3(-1,0,1);
-
 void main() {
     vec2 texelSize = 1. / vec2(textureSize(tHeight, 0));
 
@@ -24,7 +21,7 @@ void main() {
     float left = textureOffset(tHeight, origin, ivec2(-1, 0)).r;
     float right = textureOffset(tHeight, origin, ivec2(1, 0)).r;
 
-    vec3 n = normalize(vec3(bottom - top, texelSize.x * heightMapWorldSize, left - right));
+    vec3 n = normalize(vec3(bottom - top, texelSize.x * heightMapWorldSize * 2., left - right));
 
     FragColor = vec4(n, 1);
 }
