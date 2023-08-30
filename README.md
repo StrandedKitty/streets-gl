@@ -75,6 +75,8 @@ More information about contributing can be found in [CONTRIBUTING.md](CONTRIBUTI
 2. Install dependencies with `npm i`
 3. Run `npm run dev` to start a local development server
 
+Known to work with Node.js 14.19.1.
+
 ## ⭐ Sponsors
 
 - **[ONEGEO](https://onegeo.co/)**
