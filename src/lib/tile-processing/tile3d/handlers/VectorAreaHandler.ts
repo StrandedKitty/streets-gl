@@ -125,9 +125,12 @@ export default class VectorAreaHandler implements Handler {
 		}
 
 		if (this.descriptor.type === 'forest') {
+			const resolution = Math.ceil(Config.ThreeTiles / this.mercatorScale)
+			const plantTileSize = Config.TileSize / resolution;
 			const points2D = this.getMultipolygon().populateWithPoints(
-				Math.floor(40 / this.mercatorScale),
-				Config.TileSize
+				plantTileSize,
+				Config.TreesPerTile,
+				this.osmReference.id
 			);
 			const points3D: Vec3[] = [];
 			const positions: number[] = [];
@@ -156,9 +159,12 @@ export default class VectorAreaHandler implements Handler {
 		}
 
 		if (this.descriptor.type === 'shrubbery') {
+			const resolution = Math.ceil(Config.ThreeTiles / this.mercatorScale)
+			const plantTileSize = Config.TileSize / resolution;
 			const points2D = this.getMultipolygon().populateWithPoints(
-				Math.floor(80 / this.mercatorScale),
-				Config.TileSize
+				plantTileSize,
+				Config.BushesPerTile,
+				this.osmReference.id
 			);
 			const points3D: Vec3[] = [];
 			const positions: number[] = [];
@@ -549,7 +555,7 @@ export default class VectorAreaHandler implements Handler {
 			type: 'instance',
 			instanceType: 'tree',
 			x: x,
-			y: y * this.mercatorScale,
+			y: y * this.mercatorScale, // doe it at z ???
 			z: z,
 			scale: height * textureScale * this.mercatorScale,
 			rotation: rotation,

@@ -2,6 +2,10 @@ import {SettingsSchema, SettingsSchemaRangeScale} from "~/app/settings/SettingsS
 
 const Config = {
 	TileSize: /*40075016.68 / (1 << 16)*/ 611.4962158203125,
+	ThreeTiles: 2,
+	BushTiles: 2,
+	TreesPerTile: 2 ** 8,
+	BushesPerTile: 2 ** 10,
 	MaxConcurrentTiles: 150,
 	MaxTilesPerWorker: 1,
 	WorkersCount: Math.min(4, navigator.hardwareConcurrency),
