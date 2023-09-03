@@ -4,12 +4,14 @@ import {WorkerMessage} from "~/app/world/worker/WorkerMessage";
 import Tile3DBuffers from "~/lib/tile-processing/tile3d/buffers/Tile3DBuffers";
 import {getTile3DBuffersTransferables} from "~/lib/tile-processing/tile3d/utils";
 import MathUtils from "~/lib/math/MathUtils";
+import {SkeletonBuilder} from 'straight-skeleton';
 
 const ctx: Worker = self as any;
 
 class WorkerInstance {
 	private static TileZoom: number = 16;
 	private requestTerrainHeight: boolean = true;
+	private straightSkeletonReady: boolean = false;
 
 	public constructor(private readonly ctx: Worker) {
 		this.addEventListeners();
@@ -17,6 +19,11 @@ class WorkerInstance {
 
 	private addEventListeners(): void {
 		ctx.addEventListener('message', async event => {
+			if (!this.straightSkeletonReady) {
+				await SkeletonBuilder.init();
+				this.straightSkeletonReady = true;
+			}
+
 			const data = event.data as WorkerMessage.ToWorker;
 			const x = data.tile[0];
 			const y = data.tile[1];

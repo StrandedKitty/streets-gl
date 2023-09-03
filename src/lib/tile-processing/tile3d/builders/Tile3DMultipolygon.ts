@@ -1,12 +1,12 @@
 import Tile3DRing, {Tile3DRingType} from "~/lib/tile-processing/tile3d/builders/Tile3DRing";
 import earcut from "earcut";
-import {Skeleton, SkeletonBuilder} from "straight-skeleton";
 import AABB2D from "~/lib/math/AABB2D";
 import Vec2 from "~/lib/math/Vec2";
 import * as OMBB from "~/lib/math/OMBB";
 import polylabel from "polylabel";
 import Vec3 from "~/lib/math/Vec3";
 import MathUtils from "~/lib/math/MathUtils";
+import {SkeletonBuilder, Skeleton} from 'straight-skeleton';
 
 interface EarcutInput {
 	vertices: number[];
@@ -15,10 +15,53 @@ interface EarcutInput {
 
 export type OMBBResult = [Vec2, Vec2, Vec2, Vec2];
 
+export interface StraightSkeletonResultPolygon {
+	vertices: Vec2[];
+	edgeStart: Vec2;
+	edgeEnd: Vec2;
+}
+
+export class StraightSkeletonResult {
+	public vertices: Vec2[];
+	public polygons: StraightSkeletonResultPolygon[];
+
+	public constructor(source?: Skeleton) {
+		if (source) {
+			this.vertices = source.vertices.map(v => new Vec2(v[0], v[1]));
+			this.polygons = source.polygons.map(p => {
+				const vertices = p.map(v => this.vertices[v]);
+
+				return {
+					vertices: vertices,
+					edgeStart: vertices[vertices.length - 1],
+					edgeEnd: vertices[0]
+				};
+			});
+		}
+	}
+
+	public clone(): StraightSkeletonResult {
+		const copy = new StraightSkeletonResult();
+
+		copy.vertices = this.vertices.map(v => Vec2.clone(v));
+		copy.polygons = this.polygons.map(p => {
+			const vertices = p.vertices.map(v => copy.vertices[this.vertices.indexOf(v)]);
+
+			return {
+				vertices: vertices,
+				edgeStart: vertices[vertices.length - 1],
+				edgeEnd: vertices[0]
+			};
+		});
+
+		return copy;
+	}
+}
+
 export default class Tile3DMultipolygon {
 	public readonly rings: Tile3DRing[] = [];
 
-	private cachedStraightSkeleton: Skeleton = null;
+	private cachedStraightSkeleton: StraightSkeletonResult = null;
 	private cachedOMBB: OMBBResult = null;
 	private cachedPoleOfInaccessibility: Vec3 = null;
 
@@ -96,7 +139,7 @@ export default class Tile3DMultipolygon {
 		return {vertices, holes};
 	}
 
-	public getStraightSkeleton(): Skeleton {
+	public getStraightSkeleton(): StraightSkeletonResult {
 		if (!this.cachedStraightSkeleton) {
 			const inputRings = this.getStraightSkeletonInput();
 
@@ -107,18 +150,22 @@ export default class Tile3DMultipolygon {
 			let skeleton: Skeleton = null;
 
 			try {
-				skeleton = SkeletonBuilder.BuildFromGeoJSON(inputRings);
+				skeleton = SkeletonBuilder.buildFromPolygon(inputRings);
 			} catch (e) {
 				console.error('Failed to build straight skeleton\n', e);
 			}
 
-			this.cachedStraightSkeleton = skeleton;
+			if (skeleton) {
+				this.cachedStraightSkeleton = new StraightSkeletonResult(skeleton);
+			} else {
+				console.error('Straight skeleton is null');
+			}
 		}
 
 		return this.cachedStraightSkeleton;
 	}
 
-	private getStraightSkeletonInput(): [number, number][][][] {
+	private getStraightSkeletonInput(): [number, number][][] {
 		const outerRing = this.rings.find(ring => ring.type === Tile3DRingType.Outer);
 		const innerRings = this.rings.filter(ring => ring.type === Tile3DRingType.Inner);
 
@@ -126,13 +173,13 @@ export default class Tile3DMultipolygon {
 			return [];
 		}
 
-		const rings = [outerRing.getGeoJSONVertices().slice(1)];
+		const rings = [outerRing.getGeoJSONVertices()];
 
 		for (const innerRing of innerRings) {
-			rings.push(innerRing.getGeoJSONVertices().slice(1));
+			rings.push(innerRing.getGeoJSONVertices());
 		}
 
-		return [rings];
+		return rings;
 	}
 
 	public getAABB(): AABB2D {

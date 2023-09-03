@@ -1,6 +1,8 @@
 import Vec3 from "~/lib/math/Vec3";
 import MathUtils from "~/lib/math/MathUtils";
 import Vec2 from "~/lib/math/Vec2";
+import {StraightSkeletonResultPolygon} from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
+import splitPolygon from "~/lib/tile-processing/tile3d/builders/roofs/splitPolygon";
 
 export function calculateRoofNormals(vertices: number[], flip: boolean = false): number[] {
 	const normals: number[] = [];
@@ -54,4 +56,49 @@ export function calculateSplitsNormals(splits: Vec2[]): Vec2[] {
 	}
 
 	return splitNormals;
+}
+
+export function splitSkeletonPolygon(polygon: StraightSkeletonResultPolygon, splitAt: number): {
+	verticesTop: number[];
+	verticesBottom: number[];
+} {
+	const edgeLine: [Vec2, Vec2] = [polygon.edgeStart, polygon.edgeEnd];
+	const edgeNormal = Vec2.normalize(Vec2.rotateRight(Vec2.sub(edgeLine[1], edgeLine[0])));
+	const edgeOffset = Vec2.multiplyScalar(edgeNormal, -splitAt)
+	const splitLine: [Vec2, Vec2] = [
+		Vec2.add(edgeLine[0], edgeOffset),
+		Vec2.add(edgeLine[1], edgeOffset)
+	];
+	const verticesToSplit: [number, number][] = [];
+
+	for (const vertex of polygon.vertices) {
+		verticesToSplit.push([vertex.x, vertex.y]);
+	}
+
+	const verticesTop: number[] = [];
+	const verticesBottom: number[] = [];
+	let split: [number, number][][] = null;
+
+	try {
+		split = splitPolygon(
+			verticesToSplit,
+			Vec2.toArray(splitLine[0]),
+			Vec2.toArray(Vec2.sub(splitLine[0], splitLine[1]))
+		);
+	} catch (e) {
+	}
+
+	if (!split || split.length === 1) {
+		for (const vertex of polygon.vertices) {
+			verticesBottom.push(vertex.x, vertex.y);
+		}
+	} else if (split.length > 1) {
+		verticesBottom.push(...split[0].flat())
+		verticesTop.push(...split[1].flat());
+	}
+
+	return {
+		verticesTop,
+		verticesBottom
+	};
 }

@@ -1,8 +1,7 @@
 import Vec2 from "~/lib/math/Vec2";
-import {EdgeResult, List, Skeleton, Vector2d} from "straight-skeleton";
 import GeometryGroundProjector from "~/lib/tile-processing/tile3d/builders/GeometryGroundProjector";
 import Config from "~/app/Config";
-import {OMBBResult} from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
+import {OMBBResult, StraightSkeletonResult} from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 import MathUtils from "~/lib/math/MathUtils";
 
 export function colorToComponents(color: number): [number, number, number] {
@@ -20,27 +19,6 @@ export function signedDstToLine(point: Vec2, line: [Vec2, Vec2]): number {
 	const lineLength = Math.hypot(lineVector.x, lineVector.y);
 
 	return cross / lineLength;
-}
-
-export function copySkeletonPolygons(skeleton: Skeleton): Skeleton {
-	const edgesCopy: List<EdgeResult> = new List();
-
-	for (const edgeResult of skeleton.Edges) {
-		const polygonCopy: List<Vector2d> = new List();
-
-		for (const vector of edgeResult.Polygon) {
-			polygonCopy.Add(new Vector2d(vector.X, vector.Y));
-		}
-
-		const edgeResultCopy = new EdgeResult(edgeResult.Edge, polygonCopy);
-
-		edgesCopy.Add(edgeResultCopy);
-	}
-
-	return {
-		Edges: edgesCopy,
-		Distances: skeleton.Distances
-	};
 }
 
 export function projectGeometryOnTerrain(

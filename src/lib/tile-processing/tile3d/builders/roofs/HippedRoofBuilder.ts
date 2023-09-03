@@ -1,13 +1,15 @@
 import Vec3 from "~/lib/math/Vec3";
 import MathUtils from "~/lib/math/MathUtils";
-import {EdgeResult, Skeleton} from "straight-skeleton";
 import earcut from "earcut";
 import RoofBuilder, {
 	RoofGeometry,
 	RoofParams,
 	RoofSkirt
 } from "~/lib/tile-processing/tile3d/builders/roofs/RoofBuilder";
-import Tile3DMultipolygon from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
+import Tile3DMultipolygon, {
+	StraightSkeletonResult,
+	StraightSkeletonResultPolygon
+} from "~/lib/tile-processing/tile3d/builders/Tile3DMultipolygon";
 import Vec2 from "~/lib/math/Vec2";
 import {signedDstToLine} from "~/lib/tile-processing/tile3d/builders/utils";
 
@@ -55,17 +57,13 @@ export default class HippedRoofBuilder implements RoofBuilder {
 		};
 	}
 
-	protected getSkeletonMaxHeight(skeleton: Skeleton): number {
+	protected getSkeletonMaxHeight(skeleton: StraightSkeletonResult): number {
 		let maxHeight = 0;
 
-		for (const edge of skeleton.Edges) {
-			const edgeLine: [Vec2, Vec2] = [
-				new Vec2(edge.Edge.Begin.X, edge.Edge.Begin.Y),
-				new Vec2(edge.Edge.End.X, edge.Edge.End.Y)
-			];
+		for (const polygon of skeleton.polygons) {
+			const edgeLine: [Vec2, Vec2] = [polygon.edgeStart, polygon.edgeEnd];
 
-			for (const point of edge.Polygon) {
-				const vertex = new Vec2(point.X, point.Y);
+			for (const vertex of polygon.vertices) {
 				const dst = this.getVertexHeightFromEdge(vertex, edgeLine, 1, 1);
 
 				maxHeight = Math.max(maxHeight, dst);
@@ -87,7 +85,7 @@ export default class HippedRoofBuilder implements RoofBuilder {
 			scaleY
 		}: {
 			multipolygon: Tile3DMultipolygon;
-			skeleton: Skeleton;
+			skeleton: StraightSkeletonResult;
 			minHeight: number;
 			height: number;
 			maxSkeletonHeight: number;
@@ -99,9 +97,9 @@ export default class HippedRoofBuilder implements RoofBuilder {
 		let positionResult: number[] = [];
 		let uvResult: number[] = [];
 
-		for (const edge of skeleton.Edges) {
-			const {position, uv} = this.convertEdgeResultToVertices({
-				edge,
+		for (const polygon of skeleton.polygons) {
+			const {position, uv} = this.convertSkeletonPolygonToVertices({
+				polygon,
 				minHeight,
 				height,
 				maxSkeletonHeight,
@@ -120,16 +118,16 @@ export default class HippedRoofBuilder implements RoofBuilder {
 		return {position: positionResult, uv: uvResult};
 	}
 
-	protected convertEdgeResultToVertices(
+	protected convertSkeletonPolygonToVertices(
 		{
-			edge,
+			polygon,
 			minHeight,
 			height,
 			maxSkeletonHeight,
 			scaleX,
 			scaleY
 		}: {
-			edge: EdgeResult;
+			polygon: StraightSkeletonResultPolygon;
 			minHeight: number;
 			height: number;
 			maxSkeletonHeight: number;
@@ -138,16 +136,20 @@ export default class HippedRoofBuilder implements RoofBuilder {
 		}
 	): {position: number[]; uv: number[]} {
 		const polygonVertices: number[] = [];
-		const edgeLine: [Vec2, Vec2] = [
-			new Vec2(edge.Edge.Begin.X, edge.Edge.Begin.Y),
-			new Vec2(edge.Edge.End.X, edge.Edge.End.Y)
-		];
 
-		for (let i = 0; i < edge.Polygon.length; i++) {
-			polygonVertices.push(edge.Polygon[i].X, edge.Polygon[i].Y);
+		for (const vertex of polygon.vertices) {
+			polygonVertices.push(vertex.x, vertex.y);
 		}
 
-		return this.triangulatePolygon(polygonVertices, minHeight, height, maxSkeletonHeight, edgeLine, scaleX, scaleY);
+		return this.triangulatePolygon(
+			polygonVertices,
+			minHeight,
+			height,
+			maxSkeletonHeight,
+			[polygon.edgeStart, polygon.edgeEnd],
+			scaleX,
+			scaleY
+		);
 	}
 
 	protected triangulatePolygon(
@@ -199,9 +201,7 @@ export default class HippedRoofBuilder implements RoofBuilder {
 			const b = new Vec3(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
 			const c = new Vec3(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
 
-			const normal = flip ?
-				MathUtils.calculateNormal(c, b, a) :
-				MathUtils.calculateNormal(a, b, c);
+			const normal = flip ? MathUtils.calculateNormal(c, b, a) : MathUtils.calculateNormal(a, b, c);
 			const normalArray = Vec3.toArray(normal);
 
 			for (let j = i; j < i + 9; j++) {

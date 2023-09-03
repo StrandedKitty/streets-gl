@@ -92,7 +92,6 @@ export default class TerrainHeightLoader {
 	private readonly maxConcurrentRequests: number = 2;
 	private readonly activeRequests: Set<Request> = new Set();
 	private readonly queue: RequestQueue = new RequestQueue();
-	private sus: Set<string> = new Set();
 
 	public async getOrLoadTile(
 		x: number,
@@ -163,13 +162,6 @@ export default class TerrainHeightLoader {
 		zoom: number,
 		downscaleTimes: number
 	): Promise<void> {
-		const key = TerrainHeightLoader.getTileKey(x, y, zoom);
-		if (this.sus.has(key)) {
-			console.log('sus', key);
-		}
-
-		this.sus.add(key);
-
 		const url = TerrainHeightLoader.getURL(x, y, zoom);
 		const response = await fetch(url, {
 			method: 'GET'

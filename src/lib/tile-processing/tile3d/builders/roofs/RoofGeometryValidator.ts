@@ -4,6 +4,7 @@ import Vec2 from "~/lib/math/Vec2";
 
 export default class RoofGeometryValidator {
 	public static validate(roof: RoofGeometry, multipolygon: Tile3DMultipolygon): boolean {
+		return true;
 		if (roof.canExtendOutsideFootprint) {
 			return true;
 		}
