@@ -321,7 +321,7 @@ export default class Tile3DExtrudedGeometryBuilder {
 	private buildRoofSafe(builder: RoofBuilder, params: RoofParams): RoofGeometry {
 		let roof = builder.build(params);
 
-		if (roof === null || !RoofGeometryValidator.validate(roof, params.multipolygon)) {
+		if (roof === null/* || !RoofGeometryValidator.validate(roof, params.multipolygon)*/) {
 			roof = new FlatRoofBuilder().build(params);
 		}
 

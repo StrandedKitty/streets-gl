@@ -4,12 +4,14 @@ import Vec2 from "~/lib/math/Vec2";
 
 export default class RoofGeometryValidator {
 	public static validate(roof: RoofGeometry, multipolygon: Tile3DMultipolygon): boolean {
-		return true;
 		if (roof.canExtendOutsideFootprint) {
 			return true;
 		}
 
 		const aabb = multipolygon.getAABB();
+		const padding = new Vec2(0.01);
+		aabb.includePoint(Vec2.sub(aabb.min, padding));
+		aabb.includePoint(Vec2.add(aabb.max, padding));
 
 		for (let i = 0; i < roof.position.length; i += 3) {
 			const point = new Vec2(roof.position[i], roof.position[i + 2]);

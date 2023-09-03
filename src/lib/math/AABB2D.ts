@@ -32,6 +32,7 @@ export default class AABB2D extends AABB<Vec2> {
 		if (this.isEmpty) {
 			this.min.set(aabb.min.x, aabb.min.y);
 			this.max.set(aabb.max.x, aabb.max.y);
+			this.isEmpty = false;
 		}
 
 		this.min.x = Math.min(this.min.x, aabb.min.x);
