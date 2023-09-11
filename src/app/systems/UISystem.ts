@@ -75,7 +75,7 @@ export default class UISystem extends System {
 	}
 
 	private detectMobile(): void {
-		if (Utils.isMobileBrowser() || navigator.maxTouchPoints) {
+		if (Utils.isMobileBrowser() || !window.matchMedia("(pointer: fine)").matches) {
 			alert('Mobile devices and touch devices are not supported. Please use a computer with a mouse and keyboard.');
 		}
 	}
