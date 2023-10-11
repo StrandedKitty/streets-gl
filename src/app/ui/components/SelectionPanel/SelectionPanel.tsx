@@ -25,7 +25,7 @@ interface FeatureDescription {
 const getOSMURL = (type: FeatureType, id: number): string => {
 	const typeStr = type === FeatureType.Way ? 'way' : 'relation';
 
-	return `https://www.openstreetmap.org/api/0.6/${typeStr}/${id}.json`;
+	return `https://api.openstreetmap.org/api/0.6/${typeStr}/${id}.json`;
 }
 
 const getType = (tags: Record<string, string>): string => {
