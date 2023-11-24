@@ -11,7 +11,7 @@ export default function getTreeHeight(tags: Record<string, string>): number | un
 		// estimate width from trunk diameter / circumference
 		if (!width) {
 			const diameter = parseMeters(tags['diameter'], 0.001) || parseMeters(tags['circumference']) / Math.PI;
-			width = diameter * 30.0;
+			width = diameter * 23.0;
 		}
 
 		// check if width is reasonable
