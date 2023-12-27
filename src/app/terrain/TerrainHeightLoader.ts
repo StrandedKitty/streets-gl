@@ -92,6 +92,13 @@ export default class TerrainHeightLoader {
 	private readonly maxConcurrentRequests: number = 2;
 	private readonly activeRequests: Set<Request> = new Set();
 	private readonly queue: RequestQueue = new RequestQueue();
+	private readonly decodingCanvas: HTMLCanvasElement;
+	private readonly decodingCtx: CanvasRenderingContext2D;
+
+	public constructor() {
+		this.decodingCanvas = document.createElement('canvas');
+		this.decodingCtx = this.decodingCanvas.getContext('2d');
+	}
 
 	public async getOrLoadTile(
 		x: number,
@@ -173,7 +180,7 @@ export default class TerrainHeightLoader {
 
 		const blob = await response.blob();
 		const bitmap = await createImageBitmap(blob);
-		const decoded = TerrainHeightLoader.decodeBitmap(bitmap);
+		const decoded = this.decodeBitmap(bitmap);
 
 		this.addBitmap(decoded, x, y, zoom, 0);
 
@@ -237,15 +244,13 @@ export default class TerrainHeightLoader {
 		return tile.getLevel(level);
 	}
 
-	private static decodeBitmap(bitmap: ImageBitmap): TerrainHeightLoaderBitmap {
-		const canvas = document.createElement('canvas');
-		canvas.width = bitmap.width;
-		canvas.height = bitmap.height;
+	private decodeBitmap(bitmap: ImageBitmap): TerrainHeightLoaderBitmap {
+		this.decodingCanvas.width = bitmap.width;
+		this.decodingCanvas.height = bitmap.height;
 
-		const ctx = canvas.getContext('2d');
-		ctx.drawImage(bitmap, 0, 0);
+		this.decodingCtx.drawImage(bitmap, 0, 0);
 
-		const imageData = ctx.getImageData(0, 0, bitmap.width, bitmap.height);
+		const imageData = this.decodingCtx.getImageData(0, 0, bitmap.width, bitmap.height);
 		const data = new Float32Array(bitmap.width * bitmap.height);
 
 		for (let i = 0; i < data.length; i++) {
