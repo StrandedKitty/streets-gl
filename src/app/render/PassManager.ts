@@ -232,7 +232,7 @@ export default class PassManager {
 								mipmaps: false
 							}),
 							clearValue: {r: 0, g: 0, b: 0, a: 1},
-							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							loadOp: RendererTypes.AttachmentLoadOp.Clear,
 							storeOp: RendererTypes.AttachmentStoreOp.Store
 						}, {
 							texture: new TextureResourceDescriptor({
@@ -245,7 +245,7 @@ export default class PassManager {
 								mipmaps: false
 							}),
 							clearValue: {r: 0, g: 0, b: 0, a: 1},
-							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							loadOp: RendererTypes.AttachmentLoadOp.Clear,
 							storeOp: RendererTypes.AttachmentStoreOp.Store
 						}, {
 							texture: new TextureResourceDescriptor({
@@ -258,7 +258,7 @@ export default class PassManager {
 								mipmaps: false
 							}),
 							clearValue: {r: 0, g: 0, b: 0, a: 0},
-							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							loadOp: RendererTypes.AttachmentLoadOp.Clear,
 							storeOp: RendererTypes.AttachmentStoreOp.Store
 						}, {
 							texture: new TextureResourceDescriptor({
@@ -271,7 +271,7 @@ export default class PassManager {
 								mipmaps: false
 							}),
 							clearValue: {r: 0, g: 0, b: 0, a: 0},
-							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							loadOp: RendererTypes.AttachmentLoadOp.Clear,
 							storeOp: RendererTypes.AttachmentStoreOp.Store
 						}, {
 							texture: new TextureResourceDescriptor({
@@ -284,7 +284,7 @@ export default class PassManager {
 								mipmaps: false
 							}),
 							clearValue: {r: 0, g: 0, b: 0, a: 0},
-							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							loadOp: RendererTypes.AttachmentLoadOp.Clear,
 							storeOp: RendererTypes.AttachmentStoreOp.Store
 						}, {
 							texture: new TextureResourceDescriptor({
@@ -297,7 +297,7 @@ export default class PassManager {
 								mipmaps: false
 							}),
 							clearValue: {r: 0, g: 0, b: 0, a: 0},
-							loadOp: RendererTypes.AttachmentLoadOp.Load,
+							loadOp: RendererTypes.AttachmentLoadOp.Clear,
 							storeOp: RendererTypes.AttachmentStoreOp.Store
 						}
 					],
@@ -996,8 +996,6 @@ export default class PassManager {
 								magFilter: RendererTypes.MagFilter.Nearest,
 								wrap: RendererTypes.TextureWrap.ClampToEdge,
 								mipmaps: true,
-								isImmutable: true,
-								immutableLevels: 6
 							}),
 							clearValue: {r: 0, g: 0, b: 0, a: 0},
 							loadOp: RendererTypes.AttachmentLoadOp.Load,

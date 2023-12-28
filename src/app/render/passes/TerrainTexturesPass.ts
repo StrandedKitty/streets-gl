@@ -226,7 +226,9 @@ export default class TerrainTexturesPass extends Pass<{
 			}
 		}
 
-		this.renderer.useMaterial(this.heightDownscaleMaterial);
+		heightTex.generateMipmaps();
+
+		/*this.renderer.useMaterial(this.heightDownscaleMaterial);
 
 		for (let layer = 0; layer < 2; layer++) {
 			if (!heightLoadersUpdateFlags[layer]) {
@@ -254,7 +256,7 @@ export default class TerrainTexturesPass extends Pass<{
 
 		heightTex.baseLevel = 0;
 		heightTex.maxLevel = 10000;
-		heightTex.updateBaseAndMaxLevel();
+		heightTex.updateBaseAndMaxLevel();*/
 
 		this.renderer.useMaterial(this.normalMaterial);
 

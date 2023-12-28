@@ -250,6 +250,9 @@ export default class WebGL2Framebuffer {
 			case RendererTypes.TextureFormat.RGBA8Unorm:
 				this.gl.clearBufferfv(WebGL2Constants.COLOR, drawBuffer, WebGL2Framebuffer.clearValueToTypedArray(Float32Array, clearValue));
 				return;
+			case RendererTypes.TextureFormat.RGB8Unorm:
+				this.gl.clearBufferfv(WebGL2Constants.COLOR, drawBuffer, WebGL2Framebuffer.clearValueToTypedArray(Float32Array, clearValue));
+				return;
 			case RendererTypes.TextureFormat.R8Unorm:
 				this.gl.clearBufferfv(WebGL2Constants.COLOR, drawBuffer, WebGL2Framebuffer.clearValueToTypedArray(Float32Array, clearValue));
 				return;
@@ -272,7 +275,7 @@ export default class WebGL2Framebuffer {
 				this.gl.clearBufferfv(WebGL2Constants.COLOR, drawBuffer, WebGL2Framebuffer.clearValueToTypedArray(Float32Array, clearValue));
 				return;
 			case RendererTypes.TextureFormat.R32Uint:
-				this.gl.clearBufferfv(WebGL2Constants.COLOR, drawBuffer, WebGL2Framebuffer.clearValueToTypedArray(Float32Array, clearValue));
+				this.gl.clearBufferuiv(WebGL2Constants.COLOR, drawBuffer, WebGL2Framebuffer.clearValueToTypedArray(Uint32Array, clearValue));
 				return;
 		}
 
