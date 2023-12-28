@@ -1,4 +1,4 @@
-FROM node:14 as builder
+FROM node:19 as builder
 
 RUN apt-get install -y --no-install-recommends git
 
@@ -12,7 +12,7 @@ COPY . .
 
 RUN npm run build
 
-FROM node:14-alpine as runner
+FROM node:19-alpine as runner
 WORKDIR /usr/src/app
 
 COPY --from=builder /usr/src/builder/build ./build
