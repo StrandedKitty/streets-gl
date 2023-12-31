@@ -58,6 +58,7 @@ export default class WebGL2Renderer implements AbstractRenderer {
 		this.gl.enable(WebGL2Constants.BLEND);
 
 		this.initExtensions();
+		this.optimizeAssumingFlatsHaveSameFirstAndLastData();
 	}
 
 	private initExtensions(): void {
@@ -69,6 +70,17 @@ export default class WebGL2Renderer implements AbstractRenderer {
 			timerQuery: this.gl.getExtension("EXT_disjoint_timer_query_webgl2"),
 			rendererInfo: this.gl.getExtension("WEBGL_debug_renderer_info")
 		};
+	}
+
+	// See https://registry.khronos.org/webgl/extensions/WEBGL_provoking_vertex/
+	// Regarding performance issues when using Metal backend:
+	// https://bugs.chromium.org/p/chromium/issues/detail?id=1496807
+	private optimizeAssumingFlatsHaveSameFirstAndLastData(): void {
+		const epv = this.gl.getExtension('WEBGL_provoking_vertex');
+
+		if (epv) {
+			epv.provokingVertexWEBGL(epv.FIRST_VERTEX_CONVENTION_WEBGL);
+		}
 	}
 
 	public bindTexture(texture: WebGL2Texture): void {
