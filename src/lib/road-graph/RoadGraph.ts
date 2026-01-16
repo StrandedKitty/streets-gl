@@ -3,7 +3,7 @@ import Road from "~/lib/road-graph/Road";
 import Intersection from "~/lib/road-graph/Intersection";
 import LinkedVertex from "~/lib/road-graph/LinkedVertex";
 import SegmentGroup from "~/lib/road-graph/SegmentGroup";
-import RBush from 'rbush';
+import {RBush} from 'rbush-rs';
 
 interface Group {
 	roads: Road[];
@@ -45,14 +45,15 @@ export default class RoadGraph {
 	}
 
 	public initIntersections(): void {
+		type IntersectionItem = {
+            minX: number;
+            minY: number;
+            maxX: number;
+            maxY: number;
+            data: [LinkedVertex, Road][];
+        };
 		for (const group of this.groups.values()) {
-			const tree: RBush<{
-				minX: number;
-				minY: number;
-				maxX: number;
-				maxY: number;
-				data: [LinkedVertex, Road][];
-			}> = new RBush();
+			const tree = new RBush();
 
 			for (const road of group.roads) {
 				for (const vertex of road.vertices) {
@@ -62,7 +63,7 @@ export default class RoadGraph {
 						minY: pos.y - 0.01,
 						maxX: pos.x + 0.01,
 						maxY: pos.y + 0.01
-					});
+					}) as IntersectionItem[];
 
 					if (query.length > 0) {
 						const data = query[0].data;

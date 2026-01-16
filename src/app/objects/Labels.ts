@@ -7,7 +7,7 @@ import Vec3 from "~/lib/math/Vec3";
 import TileLabelBuffers from "./TileLabelBuffers";
 import Camera from "~/lib/core/Camera";
 import Utils from "../Utils";
-import RBush from 'rbush';
+import {RBush} from 'rbush-rs';
 import Vec2 from "~/lib/math/Vec2";
 
 interface AttributeBuffers {
@@ -29,7 +29,7 @@ export default class Labels extends RenderableObject3D {
 		index: null
 	};
 	private attributeBuffersDirty: boolean = false;
-	private tree: RBush<any> = new RBush<any>();
+	private tree: RBush = new RBush();
 
 	public constructor() {
 		super();
