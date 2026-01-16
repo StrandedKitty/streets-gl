@@ -14,6 +14,10 @@ const VERSION = require('./package.json').version;
 
 module.exports = (env, argv) => ([{
 	entry: './src/app/App.ts',
+	experiments: {
+    	asyncWebAssembly: true,
+    // syncWebAssembly: true, // Optional, depending on your setup
+  	},
 	output: {
 		filename: './js/index.[contenthash].js',
 		path: path.resolve(__dirname, 'build')
