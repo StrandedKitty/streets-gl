@@ -1,0 +1,42 @@
+@import "../../styles/common.scss";
+
+.speedometer {
+	position: absolute;
+	bottom: 16px;
+	// Centered along the bottom, nudged slightly right — sits evenly between the
+	// time-of-day panel (bottom-left) and the copyright/timestamp (bottom-right).
+	left: 54%;
+	transform: translateX(-50%);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	user-select: none;
+	cursor: pointer;
+	color: #fff;
+	text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+	line-height: 1;
+
+	// Dark translucent panel for contrast (theme-independent so the white font always pops),
+	// with a generous radius for a roundish speedometer look.
+	min-width: 96px;
+	padding: 10px 22px 12px;
+	background-color: rgba(28, 28, 32, 0.72);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	border-radius: 18px;
+	backdrop-filter: blur(8px);
+
+	&__value {
+		font-size: 48px;
+		font-weight: 700;
+		font-variant-numeric: tabular-nums;
+	}
+
+	&__unit {
+		font-size: 15px;
+		font-weight: 500;
+		opacity: 0.75;
+		margin-top: 3px;
+		letter-spacing: 0.5px;
+	}
+}

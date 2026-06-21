@@ -15,6 +15,7 @@ import GeolocationButton from "~/app/ui/components/GeolocationButton";
 import styles from './MainScreen.scss';
 import SavedPlacesModalPanel from "~/app/ui/components/SavedPlacesModalPanel";
 import DataTimestamp from "~/app/ui/components/DataTimestamp";
+import Speedometer from "~/app/ui/components/Speedometer";
 
 const MainScreen: React.FC = () => {
 	const atoms = useContext(AtomsContext);
@@ -22,6 +23,7 @@ const MainScreen: React.FC = () => {
 
 	const [isRenderGraphVisible, setIsRenderGraphVisible] = useState<boolean>(false);
 	const loadingProgress = useRecoilValue(atoms.resourcesLoadingProgress);
+	const driveActive = useRecoilValue(atoms.driveActive);
 	const [activeModalWindow, setActiveModalWindow] = useState<string>('');
 	const [isUIVisible, setIsUIVisible] = useState<boolean>(true);
 
@@ -70,7 +72,8 @@ const MainScreen: React.FC = () => {
 			{
 				activeModalWindow === 'savedPlaces' && <SavedPlacesModalPanel onClose={closeModal}/>
 			}
-			<DebugInfo showRenderGraph={showRenderGraph}/>
+			{!driveActive && <DebugInfo showRenderGraph={showRenderGraph}/>}
+			<Speedometer/>
 			<DataTimestamp/>
 			<TimePanel/>
 			<SelectionPanel/>

@@ -22,6 +22,7 @@ import {Tile3DInstanceLODConfig, Tile3DInstanceType} from "~/lib/tile-processing
 import Camera from "~/lib/core/Camera";
 import Utils from "~/app/Utils";
 import {AircraftPartType} from "~/app/vehicles/aircraft/Aircraft";
+import Car from "~/app/objects/Car";
 
 interface SceneObjects {
 	wrapper: Object3D;
@@ -33,6 +34,9 @@ interface SceneObjects {
 	terrain: Terrain;
 	instancedObjects: Map<string, InstancedObject>;
 	instancedAircraftParts: Map<AircraftPartType, InstancedAircraftPart>;
+	// Strata Phase 2 Increment 3 — throwaway placeholder car (procedural box-car mesh with a
+	// full transform matrix, drawn by GBufferPass.renderCar with its own GBuffer material).
+	car: Car;
 }
 
 export default class SceneSystem extends System {
@@ -69,6 +73,7 @@ export default class SceneSystem extends System {
 		});
 		const labels = new Labels();
 		const terrain = new Terrain();
+		const car = new Car();
 
 		this.objects = {
 			wrapper,
@@ -79,7 +84,8 @@ export default class SceneSystem extends System {
 			labels,
 			terrain,
 			instancedObjects: new Map(),
-			instancedAircraftParts: new Map()
+			instancedAircraftParts: new Map(),
+			car
 		};
 
 		/*this.objects.instancedAircraftParts.set(
@@ -139,7 +145,7 @@ export default class SceneSystem extends System {
 
 		this.scene.add(wrapper);
 		wrapper.add(
-			camera, csm, skybox, tiles, labels, terrain,
+			camera, csm, skybox, tiles, labels, terrain, car,
 			...this.objects.instancedObjects.values(),
 			...this.objects.instancedAircraftParts.values()
 		);

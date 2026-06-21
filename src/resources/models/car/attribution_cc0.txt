@@ -1,0 +1,8 @@
+sports_car_blue.glb, sport_car_maroon.glb — recolored from "Sports Car" by Quaternius
+Source: https://poly.pizza/m/1mkmFkAz5v
+License: Public Domain (CC0 1.0) — https://creativecommons.org/publicdomain/zero/1.0/
+
+CC0 requires no attribution; Quaternius is credited here as a courtesy.
+Recolored from the original white via a Codex agent. These are the clean-licensed
+(CC0) fallback cars; the upstream drive-mode PR uses a CC0 car as the default,
+while the CC-BY Bugatti (car.glb) is the showcase option on the strata branch.

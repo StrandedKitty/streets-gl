@@ -20,6 +20,8 @@ export interface AtomsCollection {
 	settingsSchema: RecoilState<SettingsSchema>;
 	overpassEndpoints: RecoilState<OverpassEndpoint[]>;
 	dataTimestamp: RecoilState<Date>;
+	driveActive: RecoilState<boolean>;
+	driveSpeed: RecoilState<number>;
 }
 
 export const getAtoms = (
@@ -82,6 +84,14 @@ export const getAtoms = (
 		dataTimestamp: atom({
 			key: 'dataTimestamp',
 			effects: [bidirectionalSyncEffect('dataTimestamp', commonStorage)]
+		}),
+		driveActive: atom({
+			key: 'driveActive',
+			effects: [bidirectionalSyncEffect('driveActive', commonStorage)]
+		}),
+		driveSpeed: atom({
+			key: 'driveSpeed',
+			effects: [bidirectionalSyncEffect('driveSpeed', commonStorage)]
 		}),
 	};
 }
