@@ -1,4 +1,5 @@
 import AbstractMaterial from "~/lib/renderer/abstract-renderer/AbstractMaterial";
+import AbstractMesh from "~/lib/renderer/abstract-renderer/AbstractMesh";
 import {
 	UniformFloat1,
 	UniformFloat3,
@@ -39,6 +40,10 @@ import {InstanceTextureIdList} from "~/app/render/textures/createInstanceTexture
 import MapTimeSystem from "~/app/systems/MapTimeSystem";
 import {AircraftPartTextures} from "~/app/render/textures/createAircraftTexture";
 import PerspectiveCamera from "~/lib/core/PerspectiveCamera";
+import ControlsSystem from "~/app/systems/ControlsSystem";
+import CarMaterialContainer from "~/app/render/materials/CarMaterialContainer";
+import {CarWheelMounts, WheelRadius} from "~/app/objects/models/CarModel";
+import Car from "~/app/objects/Car";
 
 export default class GBufferPass extends Pass<{
 	GBufferRenderPass: {
@@ -79,7 +84,10 @@ export default class GBufferPass extends Pass<{
 	private genericInstanceMaterial: AbstractMaterial;
 	private advancedInstanceMaterial: AbstractMaterial;
 	private aircraftMaterial: AbstractMaterial;
+	private carMaterial: AbstractMaterial;
 	private cameraMatrixWorldInversePrev: Mat4 = null;
+	// Previous-frame car part matrices, for correct TAA motion vectors (index 0 = body/GLB, 1-4 = wheels).
+	private carMatricesPrev: Mat4[] = [];
 	public objectIdBuffer: Uint32Array = new Uint32Array(1);
 	public objectIdX = 0;
 	public objectIdY = 0;
@@ -153,6 +161,8 @@ export default class GBufferPass extends Pass<{
 		this.aircraftMaterial = new AircraftMaterialContainer(this.renderer).material;
 		this.aircraftMaterial.getUniform<UniformTexture2DArray>('tMap').value =
 			<AbstractTexture2DArray>this.manager.texturePool.get('aircraft');
+
+		this.carMaterial = new CarMaterialContainer(this.renderer).material;
 	}
 
 	private updateMaterialsDefines(): void {
@@ -503,6 +513,132 @@ export default class GBufferPass extends Pass<{
 		}
 	}
 
+	// Strata Phase 2 Increment 4 — THROWAWAY GLUE. Draw the car at the driven point as separate
+	// parts: a body with the FULL transform matrix (yaw + pitch + roll, hugs the terrain) plus four
+	// wheels, each with its own part matrix on top (spin + steer + per-wheel suspension). No moat
+	// code here; entirely renderer-specific and disposable.
+	private renderCar(instancesOrigin: Vec2): void {
+		const controlsSystem = this.manager.systemManager.getSystem(ControlsSystem);
+
+		if (!controlsSystem.isDriveActive) {
+			return;
+		}
+
+		const camera = this.manager.sceneSystem.objects.camera;
+		const car = this.manager.sceneSystem.objects.car;
+
+		if (!car.isMeshReady()) {
+			return;
+		}
+
+		const pose = controlsSystem.getDriveCarPose();
+
+		// Car mesh is built nose-along-+X; yaw = -heading maps that to the driving direction.
+		// CarHeadingOffset is a tuning knob if the nose ends up sideways/backwards.
+		const CarHeadingOffset = 0;
+		const yaw = -pose.heading + CarHeadingOffset;
+
+		// modelMatrix = pure translation by instancesOrigin (precision pivot, kept on the GPU
+		// separate from viewMatrix). The origin-relative transforms are built in double precision
+		// here; the (pose - origin) translation stays small => no float jitter.
+		// Order T * Ryaw * Rpitch * Rroll: roll about the nose, then pitch about the lateral
+		// axis, then yaw about up — the natural vehicle order.
+		const buildCarMatrix = (y: number, pitch: number, roll: number): Mat4 => {
+			let m = Mat4.identity();
+			m = Mat4.translate(m, pose.x - instancesOrigin.x, y, pose.z - instancesOrigin.y);
+			m = Mat4.yRotate(m, yaw);
+			m = Mat4.zRotate(m, pitch);
+			m = Mat4.xRotate(m, roll);
+			return m;
+		};
+
+		// carMatrix = ground pose — the WHEELS ride this, always planted on the terrain.
+		// bodyMatrix = the sprung body pose (smoothed heave + weight-transfer/boost lean), applied
+		// to the BODY mesh only so the wheels stay on the ground while the body bounces (ATV split).
+		const carMatrix = buildCarMatrix(pose.y, pose.pitch, pose.roll);
+		const bodyMatrix = buildCarMatrix(pose.bodyY, pose.bodyPitch, pose.bodyRoll);
+
+		car.position.set(instancesOrigin.x, 0, instancesOrigin.y);
+		car.updateMatrix();
+		car.updateMatrixWorld();
+
+		const material = this.carMaterial;
+		const mvMatrixPrev = Mat4.multiply(this.cameraMatrixWorldInversePrev, car.matrixWorld);
+
+		this.renderer.useMaterial(material);
+
+		// Per-material uniforms are set once; only carMatrix changes per part below.
+		material.getUniform('projectionMatrix', 'MainBlock').value = new Float32Array(camera.jitteredProjectionMatrix.values);
+		material.getUniform('modelMatrix', 'MainBlock').value = new Float32Array(car.matrixWorld.values);
+		material.getUniform('viewMatrix', 'MainBlock').value = new Float32Array(camera.matrixWorldInverse.values);
+		material.getUniform('modelViewMatrixPrev', 'MainBlock').value = new Float32Array(mvMatrixPrev.values);
+
+		// Sets carMatrix + the previous-frame carMatrix (slot's last value, or current on the first
+		// frame) so the motion vector captures the car's own movement => no TAA flicker when driving.
+		const drawPart = (slot: number, m: Mat4, mesh: AbstractMesh): void => {
+			const prev = this.carMatricesPrev[slot] ?? m;
+			material.getUniform('carMatrix', 'MainBlock').value = new Float32Array(m.values);
+			material.getUniform('carMatrixPrev', 'MainBlock').value = new Float32Array(prev.values);
+			material.updateUniformBlock('MainBlock');
+			mesh.draw();
+			this.carMatricesPrev[slot] = m;
+		};
+
+		// Step B: the dropped GLB, split into body + 4 axle-centered wheels, animated by the same rig.
+		if (Car.useGLB && car.glbReady) {
+			drawPart(0, bodyMatrix, car.glbBodyMesh);
+
+			// GLB wheels are bigger than the procedural ones; rescale spin to the real radius so the
+			// roll matches ground speed (pose.wheelSpin = distance / WheelRadius). Front and rear get
+			// separate spins so a stationary donut spins ONLY the rears (front = wheelSpin, rear =
+			// rearWheelSpin which carries the burnout).
+			const radiusScale = WheelRadius / (car.glbWheelRadius || WheelRadius);
+			const glbSpin = pose.wheelSpin * radiusScale;
+			const glbRearSpin = pose.rearWheelSpin * radiusScale;
+
+			for (let i = 0; i < car.glbWheels.length; i++) {
+				const w = car.glbWheels[i];
+				const mesh = car.glbWheelMeshes[i];
+				if (!w || !mesh) continue;
+
+				const susp = pose.suspension[i] ?? 0;
+
+				let wheelMatrix = Mat4.identity();
+				wheelMatrix = Mat4.translate(wheelMatrix, w.mountX, w.mountY + susp, w.mountZ);
+				if (w.front) wheelMatrix = Mat4.yRotate(wheelMatrix, pose.steerAngle);
+				wheelMatrix = Mat4.zRotate(wheelMatrix, w.front ? glbSpin : glbRearSpin);
+
+				drawPart(i + 1, Mat4.multiply(carMatrix, wheelMatrix), mesh);
+			}
+
+			return;
+		}
+
+		// Body (leans on its springs; wheels below stay on the ground).
+		drawPart(0, bodyMatrix, car.bodyMesh);
+
+		// Four wheels, each = carMatrix * (translate to mount + suspension) * steer(Y) * spin(Z).
+		// The wheel mesh is centred on its axle, so spin is a clean Z-rotation.
+		for (let i = 0; i < CarWheelMounts.length; i++) {
+			const mount = CarWheelMounts[i];
+			const susp = pose.suspension[i] ?? 0;
+
+			let wheelMatrix = Mat4.identity();
+			wheelMatrix = Mat4.translate(wheelMatrix, mount.x, WheelRadius + susp, mount.z);
+
+			if (mount.front) {
+				wheelMatrix = Mat4.yRotate(wheelMatrix, pose.steerAngle);
+			}
+
+			// Front = rolling spin; rear = rearWheelSpin (carries the stationary-donut burnout).
+			wheelMatrix = Mat4.zRotate(wheelMatrix, mount.front ? pose.wheelSpin : pose.rearWheelSpin);
+
+			const fullMatrix = Mat4.multiply(carMatrix, wheelMatrix);
+
+			drawPart(i + 1, fullMatrix, car.wheelMesh);
+		}
+	}
+
 	private writeToObjectIdBuffer(): void {
 		const mainRenderPass = this.getPhysicalResource('GBufferRenderPass');
 		mainRenderPass.readColorAttachmentPixel(4, this.objectIdBuffer, this.objectIdX, this.objectIdY);
@@ -545,6 +681,7 @@ export default class GBufferPass extends Pass<{
 		this.renderProjectedMeshes();
 		this.renderHuggingMeshes();
 		this.renderInstances(instancesOrigin);
+		this.renderCar(instancesOrigin);
 		this.writeToObjectIdBuffer();
 
 		this.saveCameraMatrixWorldInverse();

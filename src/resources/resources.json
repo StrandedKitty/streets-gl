@@ -201,6 +201,7 @@
 	"treeOakNormal": {"url": "/models/tree/oak_normal.png", "type": "image"},
 
 	"tree": {"url": "/models/tree/tree.glb", "type": "gltf"},
+	"carGLB": {"url": "/models/car/car.glb", "type": "gltf"},
 	"aircraftB777": {"url": "/models/b777/b777.glb", "type": "gltf"},
 	"aircraftB777Diffuse": {"url": "/models/b777/diffuse.png", "type": "image"},
 	"aircraftB777Normal": {"url": "/models/b777/normal.png", "type": "image"},

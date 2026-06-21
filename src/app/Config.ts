@@ -5,7 +5,7 @@ const Config = {
 	MaxConcurrentTiles: 150,
 	MaxTilesPerWorker: 1,
 	WorkersCount: Math.min(4, navigator.hardwareConcurrency),
-	StartPosition: {lat: 40.76494, lon: -73.97860, pitch: 45, yaw: 0, distance: 2000},
+	StartPosition: {lat: 37.8199, lon: -122.4783, pitch: 45, yaw: 0, distance: 2000}, // Golden Gate Bridge (Strata)
 	MinCameraDistance: 10,
 	MaxCameraDistance: 4000,
 	SlippyMapTransitionDuration: 400,

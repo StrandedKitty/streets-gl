@@ -18,4 +18,6 @@ export default interface UISystemState {
 	settingsSchema: SettingsSchema;
 	overpassEndpoints: OverpassEndpoint[];
 	dataTimestamp: Date;
+	driveActive: boolean;
+	driveSpeed: number;
 }

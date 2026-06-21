@@ -1,0 +1,6 @@
+car.glb — "Bugatti Veyron fully rigged" by NoOb StUfFs
+Source: https://skfb.ly/oytyO
+License: Creative Commons Attribution 4.0 (CC-BY 4.0) — http://creativecommons.org/licenses/by/4.0/
+
+Used on the Strata product branch only (CC-BY attribution). The upstream
+drive-mode PR ships the procedural box (CC0) as the default + fallback.

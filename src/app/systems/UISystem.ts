@@ -34,7 +34,9 @@ export default class UISystem extends System {
 		northDirection: 0,
 		settingsSchema: {},
 		overpassEndpoints: [],
-		dataTimestamp: null
+		dataTimestamp: null,
+		driveActive: false,
+		driveSpeed: 0
 	};
 	private fpsUpdateTimer = 0;
 
@@ -211,6 +213,15 @@ export default class UISystem extends System {
 		}
 	}
 
+	private updateDriveState(): void {
+		const controlsSystem = this.systemManager.getSystem(ControlsSystem);
+		if (controlsSystem) {
+			const active = controlsSystem.isDriveActive;
+			this.ui.setStateFieldValue('driveActive', active);
+			this.ui.setStateFieldValue('driveSpeed', active ? controlsSystem.getDriveSpeed() : 0);
+		}
+	}
+
 	private updateOverpassEndpoints(): void {
 		const tileLoadingSystem = this.systemManager.getSystem(TileLoadingSystem);
 		if (tileLoadingSystem) {
@@ -241,5 +252,6 @@ export default class UISystem extends System {
 		this.updateMapTime(deltaTime);
 		this.updateOverpassEndpoints();
 		this.updateNorthDirection();
+		this.updateDriveState();
 	}
 }
